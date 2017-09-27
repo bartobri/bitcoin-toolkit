@@ -19,7 +19,7 @@ CLIBS ?= -lgmp -lgcrypt
 
 .PHONY: all install uninstall clean
 
-EXES = bitcoin btcaddress
+EXES = bitcoin btcaddress asciiaddress
 
 all: $(EXES)
 
