@@ -19,30 +19,30 @@ CLIBS ?= -lgmp -lgcrypt
 
 .PHONY: all install uninstall clean
 
-EXES = test
+EXES = bitcoin btcaddress asciiaddress
 
 all: $(EXES)
 
-test: $(OBJ)/bitcoin.o $(OBJ)/privkey.o $(OBJ)/random.o $(OBJ)/test.o | $(BIN)
+bitcoin: $(OBJ)/$(MODS)/keypair.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/main.o | $(BIN)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
+	
+btcaddress: $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/btcaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
-$(OBJ)/bitcoin.o: $(SRC)/modules/bitcoin.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/privkey.o: $(SRC)/modules/bitcoin/privkey.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/random.o: $(SRC)/modules/bitcoin/privkey/random.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
+asciiaddress: $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/asciiaddress.o | $(BIN)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BIN):
 	mkdir -p $(BIN)
 
 $(OBJ):
-	mkdir -p $(OBJ)
+	mkdir -p $(OBJ)/$(MODS)
 
 clean:
 	rm -rf $(BIN)
