@@ -23,7 +23,7 @@ EXES = test
 
 all: $(EXES)
 
-test: $(OBJ)/bitcoin.o $(OBJ)/privkey.o $(OBJ)/random.o $(OBJ)/test.o | $(BIN)
+test: $(OBJ)/bitcoin.o $(OBJ)/privkey.o $(OBJ)/pubkey.o $(OBJ)/random.o $(OBJ)/point.o $(OBJ)/test.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 $(OBJ)/bitcoin.o: $(SRC)/modules/bitcoin.c | $(OBJ)
@@ -32,7 +32,13 @@ $(OBJ)/bitcoin.o: $(SRC)/modules/bitcoin.c | $(OBJ)
 $(OBJ)/privkey.o: $(SRC)/modules/bitcoin/privkey.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+$(OBJ)/pubkey.o: $(SRC)/modules/bitcoin/pubkey.c | $(OBJ)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
 $(OBJ)/random.o: $(SRC)/modules/bitcoin/privkey/random.c | $(OBJ)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJ)/point.o: $(SRC)/modules/bitcoin/pubkey/point.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)

@@ -2,6 +2,5 @@
 #include "modules/bitcoin.h"
 
 int main(void) {
-	bitcoin_print_privkey();
-	printf("\n");
+	bitcoin_print_privkey_pubkey();
 }
