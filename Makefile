@@ -11,7 +11,7 @@ mandir = $(datarootdir)/man
 BIN=bin
 OBJ=obj
 SRC=src
-LISTS=lists
+MODS=modules
 
 CC ?= gcc
 CFLAGS ?= -Wextra -Wall -iquote$(SRC)
@@ -23,23 +23,26 @@ EXES = bitcoin btcaddress asciiaddress
 
 all: $(EXES)
 
-bitcoin: $(OBJ)/keypair.o $(OBJ)/point.o $(OBJ)/base58.o $(OBJ)/random.o $(OBJ)/main.o | $(BIN)
+bitcoin: $(OBJ)/$(MODS)/keypair.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/main.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 	
-btcaddress: $(OBJ)/address.o $(OBJ)/point.o $(OBJ)/base58.o $(OBJ)/random.o $(OBJ)/btcaddress.o | $(BIN)
+btcaddress: $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/btcaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
-asciiaddress: $(OBJ)/address.o $(OBJ)/point.o $(OBJ)/base58.o $(OBJ)/random.o $(OBJ)/asciiaddress.o | $(BIN)
+asciiaddress: $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/random.o $(OBJ)/asciiaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BIN):
 	mkdir -p $(BIN)
 
 $(OBJ):
-	mkdir -p $(OBJ)
+	mkdir -p $(OBJ)/$(MODS)
 
 clean:
 	rm -rf $(BIN)

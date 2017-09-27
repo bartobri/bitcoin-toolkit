@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "keypair.h"
+#include "modules/keypair.h"
 
 int main(void) {
 	KeyPair k = keypair_new();

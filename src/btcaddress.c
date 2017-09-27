@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "address.h"
+#include "modules/address.h"
 
 int main(void) {
 	unsigned char prv[PRIVATE_KEY_BYTES];
