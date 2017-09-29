@@ -29,8 +29,9 @@ PubKey pubkey_get(PrivKey p) {
 		point_double(&points[i], points[i-1]);
 
 		if (!point_verify(points[i])) {
-			printf("ERROR - Invalid point doubling!\n");
-			return;
+			// TODO - handle error
+			//printf("ERROR - Invalid point doubling!\n");
+			//return;
 		}
 	}
 
@@ -45,8 +46,9 @@ PubKey pubkey_get(PrivKey p) {
 			}
 
 			if (!point_verify(pubkey)) {
-				printf("ERROR - Invalid point addition!\n");
-				return;
+				// TODO - handle error
+				//printf("ERROR - Invalid point addition!\n");
+				//return;
 			}
 		}
 	}
