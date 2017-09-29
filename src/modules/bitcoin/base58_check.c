@@ -42,8 +42,8 @@ char *base58_check_encode(unsigned char *s, size_t l) {
 	
 	// Free memory
 	free(scheck);
-	free(sha1);
-	free(sha2);
+	//free(sha1);  // TODO - why can't i free these?
+	//free(sha2);
 	
 	// Free gcrypt variables
 	gcry_md_close(h1);
