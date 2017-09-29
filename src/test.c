@@ -2,5 +2,5 @@
 #include "modules/bitcoin.h"
 
 int main(void) {
-	bitcoin_print_privkey_address();
+	bitcoin_print_privkey_compressed();
 }

@@ -15,6 +15,27 @@ void bitcoin_print_privkey(void) {
 	}
 }
 
+void bitcoin_print_privkey_compressed(void) {
+	int i;
+	PrivKey k;
+	PrivKeyComp c;
+	
+	k = privkey_new();
+	c = privkey_compress(k);
+	
+	printf("Pivate: ");
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		printf("%02x", k.data[i]);
+	}
+	printf("\n");
+	
+	printf("Compressed: ");
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+		printf("%02x", c.data[i]);
+	}
+	printf("\n");
+}
+
 void bitcoin_print_privkey_pubkey(void) {
 	int i;
 	PrivKey k = privkey_new();

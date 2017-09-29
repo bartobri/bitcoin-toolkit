@@ -29,3 +29,15 @@ PrivKey privkey_new(void) {
 	
 	return k;
 }
+
+PrivKeyComp privkey_compress(PrivKey p) {
+	int i;
+	PrivKeyComp r;
+	
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		r.data[i] = p.data[i];
+	}
+	r.data[i] = 0x01;
+	
+	return r;
+}
