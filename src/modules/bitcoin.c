@@ -37,6 +37,7 @@ void bitcoin_print_privkey_address(void) {
 	PrivKey k;
 	PubKey p;
 	unsigned char *d;
+	unsigned char d2[21];
 	
 	// Get keys
 	k = privkey_new();
@@ -46,10 +47,10 @@ void bitcoin_print_privkey_address(void) {
 	d = crypto_get_rmd160(crypto_get_sha256(p.data, PUBKEY_LENGTH), 32);
 
 	// Prepend address version bit
-	for (i = 20; i > 0; --i) {
-		d[i] = d[i-1];
+	d2[0] = ADDRESS_VERSION_BIT;
+	for (i = 0; i < 20; ++i) {
+		d2[i+1] = d[i];
 	}
-	d[0] = ADDRESS_VERSION_BIT;
 
 	// Print
 	printf("Private: ");
@@ -58,5 +59,5 @@ void bitcoin_print_privkey_address(void) {
 	}
 	printf("\n");
 	
-	printf("Address: %s\n", base58_check_encode(d, 21));
+	printf("Address: %s\n", base58_check_encode(d2, 21));
 }

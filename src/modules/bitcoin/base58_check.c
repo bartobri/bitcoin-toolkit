@@ -20,6 +20,11 @@ char *base58_check_encode(unsigned char *s, size_t l) {
 	if ((scheck = malloc(l + CHECKSUM_LENGTH)) == NULL) {
 		// TODO: handle error
 	}
+	
+	// Copy s to scheck
+	for (i = 0; i < l; ++i) {
+		scheck[i] = s[i];
+	}
 
 	// SHA256(SHA256(s))
 	for (i = 0; i < l; ++i) {
