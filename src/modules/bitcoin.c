@@ -5,6 +5,8 @@
 #include "bitcoin/base58_check.h"
 
 #define ADDRESS_VERSION_BIT 0x00
+#define MAINNET_PREFIX      0x80
+#define TESTNET_PREFIX      0xEF
 
 void bitcoin_print_privkey(void) {
 	int i;
@@ -34,6 +36,30 @@ void bitcoin_print_privkey_compressed(void) {
 		printf("%02x", c.data[i]);
 	}
 	printf("\n");
+}
+
+void bitcoin_print_privkey_wif(void) {
+	int i;
+	PrivKey k;
+	unsigned char kp[PRIVKEY_LENGTH + 1];
+	char *wif;
+	
+	k = privkey_new();
+
+	kp[0] = MAINNET_PREFIX;
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		kp[i+1] = k.data[i];
+	}
+	
+	wif = base58_check_encode(kp, PRIVKEY_LENGTH + 1);
+	
+	printf("Pivate: ");
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		printf("%02x", k.data[i]);
+	}
+	printf("\n");
+	
+	printf("WIF: %s\n", wif);
 }
 
 void bitcoin_print_privkey_pubkey(void) {
