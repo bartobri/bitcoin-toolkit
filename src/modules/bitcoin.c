@@ -158,3 +158,37 @@ void bitcoin_print_privkey_address(void) {
 	
 	printf("Address: %s\n", base58_check_encode(d2, 21));
 }
+
+void bitcoin_print_privkey_compressed_address_compressed(void) {
+	size_t i;
+	PrivKey k;
+	PrivKeyComp kc;
+	PubKey p;
+	PubKeyComp pc;
+	
+	unsigned char *d;
+	unsigned char d2[21];
+	
+	k = privkey_new();
+	kc = privkey_compress(k);
+	p = pubkey_get(k);
+	pc = pubkey_compress(p);
+
+	// Crypto
+	d = crypto_get_rmd160(crypto_get_sha256(pc.data, PUBKEY_COMP_LENGTH), 32);
+
+	// Prepend address version bit
+	d2[0] = ADDRESS_VERSION_BIT;
+	for (i = 0; i < 20; ++i) {
+		d2[i+1] = d[i];
+	}
+
+	// Print
+	printf("Private Compressed: ");
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+		printf("%02x", kc.data[i]);
+	}
+	printf("\n");
+	
+	printf("Address Compressed: %s\n", base58_check_encode(d2, 21));
+}
