@@ -62,6 +62,32 @@ void bitcoin_print_privkey_wif(void) {
 	printf("WIF: %s\n", wif);
 }
 
+void bitcoin_print_privkey_compressed_wif(void) {
+	int i;
+	PrivKey k;
+	PrivKeyComp c;
+	unsigned char cp[PRIVKEY_COMP_LENGTH + 1];
+	char *wif;
+	
+	k = privkey_new();
+	c = privkey_compress(k);
+
+	cp[0] = MAINNET_PREFIX;
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+		cp[i+1] = c.data[i];
+	}
+	
+	wif = base58_check_encode(cp, PRIVKEY_COMP_LENGTH + 1);
+	
+	printf("Pivate: ");
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+		printf("%02x", c.data[i]);
+	}
+	printf("\n");
+	
+	printf("WIF: %s\n", wif);
+}
+
 void bitcoin_print_privkey_pubkey(void) {
 	int i;
 	PrivKey k = privkey_new();
