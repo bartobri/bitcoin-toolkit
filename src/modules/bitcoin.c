@@ -105,6 +105,30 @@ void bitcoin_print_privkey_pubkey(void) {
 	printf("\n");
 }
 
+void bitcoin_print_privkey_compressed_pubkey_compressed(void) {
+	int i;
+	PrivKey k;
+	PrivKeyComp kc;
+	PubKey p;
+	PubKeyComp pc;
+	
+	k = privkey_new();
+	kc = privkey_compress(k);
+	
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+		printf("%02x", kc.data[i]);
+	}
+	printf("\n");
+	
+	p = pubkey_get(k);
+	pc = pubkey_compress(p);
+	
+	for (i = 0; i < PUBKEY_COMP_LENGTH; ++i) {
+		printf("%02x", pc.data[i]);
+	}
+	printf("\n");
+}
+
 void bitcoin_print_privkey_address(void) {
 	size_t i;
 	PrivKey k;

@@ -81,3 +81,28 @@ PubKey pubkey_get(PrivKey p) {
 	
 	return r;
 }
+
+PubKeyComp pubkey_compress(PubKey k) {
+	mpz_t x, y;
+	size_t point_length = 32;
+	PubKeyComp p;
+	
+	mpz_init(x);
+	mpz_init(y);
+	
+	mpz_import(x, point_length, 1, 1, 1, 0, k.data + 1);
+	mpz_import(y, point_length, 1, 1, 1, 0, k.data + 33);
+	
+	if (mpz_even_p(y)) {
+		p.data[0] = 0x02;
+	} else {
+		p.data[0] = 0x03;
+	}
+	
+	mpz_export(p.data + 1, &point_length, 1, 1, 1, 0, x);
+	
+	mpz_clear(x);
+	mpz_clear(y);
+	
+	return p;
+}

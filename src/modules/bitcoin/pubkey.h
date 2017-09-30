@@ -4,11 +4,17 @@
 #include "privkey.h"
 
 #define PUBKEY_LENGTH 65
+#define PUBKEY_COMP_LENGTH 33
 
 typedef struct {
 	unsigned char data[PUBKEY_LENGTH];
 } PubKey;
 
-PubKey pubkey_get(PrivKey);
+typedef struct {
+	unsigned char data[PUBKEY_COMP_LENGTH];
+} PubKeyComp;
+
+PubKey     pubkey_get(PrivKey);
+PubKeyComp pubkey_compress(PubKey);
 
 #endif

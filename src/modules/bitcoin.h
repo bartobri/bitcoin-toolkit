@@ -7,5 +7,6 @@ void bitcoin_print_privkey_address(void);
 void bitcoin_print_privkey_compressed(void);
 void bitcoin_print_privkey_wif(void);
 void bitcoin_print_privkey_compressed_wif(void);
+void bitcoin_print_privkey_compressed_pubkey_compressed(void);
 
 #endif
