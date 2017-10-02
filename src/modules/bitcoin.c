@@ -2,7 +2,7 @@
 #include "bitcoin/privkey.h"
 #include "bitcoin/pubkey.h"
 #include "bitcoin/crypto.h"
-#include "bitcoin/base58_check.h"
+#include "bitcoin/base58check.h"
 
 #define ADDRESS_VERSION_BIT 0x00
 #define MAINNET_PREFIX      0x80

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <gcrypt.h>
-#include "base58_check/base58.h"
+#include "base58check/base58.h"
 
 #define CHECKSUM_LENGTH 4
 
