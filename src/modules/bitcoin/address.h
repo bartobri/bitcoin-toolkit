@@ -4,5 +4,6 @@
 #include "pubkey.h"
 
 char *address_get(PubKey);
+char *address_get_compressed(PubKeyComp);
 
 #endif
