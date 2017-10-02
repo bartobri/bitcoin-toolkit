@@ -4,7 +4,7 @@
 
 #define CHECKSUM_LENGTH 4
 
-char *base58_check_encode(unsigned char *s, size_t l) {
+char *base58check_encode(unsigned char *s, size_t l) {
 	size_t i;
 	gcry_md_hd_t h1, h2;
 	unsigned char *scheck;

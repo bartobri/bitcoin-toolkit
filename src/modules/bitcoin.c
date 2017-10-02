@@ -51,7 +51,7 @@ void bitcoin_print_privkey_wif(void) {
 		kp[i+1] = k.data[i];
 	}
 	
-	wif = base58_check_encode(kp, PRIVKEY_LENGTH + 1);
+	wif = base58check_encode(kp, PRIVKEY_LENGTH + 1);
 	
 	printf("Pivate: ");
 	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
@@ -77,7 +77,7 @@ void bitcoin_print_privkey_compressed_wif(void) {
 		cp[i+1] = c.data[i];
 	}
 	
-	wif = base58_check_encode(cp, PRIVKEY_COMP_LENGTH + 1);
+	wif = base58check_encode(cp, PRIVKEY_COMP_LENGTH + 1);
 	
 	printf("Pivate: ");
 	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
@@ -156,7 +156,7 @@ void bitcoin_print_privkey_address(void) {
 	}
 	printf("\n");
 	
-	printf("Address: %s\n", base58_check_encode(d2, 21));
+	printf("Address: %s\n", base58check_encode(d2, 21));
 }
 
 void bitcoin_print_privkey_compressed_address_compressed(void) {
@@ -190,5 +190,5 @@ void bitcoin_print_privkey_compressed_address_compressed(void) {
 	}
 	printf("\n");
 	
-	printf("Address Compressed: %s\n", base58_check_encode(d2, 21));
+	printf("Address Compressed: %s\n", base58check_encode(d2, 21));
 }
