@@ -3,6 +3,7 @@
 #include "bitcoin/pubkey.h"
 #include "bitcoin/crypto.h"
 #include "bitcoin/base58check.h"
+#include "bitcoin/address.h"
 
 #define ADDRESS_VERSION_BIT 0x00
 #define MAINNET_PREFIX      0x80
@@ -191,4 +192,25 @@ void bitcoin_print_privkey_compressed_address_compressed(void) {
 	printf("\n");
 	
 	printf("Address Compressed: %s\n", base58check_encode(d2, 21));
+}
+
+void bitcoin_test(void) {
+	int i;
+	PrivKey k;
+	PubKey p;
+	char *address;
+	
+	k = privkey_new();
+	p = pubkey_get(k);
+	
+	address = address_get(p);
+	
+	// Print
+	printf("Private: ");
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		printf("%02x", k.data[i]);
+	}
+	printf("\n");
+	
+	printf("Address: %s\n", address);
 }
