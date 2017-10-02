@@ -16,5 +16,6 @@ typedef struct {
 
 PubKey     pubkey_get(PrivKey);
 PubKeyComp pubkey_compress(PubKey);
+PubKeyComp pubkey_get_compressed(PrivKeyComp);
 
 #endif

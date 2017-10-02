@@ -20,12 +20,20 @@ void bitcoin_print_privkey(void) {
 void bitcoin_print_privkey_compressed(void) {
 	int i;
 	PrivKeyComp c;
+	PubKeyComp p;
 
 	c = privkey_new_compressed();
+	p = pubkey_get_compressed(c);
 	
-	printf("Compressed: ");
+	printf("Compressed Priv: ");
 	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
 		printf("%02x", c.data[i]);
+	}
+	printf("\n");
+	
+	printf("Compressed Pub: ");
+	for (i = 0; i < PUBKEY_COMP_LENGTH; ++i) {
+		printf("%02x", p.data[i]);
 	}
 	printf("\n");
 }

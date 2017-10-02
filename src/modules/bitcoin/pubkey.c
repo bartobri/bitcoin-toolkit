@@ -106,3 +106,17 @@ PubKeyComp pubkey_compress(PubKey k) {
 	
 	return p;
 }
+
+PubKeyComp pubkey_get_compressed(PrivKeyComp k) {
+	int i;
+	PrivKey t;
+	PubKeyComp p;
+	
+	for (i = 0; i < PRIVKEY_COMP_LENGTH - 1; ++i) {
+		t.data[i] = k.data[i];
+	}
+	
+	p = pubkey_compress(pubkey_get(t));
+	
+	return p;
+}
