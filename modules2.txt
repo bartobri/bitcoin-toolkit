@@ -1,7 +1,0 @@
-bitcoin
-	privkey
-		random
-	pubkey
-		point
-	base58_check
-		base58
