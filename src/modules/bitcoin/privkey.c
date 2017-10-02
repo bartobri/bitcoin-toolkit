@@ -41,3 +41,13 @@ PrivKeyComp privkey_compress(PrivKey p) {
 	
 	return r;
 }
+
+PrivKeyComp privkey_new_compressed(void) {
+	PrivKey k;
+	PrivKeyComp c;
+	
+	k = privkey_new();
+	c = privkey_compress(k);
+	
+	return c;
+}

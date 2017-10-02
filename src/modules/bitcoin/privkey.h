@@ -14,5 +14,6 @@ typedef struct {
 
 PrivKey     privkey_new(void);
 PrivKeyComp privkey_compress(PrivKey);
+PrivKeyComp privkey_new_compressed(void);
 
 #endif
