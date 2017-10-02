@@ -197,15 +197,15 @@ void bitcoin_print_privkey_compressed_address_compressed(void) {
 
 void bitcoin_test(void) {
 	int i;
-	PrivKey k;
+	PrivKeyComp k;
 	char *wif;
 	
-	k = privkey_new();
-	wif = wif_get(k);
+	k = privkey_new_compressed();
+	wif = wif_get_compressed(k);
 	
 	// Print
 	printf("Private: ");
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
 		printf("%02x", k.data[i]);
 	}
 	printf("\n");
