@@ -24,5 +24,9 @@ int main(void) {
 	printf("Private Key Compressed: %s\n", privkey_compressed_to_hex(priv_comp));
 	printf("Public Key: %s\n", pubkey_to_hex(pub));
 	printf("Public Key Compressed: %s\n", pubkey_compressed_to_hex(pub_comp));
+	printf("Address: %s\n", address_get(pub));
+	printf("Address Compressed: %s\n", address_get_compressed(pub_comp));
+	printf("WIF: %s\n", wif_get(priv));
+	printf("WIF Compressed: %s\n", wif_get_compressed(priv_comp));
 
 }
