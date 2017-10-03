@@ -47,7 +47,7 @@ $(OBJ)/address.o: $(SRC)/modules/bitcoin/address.c | $(OBJ)
 $(OBJ)/wif.o: $(SRC)/modules/bitcoin/wif.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(OBJ)/random.o: $(SRC)/modules/bitcoin/privkey/random.c | $(OBJ)
+$(OBJ)/random.o: $(SRC)/modules/bitcoin/random.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/point.o: $(SRC)/modules/bitcoin/point.c | $(OBJ)

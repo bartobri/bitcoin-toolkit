@@ -1,6 +1,6 @@
 #include <gmp.h>
 #include "privkey.h"
-#include "privkey/random.h"
+#include "random.h"
 
 // Private keys can not be larger than (1.158 * 10^77) - 1
 #define PRIVKEY_MAX "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
