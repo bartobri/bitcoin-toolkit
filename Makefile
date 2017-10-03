@@ -11,7 +11,7 @@ mandir = $(datarootdir)/man
 BIN=bin
 OBJ=obj
 SRC=src
-MODS=modules
+MODS=mods
 
 CC ?= gcc
 CFLAGS ?= -Wextra -Wall -iquote$(SRC)
@@ -23,37 +23,10 @@ EXES = test
 
 all: $(EXES)
 
-test: $(OBJ)/bitcoin.o $(OBJ)/privkey.o $(OBJ)/pubkey.o $(OBJ)/base58check.o $(OBJ)/crypto.o $(OBJ)/address.o $(OBJ)/wif.o $(OBJ)/random.o $(OBJ)/point.o $(OBJ)/base58.o $(OBJ)/test.o | $(BIN)
+test: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/test.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
-$(OBJ)/bitcoin.o: $(SRC)/modules/bitcoin.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/privkey.o: $(SRC)/modules/bitcoin/privkey.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/pubkey.o: $(SRC)/modules/bitcoin/pubkey.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/base58check.o: $(SRC)/modules/bitcoin/base58check.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/crypto.o: $(SRC)/modules/bitcoin/crypto.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/address.o: $(SRC)/modules/bitcoin/address.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/wif.o: $(SRC)/modules/bitcoin/wif.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/random.o: $(SRC)/modules/bitcoin/random.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/point.o: $(SRC)/modules/bitcoin/point.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-$(OBJ)/base58.o: $(SRC)/modules/bitcoin/base58.c | $(OBJ)
+$(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
@@ -64,6 +37,7 @@ $(BIN):
 
 $(OBJ):
 	mkdir -p $(OBJ)
+	mkdir -p $(OBJ)/$(MODS)
 
 clean:
 	rm -rf $(BIN)
