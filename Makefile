@@ -53,7 +53,7 @@ $(OBJ)/random.o: $(SRC)/modules/bitcoin/random.c | $(OBJ)
 $(OBJ)/point.o: $(SRC)/modules/bitcoin/point.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(OBJ)/base58.o: $(SRC)/modules/bitcoin/base58check/base58.c | $(OBJ)
+$(OBJ)/base58.o: $(SRC)/modules/bitcoin/base58.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
