@@ -141,3 +141,22 @@ char *pubkey_to_hex(PubKey k) {
 	
 	return r;
 }
+
+char *pubkey_compressed_to_hex(PubKeyComp k) {
+	int i;
+	char *r;
+	
+	r = malloc((PUBKEY_COMP_LENGTH * 2) + 1);
+	
+	if (r == NULL) {
+		return r;
+	} else {
+		memset(r, 0, sizeof(*r));
+	}
+	
+	for (i = 0; i < PUBKEY_COMP_LENGTH; ++i) {
+		sprintf(r + (i * 2), "%02x", k.data[i]);
+	}
+	
+	return r;
+}

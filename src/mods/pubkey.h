@@ -18,5 +18,6 @@ PubKey     pubkey_get(PrivKey);
 PubKeyComp pubkey_compress(PubKey);
 PubKeyComp pubkey_get_compressed(PrivKeyComp);
 char      *pubkey_to_hex(PubKey);
+char      *pubkey_compressed_to_hex(PubKeyComp);
 
 #endif
