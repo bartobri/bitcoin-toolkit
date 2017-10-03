@@ -2,7 +2,7 @@
 #include <gmp.h>
 #include "pubkey.h"
 #include "privkey.h"
-#include "pubkey/point.h"
+#include "point.h"
 
 // TODO - proper error handling
 PubKey pubkey_get(PrivKey p) {

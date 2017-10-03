@@ -50,7 +50,7 @@ $(OBJ)/wif.o: $(SRC)/modules/bitcoin/wif.c | $(OBJ)
 $(OBJ)/random.o: $(SRC)/modules/bitcoin/privkey/random.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(OBJ)/point.o: $(SRC)/modules/bitcoin/pubkey/point.c | $(OBJ)
+$(OBJ)/point.o: $(SRC)/modules/bitcoin/point.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/base58.o: $(SRC)/modules/bitcoin/base58check/base58.c | $(OBJ)
