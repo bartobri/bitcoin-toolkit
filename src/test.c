@@ -10,14 +10,10 @@
 #include "mods/wif.h"
 
 int main(void) {
-	size_t i;
 	PrivKey priv;
 	
 	priv = privkey_new();
 	
-	printf("Private Key: ");
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		printf("%02x", priv.data[i]);
-	}
-	printf("\n");
+	printf("Private Key: %s\n", privkey_to_hex(priv));
+
 }

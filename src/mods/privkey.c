@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <gmp.h>
 #include "privkey.h"
 #include "random.h"
@@ -50,4 +53,23 @@ PrivKeyComp privkey_new_compressed(void) {
 	c = privkey_compress(k);
 	
 	return c;
+}
+
+char *privkey_to_hex(PrivKey k) {
+	int i;
+	char *r;
+	
+	r = malloc((PRIVKEY_LENGTH * 2) + 1);
+	
+	if (r == NULL) {
+		return r;
+	} else {
+		memset(r, 0, sizeof(*r));
+	}
+	
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		sprintf(r + (i * 2), "%02x", k.data[i]);
+	}
+	
+	return r;
 }
