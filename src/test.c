@@ -12,11 +12,14 @@
 int main(void) {
 	PrivKey priv;
 	PrivKeyComp priv_comp;
+	PubKey pub;
 	
 	priv = privkey_new();
 	priv_comp = privkey_compress(priv);
+	pub = pubkey_get(priv);
 	
 	printf("Private Key: %s\n", privkey_to_hex(priv));
 	printf("Private Key Compressed: %s\n", privkey_compressed_to_hex(priv_comp));
+	printf("Public Key: %s\n", pubkey_to_hex(pub));
 
 }

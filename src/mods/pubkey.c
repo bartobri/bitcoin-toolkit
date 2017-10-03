@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <gmp.h>
 #include "pubkey.h"
 #include "privkey.h"
@@ -119,4 +121,23 @@ PubKeyComp pubkey_get_compressed(PrivKeyComp k) {
 	p = pubkey_compress(pubkey_get(t));
 	
 	return p;
+}
+
+char *pubkey_to_hex(PubKey k) {
+	int i;
+	char *r;
+	
+	r = malloc((PUBKEY_LENGTH * 2) + 1);
+	
+	if (r == NULL) {
+		return r;
+	} else {
+		memset(r, 0, sizeof(*r));
+	}
+	
+	for (i = 0; i < PUBKEY_LENGTH; ++i) {
+		sprintf(r + (i * 2), "%02x", k.data[i]);
+	}
+	
+	return r;
 }
