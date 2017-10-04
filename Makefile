@@ -19,11 +19,14 @@ CLIBS ?= -lgmp -lgcrypt
 
 .PHONY: all install uninstall clean
 
-EXES = test
+EXES = test asciiaddress
 
 all: $(EXES)
 
 test: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/test.o | $(BIN)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
+
+asciiaddress: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/asciiaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 $(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)

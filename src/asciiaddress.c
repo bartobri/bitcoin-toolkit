@@ -1,40 +1,25 @@
 #include <stdio.h>
 #include <string.h>
-#include "modules/address.h"
+#include <limits.h>
+#include "mods/privkey.h"
+#include "mods/pubkey.h"
+#include "mods/address.h"
+#include "mods/wif.h"
 
 int main(void) {
-	unsigned char prv[PRIVATE_KEY_BYTES];
-	unsigned char pub[PUBLIC_KEY_BYTES];
-	int i = 0, c;
-	
-	memset(prv, 0, sizeof(prv));
-	memset(pub, 0, sizeof(pub));
+	size_t i;
+	int c;
+	PrivKeyComp key;
+
+	memset(key.data, 0, PRIVKEY_COMP_LENGTH);
 
 	// Geting input
-	while ((c = getchar()) != EOF) {
-		if (i < PRIVATE_KEY_BYTES) {
-			prv[i] = (unsigned int) c;
-		} else {
-			break;
-		}
-		++i;
+	for (i = 0; (c = getchar()) != EOF; i = (i + 1) % PRIVKEY_COMP_LENGTH) {	
+		key.data[i] = (unsigned char)(((int)key.data[i] + c) % UCHAR_MAX);
 	}
 	
-	//for (i = 0; i < PRIVATE_KEY_BYTES * 2; ++i) {
-	//	printf ("%c", prvhex[i]);
-	//}
-	//printf("\n");
-	
-	//for (i = 0; i < PRIVATE_KEY_BYTES; ++i) {
-	//	printf ("%02x", prv[i]);
-	//}
-	//printf("\n");
-	
-	address_get(prv, pub);
-	
-	address_print(pub);
-	
-	printf("\n");
+	printf("WIF: %s\n", wif_get_compressed(key));
+	printf("Address: %s\n", address_get_compressed(pubkey_get_compressed(key)));
 	
 	return 0;
 }
