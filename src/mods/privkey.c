@@ -93,6 +93,7 @@ char *privkey_compressed_to_hex(PrivKeyComp k) {
 	return r;
 }
 
+// TODO - needs error checking for invalid hex string
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	char l, r;
@@ -132,6 +133,7 @@ PrivKey privkey_from_hex(char *hex) {
 	return key;
 }
 
+// TODO - needs error checking for invalid hex string
 PrivKeyComp privkey_compressed_from_hex(char *hex) {
 	size_t i;
 	char l, r;
