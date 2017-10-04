@@ -29,4 +29,5 @@ int main(void) {
 	printf("WIF: %s\n", wif_get(priv));
 	printf("WIF Compressed: %s\n", wif_get_compressed(priv_comp));
 
+	printf("Private Key From Hex: %s\n", privkey_to_hex(privkey_from_hex(privkey_to_hex(priv))));
 }

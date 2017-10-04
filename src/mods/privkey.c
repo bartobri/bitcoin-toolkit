@@ -92,3 +92,42 @@ char *privkey_compressed_to_hex(PrivKeyComp k) {
 	
 	return r;
 }
+
+PrivKey privkey_from_hex(char *hex) {
+	size_t i;
+	char l, r;
+	PrivKey key;
+	
+	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
+		l = hex[i];
+		r = hex[i+1];
+		
+		// force lowercase
+		if (l >= 'A' && l <= 'F') {
+			l -= 55;
+		}
+		if (r >= 'A' && r <= 'F') {
+			r -= 55;
+		}
+		
+		// Deal with numbers
+		if (l >= '0' && l <= '9') {
+			l -= 48;
+		}
+		if (r >= '0' && r <= '9') {
+			r -= 48;
+		}
+		
+		// Deal with letters
+		if (l >= 'a' && l <= 'z') {
+			l -= 87;
+		}
+		if (r >= 'a' && r <= 'z') {
+			r -= 87;
+		}
+		
+		key.data[i/2] = (l << 4) + r;
+	}
+	
+	return key;
+}
