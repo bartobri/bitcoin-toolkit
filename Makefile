@@ -23,13 +23,13 @@ EXES = test asciiaddress btcaddress
 
 all: $(EXES)
 
-test: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/test.o | $(BIN)
+test: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/test.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
-asciiaddress: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/asciiaddress.o | $(BIN)
+asciiaddress: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/asciiaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
-btcaddress: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/btcaddress.o | $(BIN)
+btcaddress: $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/btcaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 $(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)

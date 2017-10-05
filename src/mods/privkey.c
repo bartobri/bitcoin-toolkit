@@ -4,6 +4,7 @@
 #include <gmp.h>
 #include "privkey.h"
 #include "random.h"
+#include "hex.h"
 
 // Private keys can not be larger than (1.158 * 10^77) - 1
 #define PRIVKEY_MAX "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
@@ -96,38 +97,10 @@ char *privkey_compressed_to_hex(PrivKeyComp k) {
 // TODO - needs error checking for invalid hex string
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
-	char l, r;
 	PrivKey key;
 	
 	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
-		l = hex[i];
-		r = hex[i+1];
-		
-		// force lowercase
-		if (l >= 'A' && l <= 'F') {
-			l -= 55;
-		}
-		if (r >= 'A' && r <= 'F') {
-			r -= 55;
-		}
-		
-		// Deal with numbers
-		if (l >= '0' && l <= '9') {
-			l -= 48;
-		}
-		if (r >= '0' && r <= '9') {
-			r -= 48;
-		}
-		
-		// Deal with letters
-		if (l >= 'a' && l <= 'z') {
-			l -= 87;
-		}
-		if (r >= 'a' && r <= 'z') {
-			r -= 87;
-		}
-		
-		key.data[i/2] = (l << 4) + r;
+		key.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
 	}
 	
 	return key;
@@ -136,38 +109,10 @@ PrivKey privkey_from_hex(char *hex) {
 // TODO - needs error checking for invalid hex string
 PrivKeyComp privkey_compressed_from_hex(char *hex) {
 	size_t i;
-	char l, r;
 	PrivKeyComp key;
 	
 	for (i = 0; i < PRIVKEY_COMP_LENGTH * 2; i += 2) {
-		l = hex[i];
-		r = hex[i+1];
-		
-		// force lowercase
-		if (l >= 'A' && l <= 'F') {
-			l -= 55;
-		}
-		if (r >= 'A' && r <= 'F') {
-			r -= 55;
-		}
-		
-		// Deal with numbers
-		if (l >= '0' && l <= '9') {
-			l -= 48;
-		}
-		if (r >= '0' && r <= '9') {
-			r -= 48;
-		}
-		
-		// Deal with letters
-		if (l >= 'a' && l <= 'z') {
-			l -= 87;
-		}
-		if (r >= 'a' && r <= 'z') {
-			r -= 87;
-		}
-		
-		key.data[i/2] = (l << 4) + r;
+		key.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
 	}
 	
 	return key;
