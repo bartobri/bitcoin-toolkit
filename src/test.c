@@ -16,9 +16,13 @@ int main(void) {
 	
 	printf("Private Key: %s\n", privkey_to_hex(k));
 	
+	printf("Private From Hex: %s\n", privkey_to_hex(privkey_from_hex(privkey_to_hex(k))));
+	
 	k = privkey_compress(k);
 
 	printf("Compressed Private Key: %s\n", privkey_to_hex(k));
+	
+	printf("Compressed Private From Hex: %s\n", privkey_to_hex(privkey_from_hex(privkey_to_hex(k))));
 	
 	/*
 	PrivKey priv;

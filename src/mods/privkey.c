@@ -7,7 +7,9 @@
 #include "hex.h"
 
 // Private keys can not be larger than (1.158 * 10^77) - 1
-#define PRIVKEY_MAX "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
+#define PRIVKEY_MAX                "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
+#define PRIVKEY_COMPRESSED_FLAG    0x01
+#define PRIVKEY_UNCOMPRESSED_FLAG  0x00
 
 PrivKey privkey_new(void) {
 	int i;
@@ -31,25 +33,23 @@ PrivKey privkey_new(void) {
 	mpz_clear(max_key);
 	mpz_clear(cur_key);
 	
-	k.compressed = 0;
+	k.data[PRIVKEY_LENGTH] = PRIVKEY_UNCOMPRESSED_FLAG;
 	
 	return k;
 }
 
 PrivKey privkey_compress(PrivKey k) {
 
-	k.data[PRIVKEY_COMP_LENGTH - 1] = 0x01;
-	k.compressed = 1;
+	k.data[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
 
 	return k;
 }
 
 PrivKey privkey_new_compressed(void) {
 	PrivKey k;
-	
-	k = privkey_new();
-	k = privkey_compress(k);
-	
+
+	k = privkey_compress(privkey_new());
+
 	return k;
 }
 
@@ -57,7 +57,7 @@ char *privkey_to_hex(PrivKey k) {
 	int i;
 	char *r;
 	
-	r = malloc((PRIVKEY_COMP_LENGTH * 2) + 1);
+	r = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
 	
 	if (r == NULL) {
 		return r;
@@ -65,14 +65,11 @@ char *privkey_to_hex(PrivKey k) {
 		memset(r, 0, sizeof(*r));
 	}
 	
-	if (k.compressed) {
-		for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
-			sprintf(r + (i * 2), "%02x", k.data[i]);
-		}
-	} else {
-		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-			sprintf(r + (i * 2), "%02x", k.data[i]);
-		}
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		sprintf(r + (i * 2), "%02x", k.data[i]);
+	}
+	if (k.data[i] == PRIVKEY_COMPRESSED_FLAG) {
+		sprintf(r + (i * 2), "%02x", k.data[i]);
 	}
 	
 	return r;
@@ -83,16 +80,15 @@ PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
 	
-	if (strlen(hex) == PRIVKEY_LENGTH * 2) {
+	if (strlen(hex) >= PRIVKEY_LENGTH * 2) {
 		for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
 			k.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
 		}
-		k.compressed = 0;
-	} else if (strlen(hex) == PRIVKEY_COMP_LENGTH * 2) {
-		for (i = 0; i < PRIVKEY_COMP_LENGTH * 2; i += 2) {
-			k.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+		if (hex[i] != '\0' &&  hex[i+1] != '\0' && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
+			k.data[i/2] = PRIVKEY_COMPRESSED_FLAG;
+		} else {
+			k.data[i/2] = PRIVKEY_UNCOMPRESSED_FLAG;
 		}
-		k.compressed = 1;
 	} else {
 		// TODO - handle error here
 	}
