@@ -5,19 +5,14 @@
 #define PRIVKEY_COMP_LENGTH 33
 
 typedef struct {
-	unsigned char data[PRIVKEY_LENGTH];
+	unsigned char data[PRIVKEY_COMP_LENGTH];
+	int compressed;
 } PrivKey;
 
-typedef struct {
-	unsigned char data[PRIVKEY_COMP_LENGTH];
-} PrivKeyComp;
-
-PrivKey     privkey_new(void);
-PrivKeyComp privkey_compress(PrivKey);
-PrivKeyComp privkey_new_compressed(void);
-char       *privkey_to_hex(PrivKey);
-char       *privkey_compressed_to_hex(PrivKeyComp);
-PrivKey     privkey_from_hex(char *);
-PrivKeyComp privkey_compressed_from_hex(char *);
+PrivKey privkey_new(void);
+PrivKey privkey_compress(PrivKey);
+PrivKey privkey_new_compressed(void);
+char   *privkey_to_hex(PrivKey);
+PrivKey privkey_from_hex(char *);
 
 #endif

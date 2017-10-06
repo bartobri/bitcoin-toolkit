@@ -1,15 +1,26 @@
 #include <stdio.h>
-#include "mods/address.h"
-#include "mods/base58.h"
-#include "mods/base58check.h"
-#include "mods/crypto.h"
-#include "mods/point.h"
+//#include "mods/address.h"
+//#include "mods/base58.h"
+//#include "mods/base58check.h"
+//#include "mods/crypto.h"
+//#include "mods/point.h"
 #include "mods/privkey.h"
-#include "mods/pubkey.h"
-#include "mods/random.h"
-#include "mods/wif.h"
+//#include "mods/pubkey.h"
+//#include "mods/random.h"
+//#include "mods/wif.h"
 
 int main(void) {
+	PrivKey k;
+	
+	k = privkey_new();
+	
+	printf("Private Key: %s\n", privkey_to_hex(k));
+	
+	k = privkey_compress(k);
+
+	printf("Compressed Private Key: %s\n", privkey_to_hex(k));
+	
+	/*
 	PrivKey priv;
 	PrivKeyComp priv_comp;
 	PubKey pub;
@@ -31,4 +42,5 @@ int main(void) {
 
 	printf("Private Key From Hex: %s\n", privkey_to_hex(privkey_from_hex(privkey_to_hex(priv))));
 	printf("Private Key Compressed From Hex: %s\n", privkey_compressed_to_hex(privkey_compressed_from_hex(privkey_compressed_to_hex(priv_comp))));
+	*/
 }

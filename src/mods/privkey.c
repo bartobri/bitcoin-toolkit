@@ -31,51 +31,29 @@ PrivKey privkey_new(void) {
 	mpz_clear(max_key);
 	mpz_clear(cur_key);
 	
+	k.compressed = 0;
+	
 	return k;
 }
 
-PrivKeyComp privkey_compress(PrivKey p) {
-	int i;
-	PrivKeyComp r;
-	
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		r.data[i] = p.data[i];
-	}
-	r.data[i] = 0x01;
-	
-	return r;
+PrivKey privkey_compress(PrivKey k) {
+
+	k.data[PRIVKEY_COMP_LENGTH - 1] = 0x01;
+	k.compressed = 1;
+
+	return k;
 }
 
-PrivKeyComp privkey_new_compressed(void) {
+PrivKey privkey_new_compressed(void) {
 	PrivKey k;
-	PrivKeyComp c;
 	
 	k = privkey_new();
-	c = privkey_compress(k);
+	k = privkey_compress(k);
 	
-	return c;
+	return k;
 }
 
 char *privkey_to_hex(PrivKey k) {
-	int i;
-	char *r;
-	
-	r = malloc((PRIVKEY_LENGTH * 2) + 1);
-	
-	if (r == NULL) {
-		return r;
-	} else {
-		memset(r, 0, sizeof(*r));
-	}
-	
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		sprintf(r + (i * 2), "%02x", k.data[i]);
-	}
-	
-	return r;
-}
-
-char *privkey_compressed_to_hex(PrivKeyComp k) {
 	int i;
 	char *r;
 	
@@ -87,8 +65,14 @@ char *privkey_compressed_to_hex(PrivKeyComp k) {
 		memset(r, 0, sizeof(*r));
 	}
 	
-	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
-		sprintf(r + (i * 2), "%02x", k.data[i]);
+	if (k.compressed) {
+		for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
+			sprintf(r + (i * 2), "%02x", k.data[i]);
+		}
+	} else {
+		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+			sprintf(r + (i * 2), "%02x", k.data[i]);
+		}
 	}
 	
 	return r;
@@ -97,23 +81,21 @@ char *privkey_compressed_to_hex(PrivKeyComp k) {
 // TODO - needs error checking for invalid hex string
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
-	PrivKey key;
+	PrivKey k;
 	
-	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
-		key.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+	if (strlen(hex) == PRIVKEY_LENGTH * 2) {
+		for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
+			k.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+		}
+		k.compressed = 0;
+	} else if (strlen(hex) == PRIVKEY_COMP_LENGTH * 2) {
+		for (i = 0; i < PRIVKEY_COMP_LENGTH * 2; i += 2) {
+			k.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+		}
+		k.compressed = 1;
+	} else {
+		// TODO - handle error here
 	}
 	
-	return key;
-}
-
-// TODO - needs error checking for invalid hex string
-PrivKeyComp privkey_compressed_from_hex(char *hex) {
-	size_t i;
-	PrivKeyComp key;
-	
-	for (i = 0; i < PRIVKEY_COMP_LENGTH * 2; i += 2) {
-		key.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
-	}
-	
-	return key;
+	return k;
 }
