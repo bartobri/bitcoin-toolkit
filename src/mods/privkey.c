@@ -45,6 +45,13 @@ PrivKey privkey_compress(PrivKey k) {
 	return k;
 }
 
+PrivKey privkey_uncompress(PrivKey k) {
+
+	k.data[PRIVKEY_LENGTH] = PRIVKEY_UNCOMPRESSED_FLAG;
+
+	return k;
+}
+
 PrivKey privkey_new_compressed(void) {
 	PrivKey k;
 
