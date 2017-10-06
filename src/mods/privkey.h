@@ -12,5 +12,6 @@ PrivKey privkey_compress(PrivKey);
 PrivKey privkey_new_compressed(void);
 char   *privkey_to_hex(PrivKey);
 PrivKey privkey_from_hex(char *);
+int     privkey_is_compressed(PrivKey);
 
 #endif

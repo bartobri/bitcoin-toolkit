@@ -95,3 +95,9 @@ PrivKey privkey_from_hex(char *hex) {
 	
 	return k;
 }
+
+int privkey_is_compressed(PrivKey k) {
+	return (k.data[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
+}
+
+
