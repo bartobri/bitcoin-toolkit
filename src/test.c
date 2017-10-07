@@ -1,5 +1,5 @@
 #include <stdio.h>
-//#include "mods/address.h"
+#include "mods/address.h"
 //#include "mods/base58.h"
 //#include "mods/base58check.h"
 //#include "mods/crypto.h"
@@ -44,15 +44,15 @@ int main(void) {
 	
 	printf("Private Key: %s\n", privkey_to_hex(priv));
 	printf("Public Key: %s\n", pubkey_to_hex(pub));
+	printf("Address: %s\n", address_get(pub));
 	
 	priv = privkey_compress(priv);
 	pub = pubkey_get(priv);
 	
 	printf("Private Key Compressed: %s\n", privkey_to_hex(priv));
 	printf("Public Key Compressed: %s\n", pubkey_to_hex(pub));
+	printf("Address Compressed: %s\n", address_get(pub));
 
-	//printf("Address: %s\n", address_get(pub));
-	//printf("Address Compressed: %s\n", address_get_compressed(pub_comp));
 	//printf("WIF: %s\n", wif_get(priv));
 	//printf("WIF Compressed: %s\n", wif_get_compressed(priv_comp));
 
