@@ -100,27 +100,35 @@ PubKey pubkey_get(PrivKey k) {
 	return r;
 }
 
-PubKey pubkey_compress(PubKey p) {
+PubKey pubkey_compress(PubKey k) {
 	mpz_t y;
 	size_t point_length = 32;
 	
-	if (p.data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || p.data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
-		return p;
+	if (k.data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k.data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+		return k;
 	}
 
 	mpz_init(y);
 
-	mpz_import(y, point_length, 1, 1, 1, 0, p.data + 1 + point_length);
+	mpz_import(y, point_length, 1, 1, 1, 0, k.data + 1 + point_length);
 	
 	if (mpz_even_p(y)) {
-		p.data[0] = 0x02;
+		k.data[0] = 0x02;
 	} else {
-		p.data[0] = 0x03;
+		k.data[0] = 0x03;
 	}
 
 	mpz_clear(y);
 	
-	return p;
+	return k;
+}
+
+int pubkey_is_compressed(PubKey k) {
+	if (k.data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k.data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+		return 1;
+	}
+	
+	return 0;
 }
 
 char *pubkey_to_hex(PubKey k) {

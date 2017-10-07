@@ -12,6 +12,7 @@ typedef struct {
 
 PubKey pubkey_get(PrivKey);
 PubKey pubkey_compress(PubKey);
+int    pubkey_is_compressed(PubKey);
 char  *pubkey_to_hex(PubKey);
 
 #endif
