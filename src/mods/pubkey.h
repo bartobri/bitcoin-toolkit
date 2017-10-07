@@ -3,21 +3,15 @@
 
 #include "privkey.h"
 
-#define PUBKEY_LENGTH 65
-#define PUBKEY_COMP_LENGTH 33
+#define PUBKEY_UNCOMPRESSED_LENGTH 64
+#define PUBKEY_COMPRESSED_LENGTH   32
 
 typedef struct {
-	unsigned char data[PUBKEY_LENGTH];
+	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
 } PubKey;
 
-typedef struct {
-	unsigned char data[PUBKEY_COMP_LENGTH];
-} PubKeyComp;
-
-PubKey     pubkey_get(PrivKey);
-PubKeyComp pubkey_compress(PubKey);
-PubKeyComp pubkey_get_compressed(PrivKeyComp);
-char      *pubkey_to_hex(PubKey);
-char      *pubkey_compressed_to_hex(PubKeyComp);
+PubKey pubkey_get(PrivKey);
+PubKey pubkey_compress(PubKey);
+char  *pubkey_to_hex(PubKey);
 
 #endif

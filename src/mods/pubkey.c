@@ -6,8 +6,12 @@
 #include "privkey.h"
 #include "point.h"
 
+#define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
+#define PUBKEY_COMPRESSED_FLAG_ODD    0x03
+#define PUBKEY_UNCOMPRESSED_FLAG      0x04
+
 // TODO - proper error handling
-PubKey pubkey_get(PrivKey p) {
+PubKey pubkey_get(PrivKey k) {
 	size_t i, j;
 	mpz_t prvkey;
 	Point pubkey;
@@ -18,10 +22,10 @@ PubKey pubkey_get(PrivKey p) {
 	
 	point_init(&pubkey);
 
-	mpz_import(prvkey, PRIVKEY_LENGTH, 1, 1, 1, 0, p.data);
+	mpz_import(prvkey, PRIVKEY_LENGTH, 1, 1, 1, 0, k.data);
 	
 	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
-		point_init(&(points[i]));
+		point_init(points + i);
 	}
 
 	// Calculating public key
@@ -55,9 +59,19 @@ PubKey pubkey_get(PrivKey p) {
 		}
 	}
 	
+	// Setting compression flag
+	if (privkey_is_compressed(k)) {
+		if (mpz_even_p(pubkey.y)) {
+			r.data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
+		} else {
+			r.data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
+		}
+	} else {
+		r.data[0] = PUBKEY_UNCOMPRESSED_FLAG;
+	}
+
 	// Exporting x,y coordinates as byte string, making sure to write leading
 	// zeros if either exports as less than 32 bytes.
-	r.data[0] = 0x04;
 	mpz_export(r.data + 1, &i, 1, 1, 1, 0, pubkey.x);
 	while (i < 32) {
 		for (j = 32; j >= 2; --j) {
@@ -66,97 +80,72 @@ PubKey pubkey_get(PrivKey p) {
 		r.data[1] = 0x00;
 		++i;
 	}
-	mpz_export(r.data + 33, &i, 1, 1, 1, 0, pubkey.y);
-	while (i < 32) {
-		for (j = 64; j >= 34; --j) {
-			r.data[j] = r.data[j - 1];
+	if (!privkey_is_compressed(k)) {
+		mpz_export(r.data + 33, &i, 1, 1, 1, 0, pubkey.y);
+		while (i < 32) {
+			for (j = 64; j >= 34; --j) {
+				r.data[j] = r.data[j - 1];
+			}
+			r.data[33] = 0x00;
+			++i;
 		}
-		r.data[33] = 0x00;
-		++i;
 	}
-	
+
 	// Clear all points
 	mpz_clear(prvkey);
 	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
-		point_clear(&(points[i]));
+		point_clear(points + i);
 	}
 	
 	return r;
 }
 
-PubKeyComp pubkey_compress(PubKey k) {
-	mpz_t x, y;
+PubKey pubkey_compress(PubKey p) {
+	mpz_t y;
 	size_t point_length = 32;
-	PubKeyComp p;
 	
-	mpz_init(x);
+	if (p.data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || p.data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+		return p;
+	}
+
 	mpz_init(y);
-	
-	mpz_import(x, point_length, 1, 1, 1, 0, k.data + 1);
-	mpz_import(y, point_length, 1, 1, 1, 0, k.data + 33);
+
+	mpz_import(y, point_length, 1, 1, 1, 0, p.data + 1 + point_length);
 	
 	if (mpz_even_p(y)) {
 		p.data[0] = 0x02;
 	} else {
 		p.data[0] = 0x03;
 	}
-	
-	mpz_export(p.data + 1, &point_length, 1, 1, 1, 0, x);
-	
-	mpz_clear(x);
+
 	mpz_clear(y);
 	
 	return p;
 }
 
-PubKeyComp pubkey_get_compressed(PrivKeyComp k) {
-	int i;
-	PrivKey t;
-	PubKeyComp p;
-	
-	for (i = 0; i < PRIVKEY_COMP_LENGTH - 1; ++i) {
-		t.data[i] = k.data[i];
-	}
-	
-	p = pubkey_compress(pubkey_get(t));
-	
-	return p;
-}
-
 char *pubkey_to_hex(PubKey k) {
-	int i;
+	int i, l;
 	char *r;
 	
-	r = malloc((PUBKEY_LENGTH * 2) + 1);
-	
-	if (r == NULL) {
-		return r;
+	if (k.data[0] == PUBKEY_UNCOMPRESSED_FLAG) {
+		l = (PUBKEY_UNCOMPRESSED_LENGTH * 2) + 2;
+	} else if (k.data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k.data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+		l = (PUBKEY_COMPRESSED_LENGTH * 2) + 2;
 	} else {
-		memset(r, 0, sizeof(*r));
+		return NULL;
 	}
+
+	r = malloc(l + 1);
+	if (r == NULL) {
+		return NULL;
+	}
+
+	memset(r, 0, l + 1);
 	
-	for (i = 0; i < PUBKEY_LENGTH; ++i) {
+	for (i = 0; i < l/2; ++i) {
 		sprintf(r + (i * 2), "%02x", k.data[i]);
 	}
 	
 	return r;
 }
 
-char *pubkey_compressed_to_hex(PubKeyComp k) {
-	int i;
-	char *r;
-	
-	r = malloc((PUBKEY_COMP_LENGTH * 2) + 1);
-	
-	if (r == NULL) {
-		return r;
-	} else {
-		memset(r, 0, sizeof(*r));
-	}
-	
-	for (i = 0; i < PUBKEY_COMP_LENGTH; ++i) {
-		sprintf(r + (i * 2), "%02x", k.data[i]);
-	}
-	
-	return r;
-}
