@@ -6,31 +6,22 @@
 #define TESTNET_PREFIX      0xEF
 
 char *wif_get(PrivKey k) {
-	int i;
-	unsigned char kp[PRIVKEY_LENGTH + 1];
+	int i, l;
+	unsigned char kp[PRIVKEY_LENGTH + 2];
 	char *wif;
+	
+	if (privkey_is_compressed(k)) {
+		l = PRIVKEY_LENGTH + 2;
+	} else {
+		l = PRIVKEY_LENGTH + 1;
+	}
 
 	kp[0] = MAINNET_PREFIX;
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+	for (i = 0; i < l-1; ++i) {
 		kp[i+1] = k.data[i];
 	}
 	
-	wif = base58check_encode(kp, PRIVKEY_LENGTH + 1);
-	
-	return wif;
-}
-
-char *wif_get_compressed(PrivKeyComp k) {
-	int i;
-	unsigned char kp[PRIVKEY_COMP_LENGTH + 1];
-	char *wif;
-
-	kp[0] = MAINNET_PREFIX;
-	for (i = 0; i < PRIVKEY_COMP_LENGTH; ++i) {
-		kp[i+1] = k.data[i];
-	}
-	
-	wif = base58check_encode(kp, PRIVKEY_COMP_LENGTH + 1);
+	wif = base58check_encode(kp, l);
 	
 	return wif;
 }
