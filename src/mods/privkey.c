@@ -83,10 +83,11 @@ char *privkey_to_hex(PrivKey k) {
 }
 
 // TODO - needs error checking for invalid hex string
+//      - needs to check if key is greater than PRIVKEY_MAX
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
-	
+
 	if (strlen(hex) >= PRIVKEY_LENGTH * 2) {
 		for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
 			k.data[i/2] = hex_to_dec(hex[i], hex[i+1]);
