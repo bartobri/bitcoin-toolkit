@@ -7,8 +7,6 @@
 TXInput txinput_from_rawhex(char *hex) {
 	size_t i, c;
 	TXInput r;
-	char tx_index[9];
-	char sequence[9];
 	
 	// Transaction hash being spent
 	for (i = 0; i < 32; ++i, hex += 2) {
@@ -16,11 +14,8 @@ TXInput txinput_from_rawhex(char *hex) {
 	}
 	
 	// Output index of transcaction hash
-	for (i = 0; i < 8; ++i, ++hex) {
-		tx_index[i] = hex[0];
-	}
-	tx_index[i] = '\n';
-	r.index = (uint32_t)strtoul(tx_index, NULL, 16);
+	r.index = (uint32_t)hex_to_dec_substr(0, hex, 8);
+	hex += 8;
 	
 	// Unlocking Script Size
 	r.script_size = compactuint_get_value(hex, &c);
@@ -35,11 +30,7 @@ TXInput txinput_from_rawhex(char *hex) {
 	}
 	
 	// Sequence
-	for (i = 0; i < 8; ++i, ++hex) {
-		sequence[i] = hex[0];
-	}
-	sequence[i] = '\0';
-	r.sequence = (uint32_t)strtoul(sequence, NULL, 16);
+	r.sequence = (uint32_t)hex_to_dec_substr(0, hex, 8);
 	
 	return r;
 }
