@@ -15,14 +15,14 @@ TXInput txinput_from_rawhex(char *hex) {
 		r.tx_hash[i] = hex_to_dec(hex[0], hex[1]);
 	}
 	
-	/*
-	
 	// Output index of transcaction hash
 	for (i = 0; i < 8; ++i, ++hex) {
 		tx_index[i] = hex[0];
 	}
 	tx_index[i] = '\n';
 	r.index = (int)strtol(tx_index, NULL, 16);
+	
+	/*
 	
 	// Unlocking Script Size
 	if (hex_to_dec(hex[0], hex[1]) <= 0xfc) {
