@@ -8,6 +8,7 @@ TXInput txinput_from_rawhex(char *hex) {
 	TXInput r;
 	char tx_index[9];
 	char script_size[17];
+	char sequence[9];
 	size_t script_size_length;
 	
 	// Transaction hash being spent
@@ -51,6 +52,13 @@ TXInput txinput_from_rawhex(char *hex) {
 	for (i = 0; i < r.script_size; ++i, hex += 2) {
 		r.script[i] = hex_to_dec(hex[0], hex[1]);
 	}
+	
+	// Sequence
+	for (i = 0; i < 8; ++i, ++hex) {
+		sequence[i] = hex[0];
+	}
+	sequence[i] = '\0';
+	r.sequence = (uint32_t)strtoll(sequence, NULL, 16);
 	
 	return r;
 }
