@@ -22,8 +22,6 @@ TXInput txinput_from_rawhex(char *hex) {
 	tx_index[i] = '\n';
 	r.index = (int)strtol(tx_index, NULL, 16);
 	
-	/*
-	
 	// Unlocking Script Size
 	if (hex_to_dec(hex[0], hex[1]) <= 0xfc) {
 		r.script_size = hex_to_dec(hex[0], hex[1]);
@@ -38,12 +36,14 @@ TXInput txinput_from_rawhex(char *hex) {
 		}
 		
 		hex += 2;
-		for (i = 0; i < script_size_length; ++i, hex += 2) {
-			script_size[i] = hex_to_dec(hex[0], hex[1]);
+		for (i = 0; i < script_size_length; ++i, ++hex) {
+			script_size[i] = hex[0];
 		}
 		script_size[i] = '\0';
 		r.script_size = (uint64_t)strtol(script_size, NULL, 16);
 	}
+	
+	/*
 	
 	// Unlocking Script
 	if ((script = malloc(r.script_size)) == NULL) {
