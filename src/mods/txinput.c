@@ -4,11 +4,11 @@
 #include "hex.h"
 
 TXInput txinput_from_rawhex(char *hex) {
-	int i;
+	size_t i;
 	TXInput r;
 	char tx_index[9];
 	char script_size[17];
-	int script_size_length;
+	size_t script_size_length;
 	
 	// Transaction hash being spent
 	for (i = 0; i < 32; ++i, hex += 2) {
@@ -20,7 +20,7 @@ TXInput txinput_from_rawhex(char *hex) {
 		tx_index[i] = hex[0];
 	}
 	tx_index[i] = '\n';
-	r.index = (int)strtol(tx_index, NULL, 16);
+	r.index = (uint32_t)strtol(tx_index, NULL, 16);
 	
 	// Unlocking Script Size
 	if (hex_to_dec(hex[0], hex[1]) <= 0xfc) {
@@ -40,20 +40,17 @@ TXInput txinput_from_rawhex(char *hex) {
 			script_size[i] = hex[0];
 		}
 		script_size[i] = '\0';
-		r.script_size = (uint64_t)strtol(script_size, NULL, 16);
+		// TODO strtoll returns a signed value. Not sufficient.
+		r.script_size = (uint64_t)strtoll(script_size, NULL, 16);
 	}
-	
-	/*
 	
 	// Unlocking Script
-	if ((script = malloc(r.script_size)) == NULL) {
-		// TODO - Handle error here
+	if ((r.script = malloc(r.script_size)) == NULL) {
+		// TODO - Handle memory error here
 	}
 	for (i = 0; i < r.script_size; ++i, hex += 2) {
-		
+		r.script[i] = hex_to_dec(hex[0], hex[1]);
 	}
-
-	*/
 	
 	return r;
 }
