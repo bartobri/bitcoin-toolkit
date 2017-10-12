@@ -1,10 +1,29 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "transaction.h"
 #include "txinput.h"
 #include "txoutput.h"
 #include "hex.h"
 #include "compactuint.h"
+
+// TODO - validate string is fully hexidecimal and even numbered
+unsigned char *transaction_hex_to_raw(char *hex) {
+	size_t i, l;
+	unsigned char *raw;
+	
+	l = strlen(hex);
+	
+	if ((raw = malloc(l / 2)) == NULL) {
+		// TODO - handle memory error
+	}
+	
+	for (i = 0; i < l; ++i, hex += 2) {
+		raw[i] = hex_to_dec(hex[0], hex[1]);
+	}
+	
+	return raw;
+}
 
 Trans transaction_from_rawhex(char *hex) {
 	size_t i, c;

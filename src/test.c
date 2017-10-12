@@ -17,6 +17,9 @@ void dump_txoutput(TXOutput);
 int main(void) {
 	size_t i;
 	Trans t;
+	unsigned char *raw;
+	
+	raw = transaction_hex_to_raw(RAW_TX);
 	
 	t = transaction_from_rawhex(RAW_TX);
 	

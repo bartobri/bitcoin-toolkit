@@ -14,6 +14,7 @@ typedef struct {
 	uint32_t  lock_time;
 } Trans;
 
-Trans transaction_from_rawhex(char *);
+unsigned char *transaction_hex_to_raw(char *);
+Trans          transaction_from_rawhex(char *);
 
 #endif
