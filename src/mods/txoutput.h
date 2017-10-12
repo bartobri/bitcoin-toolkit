@@ -9,6 +9,6 @@ typedef struct {
 	unsigned char* script;
 } TXOutput;
 
-TXOutput txoutput_from_rawhex(char *);
+TXOutput txoutput_from_rawhex(char *, size_t *);
 
 #endif
