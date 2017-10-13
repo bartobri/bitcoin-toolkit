@@ -1,26 +1,30 @@
 #include <stdlib.h>
 #include <stdint.h>
-#include "hex.h"
 
-uint64_t compactuint_get_value(char *hex, size_t *c) {
-	size_t l;
+uint64_t compactuint_get_value(unsigned char *raw, size_t *c) {
+	size_t i, l;
 	uint64_t r;
 
-	if (hex_to_dec(hex[0], hex[1]) <= 0xfc) {
-		r = hex_to_dec(hex[0], hex[1]);
-		*c = 2;
+	if (*raw <= 0xfc) {
+		r = *raw;
+		*c = 1;
 	} else {
-		if (hex_to_dec(hex[0], hex[1]) == 0xfd) {
-			l = 2 * 2;
-		} else if (hex_to_dec(hex[0], hex[1]) == 0xfe) {
-			l = 4 * 2;
-		} else if (hex_to_dec(hex[0], hex[1]) == 0xff) {
-			l = 8 * 2;
+		if (*raw == 0xfd) {
+			l = 2;
+		} else if (*raw == 0xfe) {
+			l = 4;
+		} else if (*raw == 0xff) {
+			l = 8;
 		}
 		
-		r = hex_to_dec_substr(0, hex + 2, l);
+		++raw;
+
+		for (r = 0, i = 0; i < l; ++i, ++raw) {
+			r <<= 8;
+			r += *raw;
+		}
 		
-		*c = l + 2;
+		*c = l + 1;
 	}
 	
 	return r;

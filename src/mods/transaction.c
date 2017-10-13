@@ -7,35 +7,19 @@
 #include "hex.h"
 #include "compactuint.h"
 
-// TODO - validate string is fully hexidecimal and even numbered
-unsigned char *transaction_hex_to_raw(char *hex) {
-	size_t i, l;
-	unsigned char *raw;
-	
-	l = strlen(hex);
-	
-	if ((raw = malloc(l / 2)) == NULL) {
-		// TODO - handle memory error
-	}
-	
-	for (i = 0; i < l; ++i, hex += 2) {
-		raw[i] = hex_to_dec(hex[0], hex[1]);
-	}
-	
-	return raw;
-}
-
-Trans transaction_from_rawhex(char *hex) {
+Trans transaction_from_raw(unsigned char *raw) {
 	size_t i, c;
 	Trans r;
 
 	// Get Version
-	r.version = (uint32_t)hex_to_dec_substr(0, hex, 8);
-	hex += 8;
+	for (r.version = 0, i = 0; i < sizeof(r.version); ++i, ++raw) {
+		r.version <<= 8;
+		r.version += *raw;
+	}
 	
 	// Unlocking Script Size
-	r.input_count = compactuint_get_value(hex, &c);
-	hex += c;
+	r.input_count = compactuint_get_value(raw, &c);
+	raw += c;
 	
 	// Input Transactions
 	r.inputs = malloc(sizeof(TXInput) * r.input_count);
@@ -43,13 +27,13 @@ Trans transaction_from_rawhex(char *hex) {
 		// TODO - handle memory error
 	}
 	for (i = 0; i < r.input_count; ++i) {
-		r.inputs[i] = txinput_from_rawhex(hex, &c);
-		hex += c;
+		r.inputs[i] = txinput_from_raw(raw, &c);
+		raw += c;
 	}
 	
 	// Unlocking Script Size
-	r.output_count = compactuint_get_value(hex, &c);
-	hex += c;
+	r.output_count = compactuint_get_value(raw, &c);
+	raw += c;
 	
 	// Output Transactions
 	r.outputs = malloc(sizeof(TXOutput) * r.output_count);
@@ -57,12 +41,15 @@ Trans transaction_from_rawhex(char *hex) {
 		// TODO - handle memory error
 	}
 	for (i = 0; i < r.output_count; ++i) {
-		r.outputs[i] = txoutput_from_rawhex(hex, &c);
-		hex += c;
+		r.outputs[i] = txoutput_from_raw(raw, &c);
+		raw += c;
 	}
 	
 	// Lock Time
-	r.lock_time = (uint32_t)hex_to_dec_substr(0, hex, 8);
+	for (i = 0; i < sizeof(r.lock_time); ++i, ++raw) {
+		r.lock_time <<= 8;
+		r.lock_time += *raw;
+	}
 	
 	return r;
 }

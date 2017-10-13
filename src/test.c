@@ -5,6 +5,7 @@
 //#include "mods/privkey.h"
 //#include "mods/pubkey.h"
 //#include "mods/wif.h"
+#include "mods/hex.h"
 #include "mods/txinput.h"
 #include "mods/txoutput.h"
 #include "mods/transaction.h"
@@ -19,9 +20,9 @@ int main(void) {
 	Trans t;
 	unsigned char *raw;
 	
-	raw = transaction_hex_to_raw(RAW_TX);
+	raw = hex_str_to_uc(RAW_TX);
 	
-	t = transaction_from_rawhex(RAW_TX);
+	t = transaction_from_raw(raw);
 	
 	printf("Transaction Version: %" PRIu32 "\n", t.version);
 	printf("Input Count: %" PRIu64 "\n", t.input_count);
