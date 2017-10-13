@@ -13,8 +13,7 @@ Trans transaction_from_raw(unsigned char *raw) {
 
 	// Get Version
 	for (r.version = 0, i = 0; i < sizeof(r.version); ++i, ++raw) {
-		r.version <<= 8;
-		r.version += *raw;
+		r.version += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
 	// Unlocking Script Size
