@@ -46,7 +46,7 @@ Trans transaction_from_raw(unsigned char *raw) {
 	
 	// Lock Time
 	for (r.lock_time = 0, i = 0; i < sizeof(r.lock_time); ++i, ++raw) {
-		r.lock_time += (((uint32_t)*raw) << (i * 8)); // Reverse byte order
+		r.lock_time += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
 	return r;

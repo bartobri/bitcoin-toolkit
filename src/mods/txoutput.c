@@ -12,7 +12,7 @@ TXOutput txoutput_from_raw(unsigned char *raw, size_t *l) {
 	
 	// Output Amount
 	for (r.amount = 0, i = 0; i < sizeof(r.amount); ++i, ++raw, ++(*l)) {
-		r.amount += (((uint64_t)*raw) << (i * 8)); // Reverse byte order
+		r.amount += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
 	// Unlocking Script Size
