@@ -9,6 +9,7 @@
 #include "mods/txinput.h"
 #include "mods/txoutput.h"
 #include "mods/transaction.h"
+#include "mods/script.h"
 
 #define RAW_TX "0200000001818695a4b8902d81fb613b9ff9245ea9dc27dab3543077734626a16e1aacc536000000006a47304402200ac50993e5f9e12e38ded36b1ce603e70423fe5dc5c58c61bd5d7d1fb2a244e702200f56738aaf69a666a27ea8c34b35eca773368d6bcced254c4531930efb8b028d01210330b0a6ef8c22f33ea8d0c400407f0f5de3c4d2118e8ad80eca6114d532aafe4cfeffffff02fa620205000000001976a9145a110c39dd88e05e697226365a04d16968cb00ed88ac67526406000000001976a9140edcac0792bf41dbaa8a3cfa5e4455d6a237f36588ac83730700"
 
@@ -108,7 +109,7 @@ void dump_txinput(TXInput t) {
 	printf("\tUnlocking Script Size: %" PRIu64 "\n", t.script_size);
 	printf("\tUnlocking Script: ");
 	for (i = 0; i < t.script_size; ++i) {
-		printf("%02x", t.script[i]);
+		printf("%s ", script_get_word(t.script[i]));
 	}
 	printf("\n");
 	printf("\tSequence: %" PRIu32 "\n", t.sequence);
@@ -121,7 +122,7 @@ void dump_txoutput(TXOutput t) {
 	printf("\tLocking Script Size: %" PRIu64 "\n", t.script_size);
 	printf("\tLocking Script: ");
 	for (i = 0; i < t.script_size; ++i) {
-		printf("%02x", t.script[i]);
+		printf("%s ", script_get_word(t.script[i]));
 	}
 	printf("\n");
 }
