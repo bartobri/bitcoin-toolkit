@@ -12,7 +12,7 @@ TXInput txinput_from_raw(unsigned char *raw, size_t *l) {
 	
 	// Transaction hash being spent
 	for (i = 0; i < 32; ++i, ++raw, ++(*l)) {
-		r.tx_hash[i] = *raw;
+		r.tx_hash[31-i] = *raw;
 	}
 	
 	// Output index of transcaction hash
