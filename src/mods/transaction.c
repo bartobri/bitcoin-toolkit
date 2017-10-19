@@ -7,6 +7,7 @@
 #include "hex.h"
 #include "compactuint.h"
 
+// TODO - Check for mal-formed transactions
 Trans transaction_from_raw(unsigned char *raw) {
 	size_t i, c;
 	Trans r;
