@@ -24,6 +24,7 @@ TXOutput txoutput_from_raw(unsigned char *raw, size_t l, size_t *c) {
 	
 	// Unlocking Script Size
 	r->script_size = compactuint_get_value(raw, l, &j);
+	CHECK_ZERO(r->script_size);
 	raw += j;
 	*c += j;
 	l = (j > l) ? 0 : l - j;
