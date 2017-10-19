@@ -9,7 +9,7 @@ typedef struct {
 	uint64_t       script_size;
 	unsigned char* script;
 	uint32_t       sequence;
-} TXInput;
+} *TXInput;
 
 TXInput txinput_from_raw(unsigned char *, size_t *);
 

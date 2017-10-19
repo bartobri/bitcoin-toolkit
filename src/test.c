@@ -102,17 +102,17 @@ void dump_txinput(TXInput t) {
 
 	printf("\tTX Hash: ");
 	for (i = 0; i < 32; ++i) {
-		printf("%02x", t.tx_hash[i]);
+		printf("%02x", t->tx_hash[i]);
 	}
 	printf("\n");
-	printf("\tTX Output Index: %" PRIu32 "\n", t.index);
-	printf("\tUnlocking Script Size: %" PRIu64 "\n", t.script_size);
+	printf("\tTX Output Index: %" PRIu32 "\n", t->index);
+	printf("\tUnlocking Script Size: %" PRIu64 "\n", t->script_size);
 	printf("\tUnlocking Script: ");
-	for (i = 0; i < t.script_size; ++i) {
-		printf("%s ", script_get_word(t.script[i]));
+	for (i = 0; i < t->script_size; ++i) {
+		printf("%s ", script_get_word(t->script[i]));
 	}
 	printf("\n");
-	printf("\tSequence: %" PRIu32 "\n", t.sequence);
+	printf("\tSequence: %" PRIu32 "\n", t->sequence);
 }
 
 void dump_txoutput(TXOutput t) {
