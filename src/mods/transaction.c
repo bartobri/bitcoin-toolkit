@@ -8,15 +8,15 @@
 #include "compactuint.h"
 
 #define CHECK_ZERO(x)      if (x == 0) return NULL;
+#define CHECK_NULL(x)      if (x == NULL) return NULL;
 
 // TODO - Check for mal-formed transactions
 Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	size_t i, c;
 	Trans r;
 
-	if ((r = malloc(sizeof(*r))) == NULL) {
-		return NULL;
-	}
+	r = malloc(sizeof(*r));
+	CHECK_NULL(r);
 
 	// Get Version
 	for (r->version = 0, i = 0; i < sizeof(r->version); ++i, ++raw, --l) {
@@ -36,7 +36,8 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		// TODO - handle memory error
 	}
 	for (i = 0; i < r->input_count; ++i) {
-		r->inputs[i] = txinput_from_raw(raw, &c);
+		r->inputs[i] = txinput_from_raw(raw, l, &c);
+		CHECK_NULL(r->inputs[i]);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
 		CHECK_ZERO(l);

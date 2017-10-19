@@ -11,6 +11,6 @@ typedef struct {
 	uint32_t       sequence;
 } *TXInput;
 
-TXInput txinput_from_raw(unsigned char *, size_t *);
+TXInput txinput_from_raw(unsigned char *, size_t, size_t *);
 
 #endif
