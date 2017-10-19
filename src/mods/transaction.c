@@ -7,6 +7,8 @@
 #include "hex.h"
 #include "compactuint.h"
 
+#define CHECK_ZERO(x)      if (x == 0) return NULL;
+
 // TODO - Check for mal-formed transactions
 Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	size_t i, c;
@@ -18,9 +20,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 
 	// Get Version
 	for (r->version = 0, i = 0; i < sizeof(r->version); ++i, ++raw, --l) {
-		if (l == 0) {
-			return NULL;
-		}
+		CHECK_ZERO(l);
 		r->version += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
@@ -28,9 +28,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	r->input_count = compactuint_get_value(raw, &c);
 	raw += c;
 	l = (c > l) ? 0 : l - c;
-	if (l == 0) {
-		return NULL;
-	}
+	CHECK_ZERO(l);
 	
 	// Input Transactions
 	r->inputs = malloc(sizeof(TXInput) * r->input_count);
@@ -41,18 +39,14 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		r->inputs[i] = txinput_from_raw(raw, &c);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
-		if (l == 0) {
-			return NULL;
-		}
+		CHECK_ZERO(l);
 	}
 	
 	// Unlocking Script Size
 	r->output_count = compactuint_get_value(raw, &c);
 	raw += c;
 	l = (c > l) ? 0 : l - c;
-	if (l == 0) {
-		return NULL;
-	}
+	CHECK_ZERO(l);
 	
 	// Output Transactions
 	r->outputs = malloc(sizeof(TXOutput) * r->output_count);
@@ -63,16 +57,12 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		r->outputs[i] = txoutput_from_raw(raw, &c);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
-		if (l == 0) {
-			return NULL;
-		}
+		CHECK_ZERO(l);
 	}
 	
 	// Lock Time
 	for (r->lock_time = 0, i = 0; i < sizeof(r->lock_time); ++i, ++raw, --l) {
-		if (l == 0) {
-			return NULL;
-		}
+		CHECK_ZERO(l);
 		r->lock_time += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
