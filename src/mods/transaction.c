@@ -55,7 +55,8 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		// TODO - handle memory error
 	}
 	for (i = 0; i < r->output_count; ++i) {
-		r->outputs[i] = txoutput_from_raw(raw, &c);
+		r->outputs[i] = txoutput_from_raw(raw, l, &c);
+		CHECK_NULL(r->outputs[i]);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
 		CHECK_ZERO(l);
