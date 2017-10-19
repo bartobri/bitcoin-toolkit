@@ -23,20 +23,24 @@ int main(void) {
 	
 	raw = hex_str_to_uc(RAW_TX);
 	
-	t = transaction_from_raw(raw);
+	t = transaction_from_raw(raw, strlen(RAW_TX) / 2);
 	
-	printf("Transaction Version: %" PRIu32 "\n", t->version);
-	printf("Input Count: %" PRIu64 "\n", t->input_count);
-	for (i = 0; i < t->input_count; ++i) {
-		printf("Input Index %zu\n", i);
-		dump_txinput(t->inputs[i]);
+	if (t == NULL) {
+		printf("INVALID TRANSACTION!\n");
+	} else {
+		printf("Transaction Version: %" PRIu32 "\n", t->version);
+		printf("Input Count: %" PRIu64 "\n", t->input_count);
+		for (i = 0; i < t->input_count; ++i) {
+			printf("Input Index %zu\n", i);
+			dump_txinput(t->inputs[i]);
+		}
+		printf("Output Count: %" PRIu64 "\n", t->output_count);
+		for (i = 0; i < t->output_count; ++i) {
+			printf("Output Index %zu\n", i);
+			dump_txoutput(t->outputs[i]);
+		}
+		printf("Lock Time: %" PRIu32 "\n", t->lock_time);
 	}
-	printf("Output Count: %" PRIu64 "\n", t->output_count);
-	for (i = 0; i < t->output_count; ++i) {
-		printf("Output Index %zu\n", i);
-		dump_txoutput(t->outputs[i]);
-	}
-	printf("Lock Time: %" PRIu32 "\n", t->lock_time);
 
 	/*
 	uint64_t i, c;
