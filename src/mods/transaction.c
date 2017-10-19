@@ -25,7 +25,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	}
 	
 	// Unlocking Script Size
-	r->input_count = compactuint_get_value(raw, &c);
+	r->input_count = compactuint_get_value(raw, l, &c);
 	raw += c;
 	l = (c > l) ? 0 : l - c;
 	CHECK_ZERO(l);
@@ -44,7 +44,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	}
 	
 	// Unlocking Script Size
-	r->output_count = compactuint_get_value(raw, &c);
+	r->output_count = compactuint_get_value(raw, l, &c);
 	raw += c;
 	l = (c > l) ? 0 : l - c;
 	CHECK_ZERO(l);
