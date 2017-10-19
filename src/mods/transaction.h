@@ -12,7 +12,7 @@ typedef struct {
 	uint64_t  output_count;
 	TXOutput *outputs;
 	uint32_t  lock_time;
-} Trans;
+} *Trans;
 
 Trans transaction_from_raw(unsigned char *);
 

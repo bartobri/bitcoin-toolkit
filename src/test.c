@@ -25,18 +25,18 @@ int main(void) {
 	
 	t = transaction_from_raw(raw);
 	
-	printf("Transaction Version: %" PRIu32 "\n", t.version);
-	printf("Input Count: %" PRIu64 "\n", t.input_count);
-	for (i = 0; i < t.input_count; ++i) {
+	printf("Transaction Version: %" PRIu32 "\n", t->version);
+	printf("Input Count: %" PRIu64 "\n", t->input_count);
+	for (i = 0; i < t->input_count; ++i) {
 		printf("Input Index %zu\n", i);
-		dump_txinput(t.inputs[i]);
+		dump_txinput(t->inputs[i]);
 	}
-	printf("Output Count: %" PRIu64 "\n", t.output_count);
-	for (i = 0; i < t.output_count; ++i) {
+	printf("Output Count: %" PRIu64 "\n", t->output_count);
+	for (i = 0; i < t->output_count; ++i) {
 		printf("Output Index %zu\n", i);
-		dump_txoutput(t.outputs[i]);
+		dump_txoutput(t->outputs[i]);
 	}
-	printf("Lock Time: %" PRIu32 "\n", t.lock_time);
+	printf("Lock Time: %" PRIu32 "\n", t->lock_time);
 
 	/*
 	uint64_t i, c;
