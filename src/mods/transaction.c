@@ -11,8 +11,10 @@
 Trans transaction_from_raw(unsigned char *raw) {
 	size_t i, c;
 	Trans r;
-	
-	r = malloc(sizeof(*r));
+
+	if ((r = malloc(sizeof(*r))) == NULL) {
+		// TODO - handle memory error here
+	}
 
 	// Get Version
 	for (r->version = 0, i = 0; i < sizeof(r->version); ++i, ++raw) {
