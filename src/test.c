@@ -118,11 +118,11 @@ void dump_txinput(TXInput t) {
 void dump_txoutput(TXOutput t) {
 	size_t i;
 
-	printf("\tAmount: %" PRIu64 "\n", t.amount);
-	printf("\tLocking Script Size: %" PRIu64 "\n", t.script_size);
+	printf("\tAmount: %" PRIu64 "\n", t->amount);
+	printf("\tLocking Script Size: %" PRIu64 "\n", t->script_size);
 	printf("\tLocking Script: ");
-	for (i = 0; i < t.script_size; ++i) {
-		printf("%s ", script_get_word(t.script[i]));
+	for (i = 0; i < t->script_size; ++i) {
+		printf("%s ", script_get_word(t->script[i]));
 	}
 	printf("\n");
 }
