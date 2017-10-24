@@ -6,7 +6,7 @@
 typedef struct {
 	uint64_t       amount;
 	uint64_t       script_size;
-	unsigned char* script;
+	unsigned char* script_raw;
 } *TXOutput;
 
 TXOutput txoutput_from_raw(unsigned char *, size_t, size_t *);
