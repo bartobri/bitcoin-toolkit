@@ -38,12 +38,12 @@ TXInput txinput_from_raw(unsigned char *raw, size_t l, size_t *c) {
 	CHECK_ZERO(l);
 	
 	// Unlocking Script
-	if ((r->script = malloc(r->script_size)) == NULL) {
+	if ((r->script_raw = malloc(r->script_size)) == NULL) {
 		// TODO - Handle memory error here
 	}
 	for (i = 0; i < r->script_size; ++i, ++raw, --l, ++(*c)) {
 		CHECK_ZERO(l);
-		r->script[i] = *raw;
+		r->script_raw[i] = *raw;
 	}
 	
 	// Sequence

@@ -1,5 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "script.h"
+
+#define MAX_OPS_PER_SCRIPT 201
 
 typedef struct {
 	const char *word;
@@ -193,6 +198,9 @@ Words words[256] = {
 	[0xb7].word = "OP_NOP8",
 	[0xb8].word = "OP_NOP9",
 	[0xb9].word = "OP_NOP10",
+	
+	[0xfa].word = "OP_SMALLINTEGER",
+	[0xfb].word = "OP_PUBKEYS",
 
 	[0xfd].word = "OP_PUBKEYHASH",
 	[0xfc].word = "OP_PUBKEY",
@@ -201,4 +209,53 @@ Words words[256] = {
 
 const char *script_get_word(uint8_t w) {
 	return words[w].word;
+}
+
+// TODO - check if malloc fails
+const char *script_from_raw(unsigned char *raw, size_t l) {
+	size_t c, i, j;
+	unsigned char op;
+	char *ops[MAX_OPS_PER_SCRIPT];
+	char *r;
+	
+	for (c = 0, i = 0; i < l; ++i, ++c) {
+		
+		if (c >= MAX_OPS_PER_SCRIPT) {
+			return NULL;
+		}
+		
+		op = *raw;
+		++raw;
+
+		if (op >= 0x01 && op <= 0x4b) {
+			if (i + op >= l) {
+				return NULL;
+			}
+			ops[c] = malloc(op * 2 + 1);
+			for (j = 0; j < op; ++j, ++raw) {
+				sprintf(ops[c] + (j * 2), "%02x", *raw);
+			}
+			ops[c][j * 2] = '\0';
+			i += op;
+		//} else if (op == 0x4c) {
+		//} else if (op == 0x4d) {
+		//} else if (op == 0x4e) {
+		} else {
+			ops[c] = malloc(strlen(words[op].word) + 1);
+			strcpy(ops[c], words[op].word);
+		}
+	}
+
+	for (j = 0, i = 0; i < c; ++i) {
+		j += strlen(ops[i]) + 1;
+	}
+	r = malloc(j + 1);
+	memset(r, 0, j + 1);
+	for (i = 0; i < c; ++i) {
+		strcat(r, ops[i]);
+		strcat(r, " ");
+		free(ops[i]);
+	}
+	
+	return r;
 }

@@ -24,7 +24,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		r->version += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
-	// Unlocking Script Size
+	// Number of Inputs
 	r->input_count = compactuint_get_value(raw, l, &c);
 	CHECK_ZERO(r->input_count);
 	raw += c;
@@ -44,7 +44,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 		CHECK_ZERO(l);
 	}
 	
-	// Unlocking Script Size
+	// Number of Outputs
 	r->output_count = compactuint_get_value(raw, l, &c);
 	CHECK_ZERO(r->output_count);
 	raw += c;

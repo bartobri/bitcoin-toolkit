@@ -7,7 +7,7 @@ typedef struct {
 	unsigned char  tx_hash[32];
 	uint32_t       index;
 	uint64_t       script_size;
-	unsigned char* script;
+	unsigned char* script_raw;
 	uint32_t       sequence;
 } *TXInput;
 

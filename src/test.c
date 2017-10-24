@@ -113,11 +113,7 @@ void dump_txinput(TXInput t) {
 	printf("\n");
 	printf("\tTX Output Index: %" PRIu32 "\n", t->index);
 	printf("\tUnlocking Script Size: %" PRIu64 "\n", t->script_size);
-	printf("\tUnlocking Script: ");
-	for (i = 0; i < t->script_size; ++i) {
-		printf("%s ", script_get_word(t->script[i]));
-	}
-	printf("\n");
+	printf("\tUnlocking Script: %s\n", script_from_raw(t->script_raw, t->script_size));
 	printf("\tSequence: %" PRIu32 "\n", t->sequence);
 }
 
