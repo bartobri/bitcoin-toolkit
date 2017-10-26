@@ -6,12 +6,10 @@
 #include "assert.h"
 #include "except.h"
 
-#define T Except_T
+except_frame *except_stack = NULL;
 
-Except_Frame *Except_stack = NULL;
-
-void Except_raise(const T *e, const char *file, int line) {
-	Except_Frame *p = Except_stack;
+void except_raise(const except_t *e, const char *file, int line) {
+	except_frame *p = except_stack;
 
 	assert(e);
 
@@ -32,7 +30,7 @@ void Except_raise(const T *e, const char *file, int line) {
 	p->file = file;
 	p->line = line;
 
-	Except_stack = Except_stack->prev;
+	except_stack = except_stack->prev;
 
-	longjmp(p->env, Except_raised);
+	longjmp(p->env, except_raised);
 }

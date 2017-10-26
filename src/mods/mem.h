@@ -6,7 +6,7 @@
 
 #include "except.h"
 
-extern const Except_T Mem_Failed;
+extern const except_t Mem_Failed;
 
 extern void *mem_alloc(long nbytes, const char *file, int line);
 extern void *mem_calloc(long count, long nbytes, const char *file, int line);

@@ -3,7 +3,7 @@
  */
 #include "assert.h"
 
-const Except_T Assert_Failed = { "Assertion failed" };
+const except_t Assert_Failed = { "Assertion failed" };
 
 void (assert)(int e) {
 	assert(e);

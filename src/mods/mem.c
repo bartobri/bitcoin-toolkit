@@ -7,7 +7,7 @@
 #include "except.h"
 #include "mem.h"
 
-const Except_T Mem_Failed = { "Allocation Failed" };
+const except_t Mem_Failed = { "Allocation Failed" };
 
 void *mem_alloc(long nbytes, const char *file, int line){
 	void *ptr;
@@ -18,7 +18,7 @@ void *mem_alloc(long nbytes, const char *file, int line){
 			if (file == NULL)
 				RAISE(Mem_Failed);
 			else
-				Except_raise(&Mem_Failed, file, line);
+				except_raise(&Mem_Failed, file, line);
 		}
 	return ptr;
 }
@@ -34,7 +34,7 @@ void *mem_calloc(long count, long nbytes,
 			if (file == NULL)
 				RAISE(Mem_Failed);
 			else
-				Except_raise(&Mem_Failed, file, line);
+				except_raise(&Mem_Failed, file, line);
 		}
 	return ptr;
 }
@@ -57,7 +57,7 @@ void *mem_resize(void *ptr, long nbytes,
 			if (file == NULL)
 				RAISE(Mem_Failed);
 			else
-				Except_raise(&Mem_Failed, file, line);
+				except_raise(&Mem_Failed, file, line);
 		}
 	return ptr;
 }
