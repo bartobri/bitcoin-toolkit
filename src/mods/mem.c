@@ -9,7 +9,7 @@
 
 const Except_T Mem_Failed = { "Allocation Failed" };
 
-void *Mem_alloc(long nbytes, const char *file, int line){
+void *mem_alloc(long nbytes, const char *file, int line){
 	void *ptr;
 	assert(nbytes > 0);
 	ptr = malloc(nbytes);
@@ -23,7 +23,7 @@ void *Mem_alloc(long nbytes, const char *file, int line){
 	return ptr;
 }
 
-void *Mem_calloc(long count, long nbytes,
+void *mem_calloc(long count, long nbytes,
 	const char *file, int line) {
 	void *ptr;
 	assert(count > 0);
@@ -39,7 +39,7 @@ void *Mem_calloc(long count, long nbytes,
 	return ptr;
 }
 
-void Mem_free(void *ptr, const char *file, int line) {
+void mem_free(void *ptr, const char *file, int line) {
 	(void)*file;
 	(void)line;
 	
@@ -47,7 +47,7 @@ void Mem_free(void *ptr, const char *file, int line) {
 		free(ptr);
 }
 
-void *Mem_resize(void *ptr, long nbytes,
+void *mem_resize(void *ptr, long nbytes,
 	const char *file, int line) {
 	assert(ptr);
 	assert(nbytes > 0);

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-//#include "mods/address.h"
-//#include "mods/privkey.h"
-//#include "mods/pubkey.h"
-//#include "mods/wif.h"
+#include "mods/address.h"
+#include "mods/privkey.h"
+#include "mods/pubkey.h"
+#include "mods/wif.h"
 #include "mods/hex.h"
 #include "mods/txinput.h"
 #include "mods/txoutput.h"
@@ -17,12 +17,13 @@ void dump_txinput(TXInput);
 void dump_txoutput(TXOutput);
 
 int main(void) {
+	
+	/*
 	size_t i;
 	Trans t;
 	unsigned char *raw;
 	
 	raw = hex_str_to_uc(RAW_TX);
-	
 	t = transaction_from_raw(raw, strlen(RAW_TX) / 2);
 	
 	if (t == NULL) {
@@ -41,6 +42,7 @@ int main(void) {
 		}
 		printf("Lock Time: %" PRIu32 "\n", t->lock_time);
 	}
+	*/
 
 	/*
 	uint64_t i, c;
@@ -77,8 +79,7 @@ int main(void) {
 	printf("\n");
 	printf("Hex Length: %i %i\n", (int)c, (int)strlen(raw_output));
 	*/
-	
-	/*
+
 	PrivKey priv;
 	PubKey pub;
 	
@@ -97,7 +98,6 @@ int main(void) {
 	printf("WIF Compressed: %s\n", wif_get(priv));
 	printf("Public Key Compressed: %s\n", pubkey_to_hex(pub));
 	printf("Address Compressed: %s\n", address_get(pub));
-	*/
 
 }
 
