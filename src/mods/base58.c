@@ -15,7 +15,7 @@ char *base58_encode(unsigned char *str, size_t l) {
 	
 	mpz_set_ui(d, 58);
 	
-	res = malloc(100);
+	res = malloc(l*2);
 
 	// Base58 encode
 	mpz_import(x, l, 1, 1, 1, 0, str);
