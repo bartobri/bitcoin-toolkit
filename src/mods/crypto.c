@@ -29,6 +29,8 @@ unsigned char *crypto_get_sha256(unsigned char *s, size_t l) {
 	}
 	
 	// Return hash
+	// TODO - Don't return the digest directly. Copy it to another string
+	// and return it. Then free up the gcrypt handle.
 	return gcry_md_read(gc, 0);
 }
 
@@ -49,5 +51,7 @@ unsigned char *crypto_get_rmd160(unsigned char *s, size_t l) {
 	}
 	
 	// Return hash
+	// TODO - Don't return the digest directly. Copy it to another string
+	// and return it. Then free up the gcrypt handle.
 	return gcry_md_read(gc, 0);
 }
