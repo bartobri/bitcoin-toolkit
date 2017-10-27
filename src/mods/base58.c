@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <gmp.h>
 #include "mem.h"
+#include "assert.h"
 
 char *base58_encode(unsigned char *str, size_t l) {
 	int i, j;
@@ -9,6 +10,9 @@ char *base58_encode(unsigned char *str, size_t l) {
 	char *res;
 	mpz_t x, r, d;
 	char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+	
+	assert(str);
+	assert(l);
 	
 	mpz_init(x);
 	mpz_init(r);
