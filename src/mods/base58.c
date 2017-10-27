@@ -23,7 +23,7 @@ char *base58_encode(unsigned char *str, size_t l) {
 	res = ALLOC(l*2);
 
 	// Base58 encode
-	mpz_import(x, l, 1, 1, 1, 0, str);
+	mpz_import(x, l, 1, sizeof(str[0]), 1, 0, str);
 	for (i = 0; mpz_cmp_ui(x, 0) > 0; ++i) {
 		mpz_tdiv_qr(x, r, x, d);
 		res[i] = code_string[mpz_get_ui(r)];
