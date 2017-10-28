@@ -9,17 +9,17 @@
 int main(void) {
 	size_t i;
 	int c;
-	PrivKeyComp key;
+	PrivKey key;
 
-	memset(key.data, 0, PRIVKEY_COMP_LENGTH);
+	memset(key.data, 0, PRIVKEY_LENGTH + 1);
 
 	// Geting input
-	for (i = 0; (c = getchar()) != EOF; i = (i + 1) % PRIVKEY_COMP_LENGTH) {	
+	for (i = 0; (c = getchar()) != EOF; i = (i + 1) % PRIVKEY_LENGTH) {	
 		key.data[i] = (unsigned char)(((int)key.data[i] + c) % UCHAR_MAX);
 	}
 	
-	printf("WIF: %s\n", wif_get_compressed(key));
-	printf("Address: %s\n", address_get_compressed(pubkey_get_compressed(key)));
+	printf("WIF: %s\n", wif_get(key));
+	printf("Address: %s\n", address_get(pubkey_get(key)));
 	
 	return 0;
 }
