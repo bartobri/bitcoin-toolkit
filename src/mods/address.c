@@ -1,14 +1,16 @@
 #include <stddef.h>
+#include <string.h>
 #include "pubkey.h"
 #include "crypto.h"
 #include "base58check.h"
+#include "mem.h"
 
 #define ADDRESS_VERSION_BIT 0x00
 
 char *address_get(PubKey k) {
-	size_t i, l;
-	unsigned char *d;
-	unsigned char d2[21];
+	size_t l;
+	unsigned char *sha, *rmd;
+	unsigned char r[21];
 
 	if (pubkey_is_compressed(k)) {
 		l = PUBKEY_COMPRESSED_LENGTH + 1;
@@ -16,13 +18,19 @@ char *address_get(PubKey k) {
 		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
 	}
 
-	d = crypto_get_rmd160(crypto_get_sha256(k.data, l), 32);
+	// RMD(SHA(data))
+	sha = crypto_get_sha256(k.data, l);
+	rmd = crypto_get_rmd160(sha, 32);
 
-	// Prepend address version bit
-	d2[0] = ADDRESS_VERSION_BIT;
-	for (i = 0; i < 20; ++i) {
-		d2[i+1] = d[i];
-	}
+	// Set address version bit
+	r[0] = ADDRESS_VERSION_BIT;
 	
-	return base58check_encode(d2, 21);
+	// Append rmd data
+	memcpy(r + 1, rmd, 20);
+	
+	// Free resources
+	FREE(sha);
+	FREE(rmd);
+	
+	return base58check_encode(r, 21);
 }
