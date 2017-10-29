@@ -33,6 +33,9 @@ asciiaddress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except
 btcaddress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)///$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/btcaddress.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
+uladdress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/wif.o $(OBJ)///$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/uladdress.o | $(BIN)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
+
 $(OBJ)/$(MODS)/%.o: $(SRC)/$(MODS)/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
