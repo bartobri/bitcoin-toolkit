@@ -1,17 +1,21 @@
 #include <stdio.h>
+#include "assert.h"
 
 #define RANDOM_SOURCE "/dev/urandom"
 
-int random_get(void) {
+unsigned char random_get(void) {
 	int c;
 	FILE *source;
 
-	if ((source = fopen(RANDOM_SOURCE, "r")) == NULL)
-		return -1;
+	source = fopen(RANDOM_SOURCE, "r");
+	
+	assert(source);
 
 	c = fgetc(source);
 
 	fclose(source);
+	
+	assert(c >= 0);
 
-	return c;
+	return (unsigned char)c;
 }
