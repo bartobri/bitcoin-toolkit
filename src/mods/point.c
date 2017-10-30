@@ -1,5 +1,6 @@
 #include <gmp.h>
 #include "point.h"
+#include "assert.h"
 
 #define BITCOIN_PRIME "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
 #define BITCOIN_GENERATOR_POINT_X "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
@@ -8,17 +9,23 @@
 void point_math_inversemod(mpz_t, mpz_t, mpz_t);
 
 void point_init(Point *p) {
+	assert(p);
 	mpz_init(p->x);
 	mpz_init(p->y);
 }
 
 void point_set(Point *a, Point b) {
+	assert(a);
+	assert(b.x);
+	assert(b.y);
 	mpz_set(a->x, b.x);
 	mpz_set(a->y, b.y);
 }
 
 void point_set_generator(Point *a) {
 	mpz_t gx, gy;
+	
+	assert(a);
 	
 	mpz_init(gx);
 	mpz_init(gy);
