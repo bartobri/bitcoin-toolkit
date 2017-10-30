@@ -2,10 +2,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include "assert.h"
 
-// TODO - handle error if either char is not hex
 unsigned char hex_to_dec(char l, char r) {
 	unsigned char ret;
+
+	assert((l >= 'A' && l <= 'F') || (l >= '0' && l <= '9') || (l >= 'a' && l <= 'z'));
+	assert((r >= 'A' && r <= 'F') || (r >= '0' && r <= '9') || (r >= 'a' && r <= 'z'));
 
 	// force lowercase
 	if (l >= 'A' && l <= 'F') {
