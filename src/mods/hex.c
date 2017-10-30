@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 #include <errno.h>
 #include "assert.h"
+#include "mem.h"
 
 unsigned char hex_to_dec(char l, char r) {
 	unsigned char ret;
@@ -40,36 +42,27 @@ unsigned char hex_to_dec(char l, char r) {
 }
 
 uint64_t hex_to_dec_substr(size_t offset, char *str, size_t len) {
-	size_t i;
 	char *t;
 	unsigned long long r;
 	
-	if (offset <= strlen(str)) {
-		str += offset;
-	} else {
-		// Handle error here, offset larger than string len
-	}
-	
-	if (len > strlen(str)) {
-		// Handle error here, len larger than available string len
-	}
-	
-	if ((t = malloc(len + 1)) == NULL) {
-		// Handle memory error here
-	}
+	assert(offset <= strlen(str));
 
-	for (i = 0; i < len; ++i, ++str) {
-		t[i] = *str;
-	}
-	t[i] = '\0';
+	str += offset;
+	
+	assert(len % 2 == 0);
+	assert(len <= strlen(str));
+	
+	t = ALLOC(len + 1);
+	
+	memset(t, 0, len + 1);
+	memcpy(t, str, len);
 	
 	errno = 0;
 
 	r = strtoull(t, NULL, 16);
 	
-	if (errno == ERANGE) {
-		// Handle overflow error here
-	}
+	assert(errno != ERANGE);
+	assert(r <= UINT64_MAX);
 	
 	free(t);
 	
