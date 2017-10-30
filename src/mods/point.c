@@ -16,8 +16,7 @@ void point_init(Point *p) {
 
 void point_set(Point *a, Point b) {
 	assert(a);
-	assert(b.x);
-	assert(b.y);
+	assert(b.x && b.y);
 	mpz_set(a->x, b.x);
 	mpz_set(a->y, b.y);
 }
@@ -42,6 +41,9 @@ void point_set_generator(Point *a) {
 
 void point_double(Point *result, Point a) {
 	mpz_t tempx, tempy, p, slope;
+	
+	assert(result);
+	assert(a.x && a.y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
@@ -78,6 +80,10 @@ void point_double(Point *result, Point a) {
 
 void point_add(Point *result, Point a, Point b) {
 	mpz_t tempx, tempy, sumx, sumy, p, slope;
+	
+	assert(result);
+	assert(a.x && a.y);
+	assert(b.x && b.y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
@@ -194,6 +200,8 @@ void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
 int point_verify(Point a) {
 	int r = 0;
 	mpz_t tempx, tempy, tempr, p;
+	
+	assert(a.x && a.y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
