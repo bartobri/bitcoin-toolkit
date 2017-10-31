@@ -254,7 +254,7 @@ char *script_from_raw(unsigned char *raw, size_t l) {
 	for (i = 0; i < c; ++i) {
 		strcat(r, ops[i]);
 		strcat(r, " ");
-		free(ops[i]);
+		FREE(ops[i]);
 	}
 	
 	return r;
