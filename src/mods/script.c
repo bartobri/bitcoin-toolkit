@@ -212,7 +212,7 @@ const char *script_get_word(uint8_t w) {
 	return words[w].word;
 }
 
-const char *script_from_raw(unsigned char *raw, size_t l) {
+char *script_from_raw(unsigned char *raw, size_t l) {
 	size_t c, i, j;
 	unsigned char op;
 	char *ops[MAX_OPS_PER_SCRIPT];
