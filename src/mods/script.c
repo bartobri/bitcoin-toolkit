@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "script.h"
+#include "mem.h"
 
 #define MAX_OPS_PER_SCRIPT 201
 
@@ -211,7 +212,6 @@ const char *script_get_word(uint8_t w) {
 	return words[w].word;
 }
 
-// TODO - check if malloc fails
 const char *script_from_raw(unsigned char *raw, size_t l) {
 	size_t c, i, j;
 	unsigned char op;
@@ -231,7 +231,7 @@ const char *script_from_raw(unsigned char *raw, size_t l) {
 			if (i + op >= l) {
 				return NULL;
 			}
-			ops[c] = malloc(op * 2 + 1);
+			ops[c] = ALLOC(op * 2 + 1);
 			for (j = 0; j < op; ++j, ++raw) {
 				sprintf(ops[c] + (j * 2), "%02x", *raw);
 			}
@@ -241,7 +241,7 @@ const char *script_from_raw(unsigned char *raw, size_t l) {
 		//} else if (op == 0x4d) {
 		//} else if (op == 0x4e) {
 		} else {
-			ops[c] = malloc(strlen(words[op].word) + 1);
+			ops[c] = ALLOC(strlen(words[op].word) + 1);
 			strcpy(ops[c], words[op].word);
 		}
 	}
@@ -249,7 +249,7 @@ const char *script_from_raw(unsigned char *raw, size_t l) {
 	for (j = 0, i = 0; i < c; ++i) {
 		j += strlen(ops[i]) + 1;
 	}
-	r = malloc(j + 1);
+	r = ALLOC(j + 1);
 	memset(r, 0, j + 1);
 	for (i = 0; i < c; ++i) {
 		strcat(r, ops[i]);
