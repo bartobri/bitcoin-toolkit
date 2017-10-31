@@ -8,7 +8,6 @@
 char *wif_get(PrivKey k) {
 	int i, l;
 	unsigned char kp[PRIVKEY_LENGTH + 2];
-	char *wif;
 	
 	if (privkey_is_compressed(k)) {
 		l = PRIVKEY_LENGTH + 2;
@@ -21,7 +20,5 @@ char *wif_get(PrivKey k) {
 		kp[i+1] = k.data[i];
 	}
 	
-	wif = base58check_encode(kp, l);
-	
-	return wif;
+	return base58check_encode(kp, l);
 }
