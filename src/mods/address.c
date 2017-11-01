@@ -19,7 +19,7 @@ char *address_get(PubKey k) {
 	}
 
 	// RMD(SHA(data))
-	sha = crypto_get_sha256(k.data, l);
+	sha = crypto_get_sha256(k->data, l);
 	rmd = crypto_get_rmd160(sha, 32);
 
 	// Set address version bit

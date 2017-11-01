@@ -6,9 +6,10 @@
 #define PUBKEY_UNCOMPRESSED_LENGTH 64
 #define PUBKEY_COMPRESSED_LENGTH   32
 
-typedef struct {
+typedef struct PubKey *PubKey;
+struct PubKey{
 	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
-} PubKey;
+};
 
 PubKey pubkey_get(PrivKey);
 PubKey pubkey_compress(PubKey);
