@@ -23,8 +23,7 @@ void *mem_alloc(long nbytes, const char *file, int line){
 	return ptr;
 }
 
-void *mem_calloc(long count, long nbytes,
-	const char *file, int line) {
+void *mem_calloc(long count, long nbytes, const char *file, int line) {
 	void *ptr;
 	assert(count > 0);
 	assert(nbytes > 0);
@@ -47,8 +46,7 @@ void mem_free(void *ptr, const char *file, int line) {
 		free(ptr);
 }
 
-void *mem_resize(void *ptr, long nbytes,
-	const char *file, int line) {
+void *mem_resize(void *ptr, long nbytes, const char *file, int line) {
 	assert(ptr);
 	assert(nbytes > 0);
 	ptr = realloc(ptr, nbytes);
