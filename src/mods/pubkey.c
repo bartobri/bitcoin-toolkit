@@ -5,12 +5,21 @@
 #include "pubkey.h"
 #include "privkey.h"
 #include "point.h"
+#include "crypto.h"
+#include "base58check.h"
 #include "mem.h"
 #include "assert.h"
 
+#define ADDRESS_VERSION_BIT           0x00
+#define PUBKEY_UNCOMPRESSED_LENGTH    64
+#define PUBKEY_COMPRESSED_LENGTH      32
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
+
+struct PubKey{
+	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
+};
 
 // TODO - proper error handling
 PubKey pubkey_get(PrivKey k) {
@@ -157,5 +166,33 @@ char *pubkey_to_hex(PubKey k) {
 	}
 	
 	return r;
+}
+
+char *pubkey_to_address(PubKey k) {
+	size_t l;
+	unsigned char *sha, *rmd;
+	unsigned char r[21];
+
+	if (pubkey_is_compressed(k)) {
+		l = PUBKEY_COMPRESSED_LENGTH + 1;
+	} else {
+		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
+	}
+
+	// RMD(SHA(data))
+	sha = crypto_get_sha256(k->data, l);
+	rmd = crypto_get_rmd160(sha, 32);
+
+	// Set address version bit
+	r[0] = ADDRESS_VERSION_BIT;
+	
+	// Append rmd data
+	memcpy(r + 1, rmd, 20);
+	
+	// Free resources
+	FREE(sha);
+	FREE(rmd);
+	
+	return base58check_encode(r, 21);
 }
 

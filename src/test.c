@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include "mods/address.h"
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/hex.h"
@@ -89,7 +88,7 @@ int main(void) {
 	printf("Private Key: %s\n", privkey_to_hex(priv));
 	printf("WIF: %s\n", privkey_to_wif(priv));
 	printf("Public Key: %s\n", pubkey_to_hex(pub));
-	printf("Address: %s\n", address_get(pub));
+	printf("Address: %s\n", pubkey_to_address(pub));
 	
 	priv = privkey_compress(priv);
 	pub = pubkey_get(priv);
@@ -97,7 +96,7 @@ int main(void) {
 	printf("Private Key Compressed: %s\n", privkey_to_hex(priv));
 	printf("WIF Compressed: %s\n", privkey_to_wif(priv));
 	printf("Public Key Compressed: %s\n", pubkey_to_hex(pub));
-	printf("Address Compressed: %s\n", address_get(pub));
+	printf("Address Compressed: %s\n", pubkey_to_address(pub));
 
 	return 0;
 }
