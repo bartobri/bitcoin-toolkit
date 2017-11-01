@@ -5,8 +5,12 @@
 #include "privkey.h"
 #include "random.h"
 #include "hex.h"
+#include "base58check.h"
 #include "mem.h"
 #include "assert.h"
+
+#define MAINNET_PREFIX      0x80
+#define TESTNET_PREFIX      0xEF
 
 // Private keys can not be larger than (1.158 * 10^77) - 1
 #define PRIVKEY_MAX                "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
@@ -81,6 +85,22 @@ char *privkey_to_hex(PrivKey k) {
 	}
 	
 	return r;
+}
+
+char *privkey_to_wif(PrivKey k) {
+	int l;
+	unsigned char p[PRIVKEY_LENGTH + 2];
+
+	p[0] = MAINNET_PREFIX;
+	memcpy(p+1, k->data, PRIVKEY_LENGTH);
+	if (privkey_is_compressed(k)) {
+		p[PRIVKEY_LENGTH+1] = PRIVKEY_COMPRESSED_FLAG;
+		l = PRIVKEY_LENGTH + 2;
+	} else {
+		l = PRIVKEY_LENGTH + 1;
+	}
+	
+	return base58check_encode(p, l);
 }
 
 PrivKey privkey_from_hex(char *hex) {

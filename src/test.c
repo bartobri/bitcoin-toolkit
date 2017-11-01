@@ -1,10 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include "mods/address.h"
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
-#include "mods/wif.h"
 #include "mods/hex.h"
 #include "mods/txinput.h"
 #include "mods/txoutput.h"
@@ -17,7 +17,7 @@ void dump_txinput(TXInput);
 void dump_txoutput(TXOutput);
 
 int main(void) {
-	
+
 	/*
 	size_t i;
 	Trans t;
@@ -87,7 +87,7 @@ int main(void) {
 	pub = pubkey_get(priv);
 	
 	printf("Private Key: %s\n", privkey_to_hex(priv));
-	printf("WIF: %s\n", wif_get(priv));
+	printf("WIF: %s\n", privkey_to_wif(priv));
 	printf("Public Key: %s\n", pubkey_to_hex(pub));
 	printf("Address: %s\n", address_get(pub));
 	
@@ -95,10 +95,11 @@ int main(void) {
 	pub = pubkey_get(priv);
 	
 	printf("Private Key Compressed: %s\n", privkey_to_hex(priv));
-	printf("WIF Compressed: %s\n", wif_get(priv));
+	printf("WIF Compressed: %s\n", privkey_to_wif(priv));
 	printf("Public Key Compressed: %s\n", pubkey_to_hex(pub));
 	printf("Address Compressed: %s\n", address_get(pub));
 
+	return 0;
 }
 
 void dump_txinput(TXInput t) {
