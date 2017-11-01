@@ -3,9 +3,10 @@
 
 #define PRIVKEY_LENGTH 32
 
-typedef struct {
+typedef struct PrivKey *PrivKey;
+struct PrivKey {
 	unsigned char data[PRIVKEY_LENGTH + 1];
-} PrivKey;
+};
 
 PrivKey privkey_new(void);
 PrivKey privkey_compress(PrivKey);

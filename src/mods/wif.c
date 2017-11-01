@@ -17,7 +17,7 @@ char *wif_get(PrivKey k) {
 
 	kp[0] = MAINNET_PREFIX;
 	for (i = 0; i < l-1; ++i) {
-		kp[i+1] = k.data[i];
+		kp[i+1] = k->data[i];
 	}
 	
 	return base58check_encode(kp, l);

@@ -22,7 +22,7 @@ PubKey pubkey_get(PrivKey k) {
 	
 	point_init(&pubkey);
 
-	mpz_import(prvkey, PRIVKEY_LENGTH, 1, 1, 1, 0, k.data);
+	mpz_import(prvkey, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
 	
 	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
 		point_init(points + i);
