@@ -18,7 +18,7 @@ PrivKey privkey_new(void) {
 	PrivKey k;
 	mpz_t cur_key, max_key;
 	
-	k = ALLOC(sizeof(*k));
+	NEW(k);
 
 	// Init and set max key size
 	mpz_init(max_key);
@@ -96,7 +96,7 @@ PrivKey privkey_from_hex(char *hex) {
 	}
 	
 	// allocate memory
-	k = ALLOC(sizeof(*k));
+	NEW(k);
 
 	// load hex string as private key
 	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
