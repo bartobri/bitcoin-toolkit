@@ -6,6 +6,7 @@
 #include "privkey.h"
 #include "point.h"
 #include "mem.h"
+#include "assert.h"
 
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
@@ -19,6 +20,8 @@ PubKey pubkey_get(PrivKey k) {
 	Point pubkey;
 	Point points[PRIVKEY_LENGTH * 8];
 	PubKey r;
+	
+	assert(k);
 	
 	NEW(r);
 
@@ -38,31 +41,19 @@ PubKey pubkey_get(PrivKey k) {
 	// Calculating public key
 	point_set_generator(&points[0]);
 	for (i = 1; i < PRIVKEY_LENGTH * 8; ++i) {
-
 		point_double(&points[i], points[i-1]);
-
-		if (!point_verify(points[i])) {
-			// TODO - handle error
-			//printf("ERROR - Invalid point doubling!\n");
-			//return;
-		}
+		assert(point_verify(points[i]));
 	}
 
 	// Add all points corresponding to 1 bits
 	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
 		if (mpz_tstbit(prvkey, i) == 1) {
-
 			if (mpz_cmp_ui(pubkey.x, 0) == 0 && mpz_cmp_ui(pubkey.y, 0) == 0) {
 				point_set(&pubkey, points[i]);
 			} else {
 				point_add(&pubkey, pubkey, points[i]);
 			}
-
-			if (!point_verify(pubkey)) {
-				// TODO - handle error
-				//printf("ERROR - Invalid point addition!\n");
-				//return;
-			}
+			assert(point_verify(pubkey));
 		}
 	}
 	
@@ -111,6 +102,8 @@ PubKey pubkey_compress(PubKey k) {
 	mpz_t y;
 	size_t point_length = 32;
 	
+	assert(k);
+	
 	if (k->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
 		return k;
 	}
@@ -131,16 +124,18 @@ PubKey pubkey_compress(PubKey k) {
 }
 
 int pubkey_is_compressed(PubKey k) {
+	assert(k);
 	if (k->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
 		return 1;
 	}
-	
 	return 0;
 }
 
 char *pubkey_to_hex(PubKey k) {
 	int i, l;
 	char *r;
+	
+	assert(k);
 	
 	if (k->data[0] == PUBKEY_UNCOMPRESSED_FLAG) {
 		l = (PUBKEY_UNCOMPRESSED_LENGTH * 2) + 2;
