@@ -6,7 +6,7 @@
 int main(void) {
 	size_t i;
 	int c;
-	char hex[PRIVKEY_LENGTH * 2];
+	char hex[PRIVKEY_LENGTH * 2 + 1];
 
 	// Geting input
 	for (i = 0; (c = getchar()) != EOF && i < PRIVKEY_LENGTH * 2; ++i) {
@@ -26,6 +26,7 @@ int main(void) {
 		fprintf(stderr, "Invalid private key - Length: %i\n", (int)i);
 		return 1;
 	}
+	hex[i] = '\0';
 	
 	printf("Address: %s\n", address_get(pubkey_get(privkey_from_hex(hex))));
 	
