@@ -82,8 +82,7 @@ char *privkey_to_hex(PrivKey k) {
 	return r;
 }
 
-// TODO - needs error checking for invalid hex string
-//      - needs to check if key is greater than PRIVKEY_MAX
+// TODO - needs to check if key is greater than PRIVKEY_MAX
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
@@ -95,19 +94,17 @@ PrivKey privkey_from_hex(char *hex) {
 		assert((hex[i] >= 'A' && hex[i] <= 'F') || (hex[i] >= '0' && hex[i] <= '9') || (hex[i] >= 'a' && hex[i] <= 'z'));
 	}
 	
+	// allocate memory
 	k = ALLOC(sizeof(*k));
 
-	if (strlen(hex) >= PRIVKEY_LENGTH * 2) {
-		for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
-			k->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
-		}
-		if (hex[i] != '\0' &&  hex[i+1] != '\0' && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
-			k->data[i/2] = PRIVKEY_COMPRESSED_FLAG;
-		} else {
-			k->data[i/2] = PRIVKEY_UNCOMPRESSED_FLAG;
-		}
+	// load hex string as private key
+	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
+		k->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+	}
+	if (hex[i] != '\0' &&  hex[i+1] != '\0' && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
+		k->data[i/2] = PRIVKEY_COMPRESSED_FLAG;
 	} else {
-		// TODO - handle error here
+		k->data[i/2] = PRIVKEY_UNCOMPRESSED_FLAG;
 	}
 	
 	return k;
