@@ -13,17 +13,21 @@
 // TODO - proper error handling
 PubKey pubkey_get(PrivKey k) {
 	size_t i, j;
+	char *prvkeyhex;
 	mpz_t prvkey;
 	Point pubkey;
 	Point points[PRIVKEY_LENGTH * 8];
 	PubKey r;
 
+	// Load private key from hex string, truncating the compression flag.
 	mpz_init(prvkey);
+	prvkeyhex = privkey_to_hex(k);
+	prvkeyhex[PRIVKEY_LENGTH * 2] = '\0';
+	mpz_set_str(prvkey, prvkeyhex, 16);
+	free(prvkeyhex);
 	
+	// Initalize the points
 	point_init(&pubkey);
-
-	mpz_import(prvkey, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
-	
 	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
 		point_init(points + i);
 	}

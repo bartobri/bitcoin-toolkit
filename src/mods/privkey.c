@@ -13,6 +13,11 @@
 #define PRIVKEY_COMPRESSED_FLAG    0x01
 #define PRIVKEY_UNCOMPRESSED_FLAG  0x00
 
+struct PrivKey {
+	unsigned char data[PRIVKEY_LENGTH];
+	int cflag;
+};
+
 PrivKey privkey_new(void) {
 	int i;
 	PrivKey k;
@@ -37,20 +42,20 @@ PrivKey privkey_new(void) {
 	mpz_clear(max_key);
 	mpz_clear(cur_key);
 	
-	k->data[PRIVKEY_LENGTH] = PRIVKEY_UNCOMPRESSED_FLAG;
+	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	
 	return k;
 }
 
 PrivKey privkey_compress(PrivKey k) {
 	assert(k);
-	k->data[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
+	k->cflag = PRIVKEY_COMPRESSED_FLAG;
 	return k;
 }
 
 PrivKey privkey_uncompress(PrivKey k) {
 	assert(k);
-	k->data[PRIVKEY_LENGTH] = PRIVKEY_UNCOMPRESSED_FLAG;
+	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	return k;
 }
 
@@ -66,17 +71,13 @@ char *privkey_to_hex(PrivKey k) {
 	
 	r = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
 	
-	if (r == NULL) {
-		return r;
-	} else {
-		memset(r, 0, ((PRIVKEY_LENGTH + 1) * 2) + 1);
-	}
+	memset(r, 0, ((PRIVKEY_LENGTH + 1) * 2) + 1);
 	
 	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
 		sprintf(r + (i * 2), "%02x", k->data[i]);
 	}
-	if (k->data[i] == PRIVKEY_COMPRESSED_FLAG) {
-		sprintf(r + (i * 2), "%02x", k->data[i]);
+	if (k->cflag == PRIVKEY_COMPRESSED_FLAG) {
+		sprintf(r + (i * 2), "%02x", k->cflag);
 	}
 	
 	return r;
@@ -103,9 +104,9 @@ PrivKey privkey_from_hex(char *hex) {
 		k->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
 	}
 	if (hex[i] &&  hex[i+1] && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
-		k->data[i/2] = PRIVKEY_COMPRESSED_FLAG;
+		k->cflag = PRIVKEY_COMPRESSED_FLAG;
 	} else {
-		k->data[i/2] = PRIVKEY_UNCOMPRESSED_FLAG;
+		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	}
 
 	// Make sure key is not above PRIVKEY_MAX
@@ -121,7 +122,7 @@ PrivKey privkey_from_hex(char *hex) {
 }
 
 int privkey_is_compressed(PrivKey k) {
-	return (k->data[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
+	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
 
 
