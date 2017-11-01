@@ -88,7 +88,12 @@ PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
 	
+	// Validate hex string
 	assert(hex);
+	assert(strlen(hex) >= PRIVKEY_LENGTH * 2);
+	for (i = 0; i < strlen(hex); ++i) {
+		assert((hex[i] >= 'A' && hex[i] <= 'F') || (hex[i] >= '0' && hex[i] <= '9') || (hex[i] >= 'a' && hex[i] <= 'z'));
+	}
 	
 	k = ALLOC(sizeof(*k));
 
