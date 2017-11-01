@@ -86,6 +86,7 @@ char *privkey_to_hex(PrivKey k) {
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
+	mpz_t cur_key, max_key;
 	
 	// Validate hex string
 	assert(hex);
@@ -106,6 +107,15 @@ PrivKey privkey_from_hex(char *hex) {
 	} else {
 		k->data[i/2] = PRIVKEY_UNCOMPRESSED_FLAG;
 	}
+
+	// Make sure key is not above PRIVKEY_MAX
+	mpz_init(max_key);
+	mpz_init(cur_key);
+	mpz_set_str(max_key, PRIVKEY_MAX, 16);
+	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
+	assert(mpz_cmp(cur_key, max_key) < 0);
+	mpz_clear(max_key);
+	mpz_clear(cur_key);
 	
 	return k;
 }
