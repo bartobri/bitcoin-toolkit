@@ -23,7 +23,7 @@ struct PubKey{
 
 // TODO - proper error handling
 PubKey pubkey_get(PrivKey k) {
-	size_t i, j;
+	size_t i, l;
 	char *prvkeyhex;
 	mpz_t prvkey;
 	Point pubkey;
@@ -32,7 +32,7 @@ PubKey pubkey_get(PrivKey k) {
 	
 	assert(k);
 	
-	NEW(r);
+	NEW0(r);
 
 	// Load private key from hex string, truncating the compression flag.
 	mpz_init(prvkey);
@@ -76,26 +76,14 @@ PubKey pubkey_get(PrivKey k) {
 	} else {
 		r->data[0] = PUBKEY_UNCOMPRESSED_FLAG;
 	}
-
-	// Exporting x,y coordinates as byte string, making sure to write leading
+	
+	// Exporting x,y coordinates as byte string, making sure to leave leading
 	// zeros if either exports as less than 32 bytes.
-	mpz_export(r->data + 1, &i, 1, 1, 1, 0, pubkey.x);
-	while (i < 32) {
-		for (j = 32; j >= 2; --j) {
-			r->data[j] = r->data[j - 1];
-		}
-		r->data[1] = 0x00;
-		++i;
-	}
+	l = (mpz_sizeinbase(pubkey.x, 2) + 7) / 8;
+	mpz_export(r->data + 1 + (32 - l), &i, 1, 1, 1, 0, pubkey.x);
 	if (!privkey_is_compressed(k)) {
-		mpz_export(r->data + 33, &i, 1, 1, 1, 0, pubkey.y);
-		while (i < 32) {
-			for (j = 64; j >= 34; --j) {
-				r->data[j] = r->data[j - 1];
-			}
-			r->data[33] = 0x00;
-			++i;
-		}
+		l = (mpz_sizeinbase(pubkey.y, 2) + 7) / 8;
+		mpz_export(r->data + 33 + (32 - l), &i, 1, 1, 1, 0, pubkey.y);
 	}
 
 	// Clear all points
