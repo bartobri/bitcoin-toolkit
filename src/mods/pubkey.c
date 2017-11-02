@@ -81,9 +81,11 @@ PubKey pubkey_get(PrivKey k) {
 	// zeros if either exports as less than 32 bytes.
 	l = (mpz_sizeinbase(pubkey.x, 2) + 7) / 8;
 	mpz_export(r->data + 1 + (32 - l), &i, 1, 1, 1, 0, pubkey.x);
+	assert(l == i);
 	if (!privkey_is_compressed(k)) {
 		l = (mpz_sizeinbase(pubkey.y, 2) + 7) / 8;
 		mpz_export(r->data + 33 + (32 - l), &i, 1, 1, 1, 0, pubkey.y);
+		assert(l == i);
 	}
 
 	// Clear all points
