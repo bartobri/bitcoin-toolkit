@@ -3,6 +3,7 @@
 #include "txinput.h"
 #include "hex.h"
 #include "compactuint.h"
+#include "mem.h"
 
 #define CHECK_ZERO(x)      if (x == 0) return NULL;
 
@@ -10,9 +11,7 @@ TXInput txinput_from_raw(unsigned char *raw, size_t l, size_t *c) {
 	size_t i, j;
 	TXInput r;
 
-	if ((r = malloc(sizeof(*r))) == NULL) {
-		return NULL;
-	}
+	NEW(r);
 	
 	*c = 0;
 	
@@ -38,9 +37,7 @@ TXInput txinput_from_raw(unsigned char *raw, size_t l, size_t *c) {
 	CHECK_ZERO(l);
 	
 	// Unlocking Script
-	if ((r->script_raw = malloc(r->script_size)) == NULL) {
-		// TODO - Handle memory error here
-	}
+	r->script_raw = ALLOC(r->script_size);
 	for (i = 0; i < r->script_size; ++i, ++raw, --l, ++(*c)) {
 		CHECK_ZERO(l);
 		r->script_raw[i] = *raw;
