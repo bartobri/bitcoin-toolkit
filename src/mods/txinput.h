@@ -3,13 +3,14 @@
 
 #include <stdint.h>
 
-typedef struct {
+typedef struct TXInput *TXInput;
+struct TXInput {
 	unsigned char  tx_hash[32];
 	uint32_t       index;
 	uint64_t       script_size;
 	unsigned char* script_raw;
 	uint32_t       sequence;
-} *TXInput;
+};
 
 TXInput txinput_from_raw(unsigned char *, size_t, size_t *);
 
