@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include <stdint.h>
-
-#define CHECK_ZERO(x)      if (x == 0) return 0;
+#include "assert.h"
 
 uint64_t compactuint_get_value(unsigned char *raw, size_t l, size_t *c) {
 	size_t i, j;
 	uint64_t r;
 	
-	CHECK_ZERO(l);
+	assert(raw);
+	assert(l);
 
 	if (*raw <= 0xfc) {
 		r = *raw;
@@ -26,10 +26,10 @@ uint64_t compactuint_get_value(unsigned char *raw, size_t l, size_t *c) {
 		--l;
 		*c = 1;
 		
-		CHECK_ZERO(l);
+		assert(l);
 
 		for (r = 0, i = 0; i < j; ++i, ++raw, --l, ++(*c)) {
-			CHECK_ZERO(l);
+			assert(l);
 			r <<= 8;
 			r += *raw;
 		}
