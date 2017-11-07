@@ -6,6 +6,7 @@
 #include "txoutput.h"
 #include "hex.h"
 #include "compactuint.h"
+#include "mem.h"
 
 #define CHECK_ZERO(x)      if (x == 0) return NULL;
 #define CHECK_NULL(x)      if (x == NULL) return NULL;
@@ -15,8 +16,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	size_t i, c;
 	Trans r;
 
-	r = malloc(sizeof(*r));
-	CHECK_NULL(r);
+	NEW(r);
 
 	// Get Version
 	for (r->version = 0, i = 0; i < sizeof(r->version); ++i, ++raw, --l) {
@@ -32,10 +32,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	CHECK_ZERO(l);
 	
 	// Input Transactions
-	r->inputs = malloc(sizeof(TXInput) * r->input_count);
-	if (r->inputs == NULL) {
-		// TODO - handle memory error
-	}
+	r->inputs = ALLOC(sizeof(TXInput) * r->input_count);
 	for (i = 0; i < r->input_count; ++i) {
 		r->inputs[i] = txinput_from_raw(raw, l, &c);
 		CHECK_NULL(r->inputs[i]);
@@ -52,10 +49,7 @@ Trans transaction_from_raw(unsigned char *raw, size_t l) {
 	CHECK_ZERO(l);
 	
 	// Output Transactions
-	r->outputs = malloc(sizeof(TXOutput) * r->output_count);
-	if (r->outputs == NULL) {
-		// TODO - handle memory error
-	}
+	r->outputs = ALLOC(sizeof(TXOutput) * r->output_count);
 	for (i = 0; i < r->output_count; ++i) {
 		r->outputs[i] = txoutput_from_raw(raw, l, &c);
 		CHECK_NULL(r->outputs[i]);
