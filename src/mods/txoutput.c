@@ -6,8 +6,6 @@
 #include "mem.h"
 #include "assert.h"
 
-//#define CHECK_ZERO(x)      if (x == 0) return NULL;
-
 TXOutput txoutput_from_raw(unsigned char *raw, size_t l, size_t *c) {
 	size_t i, j;
 	TXOutput r;
