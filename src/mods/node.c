@@ -58,5 +58,21 @@ void node_disconnect(Node n) {
 	assert(n->sockfd);
 	
 	close(n->sockfd);
+	
+	FREE(n);
+}
+
+void node_send(Node n, unsigned char *data, size_t l) {
+	ssize_t r;
+
+	assert(n);
+	assert(n->sockfd);
+	assert(data);
+	assert(l);
+	
+	r = write(n->sockfd, data, l);
+	
+	// TODO - handle this by reading errno and taking apropriate action
+	assert(r > 0);
 }
 
