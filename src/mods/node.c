@@ -76,3 +76,24 @@ void node_send(Node n, unsigned char *data, size_t l) {
 	assert(r > 0);
 }
 
+size_t node_read(Node n, unsigned char* buffer) {
+	int r;
+	size_t l = 0;
+
+	// Get length of data waiting to be read
+	ioctl(n->sockfd, FIONREAD, &r);
+
+	if (r > 0) {
+
+		// Allocate buffer if null
+		if (buffer == NULL) {
+			buffer = ALLOC(r + 1);
+		}
+
+		// read incoming data in to buffer
+		l = read(n->sockfd, buffer, r);
+	}
+
+	return l;
+}
+
