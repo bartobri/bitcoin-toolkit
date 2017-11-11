@@ -6,9 +6,9 @@
 #include "assert.h"
 #include "messages/version.h"
 
-#define MESSAGE_COMMAND_LEN 12
-#define MESSAGE_MAINNET     0xD9B4BEF9
-#define MESSAGE_TESTNET     0x0709110B
+#define MESSAGE_COMMAND_MAXLEN 12
+#define MESSAGE_MAINNET        0xD9B4BEF9
+#define MESSAGE_TESTNET        0x0709110B
 
 struct Message {
 	uint32_t magic;
@@ -26,7 +26,7 @@ Message message_new(const char *c) {
 	NEW0(r);
 	
 	r->magic = MESSAGE_MAINNET;
-	strncpy(r->command, c, MESSAGE_COMMAND_LEN);
+	strncpy(r->command, c, MESSAGE_COMMAND_MAXLEN);
 	
 	if (strcmp(r->command, "version")) {
 		r->payload = version_serialize(version_new());
