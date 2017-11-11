@@ -12,8 +12,10 @@
 
 struct Message {
 	uint32_t magic;
-	char command[MESSAGE_COMMAND_LEN];
-	void *data;
+	char     command[MESSAGE_COMMAND_LEN];
+	uint32_t length;
+	uint32_t checksum;
+	unsigned char *payload;
 };
 
 Message message_new(const char *c) {
@@ -27,9 +29,9 @@ Message message_new(const char *c) {
 	strncpy(r->command, c, MESSAGE_COMMAND_LEN);
 	
 	if (strcmp(r->command, "version")) {
-		r->data = version_new();
+		r->payload = version_serialize(version_new());
 	} else {
-		r->data = NULL;
+		r->payload = NULL;
 	}
 	
 	return r;
