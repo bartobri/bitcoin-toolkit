@@ -1,24 +1,27 @@
 #include <stddef.h>
+#include <stdint.h>
 #include "message.h"
 #include "mem.h"
 #include "assert.h"
 #include "messages/version.h"
 
+#define MESSAGE_MAINNET 0xD9B4BEF9
+#define MESSAGE_TESTNET 0x0709110B
+
 struct Message {
-	int magic;
+	uint32_t magic;
 	int command;
 	void *data;
 };
 
-Message message_new(int magic, int command) {
+Message message_new(int command) {
 	Message r;
 	
-	assert(magic);
 	assert(command);
 	
 	NEW(r);
 	
-	r->magic = magic;
+	r->magic = MESSAGE_MAINNET;
 	r->command = command;
 	
 	switch(command) {
