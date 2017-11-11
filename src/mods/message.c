@@ -11,28 +11,28 @@
 #define MESSAGE_TESTNET        0x0709110B
 
 struct Message {
-	uint32_t magic;
-	char     command[MESSAGE_COMMAND_LEN];
-	uint32_t length;
-	uint32_t checksum;
+	uint32_t       magic;
+	char           command[MESSAGE_COMMAND_MAXLEN];
+	uint32_t       length;
+	uint32_t       checksum;
 	unsigned char *payload;
 };
 
 Message message_new(const char *c) {
 	Message r;
-	
+
 	assert(c);
-	
+
 	NEW0(r);
-	
+
 	r->magic = MESSAGE_MAINNET;
 	strncpy(r->command, c, MESSAGE_COMMAND_MAXLEN);
-	
-	if (strcmp(r->command, "version")) {
-		r->payload = version_serialize(version_new());
+
+	if (strcmp(r->command, "version") == 0) {
+		r->length = (uint32_t)version_serialize(version_new(), &(r->payload));
 	} else {
 		r->payload = NULL;
 	}
-	
+
 	return r;
 }

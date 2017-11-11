@@ -16,6 +16,17 @@ Version version_new(void) {
 }
 
 // TODO - need to also implement a length argument
-unsigned char *version_serialize(Version v) {
-	return NULL;
+size_t version_serialize(Version v, unsigned char **s) {
+	size_t len;
+	unsigned char *temp;
+	
+	len = 10;
+	
+	temp = ALLOC(len);
+	
+	memset(temp, 5, len);
+	
+	*s = temp;
+
+	return len;
 }
