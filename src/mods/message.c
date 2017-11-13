@@ -6,10 +6,10 @@
 #include "assert.h"
 #include "messages/version.h"
 
-#define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
-#define MESSAGE_MAX_PAYLOAD    1024
+#define MESSAGE_COMMAND_MAXLEN 12
+#define MESSAGE_PAYLOAD_MAXLEN 1024
 
 struct Message {
 	uint32_t       magic;
@@ -39,11 +39,10 @@ Message message_new(const char *c) {
 }
 
 size_t message_serialize(Message m, unsigned char **s) {
-	//int i;
-	size_t len = 0;
+	size_t i, len = 0;
 	unsigned char *temp;
 	
-	temp = ALLOC(sizeof(struct Message) + MESSAGE_MAX_PAYLOAD);
+	temp = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
 	
 	// Serializing Magic
 	temp[0] = (unsigned char)((m->magic & 0xFF000000) >> 24);
@@ -51,6 +50,15 @@ size_t message_serialize(Message m, unsigned char **s) {
 	temp[2] = (unsigned char)((m->magic & 0x0000FF00) >> 8);
 	temp[3] = (unsigned char)(m->magic & 0x000000FF);
 	len += 4;
+	
+	// Serializing command
+	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
+		if (m->command[i])
+			temp[i+len] = m->command[i];
+		else
+			temp[i+len] = 0x00;
+	}
+	len += MESSAGE_COMMAND_MAXLEN;
 	
 	*s = temp;
 	
