@@ -10,16 +10,24 @@
 // https://en.bitcoin.it/wiki/Version_Handshake
 
 int main(void) {
-	Node n;
+	size_t i;
+	//Node n;
 	Message m;
+	unsigned char *s;
+	size_t len;
 
-	n = node_connect(HOST, PORT);
+	//n = node_connect(HOST, PORT);
+	//printf("Connected on socket: %i\n", node_socket(n));
+	//node_disconnect(n);
 	
-	printf("Connected on socket: %i\n", node_socket(n));
+	m = message_new("version");
+	len = message_serialize(m, &s);
 	
-	node_disconnect(n);
-	
-	m = message_new(MESSAGE_MAGIC_MAINNET, MESSAGE_COMMAND_VERSION);
+	printf("Version Serialized:\n");
+	for (i = 0; i < len; ++i) {
+		printf("%02x", s[i]);
+	}
+	printf("\n");
 	
 	return 1;
 }

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stddef.h>
 #include "version.h"
 #include "mods/mem.h"

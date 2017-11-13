@@ -9,6 +9,7 @@
 #define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
+#define MESSAGE_MAX_PAYLOAD    1024
 
 struct Message {
 	uint32_t       magic;
@@ -19,20 +20,39 @@ struct Message {
 };
 
 Message message_new(const char *c) {
-	Message r;
+	Message m;
 
 	assert(c);
 
-	NEW0(r);
+	NEW0(m);
 
-	r->magic = MESSAGE_MAINNET;
-	strncpy(r->command, c, MESSAGE_COMMAND_MAXLEN);
+	m->magic = MESSAGE_MAINNET;
+	strncpy(m->command, c, MESSAGE_COMMAND_MAXLEN);
 
-	if (strcmp(r->command, "version") == 0) {
-		r->length = (uint32_t)version_serialize(version_new(), &(r->payload));
+	if (strcmp(m->command, "version") == 0) {
+		m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
 	} else {
-		r->payload = NULL;
+		m->payload = NULL;
 	}
 
-	return r;
+	return m;
+}
+
+size_t message_serialize(Message m, unsigned char **s) {
+	//int i;
+	size_t len = 0;
+	unsigned char *temp;
+	
+	temp = ALLOC(sizeof(struct Message) + MESSAGE_MAX_PAYLOAD);
+	
+	// Serializing Magic
+	temp[0] = (unsigned char)((m->magic & 0xFF000000) >> 24);
+	temp[1] = (unsigned char)((m->magic & 0x00FF0000) >> 16);
+	temp[2] = (unsigned char)((m->magic & 0x0000FF00) >> 8);
+	temp[3] = (unsigned char)(m->magic & 0x000000FF);
+	len += 4;
+	
+	*s = temp;
+	
+	return len;
 }
