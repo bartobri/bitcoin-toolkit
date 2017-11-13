@@ -60,11 +60,17 @@ size_t message_serialize(Message m, unsigned char **s) {
 	}
 	len += MESSAGE_COMMAND_MAXLEN;
 	
-	// Serializing Length (reverse byte order)
+	// Serializing Length (little endian)
 	temp[len++] = (unsigned char)(m->length & 0x000000FF);
 	temp[len++] = (unsigned char)((m->length & 0x0000FF00) >> 8);
 	temp[len++] = (unsigned char)((m->length & 0x00FF0000) >> 16);
 	temp[len++] = (unsigned char)((m->length & 0xFF000000) >> 24);
+	
+	// Serializing checksum (little endian)
+	temp[len++] = (unsigned char)(m->checksum & 0x000000FF);
+	temp[len++] = (unsigned char)((m->checksum & 0x0000FF00) >> 8);
+	temp[len++] = (unsigned char)((m->checksum & 0x00FF0000) >> 16);
+	temp[len++] = (unsigned char)((m->checksum & 0xFF000000) >> 24);
 	
 	*s = temp;
 	
