@@ -89,6 +89,10 @@ size_t message_serialize(Message m, unsigned char **s) {
 	temp[len++] = (unsigned char)((m->checksum & 0x00FF0000) >> 16);
 	temp[len++] = (unsigned char)((m->checksum & 0xFF000000) >> 24);
 	
+	// Append payload data
+	memcpy(temp + len, m->payload, m->length);
+	len += m->length;
+	
 	*s = temp;
 	
 	return len;

@@ -6,7 +6,7 @@
 #define PORT 8333
 
 // Handshake format & protocol
-// https://en.bitcoin.it/wiki/Protocol_documentation#version
+// https://bitcoin.org/en/developer-reference#version
 // https://en.bitcoin.it/wiki/Version_Handshake
 
 int main(void) {
