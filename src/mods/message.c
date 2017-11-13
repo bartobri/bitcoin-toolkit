@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "crypto.h"
 #include "message.h"
 #include "mem.h"
 #include "assert.h"
@@ -21,6 +22,7 @@ struct Message {
 
 Message message_new(const char *c) {
 	Message m;
+	unsigned char *sha1, *sha2;
 
 	assert(c);
 
@@ -32,8 +34,23 @@ Message message_new(const char *c) {
 	if (strcmp(m->command, "version") == 0) {
 		m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
 	} else {
+		m->length = 0;
 		m->payload = NULL;
 	}
+	
+	// Getting checksum of payload
+	sha1 = crypto_get_sha256(m->payload, m->length);
+	sha2 = crypto_get_sha256(sha1, 32);
+	m->checksum <<= 8;
+	m->checksum += sha2[0];
+	m->checksum <<= 8;
+	m->checksum += sha2[1];
+	m->checksum <<= 8;
+	m->checksum += sha2[2];
+	m->checksum <<= 8;
+	m->checksum += sha2[3];	
+	FREE(sha1);
+	FREE(sha2);
 
 	return m;
 }
