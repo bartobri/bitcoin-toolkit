@@ -5,7 +5,8 @@
 #include "mods/mem.h"
 #include "mods/assert.h"
 
-#define VERSION 70015
+#define VERSION  70015
+#define SERVICES 0x00
 
 struct Version {
 	int32_t  version;
@@ -30,6 +31,7 @@ Version version_new(void) {
 	NEW(r);
 	
 	r->version = VERSION;
+	r->services = SERVICES;
 	
 	return r;
 }
@@ -41,11 +43,22 @@ size_t version_serialize(Version v, unsigned char **s) {
 	
 	temp = ALLOC(sizeof(struct Version));
 	
-	// Serializing Length (little endian)
+	// Serializing Version (little endian)
 	temp[len++] = (unsigned char)(v->version & 0x000000FF);
 	temp[len++] = (unsigned char)((v->version & 0x0000FF00) >> 8);
 	temp[len++] = (unsigned char)((v->version & 0x00FF0000) >> 16);
 	temp[len++] = (unsigned char)((v->version & 0xFF000000) >> 24);
+	
+	// Serializing Services (little endian)
+	temp[len++] = (unsigned char)(v->services & 0x00000000000000FF);
+	temp[len++] = (unsigned char)((v->services & 0x000000000000FF00) >> 8);
+	temp[len++] = (unsigned char)((v->services & 0x0000000000FF0000) >> 16);
+	temp[len++] = (unsigned char)((v->services & 0x00000000FF000000) >> 24);
+	temp[len++] = (unsigned char)((v->services & 0x000000FF00000000) >> 32);
+	temp[len++] = (unsigned char)((v->services & 0x0000FF0000000000) >> 40);
+	temp[len++] = (unsigned char)((v->services & 0x00FF000000000000) >> 48);
+	temp[len++] = (unsigned char)((v->services & 0xFF00000000000000) >> 56);
+
 	
 	*s = temp;
 
