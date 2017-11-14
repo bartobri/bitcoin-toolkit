@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
+#include <time.h>
 #include "version.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
@@ -32,6 +33,7 @@ Version version_new(void) {
 	
 	r->version = VERSION;
 	r->services = SERVICES;
+	r->timestamp = time(NULL);
 	
 	return r;
 }
@@ -58,6 +60,16 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->services & 0x0000FF0000000000) >> 40);
 	temp[len++] = (unsigned char)((v->services & 0x00FF000000000000) >> 48);
 	temp[len++] = (unsigned char)((v->services & 0xFF00000000000000) >> 56);
+	
+	// Serializing Timestamp (little endian)
+	temp[len++] = (unsigned char)(v->timestamp & 0x00000000000000FF);
+	temp[len++] = (unsigned char)((v->timestamp & 0x000000000000FF00) >> 8);
+	temp[len++] = (unsigned char)((v->timestamp & 0x0000000000FF0000) >> 16);
+	temp[len++] = (unsigned char)((v->timestamp & 0x00000000FF000000) >> 24);
+	temp[len++] = (unsigned char)((v->timestamp & 0x000000FF00000000) >> 32);
+	temp[len++] = (unsigned char)((v->timestamp & 0x0000FF0000000000) >> 40);
+	temp[len++] = (unsigned char)((v->timestamp & 0x00FF000000000000) >> 48);
+	temp[len++] = (unsigned char)((v->timestamp & 0xFF00000000000000) >> 56);
 
 	
 	*s = temp;
