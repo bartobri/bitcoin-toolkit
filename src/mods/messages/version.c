@@ -12,6 +12,7 @@
 #define VERSION  70015
 #define SERVICES 0x00
 #define IP_ADDRESS "00000000000000000000ffff7f000001"
+#define PORT 8333
 
 struct Version {
 	int32_t  version;
@@ -44,6 +45,8 @@ Version version_new(void) {
 	temp = hex_str_to_uc(IP_ADDRESS);
 	memcpy(r->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
 	FREE(temp);
+	
+	r->addr_recv_port = PORT;
 	
 	return r;
 }
@@ -93,6 +96,10 @@ size_t version_serialize(Version v, unsigned char **s) {
 	// Serializing Addr Rec IP Address (big endian)
 	memcpy(temp + len, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
 	len += IP_ADDR_FIELD_LEN;
+	
+	// Serializing Port (big endian)
+	temp[len++] = (unsigned char)((v->addr_recv_port & 0xFF00) >> 8);
+	temp[len++] = (unsigned char)(v->addr_recv_port & 0x00FF);
 	
 	*s = temp;
 
