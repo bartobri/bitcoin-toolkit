@@ -48,9 +48,8 @@ Version version_new(void) {
 	return r;
 }
 
-// TODO - need to also implement a length argument
 size_t version_serialize(Version v, unsigned char **s) {
-	size_t i, len = 0;
+	size_t len = 0;
 	unsigned char *temp;
 	
 	temp = ALLOC(sizeof(struct Version));
@@ -92,9 +91,8 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->addr_recv_services & 0xFF00000000000000) >> 56);
 
 	// Serializing Addr Rec IP Address (big endian)
-	for (i = 0; i < IP_ADDR_FIELD_LEN; ++i) {
-		temp[len++] = v->addr_recv_ip_address[i];
-	}
+	memcpy(temp + len, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
+	len += IP_ADDR_FIELD_LEN;
 	
 	*s = temp;
 
