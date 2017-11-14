@@ -47,6 +47,7 @@ Version version_new(void) {
 	FREE(temp);
 	
 	r->addr_recv_port = PORT;
+	r->addr_trans_services = SERVICES;
 	
 	return r;
 }
@@ -100,6 +101,16 @@ size_t version_serialize(Version v, unsigned char **s) {
 	// Serializing Port (big endian)
 	temp[len++] = (unsigned char)((v->addr_recv_port & 0xFF00) >> 8);
 	temp[len++] = (unsigned char)(v->addr_recv_port & 0x00FF);
+	
+	// Serializing Addr Trans Services (little endian)
+	temp[len++] = (unsigned char)(v->addr_trans_services & 0x00000000000000FF);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x000000000000FF00) >> 8);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x0000000000FF0000) >> 16);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x00000000FF000000) >> 24);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x000000FF00000000) >> 32);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x0000FF0000000000) >> 40);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0x00FF000000000000) >> 48);
+	temp[len++] = (unsigned char)((v->addr_trans_services & 0xFF00000000000000) >> 56);
 	
 	*s = temp;
 
