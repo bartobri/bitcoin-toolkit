@@ -3,18 +3,22 @@
 #include <stddef.h>
 #include <time.h>
 #include "version.h"
+#include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
+#define IP_ADDR_FIELD_LEN 16
+
 #define VERSION  70015
 #define SERVICES 0x00
+#define IP_ADDRESS "00000000000000000000ffff7f000001"
 
 struct Version {
 	int32_t  version;
 	uint64_t services;
 	int64_t  timestamp;
 	uint64_t addr_recv_services;
-	char     addr_recv_ip_address;
+	unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
 	uint16_t addr_recv_port;
 	uint64_t addr_trans_services;
 	char     addr_trans_ip_address;
@@ -28,6 +32,7 @@ struct Version {
 
 Version version_new(void) {
 	Version r;
+	unsigned char *temp;
 	
 	NEW(r);
 	
@@ -35,13 +40,17 @@ Version version_new(void) {
 	r->services = SERVICES;
 	r->timestamp = time(NULL);
 	r->addr_recv_services = SERVICES;
+
+	temp = hex_str_to_uc(IP_ADDRESS);
+	memcpy(r->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
+	FREE(temp);
 	
 	return r;
 }
 
 // TODO - need to also implement a length argument
 size_t version_serialize(Version v, unsigned char **s) {
-	size_t len = 0;
+	size_t i, len = 0;
 	unsigned char *temp;
 	
 	temp = ALLOC(sizeof(struct Version));
@@ -82,6 +91,10 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->addr_recv_services & 0x00FF000000000000) >> 48);
 	temp[len++] = (unsigned char)((v->addr_recv_services & 0xFF00000000000000) >> 56);
 
+	// Serializing Addr Rec IP Address (big endian)
+	for (i = 0; i < IP_ADDR_FIELD_LEN; ++i) {
+		temp[len++] = v->addr_recv_ip_address[i];
+	}
 	
 	*s = temp;
 
