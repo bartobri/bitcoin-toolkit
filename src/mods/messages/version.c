@@ -56,6 +56,7 @@ Version version_new(void) {
 	
 	r->addr_trans_port = PORT;
 	r->nonce = 0x00;
+	r->user_agent_bytes = ((uint64_t)strlen(USER_AGENT)) << 56;
 	r->user_agent = USER_AGENT;
 	
 	return r;
@@ -140,7 +141,8 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->nonce & 0xFF00000000000000) >> 56);
 	
 	// Serializing User Agent Bytes
-	// Placeholder
+	// TODO - handle variable length ints properly
+	temp[len++] = (unsigned char)((v->user_agent_bytes & 0xFF00000000000000) >> 56);
 	
 	// Serializing User Agent String
 	memcpy(temp + len, v->user_agent, strlen(v->user_agent));
