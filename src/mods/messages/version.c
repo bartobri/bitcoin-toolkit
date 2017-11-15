@@ -59,6 +59,7 @@ Version version_new(void) {
 	r->user_agent_bytes = ((uint64_t)strlen(USER_AGENT)) << 56;
 	r->user_agent = USER_AGENT;
 	r->start_height = 0x00;
+	r->relay = 0x00;
 	
 	return r;
 }
@@ -154,6 +155,9 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->start_height & 0x0000FF00) >> 8);
 	temp[len++] = (unsigned char)((v->start_height & 0x00FF0000) >> 16);
 	temp[len++] = (unsigned char)((v->start_height & 0xFF000000) >> 24);
+	
+	// Serializing Relay
+	temp[len++] = v->relay;
 	
 	*s = temp;
 
