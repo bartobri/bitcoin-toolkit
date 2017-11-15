@@ -83,11 +83,11 @@ size_t message_serialize(Message m, unsigned char **s) {
 	temp[len++] = (unsigned char)((m->length & 0x00FF0000) >> 16);
 	temp[len++] = (unsigned char)((m->length & 0xFF000000) >> 24);
 	
-	// Serializing checksum (little endian)
-	temp[len++] = (unsigned char)(m->checksum & 0x000000FF);
-	temp[len++] = (unsigned char)((m->checksum & 0x0000FF00) >> 8);
-	temp[len++] = (unsigned char)((m->checksum & 0x00FF0000) >> 16);
+	// Serializing checksum (big endian)
 	temp[len++] = (unsigned char)((m->checksum & 0xFF000000) >> 24);
+	temp[len++] = (unsigned char)((m->checksum & 0x00FF0000) >> 16);
+	temp[len++] = (unsigned char)((m->checksum & 0x0000FF00) >> 8);
+	temp[len++] = (unsigned char)(m->checksum & 0x000000FF);
 	
 	// Append payload data
 	memcpy(temp + len, m->payload, m->length);
