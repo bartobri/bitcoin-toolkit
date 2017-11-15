@@ -58,6 +58,7 @@ Version version_new(void) {
 	r->nonce = 0x00;
 	r->user_agent_bytes = ((uint64_t)strlen(USER_AGENT)) << 56;
 	r->user_agent = USER_AGENT;
+	r->start_height = 0x00;
 	
 	return r;
 }
@@ -147,6 +148,12 @@ size_t version_serialize(Version v, unsigned char **s) {
 	// Serializing User Agent String
 	memcpy(temp + len, v->user_agent, strlen(v->user_agent));
 	len += strlen(v->user_agent);
+	
+	// Serializing Block Height (little endian)
+	temp[len++] = (unsigned char)(v->start_height & 0x000000FF);
+	temp[len++] = (unsigned char)((v->start_height & 0x0000FF00) >> 8);
+	temp[len++] = (unsigned char)((v->start_height & 0x00FF0000) >> 16);
+	temp[len++] = (unsigned char)((v->start_height & 0xFF000000) >> 24);
 	
 	*s = temp;
 
