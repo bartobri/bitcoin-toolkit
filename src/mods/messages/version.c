@@ -9,10 +9,11 @@
 
 #define IP_ADDR_FIELD_LEN 16
 
-#define VERSION  70015
-#define SERVICES 0x00
-#define IP_ADDRESS "00000000000000000000ffff7f000001"
-#define PORT 8333
+#define VERSION     70015
+#define SERVICES    0x00
+#define IP_ADDRESS  "00000000000000000000ffff7f000001"
+#define PORT        8333
+#define USER_AGENT  "/Test User Agent/"
 
 struct Version {
 	int32_t  version;
@@ -55,6 +56,7 @@ Version version_new(void) {
 	
 	r->addr_trans_port = PORT;
 	r->nonce = 0x00;
+	r->user_agent = USER_AGENT;
 	
 	return r;
 }
@@ -136,6 +138,13 @@ size_t version_serialize(Version v, unsigned char **s) {
 	temp[len++] = (unsigned char)((v->nonce & 0x0000FF0000000000) >> 40);
 	temp[len++] = (unsigned char)((v->nonce & 0x00FF000000000000) >> 48);
 	temp[len++] = (unsigned char)((v->nonce & 0xFF00000000000000) >> 56);
+	
+	// Serializing User Agent Bytes
+	// Placeholder
+	
+	// Serializing User Agent String
+	memcpy(temp + len, v->user_agent, strlen(v->user_agent));
+	len += strlen(v->user_agent);
 	
 	*s = temp;
 
