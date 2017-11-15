@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "mods/node.h"
 #include "mods/message.h"
+#include "mods/mem.h"
 
 #define HOST "10.0.0.195"
 #define PORT 8333
@@ -10,21 +11,29 @@
 // https://en.bitcoin.it/wiki/Version_Handshake
 
 int main(void) {
-	size_t i;
-	//Node n;
+	size_t i, l;
+	Node n;
 	Message m;
 	unsigned char *s;
-	size_t len;
 
-	//n = node_connect(HOST, PORT);
-	//printf("Connected on socket: %i\n", node_socket(n));
-	//node_disconnect(n);
+	n = node_connect(HOST, PORT);
+	printf("Connected on socket: %i\n", node_socket(n));
 	
 	m = message_new("version");
-	len = message_serialize(m, &s);
+	l = message_serialize(m, &s);
 	
-	printf("Version Serialized:\n");
-	for (i = 0; i < len; ++i) {
+	printf("Sending Version Message\n");
+	node_send(n, s, l);
+	
+	FREE(s);
+	s = NULL;
+
+	l = node_read(n, &s, 5);
+
+	node_disconnect(n);
+	
+	printf("Message Response:\n");
+	for (i = 0; i < l; ++i) {
 		printf("%02x", s[i]);
 	}
 	printf("\n");
