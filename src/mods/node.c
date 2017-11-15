@@ -79,6 +79,10 @@ void node_send(Node n, unsigned char *data, size_t l) {
 size_t node_read(Node n, unsigned char** buffer, int timeout) {
 	int r;
 	size_t l = 0;
+	
+	assert(n);
+	assert(buffer);
+	assert(timeout > 0);
 
 	while (timeout--) {
 		// Get length of data waiting to be read
