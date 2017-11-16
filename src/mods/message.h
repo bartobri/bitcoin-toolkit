@@ -4,6 +4,7 @@
 typedef struct Message *Message;
 
 Message message_new(const char *);
-size_t message_serialize(Message, unsigned char **);
+size_t  message_serialize(Message, unsigned char **);
+Message message_from_raw(unsigned char *, int);
 
 #endif

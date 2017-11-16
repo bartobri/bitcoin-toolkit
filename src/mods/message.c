@@ -97,3 +97,14 @@ size_t message_serialize(Message m, unsigned char **s) {
 	
 	return len;
 }
+
+Message message_from_raw(unsigned char *data, int l) {
+	Message m;
+
+	assert(data);
+	assert(l);
+
+	NEW0(m);
+	
+	return m;
+}

@@ -26,11 +26,16 @@ int main(void) {
 	node_send(n, s, l);
 	
 	FREE(s);
+	FREE(m);
 	s = NULL;
+	m = NULL;
 
 	l = node_read(n, &s, 5);
+	
+	m = message_from_raw(s, l);
 
 	node_disconnect(n);
+	FREE(n);
 	
 	printf("Message Response:\n");
 	for (i = 0; i < l; ++i) {
