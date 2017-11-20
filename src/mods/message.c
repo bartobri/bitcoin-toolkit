@@ -99,6 +99,7 @@ size_t message_serialize(Message m, unsigned char **s) {
 }
 
 Message message_from_raw(unsigned char *data, int l) {
+	size_t i;
 	Message m;
 
 	assert(data);
@@ -106,10 +107,19 @@ Message message_from_raw(unsigned char *data, int l) {
 
 	NEW0(m);
 	
+	// De-Serializing Magic (little endian)
 	m->magic += *data++;
 	m->magic += (*data++ << 8);
 	m->magic += (*data++ << 16);
 	m->magic += (*data++ << 24);
+	
+	// Serializing command
+	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
+		if (data[i])
+			m->command[i] = data[i];
+		else
+			m->command[i] = 0x00;
+	}
 	
 	return m;
 }
