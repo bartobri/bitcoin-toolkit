@@ -119,12 +119,19 @@ Message message_from_raw(unsigned char *data, int l) {
 		else
 			m->command[i] = 0x00;
 	}
+	data += MESSAGE_COMMAND_MAXLEN;
 	
 	// De-Serializing Length (little endian)
 	m->length += *data++;
 	m->length += (*data++ << 8);
 	m->length += (*data++ << 16);
 	m->length += (*data++ << 24);
+	
+	// De-Serializing checksum (big endian)
+	m->checksum += (*data++ << 24);
+	m->checksum += (*data++ << 16);
+	m->checksum += (*data++ << 8);
+	m->checksum += *data++;
 	
 	return m;
 }
