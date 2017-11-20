@@ -62,11 +62,10 @@ size_t message_serialize(Message m, unsigned char **s) {
 	temp = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
 	
 	// Serializing Magic (little endian)
-	temp[0] = (unsigned char)(m->magic & 0x000000FF);
-	temp[1] = (unsigned char)((m->magic & 0x0000FF00) >> 8);
-	temp[2] = (unsigned char)((m->magic & 0x00FF0000) >> 16);
-	temp[3] = (unsigned char)((m->magic & 0xFF000000) >> 24);
-	len += 4;
+	temp[len++] = (unsigned char)(m->magic & 0x000000FF);
+	temp[len++] = (unsigned char)((m->magic & 0x0000FF00) >> 8);
+	temp[len++] = (unsigned char)((m->magic & 0x00FF0000) >> 16);
+	temp[len++] = (unsigned char)((m->magic & 0xFF000000) >> 24);
 	
 	// Serializing command
 	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
