@@ -133,5 +133,11 @@ Message message_from_raw(unsigned char *data, int l) {
 	m->checksum += (*data++ << 8);
 	m->checksum += *data++;
 	
+	// Getting payload
+	m->payload = ALLOC(m->length);
+	for (i = 0; i < m->length; ++i) {
+		m->payload[i] = *data++;
+	}
+	
 	return m;
 }
