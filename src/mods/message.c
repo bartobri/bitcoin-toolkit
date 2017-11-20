@@ -106,5 +106,10 @@ Message message_from_raw(unsigned char *data, int l) {
 
 	NEW0(m);
 	
+	m->magic += *data++;
+	m->magic += (*data++ << 8);
+	m->magic += (*data++ << 16);
+	m->magic += (*data++ << 24);
+	
 	return m;
 }
