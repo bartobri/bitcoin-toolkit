@@ -112,13 +112,19 @@ Message message_from_raw(unsigned char *data, int l) {
 	m->magic += (*data++ << 16);
 	m->magic += (*data++ << 24);
 	
-	// Serializing command
+	// De-Serializing command
 	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
 		if (data[i])
 			m->command[i] = data[i];
 		else
 			m->command[i] = 0x00;
 	}
+	
+	// De-Serializing Length (little endian)
+	m->length += *data++;
+	m->length += (*data++ << 8);
+	m->length += (*data++ << 16);
+	m->length += (*data++ << 24);
 	
 	return m;
 }
