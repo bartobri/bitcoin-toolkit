@@ -39,7 +39,7 @@ int main(void) {
 	l = node_read(n, &s, 5);
 	
 	if (l) {
-		m = message_from_raw(s, l);
+		m = message_deserialize(s, l);
 		
 		printf("Message Response:\n");
 		for (i = 0; i < l; ++i) {

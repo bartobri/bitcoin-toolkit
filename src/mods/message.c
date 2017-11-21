@@ -56,7 +56,6 @@ Message message_new(const char *c) {
 	return m;
 }
 
-// TODO - handle serialization of individual data types in a separate module
 size_t message_serialize(Message m, unsigned char **s) {
 	unsigned char *head, *ptr;
 	
@@ -74,9 +73,7 @@ size_t message_serialize(Message m, unsigned char **s) {
 	return 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 }
 
-// TODO - handle deserialization of individual data types in a separate module
-Message message_from_raw(unsigned char *data, int l) {
-	size_t i;
+Message message_deserialize(unsigned char *data, int l) {
 	Message m;
 
 	assert(data);
@@ -84,29 +81,13 @@ Message message_from_raw(unsigned char *data, int l) {
 
 	NEW0(m);
 	
-	// De-Serializing Magic (little endian)
+	// De-Serializing Message
 	data = deserialize_uint32(&(m->magic), data, SERIALIZE_ENDIAN_LIT);
-	
-	// De-Serializing command
-	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
-		if (data[i])
-			m->command[i] = data[i];
-		else
-			m->command[i] = 0x00;
-	}
-	data += MESSAGE_COMMAND_MAXLEN;
-	
-	// De-Serializing Length (little endian)
+	data = deserialize_uchar(m->command, data, MESSAGE_COMMAND_MAXLEN);
 	data = deserialize_uint32(&(m->length), data, SERIALIZE_ENDIAN_LIT);
-	
-	// De-Serializing checksum (big endian)
 	data = deserialize_uint32(&(m->checksum), data, SERIALIZE_ENDIAN_BIG);
-	
-	// Getting payload
 	m->payload = ALLOC(m->length);
-	for (i = 0; i < m->length; ++i) {
-		m->payload[i] = *data++;
-	}
+	data = deserialize_uchar(m->payload, data, m->length);
 	
 	return m;
 }

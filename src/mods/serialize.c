@@ -56,3 +56,15 @@ unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian
 	
 	return src;
 }
+
+unsigned char *deserialize_uchar(unsigned char *dest, unsigned char *src, int len) {
+	
+	assert(dest);
+	assert(src);
+	assert(len);
+	
+	memcpy(dest, src, len);
+	src += len;
+	
+	return src;
+}
