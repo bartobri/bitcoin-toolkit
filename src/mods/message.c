@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "crypto.h"
 #include "message.h"
+#include "serialize.h"
 #include "mem.h"
 #include "assert.h"
 #include "messages/version.h"
@@ -55,48 +56,45 @@ Message message_new(const char *c) {
 	return m;
 }
 
+// TODO - handle serialization of individual data types in a separate module
 size_t message_serialize(Message m, unsigned char **s) {
 	size_t i, len = 0;
-	unsigned char *temp;
+	unsigned char *head, *ptr;
 	
-	temp = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
+	head = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
+	ptr = head;
 	
 	// Serializing Magic (little endian)
-	temp[len++] = (unsigned char)(m->magic & 0x000000FF);
-	temp[len++] = (unsigned char)((m->magic & 0x0000FF00) >> 8);
-	temp[len++] = (unsigned char)((m->magic & 0x00FF0000) >> 16);
-	temp[len++] = (unsigned char)((m->magic & 0xFF000000) >> 24);
+	ptr = serialize_uint32(ptr, m->magic, SERIALIZE_ENDIAN_LIT);
+	len += 4;
 	
 	// Serializing command
 	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
 		if (m->command[i])
-			temp[i+len] = m->command[i];
+			*ptr++ = m->command[i];
 		else
-			temp[i+len] = 0x00;
+			*ptr++ = 0x00;
 	}
 	len += MESSAGE_COMMAND_MAXLEN;
 	
 	// Serializing Length (little endian)
-	temp[len++] = (unsigned char)(m->length & 0x000000FF);
-	temp[len++] = (unsigned char)((m->length & 0x0000FF00) >> 8);
-	temp[len++] = (unsigned char)((m->length & 0x00FF0000) >> 16);
-	temp[len++] = (unsigned char)((m->length & 0xFF000000) >> 24);
+	ptr = serialize_uint32(ptr, m->length, SERIALIZE_ENDIAN_LIT);
+	len += 4;
 	
 	// Serializing checksum (big endian)
-	temp[len++] = (unsigned char)((m->checksum & 0xFF000000) >> 24);
-	temp[len++] = (unsigned char)((m->checksum & 0x00FF0000) >> 16);
-	temp[len++] = (unsigned char)((m->checksum & 0x0000FF00) >> 8);
-	temp[len++] = (unsigned char)(m->checksum & 0x000000FF);
+	ptr = serialize_uint32(ptr, m->checksum, SERIALIZE_ENDIAN_BIG);
+	len += 4;
 	
 	// Append payload data
-	memcpy(temp + len, m->payload, m->length);
+	memcpy(ptr, m->payload, m->length);
 	len += m->length;
 	
-	*s = temp;
+	*s = head;
 	
 	return len;
 }
 
+// TODO - handle deserialization of individual data types in a separate module
 Message message_from_raw(unsigned char *data, int l) {
 	size_t i;
 	Message m;
