@@ -1,5 +1,6 @@
 #include <gcrypt.h>
 #include <string.h>
+#include "crypto.h"
 #include "assert.h"
 #include "mem.h"
 
@@ -65,4 +66,26 @@ unsigned char *crypto_get_rmd160(unsigned char *s, size_t l) {
 	
 	// Return hash
 	return r;
+}
+
+uint32_t crypto_get_checksum(unsigned char *data, size_t len) {
+	unsigned char *sha1, *sha2;
+	uint32_t checksum = 0;
+
+	sha1 = crypto_get_sha256(data, len);
+	sha2 = crypto_get_sha256(sha1, 32);
+
+	checksum <<= 8;
+	checksum += sha2[0];
+	checksum <<= 8;
+	checksum += sha2[1];
+	checksum <<= 8;
+	checksum += sha2[2];
+	checksum <<= 8;
+	checksum += sha2[3];
+	
+	FREE(sha1);
+	FREE(sha2);
+	
+	return checksum;
 }
