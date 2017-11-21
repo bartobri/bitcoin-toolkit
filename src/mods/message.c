@@ -58,35 +58,20 @@ Message message_new(const char *c) {
 
 // TODO - handle serialization of individual data types in a separate module
 size_t message_serialize(Message m, unsigned char **s) {
-	size_t len = 0;
 	unsigned char *head, *ptr;
 	
-	head = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
-	ptr = head;
+	ptr = head = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
 	
-	// Serializing Magic (little endian)
+	// Serializing Message
 	ptr = serialize_uint32(ptr, m->magic, SERIALIZE_ENDIAN_LIT);
-	len += 4;
-	
-	// Serializing command
 	ptr = serialize_uchar(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
-	len += MESSAGE_COMMAND_MAXLEN;
-	
-	// Serializing Length (little endian)
 	ptr = serialize_uint32(ptr, m->length, SERIALIZE_ENDIAN_LIT);
-	len += 4;
-	
-	// Serializing checksum (big endian)
 	ptr = serialize_uint32(ptr, m->checksum, SERIALIZE_ENDIAN_BIG);
-	len += 4;
-	
-	// Append payload data
-	memcpy(ptr, m->payload, m->length);
-	len += m->length;
+	ptr = serialize_uchar(ptr, m->payload, m->length);
 	
 	*s = head;
 	
-	return len;
+	return 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 }
 
 // TODO - handle deserialization of individual data types in a separate module
