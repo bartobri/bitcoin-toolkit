@@ -33,3 +33,26 @@ unsigned char *serialize_uchar(unsigned char *dest, unsigned char *src, int len)
 	
 	return dest;
 }
+
+unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian) {
+	
+	assert(dest);
+	assert(src);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest = 0;
+	
+	if (endian == SERIALIZE_ENDIAN_LIT) {
+		*dest += *src++;
+		*dest += (*src++ << 8);
+		*dest += (*src++ << 16);
+		*dest += (*src++ << 24);
+	} else {
+		*dest += (*src++ << 24);
+		*dest += (*src++ << 16);
+		*dest += (*src++ << 8);
+		*dest += *src++;
+	}
+	
+	return src;
+}

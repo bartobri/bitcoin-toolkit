@@ -85,10 +85,7 @@ Message message_from_raw(unsigned char *data, int l) {
 	NEW0(m);
 	
 	// De-Serializing Magic (little endian)
-	m->magic += *data++;
-	m->magic += (*data++ << 8);
-	m->magic += (*data++ << 16);
-	m->magic += (*data++ << 24);
+	data = deserialize_uint32(&(m->magic), data, SERIALIZE_ENDIAN_LIT);
 	
 	// De-Serializing command
 	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
@@ -100,16 +97,10 @@ Message message_from_raw(unsigned char *data, int l) {
 	data += MESSAGE_COMMAND_MAXLEN;
 	
 	// De-Serializing Length (little endian)
-	m->length += *data++;
-	m->length += (*data++ << 8);
-	m->length += (*data++ << 16);
-	m->length += (*data++ << 24);
+	data = deserialize_uint32(&(m->length), data, SERIALIZE_ENDIAN_LIT);
 	
 	// De-Serializing checksum (big endian)
-	m->checksum += (*data++ << 24);
-	m->checksum += (*data++ << 16);
-	m->checksum += (*data++ << 8);
-	m->checksum += *data++;
+	data = deserialize_uint32(&(m->checksum), data, SERIALIZE_ENDIAN_BIG);
 	
 	// Getting payload
 	m->payload = ALLOC(m->length);

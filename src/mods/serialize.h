@@ -8,5 +8,6 @@
 
 unsigned char *serialize_uint32(unsigned char *, uint32_t, int);
 unsigned char *serialize_uchar(unsigned char *, unsigned char *, int);
+unsigned char *deserialize_uint32(uint32_t *, unsigned char *, int endian);
 
 #endif
