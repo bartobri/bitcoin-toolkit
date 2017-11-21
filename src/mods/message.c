@@ -13,6 +13,8 @@
 #define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_PAYLOAD_MAXLEN 1024
 
+#define MESSAGE_TYPE_VERSION(x)   strcmp(x, "version") == 0
+
 struct Message {
 	uint32_t       magic;
 	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
@@ -32,11 +34,10 @@ Message message_new(const char *c) {
 	m->magic = MESSAGE_MAINNET;
 	memcpy(m->command, c, strlen(c));
 
-	if (strcmp(c, "version") == 0) {
+	if (MESSAGE_TYPE_VERSION(c)) {
 		m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
 	} else {
-		m->length = 0;
-		m->payload = NULL;
+		assert(0);
 	}
 	
 	// Getting checksum of payload
