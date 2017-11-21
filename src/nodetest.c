@@ -19,7 +19,7 @@ int main(void) {
 	n = node_connect(HOST, PORT);
 	printf("Connected on socket: %i\n", node_socket(n));
 	
-	m = message_new("version");
+	m = message_new(MESSAGE_COMMAND_VERSION);
 	l = message_serialize(m, &s);
 	
 	printf("Version Message:\n");
