@@ -1,3 +1,4 @@
+#include <string.h>
 #include "serialize.h"
 
 unsigned char *serialize_uint32(unsigned char *dest, uint32_t src, int endian) {
@@ -13,6 +14,14 @@ unsigned char *serialize_uint32(unsigned char *dest, uint32_t src, int endian) {
 		*dest++ = (unsigned char)((src & 0x0000FF00) >> 8);
 		*dest++ = (unsigned char)(src & 0x000000FF);
 	}
+	
+	return dest;
+}
+
+unsigned char *serialize_uchar(unsigned char *dest, unsigned char *src, int len) {
+	
+	memcpy(dest, src, len);
+	dest += len;
 	
 	return dest;
 }

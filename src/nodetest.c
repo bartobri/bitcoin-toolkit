@@ -22,6 +22,12 @@ int main(void) {
 	m = message_new("version");
 	l = message_serialize(m, &s);
 	
+	printf("Version Message:\n");
+	for (i = 0; i < l; ++i) {
+		printf("%02x", s[i]);
+	}
+	printf("\n");
+	
 	printf("Sending Version Message\n");
 	node_send(n, s, l);
 	
@@ -32,16 +38,20 @@ int main(void) {
 
 	l = node_read(n, &s, 5);
 	
-	m = message_from_raw(s, l);
+	if (l) {
+		m = message_from_raw(s, l);
+		
+		printf("Message Response:\n");
+		for (i = 0; i < l; ++i) {
+			printf("%02x", s[i]);
+		}
+		printf("\n");
+	} else {
+		printf("Node timeout before response\n");
+	}
 
 	node_disconnect(n);
 	FREE(n);
-	
-	printf("Message Response:\n");
-	for (i = 0; i < l; ++i) {
-		printf("%02x", s[i]);
-	}
-	printf("\n");
 	
 	return 1;
 }

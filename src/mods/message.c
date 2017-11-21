@@ -15,7 +15,7 @@
 
 struct Message {
 	uint32_t       magic;
-	char           command[MESSAGE_COMMAND_MAXLEN];
+	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
 	uint32_t       checksum;
 	unsigned char *payload;
@@ -30,9 +30,9 @@ Message message_new(const char *c) {
 	NEW0(m);
 
 	m->magic = MESSAGE_MAINNET;
-	strncpy(m->command, c, MESSAGE_COMMAND_MAXLEN);
+	memcpy(m->command, c, strlen(c));
 
-	if (strcmp(m->command, "version") == 0) {
+	if (strcmp(c, "version") == 0) {
 		m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
 	} else {
 		m->length = 0;
@@ -58,7 +58,7 @@ Message message_new(const char *c) {
 
 // TODO - handle serialization of individual data types in a separate module
 size_t message_serialize(Message m, unsigned char **s) {
-	size_t i, len = 0;
+	size_t len = 0;
 	unsigned char *head, *ptr;
 	
 	head = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
@@ -69,12 +69,7 @@ size_t message_serialize(Message m, unsigned char **s) {
 	len += 4;
 	
 	// Serializing command
-	for (i = 0; i < MESSAGE_COMMAND_MAXLEN; ++i) {
-		if (m->command[i])
-			*ptr++ = m->command[i];
-		else
-			*ptr++ = 0x00;
-	}
+	ptr = serialize_uchar(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
 	len += MESSAGE_COMMAND_MAXLEN;
 	
 	// Serializing Length (little endian)
