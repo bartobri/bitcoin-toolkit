@@ -41,22 +41,6 @@ Message message_new(const char *c) {
 	}
 	
 	m->checksum = crypto_get_checksum(m->payload, (size_t)m->length);
-	
-	// Getting checksum of payload
-	/*
-	sha1 = crypto_get_sha256(m->payload, m->length);
-	sha2 = crypto_get_sha256(sha1, 32);
-	m->checksum <<= 8;
-	m->checksum += sha2[0];
-	m->checksum <<= 8;
-	m->checksum += sha2[1];
-	m->checksum <<= 8;
-	m->checksum += sha2[2];
-	m->checksum <<= 8;
-	m->checksum += sha2[3];	
-	FREE(sha1);
-	FREE(sha2);
-	*/
 
 	return m;
 }
