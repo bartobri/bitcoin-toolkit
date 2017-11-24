@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <time.h>
 #include "version.h"
+#include "mods/serialize.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
@@ -16,9 +17,9 @@
 #define USER_AGENT  "/Test User Agent/"
 
 struct Version {
-	int32_t  version;
+	uint32_t  version;
 	uint64_t services;
-	int64_t  timestamp;
+	uint64_t  timestamp;
 	uint64_t addr_recv_services;
 	unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
 	uint16_t addr_recv_port;
@@ -28,8 +29,8 @@ struct Version {
 	uint64_t nonce;
 	uint64_t user_agent_bytes;
 	char*    user_agent;
-	int32_t  start_height;
-	int8_t   relay;
+	uint32_t  start_height;
+	uint8_t   relay;
 };
 
 Version version_new(void) {
