@@ -2,6 +2,32 @@
 #include "serialize.h"
 #include "assert.h"
 
+unsigned char *serialize_uint8(unsigned char *dest, uint8_t src, int endian) {
+	
+	assert(dest);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest++ = (unsigned char)src;
+	
+	return dest;
+}
+
+unsigned char *serialize_uint16(unsigned char *dest, uint16_t src, int endian) {
+	
+	assert(dest);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+
+	if (endian == SERIALIZE_ENDIAN_LIT) {
+		*dest++ = (unsigned char)(src & 0x00FF);
+		*dest++ = (unsigned char)((src & 0xFF00) >> 8);
+	} else {
+		*dest++ = (unsigned char)((src & 0xFF00) >> 8);
+		*dest++ = (unsigned char)(src & 0x00FF);
+	}
+	
+	return dest;
+}
+
 unsigned char *serialize_uint32(unsigned char *dest, uint32_t src, int endian) {
 	
 	assert(dest);
@@ -17,6 +43,34 @@ unsigned char *serialize_uint32(unsigned char *dest, uint32_t src, int endian) {
 		*dest++ = (unsigned char)((src & 0x00FF0000) >> 16);
 		*dest++ = (unsigned char)((src & 0x0000FF00) >> 8);
 		*dest++ = (unsigned char)(src & 0x000000FF);
+	}
+	
+	return dest;
+}
+
+unsigned char *serialize_uint64(unsigned char *dest, uint64_t src, int endian) {
+	
+	assert(dest);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+
+	if (endian == SERIALIZE_ENDIAN_LIT) {
+		*dest++ = (unsigned char)(src & 0x00000000000000FF);
+		*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+		*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+		*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+		*dest++ = (unsigned char)((src & 0x000000FF00000000) >> 32);
+		*dest++ = (unsigned char)((src & 0x0000FF0000000000) >> 40);
+		*dest++ = (unsigned char)((src & 0x00FF000000000000) >> 48);
+		*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+	} else {
+		*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+		*dest++ = (unsigned char)((src & 0x00FF000000000000) >> 48);
+		*dest++ = (unsigned char)((src & 0x0000FF0000000000) >> 40);
+		*dest++ = (unsigned char)((src & 0x000000FF00000000) >> 32);
+		*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+		*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+		*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+		*dest++ = (unsigned char)(src & 0x00000000000000FF);
 	}
 	
 	return dest;
