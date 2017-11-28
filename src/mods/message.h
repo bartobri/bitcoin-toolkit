@@ -2,6 +2,7 @@
 #define MESSAGE_H 1
 
 #define MESSAGE_COMMAND_VERSION 0
+#define MESSAGE_COMMAND_VERACK  1
 
 typedef struct Message *Message;
 

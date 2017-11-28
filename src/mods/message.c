@@ -15,6 +15,7 @@
 
 const char *message_commands[] = {
 	[MESSAGE_COMMAND_VERSION] = "version",
+	[MESSAGE_COMMAND_VERACK]  = "verack",
 };
 
 struct Message {
@@ -39,6 +40,10 @@ Message message_new(unsigned int type) {
 			m->length = (uint32_t)version_serialize(version, &(m->payload));
 			version_free(version);
 			break;
+		case MESSAGE_COMMAND_VERACK:
+			memcpy(m->command, message_commands[MESSAGE_COMMAND_VERACK], strlen(message_commands[MESSAGE_COMMAND_VERACK]));
+			m->length = 0;
+			break;
 		default:
 			assert(0);
 			break;
@@ -59,7 +64,8 @@ size_t message_serialize(Message m, unsigned char **s) {
 	ptr = serialize_uchar(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
 	ptr = serialize_uint32(ptr, m->length, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint32(ptr, m->checksum, SERIALIZE_ENDIAN_BIG);
-	ptr = serialize_uchar(ptr, m->payload, m->length);
+	if (m->length)
+		ptr = serialize_uchar(ptr, m->payload, m->length);
 	
 	*s = head;
 	

@@ -20,8 +20,9 @@ unsigned char *crypto_get_sha256(unsigned char *s, size_t l) {
 	gcry_md_hd_t gc;
 	unsigned char *r;
 	
-	assert(s);
-	assert(l);
+	if (l) {
+		assert(s);
+	}
 	assert(crypto_init());
 	
 	r = ALLOC(32);
