@@ -94,3 +94,9 @@ size_t version_serialize(Version v, unsigned char **s) {
 
 	return len;
 }
+
+void version_free(Version v) {
+	assert(v);
+	
+	FREE(v);
+}

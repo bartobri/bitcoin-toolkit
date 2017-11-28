@@ -37,7 +37,7 @@ Message message_new(unsigned int type) {
 			memcpy(m->command, message_commands[MESSAGE_COMMAND_VERSION], strlen(message_commands[MESSAGE_COMMAND_VERSION]));
 			Version version = version_new();
 			m->length = (uint32_t)version_serialize(version, &(m->payload));
-			FREE(version);
+			version_free(version);
 			break;
 		default:
 			assert(0);
