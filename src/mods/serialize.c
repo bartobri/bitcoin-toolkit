@@ -88,6 +88,18 @@ unsigned char *serialize_uchar(unsigned char *dest, unsigned char *src, int len)
 	return dest;
 }
 
+unsigned char *serialize_char(unsigned char *dest, char *src, int len) {
+	
+	assert(dest);
+	assert(src);
+	assert(len);
+	
+	memcpy(dest, src, len);
+	dest += len;
+	
+	return dest;
+}
+
 unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian) {
 	
 	assert(dest);

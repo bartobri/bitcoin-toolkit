@@ -86,9 +86,7 @@ size_t version_serialize(Version v, unsigned char **s) {
 	// TODO - handle variable length ints properly
 	*ptr++ = (unsigned char)((v->user_agent_bytes & 0xFF00000000000000) >> 56);
 	
-	memcpy(ptr, v->user_agent, strlen(v->user_agent));
-	ptr += strlen(v->user_agent);
-	
+	ptr = serialize_char(ptr, v->user_agent, strlen(v->user_agent));
 	ptr = serialize_uint32(ptr, v->start_height, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint8(ptr, v->relay, SERIALIZE_ENDIAN_LIT);
 	
