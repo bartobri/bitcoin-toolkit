@@ -7,6 +7,8 @@
 #include "mem.h"
 #include "assert.h"
 
+#define TIMEOUT 5
+
 struct Node {
 	int sockfd;
 };
@@ -76,8 +78,9 @@ void node_send(Node n, unsigned char *data, size_t l) {
 	assert(r > 0);
 }
 
-size_t node_read(Node n, unsigned char** buffer, int timeout) {
+size_t node_read(Node n, unsigned char** buffer) {
 	int r;
+	int timeout = TIMEOUT;
 	size_t l = 0;
 	
 	assert(n);

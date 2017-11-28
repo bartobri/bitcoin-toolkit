@@ -36,7 +36,7 @@ int main(void) {
 	s = NULL;
 	m = NULL;
 
-	l = node_read(n, &s, 5);
+	l = node_read(n, &s);
 	
 	if (l) {
 		m = message_deserialize(s, l);
