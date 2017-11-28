@@ -82,10 +82,7 @@ size_t version_serialize(Version v, unsigned char **s) {
 	ptr = serialize_uchar(ptr, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
 	ptr = serialize_uint16(ptr, v->addr_trans_port, SERIALIZE_ENDIAN_BIG);
 	ptr = serialize_uint64(ptr, v->nonce, SERIALIZE_ENDIAN_LIT);
-	
-	// TODO - handle variable length ints properly
-	*ptr++ = (unsigned char)((v->user_agent_bytes & 0xFF00000000000000) >> 56);
-	
+	ptr = serialize_compuint(ptr, v->user_agent_bytes, SERIALIZE_ENDIAN_LIT);	
 	ptr = serialize_char(ptr, v->user_agent, strlen(v->user_agent));
 	ptr = serialize_uint32(ptr, v->start_height, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint8(ptr, v->relay, SERIALIZE_ENDIAN_LIT);

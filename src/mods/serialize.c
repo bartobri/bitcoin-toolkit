@@ -100,6 +100,18 @@ unsigned char *serialize_char(unsigned char *dest, char *src, int len) {
 	return dest;
 }
 
+// TODO - handle compact size uints properly
+unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian) {
+	
+	assert(dest);
+	assert(src);
+	assert(endian);
+	
+	*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+	
+	return dest;
+}
+
 unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian) {
 	
 	assert(dest);
