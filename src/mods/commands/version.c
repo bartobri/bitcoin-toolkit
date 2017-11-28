@@ -76,16 +76,10 @@ size_t version_serialize(Version v, unsigned char **s) {
 	ptr = serialize_uint64(ptr, v->services, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint64(ptr, v->timestamp, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint64(ptr, v->addr_recv_services, SERIALIZE_ENDIAN_LIT);
-
-	memcpy(ptr, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
-	ptr += IP_ADDR_FIELD_LEN;
-	
+	ptr = serialize_uchar(ptr, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
 	ptr = serialize_uint16(ptr, v->addr_recv_port, SERIALIZE_ENDIAN_BIG);
 	ptr = serialize_uint64(ptr, v->addr_trans_services, SERIALIZE_ENDIAN_LIT);
-	
-	memcpy(ptr, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
-	ptr += IP_ADDR_FIELD_LEN;
-
+	ptr = serialize_uchar(ptr, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
 	ptr = serialize_uint16(ptr, v->addr_trans_port, SERIALIZE_ENDIAN_BIG);
 	ptr = serialize_uint64(ptr, v->nonce, SERIALIZE_ENDIAN_LIT);
 	
