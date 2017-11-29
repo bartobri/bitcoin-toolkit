@@ -8,5 +8,6 @@ int  node_socket(Node);
 void node_disconnect(Node);
 void node_send(Node, unsigned char *, size_t);
 size_t node_read(Node, unsigned char**);
+void node_free(Node);
 
 #endif

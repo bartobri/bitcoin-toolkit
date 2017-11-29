@@ -60,8 +60,6 @@ void node_disconnect(Node n) {
 	assert(n->sockfd);
 	
 	close(n->sockfd);
-	
-	FREE(n);
 }
 
 void node_send(Node n, unsigned char *data, size_t l) {
@@ -110,3 +108,6 @@ size_t node_read(Node n, unsigned char** buffer) {
 	return 0;
 }
 
+void node_free(Node n) {
+	FREE(n);
+}
