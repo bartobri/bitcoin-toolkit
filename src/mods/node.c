@@ -83,7 +83,6 @@ size_t node_read(Node n, unsigned char** buffer) {
 	
 	assert(n);
 	assert(buffer);
-	assert(timeout > 0);
 
 	while (timeout--) {
 		// Get length of data waiting to be read
