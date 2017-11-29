@@ -20,7 +20,7 @@ CLIBS ?= -lgmp -lgcrypt
 .PHONY: all install uninstall clean
 
 #EXES = test asciiaddress btcaddress
-EXES = nodetest btcaddress
+EXES = nodetest
 
 all: $(EXES)
 

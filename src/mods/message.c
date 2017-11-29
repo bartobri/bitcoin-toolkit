@@ -38,9 +38,7 @@ Message message_new(uint8_t type) {
 	
 	switch(type) {
 		case MESSAGE_COMMAND_VERSION:
-			//Version version = version_new();
-			m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
-			//version_free(version);
+			m->length = (uint32_t)version_new_serialize(&(m->payload));
 			break;
 		case MESSAGE_COMMAND_VERACK:
 			m->length = 0;
