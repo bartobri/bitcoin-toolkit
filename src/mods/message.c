@@ -30,6 +30,8 @@ struct Message {
 Message message_new(uint8_t type) {
 	Message m;
 	
+	assert(type <= MESSAGE_COMMAND_VERACK);
+	
 	NEW0(m);
 
 	m->type = type;
