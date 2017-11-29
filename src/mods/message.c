@@ -19,6 +19,7 @@ const char *message_commands[] = {
 };
 
 struct Message {
+	uint8_t        type;
 	uint32_t       magic;
 	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
@@ -26,22 +27,22 @@ struct Message {
 	unsigned char *payload;
 };
 
-Message message_new(unsigned int type) {
+Message message_new(uint8_t type) {
 	Message m;
 	
 	NEW0(m);
 
+	m->type = type;
 	m->magic = MESSAGE_MAINNET;
+	memcpy(m->command, message_commands[m->type], strlen(message_commands[m->type]));
 	
 	switch(type) {
 		case MESSAGE_COMMAND_VERSION:
-			memcpy(m->command, message_commands[MESSAGE_COMMAND_VERSION], strlen(message_commands[MESSAGE_COMMAND_VERSION]));
-			Version version = version_new();
-			m->length = (uint32_t)version_serialize(version, &(m->payload));
-			version_free(version);
+			//Version version = version_new();
+			m->length = (uint32_t)version_serialize(version_new(), &(m->payload));
+			//version_free(version);
 			break;
 		case MESSAGE_COMMAND_VERACK:
-			memcpy(m->command, message_commands[MESSAGE_COMMAND_VERACK], strlen(message_commands[MESSAGE_COMMAND_VERACK]));
 			m->length = 0;
 			break;
 		default:
