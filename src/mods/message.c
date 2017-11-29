@@ -95,3 +95,8 @@ Message message_deserialize(unsigned char *data, int l) {
 	
 	return m;
 }
+
+void message_free(Message m) {
+	FREE(m->payload);
+	FREE(m);
+}

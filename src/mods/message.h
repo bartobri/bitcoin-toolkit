@@ -11,5 +11,6 @@ typedef struct Message *Message;
 Message message_new(uint8_t);
 size_t  message_serialize(Message, unsigned char **);
 Message message_deserialize(unsigned char *, int);
+void message_free(Message);
 
 #endif
