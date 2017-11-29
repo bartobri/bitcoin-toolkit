@@ -2,6 +2,7 @@
 #include "mods/node.h"
 #include "mods/message.h"
 #include "mods/mem.h"
+#include "mods/commands/version.h"
 
 #define HOST "10.0.0.195"
 #define PORT 8333
@@ -14,13 +15,20 @@ int main(void) {
 	size_t i, l;
 	Node n;
 	Message m;
+	Version v;
 	unsigned char *s;
 
 	n = node_connect(HOST, PORT);
 	printf("Connected on socket: %i\n", node_socket(n));
 	
-	m = message_new(MESSAGE_COMMAND_VERSION);
+	v = version_new();
+	l = version_serialize(v, &s);
+	version_free(v);
+	
+	m = message_new(MESSAGE_COMMAND_VERSION, s, l);
+	FREE(s);
 	l = message_serialize(m, &s);
+	message_free(m);
 	
 	printf("Version Message:\n");
 	for (i = 0; i < l; ++i) {
@@ -32,7 +40,6 @@ int main(void) {
 	node_send(n, s, l);
 	
 	FREE(s);
-	FREE(m);
 	s = NULL;
 	m = NULL;
 
@@ -51,7 +58,7 @@ int main(void) {
 	}
 
 	node_disconnect(n);
-	FREE(n);
+	node_free(n);
 	
 	return 1;
 }

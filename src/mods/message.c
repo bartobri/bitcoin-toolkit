@@ -6,7 +6,6 @@
 #include "serialize.h"
 #include "mem.h"
 #include "assert.h"
-#include "commands/version.h"
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
@@ -19,7 +18,6 @@ const char *message_commands[] = {
 };
 
 struct Message {
-	uint8_t        type;
 	uint32_t       magic;
 	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
@@ -27,29 +25,20 @@ struct Message {
 	unsigned char *payload;
 };
 
-Message message_new(uint8_t type) {
+Message message_new(uint8_t command, unsigned char *payload, size_t len) {
 	Message m;
 	
-	assert(type <= MESSAGE_COMMAND_VERACK);
+	assert(command <= MESSAGE_COMMAND_VERACK);
 	
 	NEW0(m);
 
-	m->type = type;
 	m->magic = MESSAGE_MAINNET;
-	memcpy(m->command, message_commands[m->type], strlen(message_commands[m->type]));
-	
-	switch(type) {
-		case MESSAGE_COMMAND_VERSION:
-			m->length = (uint32_t)version_new_serialize(&(m->payload));
-			break;
-		case MESSAGE_COMMAND_VERACK:
-			m->length = 0;
-			break;
-		default:
-			assert(0);
-			break;
+	memcpy(m->command, message_commands[command], strlen(message_commands[command]));
+	m->length = len;
+	if (len) {
+		m->payload = ALLOC(len);
+		memcpy(m->payload, payload, len);
 	}
-	
 	m->checksum = crypto_get_checksum(m->payload, (size_t)m->length);
 
 	return m;
