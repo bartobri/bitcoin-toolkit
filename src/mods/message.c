@@ -86,8 +86,12 @@ Message message_deserialize(unsigned char *data, int l) {
 	data = deserialize_uchar(m->command, data, MESSAGE_COMMAND_MAXLEN);
 	data = deserialize_uint32(&(m->length), data, SERIALIZE_ENDIAN_LIT);
 	data = deserialize_uint32(&(m->checksum), data, SERIALIZE_ENDIAN_BIG);
-	m->payload = ALLOC(m->length);
-	data = deserialize_uchar(m->payload, data, m->length);
+	if (m->length) {
+		m->payload = ALLOC(m->length);
+		data = deserialize_uchar(m->payload, data, m->length);
+	} else {
+		m->payload = NULL;
+	}
 	
 	return m;
 }
