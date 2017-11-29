@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
-#include "mods/address.h"
 
 int main(void) {
 	size_t i;
@@ -28,7 +27,7 @@ int main(void) {
 	}
 	hex[i] = '\0';
 	
-	printf("Address: %s\n", address_get(pubkey_get(privkey_from_hex(hex))));
+	printf("Address: %s\n", pubkey_to_address(pubkey_get(privkey_from_hex(hex))));
 	
 	return 0;
 }
