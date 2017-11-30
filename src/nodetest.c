@@ -12,13 +12,13 @@
 // https://en.bitcoin.it/wiki/Version_Handshake
 
 int main(void) {
-	size_t i, l;
+	size_t l;
 	Node n;
 	Message m;
 	Version v;
 	unsigned char *s;
 
-	n = node_connect(HOST, PORT);
+	n = node_new(HOST, PORT);
 	printf("Connected on socket: %i\n", node_socket(n));
 	
 	v = version_new();
@@ -27,38 +27,33 @@ int main(void) {
 	
 	m = message_new(VERSION_COMMAND, s, l);
 	FREE(s);
-	l = message_serialize(m, &s);
+
+	node_send_message(n, m);
 	message_free(m);
 	
+	/*
 	printf("Version Message:\n");
 	for (i = 0; i < l; ++i) {
 		printf("%02x", s[i]);
 	}
 	printf("\n");
+	*/
 	
+	/*
 	printf("Sending Version Message\n");
 	node_send(n, s, l);
-	
-	FREE(s);
-	s = NULL;
-	m = NULL;
+	*/
 
-	l = node_read(n, &s);
-	
-	if (l) {
-		m = message_deserialize(s, l);
-		
-		printf("Message Response:\n");
-		for (i = 0; i < l; ++i) {
-			printf("%02x", s[i]);
-		}
-		printf("\n");
+	m = node_read_message(n);
+
+	if (m) {
+		printf("Received Message Response\n");
 	} else {
-		printf("Node timeout before response\n");
+		printf("No Response from Node\n");
 	}
 
-	node_disconnect(n);
-	node_free(n);
+	message_free(m);
+	node_destroy(n);
 	
 	return 1;
 }

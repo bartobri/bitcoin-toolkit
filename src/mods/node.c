@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <netdb.h>
 #include "node.h"
+#include "message.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -13,7 +14,73 @@ struct Node {
 	int sockfd;
 };
 
-Node node_connect(const char *host, int port) {
+/*
+ * Static Function Declarations
+ */
+static Node node_connect(const char *, int);
+static void node_disconnect(Node);
+static void node_send(Node, unsigned char *, size_t);
+static int node_read(Node, unsigned char**);
+static void node_free(Node);
+
+/*
+ * External functions
+ */
+Node node_new(const char *host, int port) {
+	assert(host);
+	assert(port);
+
+	return node_connect(host, port);
+}
+
+void node_destroy(Node n) {
+	assert(n);
+
+	node_disconnect(n);
+	node_free(n);
+}
+
+void node_send_message(Node n, Message m) {
+	unsigned char *s;
+	size_t l;
+
+	assert(n);
+	assert(m);
+
+	l = message_serialize(m, &s);
+
+	node_send(n, s, l);
+}
+
+Message node_read_message(Node n) {
+	Message m = NULL;
+	unsigned char *s = NULL;
+	int l;
+	
+	assert(n);
+
+	l = node_read(n, &s);
+	
+	// Read error is l is less than zero
+	assert(l >= 0);
+
+	if (l > 0) {
+		m = message_deserialize(s, l);
+	}
+
+	return m;
+}
+
+int node_socket(Node n) {
+	assert(n);
+	
+	return n->sockfd;
+}
+
+/*
+ * Static functions
+ */
+static Node node_connect(const char *host, int port) {
 	int t, sockfd = 0;
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
@@ -49,20 +116,14 @@ Node node_connect(const char *host, int port) {
 	return r;
 }
 
-int node_socket(Node n) {
-	assert(n);
-	
-	return n->sockfd;
-}
-
-void node_disconnect(Node n) {
+static void node_disconnect(Node n) {
 	assert(n);
 	assert(n->sockfd);
 	
 	close(n->sockfd);
 }
 
-void node_send(Node n, unsigned char *data, size_t l) {
+static void node_send(Node n, unsigned char *data, size_t l) {
 	ssize_t r;
 
 	assert(n);
@@ -76,10 +137,10 @@ void node_send(Node n, unsigned char *data, size_t l) {
 	assert(r > 0);
 }
 
-size_t node_read(Node n, unsigned char** buffer) {
+static int node_read(Node n, unsigned char** buffer) {
 	int r;
 	int timeout = TIMEOUT;
-	size_t l = 0;
+	int l = 0;
 	
 	assert(n);
 	assert(buffer);
@@ -107,6 +168,6 @@ size_t node_read(Node n, unsigned char** buffer) {
 	return 0;
 }
 
-void node_free(Node n) {
+static void node_free(Node n) {
 	FREE(n);
 }

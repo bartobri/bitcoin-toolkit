@@ -57,6 +57,7 @@ size_t message_serialize(Message m, unsigned char **s) {
 	return 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 }
 
+// TODO - Use l to make sure I don't go read past the end of data
 Message message_deserialize(unsigned char *data, int l) {
 	Message m;
 

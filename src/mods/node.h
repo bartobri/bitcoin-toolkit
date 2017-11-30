@@ -1,13 +1,14 @@
 #ifndef NODE_H
 #define NODE_H 1
 
+#include "message.h"
+
 typedef struct Node *Node;
 
-Node node_connect(const char *, int);
-int  node_socket(Node);
-void node_disconnect(Node);
-void node_send(Node, unsigned char *, size_t);
-size_t node_read(Node, unsigned char**);
-void node_free(Node);
+Node node_new(const char *, int);
+void node_destroy(Node);
+void node_send_message(Node, Message);
+Message node_read_message(Node);
+int node_socket(Node);
 
 #endif
