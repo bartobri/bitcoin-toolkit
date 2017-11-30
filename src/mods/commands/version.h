@@ -1,6 +1,8 @@
 #ifndef VERSION_H
 #define VERSION_H 1
 
+#define VERSION_COMMAND "version"
+
 typedef struct Version *Version;
 
 Version version_new(void);

@@ -12,11 +12,6 @@
 #define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_PAYLOAD_MAXLEN 1024
 
-const char *message_commands[] = {
-	[MESSAGE_COMMAND_VERSION] = "version",
-	[MESSAGE_COMMAND_VERACK]  = "verack",
-};
-
 struct Message {
 	uint32_t       magic;
 	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
@@ -25,15 +20,15 @@ struct Message {
 	unsigned char *payload;
 };
 
-Message message_new(uint8_t command, unsigned char *payload, size_t len) {
+Message message_new(const char *command, unsigned char *payload, size_t len) {
 	Message m;
 	
-	assert(command <= MESSAGE_COMMAND_VERACK);
+	assert(command);
 	
 	NEW0(m);
 
 	m->magic = MESSAGE_MAINNET;
-	memcpy(m->command, message_commands[command], strlen(message_commands[command]));
+	memcpy(m->command, command, strlen(command));
 	m->length = len;
 	if (len) {
 		m->payload = ALLOC(len);

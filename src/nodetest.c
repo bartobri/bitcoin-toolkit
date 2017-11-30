@@ -25,7 +25,7 @@ int main(void) {
 	l = version_serialize(v, &s);
 	version_free(v);
 	
-	m = message_new(MESSAGE_COMMAND_VERSION, s, l);
+	m = message_new(VERSION_COMMAND, s, l);
 	FREE(s);
 	l = message_serialize(m, &s);
 	message_free(m);
