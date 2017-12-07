@@ -15,15 +15,12 @@ int main(void) {
 	size_t l;
 	Node n;
 	Message m;
-	Version v;
 	unsigned char *s;
 
 	n = node_new(HOST, PORT);
 	printf("Connected on socket: %i\n", node_socket(n));
 	
-	v = version_new();
-	l = version_serialize(v, &s);
-	version_free(v);
+	l = version_new_serialize(&s);
 	
 	m = message_new(VERSION_COMMAND, s, l);
 	FREE(s);
@@ -48,11 +45,11 @@ int main(void) {
 
 	if (m) {
 		printf("Received Message Response\n");
+		message_free(m);
 	} else {
 		printf("No Response from Node\n");
 	}
 
-	message_free(m);
 	node_destroy(n);
 	
 	return 1;
