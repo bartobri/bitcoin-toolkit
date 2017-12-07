@@ -82,6 +82,8 @@ Message message_deserialize(unsigned char *data, int l) {
 }
 
 void message_free(Message m) {
-	FREE(m->payload);
+	if (m) {
+		FREE(m->payload);
+	}
 	FREE(m);
 }
