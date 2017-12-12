@@ -65,7 +65,7 @@ Message node_read_message(Node n) {
 	assert(l >= 0);
 
 	if (l > 0) {
-		m = message_deserialize(s, l);
+		l = (size_t)message_deserialize(s, &m, (size_t)l);
 	}
 
 	return m;
