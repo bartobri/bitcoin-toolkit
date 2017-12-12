@@ -13,6 +13,7 @@
 
 int main(void) {
 	size_t l;
+	int i;
 	Node n;
 	Message m;
 	unsigned char *s;
@@ -21,34 +22,36 @@ int main(void) {
 	printf("Connected on socket: %i\n", node_socket(n));
 	
 	l = version_new_serialize(&s);
+
+	printf("Version Message:\n");
+	for (i = 0; i < (int)l; ++i) {
+		printf("%02x", s[i]);
+	}
+	printf("\n");
 	
 	m = message_new(VERSION_COMMAND, s, l);
 	FREE(s);
 
 	node_send_message(n, m);
 	message_free(m);
-	
-	/*
-	printf("Version Message:\n");
-	for (i = 0; i < l; ++i) {
-		printf("%02x", s[i]);
-	}
-	printf("\n");
-	*/
-	
-	/*
-	printf("Sending Version Message\n");
-	node_send(n, s, l);
-	*/
 
-	m = node_read_message(n);
+	i = node_read_messages(n);
+	printf("%i messages read\n", i);
 
+	/*
 	if (m) {
 		printf("Received Message Response\n");
+		l = message_serialize(m, &s);
+		printf("Response Message:\n");
+		for (i = 0; i < l; ++i) {
+			printf("%02x", s[i]);
+		}
+		printf("\n");
 		message_free(m);
 	} else {
 		printf("No Response from Node\n");
 	}
+	*/
 
 	node_destroy(n);
 	

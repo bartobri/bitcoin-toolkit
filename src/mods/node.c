@@ -52,23 +52,25 @@ void node_send_message(Node n, Message m) {
 	node_send(n, s, l);
 }
 
-Message node_read_message(Node n) {
+int node_read_messages(Node n) {
 	Message m = NULL;
 	unsigned char *s = NULL;
-	int l;
+	int l, i = 0, c = 0;
 	
 	assert(n);
 
 	l = node_read(n, &s);
 	
-	// Read error is l is less than zero
+	// Read error if l is less than zero
 	assert(l >= 0);
 
-	if (l > 0) {
-		l = (size_t)message_deserialize(s, &m, (size_t)l);
+	while (l > 0) {
+		i += (int)message_deserialize(s + i, &m, (size_t)l);
+		l -= i;
+		++c;
 	}
 
-	return m;
+	return c;
 }
 
 int node_socket(Node n) {

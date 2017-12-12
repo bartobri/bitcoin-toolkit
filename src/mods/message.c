@@ -57,11 +57,10 @@ size_t message_serialize(Message m, unsigned char **s) {
 	return 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 }
 
-// TODO - Use l to make sure I don't go read past the end of data
 size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
 
 	assert(src);
-	assert(l);
+	assert(l >= 12 + MESSAGE_COMMAND_MAXLEN);
 
 	if (*dest == NULL)
 		NEW0(*dest);
@@ -72,6 +71,7 @@ size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
 	src = deserialize_uint32(&((*dest)->length), src, SERIALIZE_ENDIAN_LIT);
 	src = deserialize_uint32(&((*dest)->checksum), src, SERIALIZE_ENDIAN_BIG);
 	if ((*dest)->length) {
+		assert(l >= 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length);
 		FREE((*dest)->payload);
 		(*dest)->payload = ALLOC((*dest)->length);
 		src = deserialize_uchar((*dest)->payload, src, (*dest)->length);
@@ -79,7 +79,7 @@ size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
 		(*dest)->payload = NULL;
 	}
 	
-	return l;
+	return 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length;
 }
 
 void message_free(Message m) {
