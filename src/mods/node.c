@@ -9,9 +9,11 @@
 #include "assert.h"
 
 #define TIMEOUT 5
+#define MAX_MESSAGE_QUEUE 100
 
 struct Node {
 	int sockfd;
+	Message mqueue[MAX_MESSAGE_QUEUE];
 };
 
 /*
@@ -27,10 +29,19 @@ static void node_free(Node);
  * External functions
  */
 Node node_new(const char *host, int port) {
+	int i;
+	Node n;
+
 	assert(host);
 	assert(port);
 
-	return node_connect(host, port);
+	n = node_connect(host, port);
+	
+	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+		n->mqueue[i] = NULL;
+	}
+
+	return n;
 }
 
 void node_destroy(Node n) {
