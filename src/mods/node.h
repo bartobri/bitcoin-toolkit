@@ -7,7 +7,7 @@ typedef struct Node *Node;
 
 Node node_new(const char *, int);
 void node_destroy(Node);
-void node_send_message(Node, Message);
+void node_write_message(Node, Message);
 int node_read_messages(Node);
 int node_socket(Node);
 

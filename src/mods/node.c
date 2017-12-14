@@ -21,7 +21,7 @@ struct Node {
  */
 static Node node_connect(const char *, int);
 static void node_disconnect(Node);
-static void node_send(Node, unsigned char *, size_t);
+static void node_write(Node, unsigned char *, size_t);
 static int node_read(Node, unsigned char**);
 static void node_free(Node);
 
@@ -51,7 +51,7 @@ void node_destroy(Node n) {
 	node_free(n);
 }
 
-void node_send_message(Node n, Message m) {
+void node_write_message(Node n, Message m) {
 	unsigned char *s;
 	size_t l;
 
@@ -60,7 +60,7 @@ void node_send_message(Node n, Message m) {
 
 	l = message_serialize(m, &s);
 
-	node_send(n, s, l);
+	node_write(n, s, l);
 }
 
 int node_read_messages(Node n) {
@@ -77,6 +77,7 @@ int node_read_messages(Node n) {
 
 	while (l > 0) {
 		
+		// Find next available spot in message queue
 		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
 			if (n->mqueue[i] == NULL) {
 				m = n->mqueue[i];
@@ -85,6 +86,7 @@ int node_read_messages(Node n) {
 		}
 		assert(i < MAX_MESSAGE_QUEUE);
 
+		// deserialize next message, store in message queue
 		j += (int)message_deserialize(s + j, &m, (size_t)l);
 		l -= j;
 		++c;
@@ -145,7 +147,7 @@ static void node_disconnect(Node n) {
 	close(n->sockfd);
 }
 
-static void node_send(Node n, unsigned char *data, size_t l) {
+static void node_write(Node n, unsigned char *data, size_t l) {
 	ssize_t r;
 
 	assert(n);

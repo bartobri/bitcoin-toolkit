@@ -32,7 +32,7 @@ int main(void) {
 	m = message_new(VERSION_COMMAND, s, l);
 	FREE(s);
 
-	node_send_message(n, m);
+	node_write_message(n, m);
 	message_free(m);
 
 	i = node_read_messages(n);
