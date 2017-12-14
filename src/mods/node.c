@@ -66,7 +66,7 @@ void node_send_message(Node n, Message m) {
 int node_read_messages(Node n) {
 	Message m = NULL;
 	unsigned char *s = NULL;
-	int l, i = 0, c = 0;
+	int l, i, j = 0, c = 0;
 	
 	assert(n);
 
@@ -76,8 +76,17 @@ int node_read_messages(Node n) {
 	assert(l >= 0);
 
 	while (l > 0) {
-		i += (int)message_deserialize(s + i, &m, (size_t)l);
-		l -= i;
+		
+		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+			if (n->mqueue[i] == NULL) {
+				m = n->mqueue[i];
+				break;
+			}
+		}
+		assert(i < MAX_MESSAGE_QUEUE);
+
+		j += (int)message_deserialize(s + j, &m, (size_t)l);
+		l -= j;
 		++c;
 	}
 
