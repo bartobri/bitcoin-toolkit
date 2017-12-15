@@ -1,6 +1,7 @@
 #ifndef HEX_H
 #define HEX_H 1
 
+#include <stddef.h>
 #include <stdint.h>
 
 unsigned char  hex_to_dec(char, char);
