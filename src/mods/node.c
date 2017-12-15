@@ -190,6 +190,7 @@ static void node_free(Node n) {
 }
 
 static int node_read_messages(Node n) {
+	Message m;
 	unsigned char *s = NULL;
 	int l, i, j = 0, c = 0;
 	
@@ -201,19 +202,23 @@ static int node_read_messages(Node n) {
 	assert(l >= 0);
 
 	while (l > 0) {
-		
-		// Find next available spot in message queue
-		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-			if (n->mqueue[i] == NULL) {
-				break;
-			}
-		}
-		assert(i < MAX_MESSAGE_QUEUE);
-
-		// deserialize next message, store in message queue
-		j += (int)message_deserialize(s + j, n->mqueue + i, (size_t)l);
+		m = NULL;
+		j += (int)message_deserialize(s + j, &m, (size_t)l);
 		l -= j;
-		++c;
+		
+		if (message_validate(m)) {
+			for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+				if (n->mqueue[i] == NULL) {
+					break;
+				}
+			}
+			assert(i < MAX_MESSAGE_QUEUE);
+			n->mqueue[i] = m;
+			
+			++c;
+		} else {
+			message_free(m);
+		}
 	}
 
 	return c;

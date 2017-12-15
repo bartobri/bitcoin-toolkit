@@ -6,8 +6,8 @@
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
 
-//#define HOST "10.0.0.195"
-#define HOST "68.37.93.83"
+#define HOST "10.0.0.195"
+//#define HOST "68.37.93.83"
 #define PORT 8333
 
 // Handshake format & protocol
@@ -39,6 +39,25 @@ int main(void) {
 	message_free(m);
 	
 	for (i = 0; i < 5; ++i) {
+		if ((m = node_get_message(n, VERSION_COMMAND))) {
+			break;
+		}
+		sleep(1);
+	}
+	
+	if (m) {
+		printf("Received Version Message\n");
+		l = message_serialize(m, &s);
+		for (i = 0; i < (int)l; ++i) {
+			printf("%02x", s[i]);
+		}
+		printf("\n");
+		message_free(m);
+	} else {
+		printf("No verack message\n");
+	}
+
+	for (i = 0; i < 5; ++i) {
 		if ((m = node_get_message(n, VERACK_COMMAND))) {
 			break;
 		}
@@ -48,7 +67,6 @@ int main(void) {
 	if (m) {
 		printf("Received Verack Message\n");
 		l = message_serialize(m, &s);
-		printf("Response Message:\n");
 		for (i = 0; i < (int)l; ++i) {
 			printf("%02x", s[i]);
 		}

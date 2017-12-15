@@ -93,3 +93,11 @@ int message_cmp_command(Message m, char *command) {
 	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
 	return strncmp(m->command, command, MESSAGE_COMMAND_MAXLEN);
 }
+
+int message_validate(Message m) {
+	uint32_t checksum;
+	
+	checksum = crypto_get_checksum(m->payload, (size_t)m->length);
+	
+	return (checksum == m->checksum);
+}
