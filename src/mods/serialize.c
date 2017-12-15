@@ -146,3 +146,15 @@ unsigned char *deserialize_uchar(unsigned char *dest, unsigned char *src, int le
 	
 	return src;
 }
+
+unsigned char *deserialize_char(char *dest, unsigned char *src, int len) {
+	
+	assert(dest);
+	assert(src);
+	assert(len);
+	
+	memcpy(dest, src, len);
+	src += len;
+	
+	return src;
+}

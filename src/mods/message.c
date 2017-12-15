@@ -14,7 +14,7 @@
 
 struct Message {
 	uint32_t       magic;
-	unsigned char  command[MESSAGE_COMMAND_MAXLEN];
+	char           command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
 	uint32_t       checksum;
 	unsigned char *payload;
@@ -46,7 +46,7 @@ size_t message_serialize(Message m, unsigned char **s) {
 	
 	// Serializing Message
 	ptr = serialize_uint32(ptr, m->magic, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uchar(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
+	ptr = serialize_char(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
 	ptr = serialize_uint32(ptr, m->length, SERIALIZE_ENDIAN_LIT);
 	ptr = serialize_uint32(ptr, m->checksum, SERIALIZE_ENDIAN_BIG);
 	if (m->length)
@@ -67,7 +67,7 @@ size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
 	
 	// De-Serializing Message
 	src = deserialize_uint32(&((*dest)->magic), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uchar((*dest)->command, src, MESSAGE_COMMAND_MAXLEN);
+	src = deserialize_char((*dest)->command, src, MESSAGE_COMMAND_MAXLEN);
 	src = deserialize_uint32(&((*dest)->length), src, SERIALIZE_ENDIAN_LIT);
 	src = deserialize_uint32(&((*dest)->checksum), src, SERIALIZE_ENDIAN_BIG);
 	if ((*dest)->length) {
@@ -91,5 +91,5 @@ void message_free(Message m) {
 
 int message_cmp_command(Message m, char *command) {
 	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
-	return memcmp(m->command, command, strlen(command));
+	return strncmp(m->command, command, MESSAGE_COMMAND_MAXLEN);
 }
