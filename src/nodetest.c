@@ -35,23 +35,20 @@ int main(void) {
 	node_write_message(n, m);
 	message_free(m);
 
-	i = node_read_messages(n);
-	printf("%i messages read\n", i);
+	m = node_get_message(n, "verack");
 
-	/*
 	if (m) {
-		printf("Received Message Response\n");
+		printf("Received Verack Message\n");
 		l = message_serialize(m, &s);
 		printf("Response Message:\n");
-		for (i = 0; i < l; ++i) {
+		for (i = 0; i < (int)l; ++i) {
 			printf("%02x", s[i]);
 		}
 		printf("\n");
 		message_free(m);
 	} else {
-		printf("No Response from Node\n");
+		printf("No verack message\n");
 	}
-	*/
 
 	node_destroy(n);
 	

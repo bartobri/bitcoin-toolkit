@@ -88,3 +88,8 @@ void message_free(Message m) {
 	}
 	FREE(m);
 }
+
+int message_cmp_command(Message m, char *command) {
+	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
+	return memcmp(m->command, command, strlen(command));
+}

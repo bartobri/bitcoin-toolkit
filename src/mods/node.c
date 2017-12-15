@@ -24,6 +24,7 @@ static void node_disconnect(Node);
 static void node_write(Node, unsigned char *, size_t);
 static int node_read(Node, unsigned char**);
 static void node_free(Node);
+static int node_read_messages(Node);
 
 /*
  * External functions
@@ -63,36 +64,34 @@ void node_write_message(Node n, Message m) {
 	node_write(n, s, l);
 }
 
-int node_read_messages(Node n) {
+Message node_get_message(Node n, char *command) {
+	int i;
 	Message m = NULL;
-	unsigned char *s = NULL;
-	int l, i, j = 0, c = 0;
 	
-	assert(n);
-
-	l = node_read(n, &s);
+	node_read_messages(n);
 	
-	// Read error if l is less than zero
-	assert(l >= 0);
-
-	while (l > 0) {
-		
-		// Find next available spot in message queue
-		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-			if (n->mqueue[i] == NULL) {
-				m = n->mqueue[i];
-				break;
-			}
+	// Check if desired message is in the queue
+	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+		if (n->mqueue[i] == NULL) {
+			break;
 		}
-		assert(i < MAX_MESSAGE_QUEUE);
-
-		// deserialize next message, store in message queue
-		j += (int)message_deserialize(s + j, &m, (size_t)l);
-		l -= j;
-		++c;
+		if (message_cmp_command(n->mqueue[i], command) == 0) {
+			m = n->mqueue[i];
+			break;
+		}
 	}
 
-	return c;
+	// Bump the position of the remaining messages in the queue
+	while (++i < MAX_MESSAGE_QUEUE) {
+		if (n->mqueue[i]) {
+			n->mqueue[i-1] = n->mqueue[i];
+			n->mqueue[i] = NULL;
+		} else {
+			break;
+		}
+	}
+	
+	return m;
 }
 
 int node_socket(Node n) {
@@ -194,4 +193,34 @@ static int node_read(Node n, unsigned char** buffer) {
 
 static void node_free(Node n) {
 	FREE(n);
+}
+
+static int node_read_messages(Node n) {
+	unsigned char *s = NULL;
+	int l, i, j = 0, c = 0;
+	
+	assert(n);
+
+	l = node_read(n, &s);
+	
+	// Read error if l is less than zero
+	assert(l >= 0);
+
+	while (l > 0) {
+		
+		// Find next available spot in message queue
+		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+			if (n->mqueue[i] == NULL) {
+				break;
+			}
+		}
+		assert(i < MAX_MESSAGE_QUEUE);
+
+		// deserialize next message, store in message queue
+		j += (int)message_deserialize(s + j, n->mqueue + i, (size_t)l);
+		l -= j;
+		++c;
+	}
+
+	return c;
 }
