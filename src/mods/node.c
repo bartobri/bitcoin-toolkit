@@ -8,7 +8,6 @@
 #include "mem.h"
 #include "assert.h"
 
-#define TIMEOUT 5
 #define MAX_MESSAGE_QUEUE 100
 
 struct Node {
@@ -162,30 +161,25 @@ static void node_write(Node n, unsigned char *data, size_t l) {
 
 static int node_read(Node n, unsigned char** buffer) {
 	int r;
-	int timeout = TIMEOUT;
 	int l = 0;
 	
 	assert(n);
 	assert(buffer);
 
-	while (timeout--) {
-		// Get length of data waiting to be read
-		ioctl(n->sockfd, FIONREAD, &r);
-	
-		if (r > 0) {
-	
-			// Allocate buffer if null
-			if (*buffer == NULL) {
-				*buffer = ALLOC(r + 1);
-			}
-	
-			// read incoming data in to buffer
-			l = read(n->sockfd, *buffer, r);
-			
-			return l;
+	// Get length of data waiting to be read
+	ioctl(n->sockfd, FIONREAD, &r);
+
+	if (r > 0) {
+
+		// Allocate buffer if null
+		if (*buffer == NULL) {
+			*buffer = ALLOC(r + 1);
 		}
-	
-		sleep(1);
+
+		// read incoming data in to buffer
+		l = read(n->sockfd, *buffer, r);
+		
+		return l;
 	}
 	
 	return 0;

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include "mods/node.h"
 #include "mods/message.h"
 #include "mods/mem.h"
@@ -34,8 +35,13 @@ int main(void) {
 
 	node_write_message(n, m);
 	message_free(m);
-
-	m = node_get_message(n, "verack");
+	
+	for (i = 0; i < 5; ++i) {
+		if ((m = node_get_message(n, "verack"))) {
+			break;
+		}
+		sleep(1);
+	}
 
 	if (m) {
 		printf("Received Verack Message\n");
