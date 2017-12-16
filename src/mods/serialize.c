@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 #include "serialize.h"
 #include "assert.h"
 
@@ -130,6 +131,36 @@ unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian
 		*dest += (*src++ << 16);
 		*dest += (*src++ << 8);
 		*dest += *src++;
+	}
+	
+	return src;
+}
+
+unsigned char *deserialize_uint64(uint64_t *dest, unsigned char *src, int endian) {
+	assert(dest);
+	assert(src);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest = 0;
+	
+	if (endian == SERIALIZE_ENDIAN_LIT) {
+		*dest += ((uint64_t)*src++);
+		*dest += (((uint64_t)*src++) << 8);
+		*dest += (((uint64_t)*src++) << 16);
+		*dest += (((uint64_t)*src++) << 24);
+		*dest += (((uint64_t)*src++) << 32);
+		*dest += (((uint64_t)*src++) << 40);
+		*dest += (((uint64_t)*src++) << 48);
+		*dest += (((uint64_t)*src++) << 56);
+	} else {
+		*dest += (((uint64_t)*src++) << 56);
+		*dest += (((uint64_t)*src++) << 48);
+		*dest += (((uint64_t)*src++) << 40);
+		*dest += (((uint64_t)*src++) << 32);
+		*dest += (((uint64_t)*src++) << 24);
+		*dest += (((uint64_t)*src++) << 16);
+		*dest += (((uint64_t)*src++) << 8);
+		*dest += ((uint64_t)*src++);
 	}
 	
 	return src;
