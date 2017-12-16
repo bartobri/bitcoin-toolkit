@@ -221,3 +221,17 @@ unsigned char *deserialize_char(char *dest, unsigned char *src, int len) {
 	
 	return src;
 }
+
+// TODO - handle compact size uints properly
+unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endian) {
+	
+	assert(dest);
+	assert(src);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest = 0;
+	
+	*dest += (((uint64_t)*src++) << 56);
+	
+	return src;
+}

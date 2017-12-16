@@ -19,5 +19,6 @@ unsigned char *deserialize_uint32(uint32_t *, unsigned char *, int);
 unsigned char *deserialize_uint64(uint64_t *, unsigned char *, int);
 unsigned char *deserialize_uchar(unsigned char *, unsigned char *, int);
 unsigned char *deserialize_char(char *, unsigned char *, int);
+unsigned char *deserialize_compuint(uint64_t *, unsigned char *, int);
 
 #endif
