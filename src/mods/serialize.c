@@ -113,6 +113,24 @@ unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian)
 	return dest;
 }
 
+unsigned char *deserialize_uint16(uint16_t *dest, unsigned char *src, int endian) {
+	assert(dest);
+	assert(src);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest = 0;
+	
+	if (endian == SERIALIZE_ENDIAN_LIT) {
+		*dest += ((uint16_t)*src++);
+		*dest += (((uint16_t)*src++) << 8);
+	} else {
+		*dest += (((uint16_t)*src++) << 8);
+		*dest += ((uint16_t)*src++);
+	}
+	
+	return src;
+}
+
 unsigned char *deserialize_uint32(uint32_t *dest, unsigned char *src, int endian) {
 	
 	assert(dest);
