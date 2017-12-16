@@ -13,6 +13,7 @@ unsigned char *serialize_uint64(unsigned char *, uint64_t, int);
 unsigned char *serialize_uchar(unsigned char *, unsigned char *, int);
 unsigned char *serialize_char(unsigned char *, char *, int);
 unsigned char *serialize_compuint(unsigned char *, uint64_t, int);
+unsigned char *deserialize_uint8(uint8_t *, unsigned char *, int);
 unsigned char *deserialize_uint16(uint16_t *, unsigned char *, int);
 unsigned char *deserialize_uint32(uint32_t *, unsigned char *, int);
 unsigned char *deserialize_uint64(uint64_t *, unsigned char *, int);

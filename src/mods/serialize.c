@@ -113,6 +113,20 @@ unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian)
 	return dest;
 }
 
+unsigned char *deserialize_uint8(uint8_t *dest, unsigned char *src, int endian) {
+	assert(dest);
+	assert(src);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+	
+	*dest = 0;
+	
+	// Endian doesn't matter for 8 bit ints
+
+	*dest += ((uint8_t)*src++);
+	
+	return src;
+}
+
 unsigned char *deserialize_uint16(uint16_t *dest, unsigned char *src, int endian) {
 	assert(dest);
 	assert(src);
