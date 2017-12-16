@@ -231,7 +231,7 @@ unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endi
 	
 	*dest = 0;
 	
-	*dest += (((uint64_t)*src++) << 56);
+	*dest += (uint64_t)*src++;
 	
 	return src;
 }
