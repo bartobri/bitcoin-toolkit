@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "mods/node.h"
 #include "mods/message.h"
 #include "mods/mem.h"
@@ -54,7 +55,7 @@ int main(void) {
 		printf("\n");
 		message_free(m);
 	} else {
-		printf("No verack message\n");
+		printf("No version message\n");
 	}
 
 	for (i = 0; i < 5; ++i) {

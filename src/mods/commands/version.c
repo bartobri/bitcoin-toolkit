@@ -58,7 +58,7 @@ Version version_new(void) {
 	
 	r->addr_trans_port = PORT;
 	r->nonce = 0x00;
-	r->user_agent_bytes = ((uint64_t)strlen(USER_AGENT)) << 56;
+	r->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
 	r->user_agent = USER_AGENT;
 	r->start_height = 0x00;
 	r->relay = 0x00;

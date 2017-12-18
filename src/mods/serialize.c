@@ -108,7 +108,7 @@ unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian)
 	assert(src);
 	assert(endian);
 	
-	*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+	*dest++ = (unsigned char)src;
 	
 	return dest;
 }
@@ -231,7 +231,7 @@ unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endi
 	
 	*dest = 0;
 	
-	*dest += (uint64_t)*src++;
+	*dest += ((uint64_t)*src++);
 	
 	return src;
 }
