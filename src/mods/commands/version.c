@@ -108,8 +108,40 @@ size_t version_new_serialize(unsigned char **s) {
 	return r;
 }
 
+size_t version_deserialize(unsigned char *src, Version *dest, size_t l) {
+	
+	assert(src);
+	assert(l >= 54 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN);
+	
+	if (*dest == NULL)
+		NEW0(*dest);
+	
+	src = deserialize_uint32(&((*dest)->version), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uint64(&((*dest)->services), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uint64(&((*dest)->timestamp), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uint64(&((*dest)->addr_recv_services), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uchar((*dest)->addr_recv_ip_address, src, IP_ADDR_FIELD_LEN);
+	src = deserialize_uint16(&((*dest)->addr_recv_port), src, SERIALIZE_ENDIAN_BIG);
+	src = deserialize_uint64(&((*dest)->addr_trans_services), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uchar((*dest)->addr_trans_ip_address, src, IP_ADDR_FIELD_LEN);
+	src = deserialize_uint16(&((*dest)->addr_trans_port), src, SERIALIZE_ENDIAN_BIG);
+	src = deserialize_uint64(&((*dest)->nonce), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_compuint(&((*dest)->user_agent_bytes), src, SERIALIZE_ENDIAN_LIT);
+	if ((*dest)->user_agent_bytes) {
+		assert(l >= 54 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes);
+		FREE((*dest)->user_agent);
+		(*dest)->user_agent = ALLOC((*dest)->user_agent_bytes);
+		src = deserialize_char((*dest)->user_agent, src, (*dest)->user_agent_bytes);
+	} else {
+		(*dest)->user_agent = NULL;
+	}
+	src = deserialize_uint32(&((*dest)->start_height), src, SERIALIZE_ENDIAN_LIT);
+	src = deserialize_uint8(&((*dest)->relay), src, SERIALIZE_ENDIAN_LIT);
+	
+	return 61 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes;
+}
+
 void version_free(Version v) {
 	assert(v);
-	
 	FREE(v);
 }
