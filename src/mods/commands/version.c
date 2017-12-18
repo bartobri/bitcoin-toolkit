@@ -59,7 +59,14 @@ Version version_new(void) {
 	r->addr_trans_port = PORT;
 	r->nonce = 0x00;
 	r->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
-	r->user_agent = USER_AGENT;
+	
+	if (r->user_agent_bytes) {
+		r->user_agent = ALLOC(r->user_agent_bytes);
+		memcpy(r->user_agent, USER_AGENT, strlen(USER_AGENT));
+	} else {
+		r->user_agent = NULL;
+	}
+
 	r->start_height = 0x00;
 	r->relay = 0x00;
 	
@@ -142,6 +149,8 @@ size_t version_deserialize(unsigned char *src, Version *dest, size_t l) {
 }
 
 void version_free(Version v) {
-	assert(v);
+	if (v && v->user_agent_bytes) {
+		FREE(v->user_agent);
+	}
 	FREE(v);
 }
