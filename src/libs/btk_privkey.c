@@ -14,21 +14,26 @@
 /*
  * Flags
  */
-static int flag_source_new = 0;
-static int flag_output_newline = 0;
+static int flag_input_new = 0;
+static int flag_format_newline = 0;
 
 int btk_privkey_init(int argc, char *argv[]) {
 	int o;
 	PrivKey key;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nN")) != -1) {
+	while ((o = getopt(argc, argv, "nRN")) != -1) {
 		switch (o) {
+			// Input flags
 			case 'n':
-				flag_source_new = 1;
+				flag_input_new = 1;
 				break;
+			
+			// Output flags
+
+			// Format flags
 			case 'N':
-				flag_output_newline = 1;
+				flag_format_newline = 1;
 				break;
 			case '?':
 				if (isprint(optopt))
@@ -40,17 +45,17 @@ int btk_privkey_init(int argc, char *argv[]) {
 	}
 	
 	// Check for minimum flags
-	if (!flag_source_new) {
+	if (!flag_input_new) {
 		fprintf(stderr, "Missing source flag.\n");
 		return EXIT_FAILURE;
 	}
 	
 	// Execute flags
-	if (flag_source_new) {
+	if (flag_input_new) {
 		key = privkey_new_compressed();
 		printf("%s", privkey_to_wif(key));
 
-		if (flag_output_newline)
+		if (flag_format_newline)
 			printf("\n");
 	}
 	
