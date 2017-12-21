@@ -18,6 +18,10 @@ CC ?= gcc
 CFLAGS ?= -Wextra -Wall -iquote$(SRC)
 CLIBS ?= -lgmp -lgcrypt
 
+LIB_OBJS = $(OBJ)/$(LIBS)/btk_privkey.o
+MOD_OBJS = $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/$(MODS)/message.o $(OBJ)/$(MODS)/serialize.o
+COM_OBJS = $(OBJ)/$(MODS)/commands/verack.o $(OBJ)/$(MODS)/commands/version.o
+
 .PHONY: all install uninstall clean
 
 #EXES = test asciiaddress btcaddress
@@ -25,12 +29,8 @@ EXES = btk
 
 all: $(EXES)
 
-btk: $(OBJ)/$(LIBS)/btk_privkey.o $(OBJ)/btk.o | $(BIN)
+btk: $(LIB_OBJS) $(MOD_OBJS) $(COM_OBJS) $(OBJ)/btk.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-$(OBJ)/$(LIBS)/btk_privkey.o: $(SRC)/$(LIBS)/btk_privkey.c $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 
 
 # test: $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/test.o | $(BIN)
@@ -49,7 +49,8 @@ $(OBJ)/$(LIBS)/btk_privkey.o: $(SRC)/$(LIBS)/btk_privkey.c $(OBJ)/$(MODS)/privke
 # 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
 
 
-
+$(OBJ)/$(LIBS)/%.o: $(SRC)/$(LIBS)/%.c | $(OBJ)
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJ)/$(MODS)/commands/%.o: $(SRC)/$(MODS)/commands/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
