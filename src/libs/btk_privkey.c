@@ -15,6 +15,7 @@
  * Flags
  */
 static int flag_input_new = 0;
+static int flag_output_hex = 0;
 static int flag_output_compressed = 0;
 static int flag_output_uncompressed = 0;
 static int flag_format_newline = 0;
@@ -24,7 +25,7 @@ int btk_privkey_init(int argc, char *argv[]) {
 	PrivKey key;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nCUN")) != -1) {
+	while ((o = getopt(argc, argv, "nCUHN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
@@ -37,6 +38,9 @@ int btk_privkey_init(int argc, char *argv[]) {
 				break;
 			case 'U':
 				flag_output_uncompressed = 1;
+				break;
+			case 'H':
+				flag_output_hex = 1;
 				break;
 
 			// Format flags
@@ -61,7 +65,9 @@ int btk_privkey_init(int argc, char *argv[]) {
 	}
 	
 	// Process Output Flags
-	if (flag_output_compressed) {
+	if (flag_output_hex) {
+		printf("%s", privkey_to_hex(privkey_uncompress(key)));
+	} else if (flag_output_compressed) {
 		printf("%s", privkey_to_wif(privkey_compress(key)));
 	} else if (flag_output_uncompressed) {
 		printf("%s", privkey_to_wif(privkey_uncompress(key)));
