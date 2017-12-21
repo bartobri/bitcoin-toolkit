@@ -87,6 +87,17 @@ char *privkey_to_hex(PrivKey k) {
 	return r;
 }
 
+unsigned char *privkey_to_raw(PrivKey k) {
+	unsigned char *r;
+	assert(k);
+	
+	r = ALLOC(PRIVKEY_LENGTH);
+	
+	memcpy(r, k->data, PRIVKEY_LENGTH);
+
+	return r;
+}
+
 char *privkey_to_wif(PrivKey k) {
 	int l;
 	unsigned char p[PRIVKEY_LENGTH + 2];
