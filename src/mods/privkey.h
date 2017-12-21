@@ -13,5 +13,6 @@ char   *privkey_to_hex(PrivKey);
 char   *privkey_to_wif(PrivKey);
 PrivKey privkey_from_hex(char *);
 int     privkey_is_compressed(PrivKey);
+void    privkey_free(PrivKey);
 
 #endif

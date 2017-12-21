@@ -67,7 +67,7 @@ int btk_privkey_init(int argc, char *argv[]) {
 	if (flag_format_newline)
 			printf("\n");
 
-	FREE(key);
+	privkey_free(key);
 
 	return EXIT_SUCCESS;
 }

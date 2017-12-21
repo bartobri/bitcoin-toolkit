@@ -145,4 +145,6 @@ int privkey_is_compressed(PrivKey k) {
 	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
 
-
+void privkey_free(PrivKey k) {
+	FREE(k);
+}
