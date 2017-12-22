@@ -110,7 +110,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
 			printf("%c", r[i]);
 		}
-		// TODO - free r
+		FREE(r);
 	} else {
 		printf("%s", privkey_to_wif(privkey_compress(key)));
 	}
