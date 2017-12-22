@@ -21,7 +21,7 @@ static int flag_output_compressed = 0;
 static int flag_output_uncompressed = 0;
 static int flag_format_newline = 0;
 
-int btk_privkey_init(int argc, char *argv[]) {
+int btk_privkey_main(int argc, char *argv[]) {
 	int o;
 	PrivKey key;
 	

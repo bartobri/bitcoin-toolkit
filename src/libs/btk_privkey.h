@@ -9,6 +9,6 @@
 #define BTK_PRIVKEY_H 1
 
 // Function prototypes
-int btk_privkey_init(int argc, char *argv[]);
+int btk_privkey_main(int argc, char *argv[]);
 
 #endif

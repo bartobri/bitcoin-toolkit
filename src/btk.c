@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (strcmp(argv[1], "privkey") == 0) {
-		return btk_privkey_init(argc, argv);
+		return btk_privkey_main(argc, argv);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
