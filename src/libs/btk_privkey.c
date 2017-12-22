@@ -26,6 +26,7 @@ static int btk_privkey_read_input(void);
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
 static int flag_input_hex = 0;
+static int flag_input_raw = 0;
 static int flag_output_raw = 0;
 static int flag_output_hex = 0;
 static int flag_output_compressed = 0;
@@ -37,7 +38,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	PrivKey key;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nhCUHRN")) != -1) {
+	while ((o = getopt(argc, argv, "nhrCUHRN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
@@ -45,6 +46,9 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 'h':
 				flag_input_hex = 1;
+				break;
+			case 'r':
+				flag_input_raw = 1;
 				break;
 
 			// Output flags
@@ -92,6 +96,14 @@ int btk_privkey_main(int argc, char *argv[]) {
 			}
 		}
 		key = privkey_from_hex((char *)input_buffer);
+	} else if (flag_input_raw) {
+		int cnt;
+		cnt = btk_privkey_read_input();
+		if (cnt < PRIVKEY_LENGTH) {
+			fprintf(stderr, "Error: Invalid input.\n");
+			return EXIT_FAILURE;
+		}
+		key = privkey_from_raw(input_buffer);
 	} else {
 		key = privkey_new();
 	}

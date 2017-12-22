@@ -152,6 +152,34 @@ PrivKey privkey_from_hex(char *hex) {
 	return k;
 }
 
+PrivKey privkey_from_raw(unsigned char *raw) {
+	PrivKey k;
+	mpz_t cur_key, max_key;
+
+	// Check params
+	assert(raw);
+	
+	// allocate memory
+	NEW(k);
+
+	// load raw string as private key
+	memcpy(k->data, raw, PRIVKEY_LENGTH);
+	
+	// Set compression flag
+	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+
+	// Make sure key is not above PRIVKEY_MAX
+	mpz_init(max_key);
+	mpz_init(cur_key);
+	mpz_set_str(max_key, PRIVKEY_MAX, 16);
+	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
+	assert(mpz_cmp(cur_key, max_key) < 0);
+	mpz_clear(max_key);
+	mpz_clear(cur_key);
+	
+	return k;
+}
+
 int privkey_is_compressed(PrivKey k) {
 	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
