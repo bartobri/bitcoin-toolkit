@@ -10,11 +10,22 @@
 #include <unistd.h>
 #include <ctype.h>
 #include "mods/privkey.h"
+#include "mods/mem.h"
+#include "mods/assert.h"
+
+#define INPUT_BUFFER_SIZE    PRIVKEY_LENGTH * 2
 
 /*
- * Flags
+ * Static Function Declarations
  */
+static int btk_privkey_read_input(void);
+
+/*
+ * Static Variable Declarations
+ */
+static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
+static int flag_input_hex = 0;
 static int flag_output_raw = 0;
 static int flag_output_hex = 0;
 static int flag_output_compressed = 0;
@@ -26,11 +37,14 @@ int btk_privkey_main(int argc, char *argv[]) {
 	PrivKey key;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nCUHRN")) != -1) {
+	while ((o = getopt(argc, argv, "nhCUHRN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
 				flag_input_new = 1;
+				break;
+			case 'h':
+				flag_input_hex = 1;
 				break;
 
 			// Output flags
@@ -64,6 +78,20 @@ int btk_privkey_main(int argc, char *argv[]) {
 	// Process Input flags
 	if (flag_input_new) {
 		key = privkey_new();
+	} else if (flag_input_hex) {
+		int i, cnt;
+		cnt = btk_privkey_read_input();
+		if (cnt < PRIVKEY_LENGTH * 2) {
+			fprintf(stderr, "Error: Invalid input.\n");
+			return EXIT_FAILURE;
+		}
+		for (i = 0; i < cnt; ++i) {
+			if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+		}
+		key = privkey_from_hex((char *)input_buffer);
 	} else {
 		key = privkey_new();
 	}
@@ -82,6 +110,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
 			printf("%c", r[i]);
 		}
+		// TODO - free r
 	} else {
 		printf("%s", privkey_to_wif(privkey_compress(key)));
 	}
@@ -93,4 +122,13 @@ int btk_privkey_main(int argc, char *argv[]) {
 	privkey_free(key);
 
 	return EXIT_SUCCESS;
+}
+
+static int btk_privkey_read_input(void) {
+	int i, c;
+
+	for (i = 0; i < INPUT_BUFFER_SIZE && (c = getchar()) != EOF; ++i)
+		input_buffer[i] = c;
+
+	return i;
 }
