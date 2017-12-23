@@ -39,6 +39,42 @@ char *base58_encode(unsigned char *str, size_t l) {
 		res[i] = res[j];
 		res[j] = t;
 	}
+	
+	// TODO - free mpz_t vars
 
 	return res;
+}
+
+unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
+	size_t i, j;
+	//char t;
+	unsigned char *ret = NULL;
+	mpz_t x, b;
+	char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+	
+	assert(str);
+	assert(l);
+	
+	mpz_init(x);
+	mpz_init(b);
+	
+	mpz_set_ui(b, 58);
+	mpz_set_ui(x, 0);
+	
+	for (i = 0; i < l; ++i) {
+		for (j = 0; j < strlen(code_string) && code_string[j] != str[i]; ++j)
+			;
+		assert(j < strlen(code_string));
+
+		mpz_mul(x, b, x);
+		mpz_add_ui(x, x, j);
+	}
+
+	ret = ALLOC((mpz_sizeinbase(x, 2) + 7) / 8);
+	mpz_export(ret, rl, 1, 1, 1, 0, x);
+	
+	mpz_clear(x);
+	mpz_clear(b);
+	
+	return ret;
 }
