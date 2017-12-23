@@ -40,15 +40,16 @@ char *base58_encode(unsigned char *str, size_t l) {
 		res[j] = t;
 	}
 	
-	// TODO - free mpz_t vars
+	mpz_clear(x);
+	mpz_clear(r);
+	mpz_clear(d);
 
 	return res;
 }
 
 unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 	size_t i, j;
-	//char t;
-	unsigned char *ret = NULL;
+	unsigned char *ret;
 	mpz_t x, b;
 	char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	
