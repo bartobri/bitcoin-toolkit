@@ -10,7 +10,7 @@
 
 char *base58check_encode(unsigned char *s, size_t l) {
 	unsigned char *scheck;
-	unsigned char *sha1, *sha2;
+	uint32_t i, checksum;
 	char *r;
 	
 	assert(s);
@@ -22,20 +22,19 @@ char *base58check_encode(unsigned char *s, size_t l) {
 	// Copy s to scheck
 	memcpy(scheck, s, l);
 	
-	// SHA256(SHA256(s))
-	sha1 = crypto_get_sha256(s, l);
-	sha2 = crypto_get_sha256(sha1, 32);
+	// get checksum
+	checksum = crypto_get_checksum(s, l);
 	
-	// First 4 bytes of checksum as last 4 bytes of scheck
-	memcpy(scheck + l, sha2, CHECKSUM_LENGTH);
+	// Copy bytes of checksum (big endian) as last 4 bytes of scheck
+	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
+		scheck[l+i] = ((checksum >> (24-i*8)) & 0x000000FF);
+	}
 	
 	// Encode checksumed string
 	r = base58_encode(scheck, l + CHECKSUM_LENGTH);
 	
 	// Free memory
 	FREE(scheck);
-	FREE(sha1);
-	FREE(sha2);
 	
 	return r;
 }
