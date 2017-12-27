@@ -4,12 +4,13 @@
 #include "mem.h"
 #include "assert.h"
 
+static char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
 char *base58_encode(unsigned char *str, size_t l) {
 	int i, j;
 	char t;
 	char *res;
 	mpz_t x, r, d;
-	char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	
 	assert(str);
 	assert(l);
@@ -51,7 +52,6 @@ unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 	size_t i, j;
 	unsigned char *ret;
 	mpz_t x, b;
-	char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	
 	assert(str);
 	assert(l);
