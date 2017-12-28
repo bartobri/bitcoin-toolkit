@@ -79,3 +79,12 @@ unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 	
 	return ret;
 }
+
+int base58_ischar(char c) {
+	size_t i;
+
+	for (i = 0; i < strlen(code_string) && code_string[i] != c; ++i)
+		;
+
+	return (i < strlen(code_string));
+}
