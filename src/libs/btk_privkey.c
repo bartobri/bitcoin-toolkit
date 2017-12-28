@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include "mods/privkey.h"
+#include "mods/base58.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -27,6 +28,7 @@ static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
 static int flag_input_hex = 0;
 static int flag_input_raw = 0;
+static int flag_input_wif = 0;
 static int flag_output_raw = 0;
 static int flag_output_hex = 0;
 static int flag_output_compressed = 0;
@@ -38,7 +40,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	PrivKey key;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nhrCUHRN")) != -1) {
+	while ((o = getopt(argc, argv, "nhrwCUHRN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
@@ -49,6 +51,9 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 'r':
 				flag_input_raw = 1;
+				break;
+			case 'w':
+				flag_input_wif = 1;
 				break;
 
 			// Output flags
@@ -104,6 +109,21 @@ int btk_privkey_main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 		key = privkey_from_raw(input_buffer);
+	} else if (flag_input_wif) {
+		int i, cnt;
+		cnt = btk_privkey_read_input();
+		if (cnt < 51) {
+			fprintf(stderr, "Error: Invalid input.\n");
+			return EXIT_FAILURE;
+		}
+		for (i = 0; i < cnt; ++i) {
+			if (!base58_ischar(input_buffer[i])) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+		}
+		input_buffer[cnt] = '\0';
+		key = privkey_from_wif((char *)input_buffer);
 	} else {
 		key = privkey_new();
 	}

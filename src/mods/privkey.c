@@ -114,6 +114,29 @@ char *privkey_to_wif(PrivKey k) {
 	return base58check_encode(p, l);
 }
 
+PrivKey privkey_from_wif(char *wif) {
+	unsigned char *p;
+	PrivKey k;
+	size_t l;
+	
+	NEW(k);
+
+	p = base58check_decode(wif, strlen(wif), &l);
+	
+	assert(p[0] == MAINNET_PREFIX);
+	assert(l >= PRIVKEY_LENGTH + 1 && l <= PRIVKEY_LENGTH + 2);
+	
+	memcpy(k->data, p+1, PRIVKEY_LENGTH);
+	
+	if (l == PRIVKEY_LENGTH + 2) {
+		privkey_compress(k);
+	} else {
+		privkey_uncompress(k);
+	}
+	
+	return k;
+}
+
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
