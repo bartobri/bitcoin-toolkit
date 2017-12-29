@@ -26,6 +26,7 @@ static int btk_pubkey_read_input(void);
  */
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_raw = 0;
+static int flag_input_hex = 0;
 static int flag_output_address = 0;
 static int flag_format_newline = 0;
 
@@ -34,11 +35,14 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	PubKey key = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rAN")) != -1) {
+	while ((o = getopt(argc, argv, "rhAN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'r':
 				flag_input_raw = 1;
+				break;
+			case 'h':
+				flag_input_hex = 1;
 				break;
 
 			// Output flags
@@ -70,6 +74,23 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 		priv = privkey_from_raw(input_buffer);
+		key = pubkey_get(priv);
+		privkey_free(priv);
+	} else if (flag_input_hex) {
+		int i, cnt;
+		PrivKey priv;
+		cnt = btk_pubkey_read_input();
+		if (cnt < PRIVKEY_LENGTH * 2) {
+			fprintf(stderr, "Error: Invalid input.\n");
+			return EXIT_FAILURE;
+		}
+		for (i = 0; i < cnt; ++i) {
+			if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+		}
+		priv = privkey_from_hex((char *)input_buffer);
 		key = pubkey_get(priv);
 		privkey_free(priv);
 	}
