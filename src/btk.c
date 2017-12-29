@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "libs/btk_privkey.h"
+#include "libs/btk_pubkey.h"
 
 int main(int argc, char *argv[]) {
 
@@ -19,6 +20,8 @@ int main(int argc, char *argv[]) {
 	
 	if (strcmp(argv[1], "privkey") == 0) {
 		return btk_privkey_main(argc, argv);
+	} else if (strcmp(argv[1], "pubkey") == 0) {
+		return btk_pubkey_main(argc, argv);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
