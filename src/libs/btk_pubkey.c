@@ -26,6 +26,7 @@ static int btk_pubkey_read_input(void);
  */
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_raw = 0;
+static int flag_output_address = 0;
 static int flag_format_newline = 0;
 
 int btk_pubkey_main(int argc, char *argv[]) {
@@ -33,7 +34,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	PubKey key = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rN")) != -1) {
+	while ((o = getopt(argc, argv, "rAN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'r':
@@ -41,7 +42,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 
 			// Output flags
-			
+			case 'A':
+				flag_output_address = 1;
+				break;
 
 			// Format flags
 			case 'N':
@@ -57,7 +60,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 		}
 	}
 	
-	// Process inptu flags
+	// Process input flags
 	if (flag_input_raw) {
 		int cnt;
 		PrivKey priv;
@@ -69,6 +72,14 @@ int btk_pubkey_main(int argc, char *argv[]) {
 		priv = privkey_from_raw(input_buffer);
 		key = pubkey_get(priv);
 		privkey_free(priv);
+	}
+	
+	// Ensure we have a key
+	assert(key);
+	
+	// Process output flags
+	if (flag_output_address) {
+		printf("%s", pubkey_to_address(key));
 	}
 
 	// Process format flags
