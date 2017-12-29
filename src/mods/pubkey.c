@@ -11,8 +11,6 @@
 #include "assert.h"
 
 #define ADDRESS_VERSION_BIT           0x00
-#define PUBKEY_UNCOMPRESSED_LENGTH    64
-#define PUBKEY_COMPRESSED_LENGTH      32
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
@@ -184,5 +182,10 @@ char *pubkey_to_address(PubKey k) {
 	FREE(rmd);
 	
 	return base58check_encode(r, 21);
+}
+
+void pubkey_free(PubKey k) {
+	assert(k);
+	FREE(k);
 }
 
