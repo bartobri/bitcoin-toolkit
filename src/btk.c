@@ -10,6 +10,7 @@
 #include <string.h>
 #include "libs/btk_privkey.h"
 #include "libs/btk_pubkey.h"
+#include "libs/btk_keypair.h"
 
 int main(int argc, char *argv[]) {
 
@@ -22,6 +23,8 @@ int main(int argc, char *argv[]) {
 		return btk_privkey_main(argc, argv);
 	} else if (strcmp(argv[1], "pubkey") == 0) {
 		return btk_pubkey_main(argc, argv);
+	} else if (strcmp(argv[1], "keypair") == 0) {
+		return btk_keypair_main(argc, argv);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
