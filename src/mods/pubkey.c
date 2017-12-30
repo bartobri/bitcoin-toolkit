@@ -206,7 +206,6 @@ char *pubkey_to_address(PubKey k) {
 }
 
 void pubkey_free(PubKey k) {
-	assert(k);
 	FREE(k);
 }
 
