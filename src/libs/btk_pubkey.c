@@ -134,6 +134,10 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Ensure we have a key
 	assert(key);
 	
+	// Set default output flag if none specified
+	if (!flag_output_address && !flag_output_hex && !flag_output_raw)
+		flag_output_address = 1;
+	
 	// Process output flags
 	if (flag_output_address) {
 		printf("%s", pubkey_to_address(key));
