@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
+#include "mods/base58.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -27,6 +28,7 @@ static int btk_pubkey_read_input(void);
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_raw = 0;
 static int flag_input_hex = 0;
+static int flag_input_wif = 0;
 static int flag_output_address = 0;
 static int flag_format_newline = 0;
 
@@ -35,7 +37,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	PubKey key = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rhAN")) != -1) {
+	while ((o = getopt(argc, argv, "rhwAN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'r':
@@ -43,6 +45,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 			case 'h':
 				flag_input_hex = 1;
+				break;
+			case 'w':
+				flag_input_wif = 1;
 				break;
 
 			// Output flags
@@ -91,6 +96,26 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			}
 		}
 		priv = privkey_from_hex((char *)input_buffer);
+		key = pubkey_get(priv);
+		privkey_free(priv);
+	} else if (flag_input_wif) {
+		int i, cnt;
+		PrivKey priv;
+		cnt = btk_pubkey_read_input();
+		// TODO - make '51' globally defined value so it can be used here and in btk_privkey
+		if (cnt < 51) {
+			fprintf(stderr, "Error: Invalid input.\n");
+			return EXIT_FAILURE;
+		}
+		// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
+		for (i = 0; i < cnt; ++i) {
+			if (!base58_ischar(input_buffer[i])) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+		}
+		input_buffer[cnt] = '\0';
+		priv = privkey_from_wif((char *)input_buffer);
 		key = pubkey_get(priv);
 		privkey_free(priv);
 	}
