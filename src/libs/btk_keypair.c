@@ -26,6 +26,7 @@ static int btk_keypair_read_input(void);
  */
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
+static int flag_output_compressed = 0;
 static int flag_format_newline = 0;
 
 int btk_keypair_main(int argc, char *argv[]) {
@@ -34,7 +35,7 @@ int btk_keypair_main(int argc, char *argv[]) {
 	PubKey pub = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nN")) != -1) {
+	while ((o = getopt(argc, argv, "nCN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
@@ -42,6 +43,9 @@ int btk_keypair_main(int argc, char *argv[]) {
 				break;
 
 			// Output flags
+			case 'C':
+				flag_output_compressed = 1;
+				break;
 
 			// Format flags
 			case 'N':
@@ -68,9 +72,17 @@ int btk_keypair_main(int argc, char *argv[]) {
 
 	// Check that we have keys
 	assert(priv);
+	
+	// Set default output flag if none specified
+	if (!flag_output_compressed)
+		flag_output_compressed = 1;
 
 	// Process output flags
-	
+	if (flag_output_compressed) {
+		priv = privkey_compress(priv);
+		pub = pubkey_get(priv);
+		printf("%s %s", privkey_to_wif(priv), pubkey_to_address(pub));
+	}
 
 	// Process format flags
 	if (flag_format_newline)
