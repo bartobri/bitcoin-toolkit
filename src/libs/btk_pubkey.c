@@ -126,6 +126,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 		priv = privkey_from_wif((char *)input_buffer);
 		key = pubkey_get(priv);
 		privkey_free(priv);
+	} else {
+		fprintf(stderr, "Error: Must specify input flag.\n");
+		return EXIT_FAILURE;
 	}
 	
 	// Ensure we have a key
