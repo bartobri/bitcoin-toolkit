@@ -37,7 +37,7 @@ static int flag_format_newline = 0;
 
 int btk_privkey_main(int argc, char *argv[]) {
 	int o;
-	PrivKey key;
+	PrivKey key = NULL;
 	
 	// Check arguments
 	while ((o = getopt(argc, argv, "nhrwCUHRN")) != -1) {
@@ -84,6 +84,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 		}
 	}
 	
+	// Set default input flag if none specified
+	if (!flag_input_new && !flag_input_hex && !flag_input_raw && !flag_input_wif)
+		flag_input_new = 1;
+	
 	// Process Input flags
 	if (flag_input_new) {
 		key = privkey_new();
@@ -124,9 +128,14 @@ int btk_privkey_main(int argc, char *argv[]) {
 		}
 		input_buffer[cnt] = '\0';
 		key = privkey_from_wif((char *)input_buffer);
-	} else {
-		key = privkey_new();
 	}
+	
+	// Make sure we have a key
+	assert(key);
+
+	// Set default output flag if none specified
+	if (!flag_output_hex && !flag_output_compressed && !flag_output_uncompressed && !flag_output_raw)
+		flag_output_compressed = 1;
 	
 	// Process Output Flags
 	// TODO - should I be compressing hex and raw outputs?
@@ -144,8 +153,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 			printf("%c", r[i]);
 		}
 		FREE(r);
-	} else {
-		printf("%s", privkey_to_wif(privkey_compress(key)));
 	}
 	
 	// Process format flags
