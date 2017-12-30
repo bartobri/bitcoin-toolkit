@@ -25,15 +25,21 @@ static int btk_keypair_read_input(void);
  * Static Variable Declarations
  */
 static unsigned char input_buffer[INPUT_BUFFER_SIZE];
+static int flag_input_new = 0;
 static int flag_format_newline = 0;
 
 int btk_keypair_main(int argc, char *argv[]) {
 	int o;
+	PrivKey priv = NULL;
+	PubKey pub = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rhwAHRN")) != -1) {
+	while ((o = getopt(argc, argv, "nN")) != -1) {
 		switch (o) {
 			// Input flags
+			case 'n':
+				flag_input_new = 1;
+				break;
 
 			// Output flags
 
@@ -51,13 +57,27 @@ int btk_keypair_main(int argc, char *argv[]) {
 		}
 	}
 	
-	// Process input flags
+	// Set default input flag if none specified
+	if (!flag_input_new)
+		flag_input_new = 1;
 	
+	// Process input flags
+	if (flag_input_new) {
+		priv = privkey_new();
+	}
+
+	// Check that we have keys
+	assert(priv);
+
 	// Process output flags
+	
 
 	// Process format flags
 	if (flag_format_newline)
 			printf("\n");
+	
+	privkey_free(priv);
+	pubkey_free(pub);
 
 	return EXIT_SUCCESS;
 }
