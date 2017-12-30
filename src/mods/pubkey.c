@@ -7,6 +7,7 @@
 #include "point.h"
 #include "crypto.h"
 #include "base58check.h"
+#include "hex.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -152,6 +153,26 @@ char *pubkey_to_hex(PubKey k) {
 	for (i = 0; i < l/2; ++i) {
 		sprintf(r + (i * 2), "%02x", k->data[i]);
 	}
+	
+	return r;
+}
+
+unsigned char *pubkey_to_raw(PubKey k, size_t *rl) {
+	int i, l;
+	char *s;
+	unsigned char *r;
+	
+	s = pubkey_to_hex(k);
+	
+	l = strlen(s);
+	
+	r = ALLOC(l/2);
+	
+	for (i = 0; i < l; i += 2) {
+		r[i/2] = hex_to_dec(s[i], s[i+1]);
+	}
+	
+	*rl = l/2;
 	
 	return r;
 }

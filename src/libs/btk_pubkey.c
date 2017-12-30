@@ -30,6 +30,8 @@ static int flag_input_raw = 0;
 static int flag_input_hex = 0;
 static int flag_input_wif = 0;
 static int flag_output_address = 0;
+static int flag_output_hex = 0;
+static int flag_output_raw = 0;
 static int flag_format_newline = 0;
 
 int btk_pubkey_main(int argc, char *argv[]) {
@@ -37,7 +39,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	PubKey key = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rhwAN")) != -1) {
+	while ((o = getopt(argc, argv, "rhwAHRN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'r':
@@ -53,6 +55,12 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			// Output flags
 			case 'A':
 				flag_output_address = 1;
+				break;
+			case 'H':
+				flag_output_hex = 1;
+				break;
+			case 'R':
+				flag_output_raw = 1;
 				break;
 
 			// Format flags
@@ -126,12 +134,23 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Process output flags
 	if (flag_output_address) {
 		printf("%s", pubkey_to_address(key));
+	} else if (flag_output_hex) {
+		printf("%s", pubkey_to_hex(key));
+	} else if (flag_output_raw) {
+		size_t i, l;
+		unsigned char *r;
+		r = pubkey_to_raw(key, &l);
+		for (i = 0; i < l; ++i) {
+			printf("%c", r[i]);
+		}
+		FREE(r);
 	}
 
 	// Process format flags
 	if (flag_format_newline)
 			printf("\n");
 
+	// Free allocated memory
 	if (key) {
 		pubkey_free(key);
 	}

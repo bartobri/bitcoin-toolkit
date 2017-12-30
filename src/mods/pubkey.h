@@ -12,6 +12,7 @@ PubKey pubkey_get(PrivKey);
 PubKey pubkey_compress(PubKey);
 int    pubkey_is_compressed(PubKey);
 char  *pubkey_to_hex(PubKey);
+unsigned char *pubkey_to_raw(PubKey, size_t*);
 char  *pubkey_to_address(PubKey);
 void   pubkey_free(PubKey);
 

@@ -129,6 +129,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	}
 	
 	// Process Output Flags
+	// TODO - should I be compressing hex and raw outputs?
 	if (flag_output_hex) {
 		printf("%s", privkey_to_hex(privkey_uncompress(key)));
 	} else if (flag_output_compressed) {
