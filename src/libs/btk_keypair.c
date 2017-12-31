@@ -28,6 +28,7 @@ static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
 static int flag_output_compressed = 0;
 static int flag_output_uncompressed = 0;
+static int flag_output_hex = 0;
 static int flag_format_newline = 0;
 
 int btk_keypair_main(int argc, char *argv[]) {
@@ -36,7 +37,7 @@ int btk_keypair_main(int argc, char *argv[]) {
 	PubKey pub = NULL;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "nCUN")) != -1) {
+	while ((o = getopt(argc, argv, "nCUHN")) != -1) {
 		switch (o) {
 			// Input flags
 			case 'n':
@@ -49,6 +50,9 @@ int btk_keypair_main(int argc, char *argv[]) {
 				break;
 			case 'U':
 				flag_output_uncompressed = 1;
+				break;
+			case 'H':
+				flag_output_hex = 1;
 				break;
 
 			// Format flags
@@ -78,7 +82,7 @@ int btk_keypair_main(int argc, char *argv[]) {
 	assert(priv);
 	
 	// Set default output flag if none specified
-	if (!flag_output_compressed && !flag_output_uncompressed)
+	if (!flag_output_compressed && !flag_output_uncompressed && !flag_output_hex)
 		flag_output_compressed = 1;
 
 	// Process output flags
@@ -90,6 +94,10 @@ int btk_keypair_main(int argc, char *argv[]) {
 		priv = privkey_uncompress(priv);
 		pub = pubkey_get(priv);
 		printf("%s %s", privkey_to_wif(priv), pubkey_to_address(pub));
+	} else if (flag_output_hex) {
+		priv = privkey_compress(priv);
+		pub = pubkey_get(priv);
+		printf("%s %s", privkey_to_hex(priv), pubkey_to_hex(pub));
 	}
 
 	// Process format flags
