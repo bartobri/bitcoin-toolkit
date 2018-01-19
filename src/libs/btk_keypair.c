@@ -14,17 +14,9 @@
 #include "mods/mem.h"
 #include "mods/assert.h"
 
-#define INPUT_BUFFER_SIZE    (PUBKEY_UNCOMPRESSED_LENGTH * 2) + 2
-
-/*
- * Static Function Declarations
- */
-static int btk_keypair_read_input(void);
-
 /*
  * Static Variable Declarations
  */
-static unsigned char input_buffer[INPUT_BUFFER_SIZE];
 static int flag_input_new = 0;
 static int flag_output_compressed = 0;
 static int flag_output_uncompressed = 0;
@@ -112,13 +104,4 @@ int btk_keypair_main(int argc, char *argv[]) {
 	pubkey_free(pub);
 
 	return EXIT_SUCCESS;
-}
-
-static int btk_keypair_read_input(void) {
-	int i, c;
-
-	for (i = 0; i < INPUT_BUFFER_SIZE && (c = getchar()) != EOF; ++i)
-		input_buffer[i] = c;
-
-	return i;
 }
