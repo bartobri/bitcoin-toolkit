@@ -10,5 +10,6 @@
 
 // Function prototypes
 int btk_privkey_main(int argc, char *argv[]);
+void btk_privkey_help(void);
 
 #endif

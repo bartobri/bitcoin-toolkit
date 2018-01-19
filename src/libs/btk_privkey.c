@@ -172,3 +172,10 @@ static int btk_privkey_read_input(void) {
 
 	return i;
 }
+
+void btk_privkey_help(void) {
+	fprintf(stderr, "btk_privkey.c help here\n");
+}
+
+
+

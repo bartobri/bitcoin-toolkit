@@ -9,17 +9,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include "btk_help.h"
+#include "btk_privkey.h"
 
 int btk_help_main(int argc, char *argv[]) {
 	if (argc <= 2) {
-		btk_help_show();
+		btk_help_help();
 		return EXIT_FAILURE;
 	}
 
 	if (strcmp(argv[2], "help") == 0) {
-		btk_help_show();
+		btk_help_help();
 	} else if (strcmp(argv[2], "privkey") == 0) {
-		fprintf(stderr, "privkey help here\n");
+		btk_privkey_help();
 	} else if (strcmp(argv[2], "pubkey") == 0) {
 		fprintf(stderr, "pubkey help here\n");
 	} else if (strcmp(argv[2], "keypair") == 0) {
@@ -33,7 +34,7 @@ int btk_help_main(int argc, char *argv[]) {
 	return EXIT_SUCCESS;
 }
 
-void btk_help_show(void) {
+void btk_help_help(void) {
 	fprintf(stderr, "usage: btk <command> [<args>]\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Here is a list of btk commands.\n");

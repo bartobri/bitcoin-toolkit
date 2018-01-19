@@ -16,7 +16,7 @@
 int main(int argc, char *argv[]) {
 
 	if (argc <= 1) {
-		btk_help_show();
+		btk_help_help();
 		return EXIT_FAILURE;
 	}
 	

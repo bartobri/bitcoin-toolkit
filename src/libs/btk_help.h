@@ -10,6 +10,6 @@
 
 // Function prototypes
 int btk_help_main(int argc, char *argv[]);
-void btk_help_show(void);
+void btk_help_help(void);
 
 #endif
