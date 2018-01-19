@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "libs/btk_help.h"
 #include "libs/btk_privkey.h"
 #include "libs/btk_pubkey.h"
 #include "libs/btk_keypair.h"
@@ -22,7 +23,9 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	
-	if (strcmp(argv[1], "privkey") == 0) {
+	if (strcmp(argv[1], "help") == 0) {
+		return btk_help_main(argc, argv);
+	} else if (strcmp(argv[1], "privkey") == 0) {
 		return btk_privkey_main(argc, argv);
 	} else if (strcmp(argv[1], "pubkey") == 0) {
 		return btk_pubkey_main(argc, argv);
