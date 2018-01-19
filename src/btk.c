@@ -12,10 +12,13 @@
 #include "libs/btk_pubkey.h"
 #include "libs/btk_keypair.h"
 
+// Function prototypes
+void show_help(void);
+
 int main(int argc, char *argv[]) {
 
 	if (argc <= 1) {
-		fprintf(stderr, "Missing command argument\n");
+		show_help();
 		return EXIT_FAILURE;
 	}
 	
@@ -29,6 +32,18 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
 	}
-	
+
 	return EXIT_SUCCESS;
+}
+
+void show_help(void) {
+	fprintf(stderr, "usage: btk <command> [<args>]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Here is a list of btk commands.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "   privkey      Generate and/or format private keys\n");
+	fprintf(stderr, "   pubkey       Generate and/or format public keys\n");
+	fprintf(stderr, "   keypair      Generate and/or format key pairs\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Run 'btk help <command>' to read about the command and see a list of available options.\n");
 }
