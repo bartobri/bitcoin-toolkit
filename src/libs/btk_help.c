@@ -7,9 +7,40 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "btk_help.h"
 
 int btk_help_main(int argc, char *argv[]) {
-	printf("Help works\n");
+	if (argc <= 2) {
+		btk_help_show();
+		return EXIT_FAILURE;
+	}
+
+	if (strcmp(argv[2], "help") == 0) {
+		btk_help_show();
+	} else if (strcmp(argv[2], "privkey") == 0) {
+		fprintf(stderr, "privkey help here\n");
+	} else if (strcmp(argv[2], "pubkey") == 0) {
+		fprintf(stderr, "pubkey help here\n");
+	} else if (strcmp(argv[2], "keypair") == 0) {
+		fprintf(stderr, "keypair help here\n");
+	} else {
+		fprintf(stderr, "Unknown Command: %s\n", argv[2]);
+		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
+		return EXIT_FAILURE;
+	}
 	
 	return EXIT_SUCCESS;
+}
+
+void btk_help_show(void) {
+	fprintf(stderr, "usage: btk <command> [<args>]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Here is a list of btk commands.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "   privkey      Generate and/or format private keys\n");
+	fprintf(stderr, "   pubkey       Generate and/or format public keys\n");
+	fprintf(stderr, "   keypair      Generate and/or format key pairs\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Run 'btk help <command>' to read about the command and see a list of available options.\n");
 }
