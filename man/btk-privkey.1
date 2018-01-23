@@ -1,0 +1,52 @@
+."     Title: btk-privkey
+."    Author: Brian Barto
+."      Date: 01/22/2018
+."
+.TH "btk-privkey" 1 "01/23/2018" "1.0" "btk-privkey User Manual"
+.SH NAME
+btk-privkey - Generate and manipulate private keys
+.SH SYNOPSIS
+btk privkey [-n | -h | -r | -w]
+            [-C | -U | -H | -R]
+            [-N]
+.SH DESCRIPTION
+The privkey command can generate new private keys and manipulate the format of existing private keys. It takes as input a private key string in the format specified by the input options (see OPTIONS). In the case of generating a new private key, it draws 32 bytes of raw data the local CSPRNG as it's input source. It then outputs the private key in the format specified by the output options (see OPTIONS).
+.PP
+Supported formats for both input and output are compressed WIP, uncompressed WIP, hexidecimal, and raw (unsigned char string).
+.SH OPTIONS
+.B Input Options
+.TP
+.B -n
+Generate a new private key from your local CSPRNG. This option is the default when no other input option is specified.
+.TP
+.B -h
+Supply a private key as input in hexidecimal format.
+.TP
+.B -r
+Supply a private key as input in raw format.
+.TP
+.B -w
+Supply a private key as input in WIF format.
+.PP
+.B Output Options
+.TP
+.B -C
+Output the private key in compressed WIF format. This option is the default when no other output option is specified.
+.TP
+.B -U
+Output the private key in uncompressed WIF format.
+.TP
+.B -H
+Output the private key in hexidecimal format.
+.TP
+.B -R
+Output the private key in raw (unsigned char string) format.
+.PP
+.B Misc Options
+.TP
+.B -N
+Append a newline character to the output so the command prompt starts on the next line. This is generally used for easier reading.
+.SH "SEE ALSO"
+btk-pubkey(1), btk-keypair(1)
+.SH AUTHOR
+Brian Barto ( https://github.com/bartobri )
