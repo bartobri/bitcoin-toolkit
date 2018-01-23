@@ -77,7 +77,9 @@ clean:
 install:
 #	install -d $(DESTDIR)$(bindir)
 #	cd $(BIN) && install $(EXES) $(DESTDIR)$(bindir)
+#	install -d $(DESTDIR)$(mandir)/man1
+#	install -m644 man/btk-* $(DESTDIR)$(mandir)/man1
 
 uninstall:
 #	for exe in $(EXES); do rm $(DESTDIR)$(bindir)/$$exe; done
-#	rm -rf $(DESTDIR)$(datadir)/wordv
+#	rm -f $(DESTDIR)$(mandir)/man1/btk-*
