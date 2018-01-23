@@ -1,12 +1,11 @@
 ."     Title: btk-privkey
 ."    Author: Brian Barto
 ."      Date: 01/22/2018
-."
 .TH "btk-privkey" 1 "01/23/2018" "1.0" "btk-privkey User Manual"
 .SH NAME
-btk-privkey - Generate and manipulate private keys
+btk-privkey - Generate and format private keys
 .SH SYNOPSIS
-btk privkey [-n | -h | -r | -w]
+btk privkey [-n | -w | -h | -r]
             [-C | -U | -H | -R]
             [-N]
 .SH DESCRIPTION
@@ -19,14 +18,14 @@ Supported formats for both input and output are compressed WIP, uncompressed WIP
 .B -n
 Generate a new private key from your local CSPRNG. This option is the default when no other input option is specified.
 .TP
+.B -w
+Supply a private key as input in WIF format.
+.TP
 .B -h
 Supply a private key as input in hexidecimal format.
 .TP
 .B -r
 Supply a private key as input in raw format.
-.TP
-.B -w
-Supply a private key as input in WIF format.
 .PP
 .B Output Options
 .TP
