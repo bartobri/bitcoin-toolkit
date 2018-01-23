@@ -174,7 +174,55 @@ static int btk_privkey_read_input(void) {
 }
 
 void btk_privkey_help(void) {
-	fprintf(stderr, "btk_privkey.c help here\n");
+	fprintf(stderr, "NAME:\n");
+	fprintf(stderr, "       btk privkey - Generate and/or modify the format of a private key.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "USAGE:\n");
+	fprintf(stderr, "       btk privkey [-n | -h | -r | -w]\n");
+	fprintf(stderr, "                   [-C | -U | -H | -R]\n");
+	fprintf(stderr, "                   [-N]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "DESCRIPTION:\n");
+	fprintf(stderr, "       The privkey command displays private keys in the format that you specify. The source for the private key can either be your local CSPRNG, in which case a new private key is generated, or it can be from input that you supply. Allowed input formats are hex, raw (unsigned char string), or WIF (compressed or uncompressed).\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       Output formats are similar to iput formats. Private keys can be displayed as WIF compressed, WIF uncompressed, hex, or raw.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       With the privkey command you can generate new private keys in any supported format, or you can modify the format of existing private keys by supplying it as input and then specifying the desired output format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "INPUT OPTIONS\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -n (default)\n");
+	fprintf(stderr, "           Generate a new private key from your local CSPRNG.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -h\n");
+	fprintf(stderr, "           Supply a private key as input in hexidecimal format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -r\n");
+	fprintf(stderr, "           Supply a private key as input in raw format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -w\n");
+	fprintf(stderr, "           Supply a private key as input in WIF format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "OUTPUT OPTIONS\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -C (default)\n");
+	fprintf(stderr, "           Display the private key in compressed WIF format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -U\n");
+	fprintf(stderr, "           Display the private key in uncompressed WIF format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -H\n");
+	fprintf(stderr, "           Display the private key in hexidecimal format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -R\n");
+	fprintf(stderr, "           Display the private key in raw format.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "MISC OPTIONS\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "       -N\n");
+	fprintf(stderr, "           Display a newline character after the private key.\n");
+	fprintf(stderr, "\n");
 }
 
 
