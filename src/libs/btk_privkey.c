@@ -11,10 +11,22 @@
 #include <ctype.h>
 #include "mods/privkey.h"
 #include "mods/base58.h"
+#include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
-#define BUFFER_SIZE    1000
+#define BUFFER_SIZE             1000
+#define INPUT_NEW               1
+#define INPUT_WIF               2
+#define INPUT_HEX               3
+#define INPUT_RAW               4
+#define OUTPUT_WIF              1
+#define OUTPUT_HEX              2
+#define OUTPUT_RAW              3
+#define OUTPUT_COMPRESS         1
+#define OUTPUT_UNCOMPRESS       2
+#define OUTPUT_NEWLINE_OFF      0
+#define OUTPUT_NEWLINE_ON       1
 
 /*
  * Static Function Declarations
@@ -25,54 +37,57 @@ static int btk_privkey_read_input(void);
  * Static Variable Declarations
  */
 static unsigned char input_buffer[BUFFER_SIZE];
-static int flag_input_new = 0;
-static int flag_input_hex = 0;
-static int flag_input_raw = 0;
-static int flag_input_wif = 0;
-static int flag_output_raw = 0;
-static int flag_output_hex = 0;
-static int flag_output_compressed = 0;
-static int flag_output_uncompressed = 0;
-static int flag_format_newline = 0;
 
 int btk_privkey_main(int argc, char *argv[]) {
 	int o, i, c;
 	PrivKey key = NULL;
+	unsigned char *t;
 	
-	// Check arguments
-	while ((o = getopt(argc, argv, "nhrwCUHRN")) != -1) {
+	// Default flags
+	int input_format       = INPUT_NEW;
+	int output_format      = OUTPUT_WIF;
+	int output_compression = OUTPUT_COMPRESS;
+	int output_newline     = OUTPUT_NEWLINE_OFF;
+	
+	// Process arguments
+	while ((o = getopt(argc, argv, "nwhrWHRCUN")) != -1) {
 		switch (o) {
-			// Input flags
+			// Input format
 			case 'n':
-				flag_input_new = 1;
-				break;
-			case 'h':
-				flag_input_hex = 1;
-				break;
-			case 'r':
-				flag_input_raw = 1;
+				input_format = INPUT_NEW;
 				break;
 			case 'w':
-				flag_input_wif = 1;
+				input_format = INPUT_WIF;
+				break;
+			case 'h':
+				input_format = INPUT_HEX;
+				break;
+			case 'r':
+				input_format = INPUT_RAW;
 				break;
 
-			// Output flags
-			case 'C':
-				flag_output_compressed = 1;
-				break;
-			case 'U':
-				flag_output_uncompressed = 1;
+			// Output format
+			case 'W':
+				output_format = OUTPUT_WIF;
 				break;
 			case 'H':
-				flag_output_hex = 1;
+				output_format = OUTPUT_HEX;
 				break;
 			case 'R':
-				flag_output_raw = 1;
+				output_format = OUTPUT_RAW;
+				break;
+			
+			// Output Compression
+			case 'C':
+				output_compression = OUTPUT_COMPRESS;
+				break;
+			case 'U':
+				output_compression = OUTPUT_UNCOMPRESS;
 				break;
 
 			// Other flags
 			case 'N':
-				flag_format_newline = 1;
+				output_newline = OUTPUT_NEWLINE_ON;
 				break;
 
 			case '?':
@@ -84,87 +99,94 @@ int btk_privkey_main(int argc, char *argv[]) {
 		}
 	}
 	
-	// Set default input flag if none specified
-	if (!flag_input_new && !flag_input_hex && !flag_input_raw && !flag_input_wif)
-		flag_input_new = 1;
-	
-	// Process Input flags
-	if (flag_input_new) {
-		key = privkey_new();
-	} else if (flag_input_hex) {
-		c = btk_privkey_read_input();
-		if (c < PRIVKEY_LENGTH * 2) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		for (i = 0; i < c; ++i) {
-			if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
+	// Process Input
+	switch (input_format) {
+		case INPUT_NEW:
+			key = privkey_new();
+			break;
+		case INPUT_WIF:
+			c = btk_privkey_read_input();
+			for (i = 0; i < c; ++i)
+				if (!base58_ischar(input_buffer[i]))
+					break;
+			if (i < 51) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-		}
-		key = privkey_from_hex((char *)input_buffer);
-	} else if (flag_input_raw) {
-		c = btk_privkey_read_input();
-		if (c < PRIVKEY_LENGTH) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		key = privkey_from_raw(input_buffer);
-	} else if (flag_input_wif) {
-		c = btk_privkey_read_input();
-		if (c < 51) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		for (i = 0; i < c; ++i) {
-			if (!base58_ischar(input_buffer[i])) {
+			input_buffer[c] = '\0';
+			key = privkey_from_wif((char *)input_buffer);
+			break;
+		case INPUT_HEX:
+			c = btk_privkey_read_input();
+			for (i = 0; i < c; ++i)
+				if (!hex_ischar(input_buffer[i]))
+					break;
+			if (i < PRIVKEY_LENGTH * 2) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-		}
-		input_buffer[c] = '\0';
-		key = privkey_from_wif((char *)input_buffer);
+			key = privkey_from_hex((char *)input_buffer);
+			break;
+		case INPUT_RAW:
+			c = btk_privkey_read_input();
+			if (c < PRIVKEY_LENGTH) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+			key = privkey_from_raw(input_buffer);
+			break;
 	}
 	
 	// Make sure we have a key
 	assert(key);
-
-	// Set default output flag if none specified
-	if (!flag_output_hex && !flag_output_compressed && !flag_output_uncompressed && !flag_output_raw)
-		flag_output_compressed = 1;
 	
-	// Process Output Flags
-	// TODO - should I be compressing hex and raw outputs?
-	if (flag_output_hex) {
-		printf("%s", privkey_to_hex(privkey_uncompress(key)));
-	} else if (flag_output_compressed) {
-		printf("%s", privkey_to_wif(privkey_compress(key)));
-	} else if (flag_output_uncompressed) {
-		printf("%s", privkey_to_wif(privkey_uncompress(key)));
-	} else if (flag_output_raw) {
-		int i;
-		unsigned char *r;
-		r = privkey_to_raw(privkey_uncompress(key));
-		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-			printf("%c", r[i]);
-		}
-		FREE(r);
+	// TODO - Check if input is compressed/uncompressed and set flag.
+	//        If user did not set output compression flag, set it based
+	//        on input compression.
+	
+	switch (output_compression) {
+		case OUTPUT_COMPRESS:
+			key = privkey_compress(key);
+			break;
+		case OUTPUT_UNCOMPRESS:
+			key = privkey_uncompress(key);
+			break;
 	}
 	
+	// Write output
+	switch (output_format) {
+		case OUTPUT_WIF:
+			printf("%s", privkey_to_wif(key));
+			break;
+		case OUTPUT_HEX:
+			printf("%s", privkey_to_hex(key));
+			break;
+		case OUTPUT_RAW:
+			t = privkey_to_raw(privkey_uncompress(key));
+			for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+				printf("%c", t[i]);
+			}
+			free(t);
+			break;
+	}
 	// Process format flags
-	if (flag_format_newline)
+	switch (output_newline) {
+		case OUTPUT_NEWLINE_ON:
 			printf("\n");
+			break;
+	}
 
+	// Free key
 	privkey_free(key);
 
+	// Return
 	return EXIT_SUCCESS;
 }
 
 static int btk_privkey_read_input(void) {
 	int i, c;
 
-	for (i = 0; i < BUFFER_SIZE && (c = getchar()) != EOF; ++i)
+	for (i = 0; i < BUFFER_SIZE - 1 && (c = getchar()) != EOF; ++i)
 		input_buffer[i] = c;
 
 	return i;
