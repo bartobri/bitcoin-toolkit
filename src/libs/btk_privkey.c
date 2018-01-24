@@ -14,7 +14,7 @@
 #include "mods/mem.h"
 #include "mods/assert.h"
 
-#define INPUT_BUFFER_SIZE    PRIVKEY_LENGTH * 2
+#define BUFFER_SIZE    1000
 
 /*
  * Static Function Declarations
@@ -24,7 +24,7 @@ static int btk_privkey_read_input(void);
 /*
  * Static Variable Declarations
  */
-static unsigned char input_buffer[INPUT_BUFFER_SIZE];
+static unsigned char input_buffer[BUFFER_SIZE];
 static int flag_input_new = 0;
 static int flag_input_hex = 0;
 static int flag_input_raw = 0;
@@ -164,7 +164,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 static int btk_privkey_read_input(void) {
 	int i, c;
 
-	for (i = 0; i < INPUT_BUFFER_SIZE && (c = getchar()) != EOF; ++i)
+	for (i = 0; i < BUFFER_SIZE && (c = getchar()) != EOF; ++i)
 		input_buffer[i] = c;
 
 	return i;
