@@ -20,11 +20,11 @@ int btk_help_main(int argc, char *argv[]) {
 	if (strcmp(argv[2], "help") == 0) {
 		btk_help_help();
 	} else if (strcmp(argv[2], "privkey") == 0) {
-		btk_privkey_help();
+		fprintf(stderr, "privkey man page here\n");
 	} else if (strcmp(argv[2], "pubkey") == 0) {
-		fprintf(stderr, "pubkey help here\n");
+		fprintf(stderr, "pubkey man page here\n");
 	} else if (strcmp(argv[2], "keypair") == 0) {
-		fprintf(stderr, "keypair help here\n");
+		fprintf(stderr, "keypair man page here\n");
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[2]);
 		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
