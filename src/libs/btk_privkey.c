@@ -36,7 +36,7 @@ static int flag_output_uncompressed = 0;
 static int flag_format_newline = 0;
 
 int btk_privkey_main(int argc, char *argv[]) {
-	int o;
+	int o, i, c;
 	PrivKey key = NULL;
 	
 	// Check arguments
@@ -70,7 +70,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 				flag_output_raw = 1;
 				break;
 
-			// Format flags
+			// Other flags
 			case 'N':
 				flag_format_newline = 1;
 				break;
@@ -92,13 +92,12 @@ int btk_privkey_main(int argc, char *argv[]) {
 	if (flag_input_new) {
 		key = privkey_new();
 	} else if (flag_input_hex) {
-		int i, cnt;
-		cnt = btk_privkey_read_input();
-		if (cnt < PRIVKEY_LENGTH * 2) {
+		c = btk_privkey_read_input();
+		if (c < PRIVKEY_LENGTH * 2) {
 			fprintf(stderr, "Error: Invalid input.\n");
 			return EXIT_FAILURE;
 		}
-		for (i = 0; i < cnt; ++i) {
+		for (i = 0; i < c; ++i) {
 			if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
@@ -106,27 +105,25 @@ int btk_privkey_main(int argc, char *argv[]) {
 		}
 		key = privkey_from_hex((char *)input_buffer);
 	} else if (flag_input_raw) {
-		int cnt;
-		cnt = btk_privkey_read_input();
-		if (cnt < PRIVKEY_LENGTH) {
+		c = btk_privkey_read_input();
+		if (c < PRIVKEY_LENGTH) {
 			fprintf(stderr, "Error: Invalid input.\n");
 			return EXIT_FAILURE;
 		}
 		key = privkey_from_raw(input_buffer);
 	} else if (flag_input_wif) {
-		int i, cnt;
-		cnt = btk_privkey_read_input();
-		if (cnt < 51) {
+		c = btk_privkey_read_input();
+		if (c < 51) {
 			fprintf(stderr, "Error: Invalid input.\n");
 			return EXIT_FAILURE;
 		}
-		for (i = 0; i < cnt; ++i) {
+		for (i = 0; i < c; ++i) {
 			if (!base58_ischar(input_buffer[i])) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
 		}
-		input_buffer[cnt] = '\0';
+		input_buffer[c] = '\0';
 		key = privkey_from_wif((char *)input_buffer);
 	}
 	
