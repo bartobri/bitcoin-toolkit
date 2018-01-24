@@ -88,3 +88,11 @@ unsigned char *hex_str_to_uc(char *hex) {
 	return raw;
 }
 
+int hex_ischar(char c) {
+	if((c >= 'A' && c <= 'F') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
