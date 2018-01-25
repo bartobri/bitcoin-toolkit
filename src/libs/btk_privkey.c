@@ -166,9 +166,8 @@ int btk_privkey_main(int argc, char *argv[]) {
 			printf("%s", privkey_to_hex(key));
 			break;
 		case OUTPUT_RAW:
-			// TODO - privkey_to_raw should return compression flag if compressed
-			t = privkey_to_raw(privkey_uncompress(key));
-			for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+			t = privkey_to_raw(key, &c);
+			for (i = 0; i < c; ++i) {
 				printf("%c", t[i]);
 			}
 			free(t);

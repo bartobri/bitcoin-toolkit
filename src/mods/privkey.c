@@ -87,13 +87,19 @@ char *privkey_to_hex(PrivKey k) {
 	return r;
 }
 
-unsigned char *privkey_to_raw(PrivKey k) {
+unsigned char *privkey_to_raw(PrivKey k, size_t *l) {
 	unsigned char *r;
 	assert(k);
 	
 	r = ALLOC(PRIVKEY_LENGTH);
 	
 	memcpy(r, k->data, PRIVKEY_LENGTH);
+	
+	if (privkey_is_compressed(k)) {
+		*l = PRIVKEY_LENGTH + 1;
+	} else {
+		*l = PRIVKEY_LENGTH;
+	}
 
 	return r;
 }
