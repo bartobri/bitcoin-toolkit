@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include "mods/privkey.h"
 #include "mods/base58.h"
+#include "mods/crypto.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
@@ -21,6 +22,7 @@
 #define INPUT_WIF               2
 #define INPUT_HEX               3
 #define INPUT_RAW               4
+#define INPUT_SHA               5
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
@@ -52,7 +54,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	int output_newline     = FALSE;
 	
 	// Process arguments
-	while ((o = getopt(argc, argv, "nwhrWHRCUN")) != -1) {
+	while ((o = getopt(argc, argv, "nwhrsWHRCUN")) != -1) {
 		switch (o) {
 			// Input format
 			case 'n':
@@ -67,6 +69,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 'r':
 				input_format = INPUT_RAW;
+				break;
+			case 's':
+				input_format = INPUT_SHA;
+				output_compression = OUTPUT_COMPRESS;
 				break;
 
 			// Output format
@@ -139,6 +145,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 			}
 			key = privkey_from_raw(input_buffer, c);
 			break;
+		case INPUT_SHA:
+			c = btk_privkey_read_input();
+			t = crypto_get_sha256(input_buffer, c);
+			key = privkey_from_raw(t, 32);
+			free(t);
 	}
 	
 	// Make sure we have a key
