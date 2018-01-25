@@ -40,7 +40,8 @@ static size_t btk_privkey_read_input(void);
 static unsigned char input_buffer[BUFFER_SIZE];
 
 int btk_privkey_main(int argc, char *argv[]) {
-	int o, i, c;
+	int o;
+	size_t i, c;
 	PrivKey key = NULL;
 	unsigned char *t;
 	
