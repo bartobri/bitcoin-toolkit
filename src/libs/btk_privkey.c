@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <ctype.h>
 #include "mods/privkey.h"
@@ -25,13 +26,13 @@
 #define OUTPUT_RAW              3
 #define OUTPUT_COMPRESS         1
 #define OUTPUT_UNCOMPRESS       2
-#define OUTPUT_NEWLINE_OFF      0
-#define OUTPUT_NEWLINE_ON       1
+#define TRUE                    1
+#define FALSE                   0
 
 /*
  * Static Function Declarations
  */
-static int btk_privkey_read_input(void);
+static size_t btk_privkey_read_input(void);
 
 /*
  * Static Variable Declarations
@@ -46,8 +47,8 @@ int btk_privkey_main(int argc, char *argv[]) {
 	// Default flags
 	int input_format       = INPUT_NEW;
 	int output_format      = OUTPUT_WIF;
-	int output_compression = OUTPUT_COMPRESS;
-	int output_newline     = OUTPUT_NEWLINE_OFF;
+	int output_compression = FALSE;
+	int output_newline     = FALSE;
 	
 	// Process arguments
 	while ((o = getopt(argc, argv, "nwhrWHRCUN")) != -1) {
@@ -55,6 +56,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			// Input format
 			case 'n':
 				input_format = INPUT_NEW;
+				output_compression = OUTPUT_COMPRESS;
 				break;
 			case 'w':
 				input_format = INPUT_WIF;
@@ -85,11 +87,12 @@ int btk_privkey_main(int argc, char *argv[]) {
 				output_compression = OUTPUT_UNCOMPRESS;
 				break;
 
-			// Other flags
+			// Other options
 			case 'N':
-				output_newline = OUTPUT_NEWLINE_ON;
+				output_newline = TRUE;
 				break;
 
+			// Unknown option
 			case '?':
 				if (isprint(optopt))
 					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
@@ -133,18 +136,18 @@ int btk_privkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			key = privkey_from_raw(input_buffer);
+			key = privkey_from_raw(input_buffer, c);
 			break;
 	}
 	
 	// Make sure we have a key
 	assert(key);
 	
-	// TODO - Check if input is compressed/uncompressed and set flag.
-	//        If user did not set output compression flag, set it based
-	//        on input compression.
-	
+	// Set output compression only if the option is set. Otherwise,
+	// compression is based on input.
 	switch (output_compression) {
+		case FALSE:
+			break;
 		case OUTPUT_COMPRESS:
 			key = privkey_compress(key);
 			break;
@@ -162,6 +165,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			printf("%s", privkey_to_hex(key));
 			break;
 		case OUTPUT_RAW:
+			// TODO - privkey_to_raw should return compression flag if compressed
 			t = privkey_to_raw(privkey_uncompress(key));
 			for (i = 0; i < PRIVKEY_LENGTH; ++i) {
 				printf("%c", t[i]);
@@ -171,7 +175,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	}
 	// Process format flags
 	switch (output_newline) {
-		case OUTPUT_NEWLINE_ON:
+		case TRUE:
 			printf("\n");
 			break;
 	}
@@ -183,8 +187,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 	return EXIT_SUCCESS;
 }
 
-static int btk_privkey_read_input(void) {
-	int i, c;
+static size_t btk_privkey_read_input(void) {
+	size_t i;
+	int c;
+	
+	memset(input_buffer, 0, BUFFER_SIZE);
 
 	for (i = 0; i < BUFFER_SIZE - 1 && (c = getchar()) != EOF; ++i)
 		input_buffer[i] = c;

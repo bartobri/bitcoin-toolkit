@@ -86,7 +86,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			fprintf(stderr, "Error: Invalid input.\n");
 			return EXIT_FAILURE;
 		}
-		priv = privkey_from_raw(input_buffer);
+		priv = privkey_from_raw(input_buffer, (size_t)cnt);
 		key = pubkey_get(priv);
 		privkey_free(priv);
 	} else if (flag_input_hex) {
