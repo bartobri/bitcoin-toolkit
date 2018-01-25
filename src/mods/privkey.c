@@ -175,12 +175,13 @@ PrivKey privkey_from_hex(char *hex) {
 	return k;
 }
 
-PrivKey privkey_from_raw(unsigned char *raw) {
+PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	PrivKey k;
 	mpz_t cur_key, max_key;
 
 	// Check params
 	assert(raw);
+	assert(l >= PRIVKEY_LENGTH);
 	
 	// allocate memory
 	NEW(k);
@@ -189,7 +190,10 @@ PrivKey privkey_from_raw(unsigned char *raw) {
 	memcpy(k->data, raw, PRIVKEY_LENGTH);
 	
 	// Set compression flag
-	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+	if (l >= PRIVKEY_LENGTH + 1 && raw[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG)
+		k->cflag = PRIVKEY_COMPRESSED_FLAG;
+	else
+		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 
 	// Make sure key is not above PRIVKEY_MAX
 	mpz_init(max_key);
