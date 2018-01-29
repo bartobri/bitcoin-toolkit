@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <gmp.h>
 #include "mods/privkey.h"
 #include "mods/base58.h"
 #include "mods/crypto.h"
@@ -23,6 +24,7 @@
 #define INPUT_HEX               3
 #define INPUT_RAW               4
 #define INPUT_SHA               5
+#define INPUT_DEC               6
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
@@ -44,6 +46,7 @@ static unsigned char input_buffer[BUFFER_SIZE];
 int btk_privkey_main(int argc, char *argv[]) {
 	int o;
 	size_t i, c;
+	mpz_t d;
 	PrivKey key = NULL;
 	unsigned char *t;
 	
@@ -54,7 +57,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	int output_newline     = FALSE;
 	
 	// Process arguments
-	while ((o = getopt(argc, argv, "nwhrsWHRCUN")) != -1) {
+	while ((o = getopt(argc, argv, "nwhrsdWHRCUN")) != -1) {
 		switch (o) {
 			// Input format
 			case 'n':
@@ -72,6 +75,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 's':
 				input_format = INPUT_SHA;
+				output_compression = OUTPUT_COMPRESS;
+				break;
+			case 'd':
+				input_format = INPUT_DEC;
 				output_compression = OUTPUT_COMPRESS;
 				break;
 
@@ -150,6 +157,25 @@ int btk_privkey_main(int argc, char *argv[]) {
 			t = crypto_get_sha256(input_buffer, c);
 			key = privkey_from_raw(t, 32);
 			free(t);
+			break;
+		case INPUT_DEC:
+			c = btk_privkey_read_input();
+			for (i = 0; i < c; ++i) {
+				if (input_buffer[i] < '0' || input_buffer[i] > '9') {
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+				}
+			}
+			mpz_init(d);
+			mpz_set_str(d, (char *)input_buffer, 10);
+			i = (mpz_sizeinbase(d, 2) + 7) / 8;
+			if (i > PRIVKEY_LENGTH)
+				i = PRIVKEY_LENGTH;
+			memset(input_buffer, 0, BUFFER_SIZE);
+			mpz_export(input_buffer + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
+			mpz_clear(d);
+			key = privkey_from_raw(input_buffer, PRIVKEY_LENGTH);
+			break;
 	}
 	
 	// Make sure we have a key
