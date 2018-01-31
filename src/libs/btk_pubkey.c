@@ -36,11 +36,11 @@ static int btk_pubkey_read_input(void);
 static unsigned char input_buffer[BUFFER_SIZE];
 
 int btk_pubkey_main(int argc, char *argv[]) {
-	int o, i, cnt;
+	int o;
 	PubKey key = NULL;
 	PrivKey priv;
-	size_t l;
-	unsigned char *r;
+	size_t i, c;
+	unsigned char *t;
 
 	// Default flags
 	int input_format       = FALSE;
@@ -89,22 +89,22 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Process input
 	switch (input_format) {
 		case INPUT_WIF:
-			cnt = btk_pubkey_read_input();
-			if (cnt < PRIVKEY_LENGTH) {
+			c = btk_pubkey_read_input();
+			if (c < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			priv = privkey_from_raw(input_buffer, (size_t)cnt);
+			priv = privkey_from_raw(input_buffer, c);
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
 		case INPUT_HEX:
-			cnt = btk_pubkey_read_input();
-			if (cnt < PRIVKEY_LENGTH * 2) {
+			c = btk_pubkey_read_input();
+			if (c < PRIVKEY_LENGTH * 2) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			for (i = 0; i < cnt; ++i) {
+			for (i = 0; i < c; ++i) {
 				if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
@@ -115,20 +115,20 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			privkey_free(priv);
 			break;
 		case INPUT_RAW:
-			cnt = btk_pubkey_read_input();
+			c = btk_pubkey_read_input();
 			// TODO - make '51' globally defined value so it can be used here and in btk_privkey
-			if (cnt < 51) {
+			if (c < 51) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
 			// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
-			for (i = 0; i < cnt; ++i) {
+			for (i = 0; i < c; ++i) {
 				if (!base58_ischar(input_buffer[i])) {
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
 				}
 			}
-			input_buffer[cnt] = '\0';
+			input_buffer[c] = '\0';
 			priv = privkey_from_wif((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
@@ -150,11 +150,11 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			printf("%s", pubkey_to_hex(key));
 			break;
 		case OUTPUT_RAW:
-			r = pubkey_to_raw(key, &l);
-			for (i = 0; i < (int)l; ++i) {
-				printf("%c", r[i]);
+			t = pubkey_to_raw(key, &c);
+			for (i = 0; i < c; ++i) {
+				printf("%c", t[i]);
 			}
-			FREE(r);
+			FREE(t);
 			break;
 	}
 
