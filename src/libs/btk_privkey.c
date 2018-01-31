@@ -23,7 +23,7 @@
 #define INPUT_WIF               2
 #define INPUT_HEX               3
 #define INPUT_RAW               4
-#define INPUT_SHA               5
+#define INPUT_STR               5
 #define INPUT_DEC               6
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
@@ -74,7 +74,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 				input_format = INPUT_RAW;
 				break;
 			case 's':
-				input_format = INPUT_SHA;
+				input_format = INPUT_STR;
 				output_compression = OUTPUT_COMPRESS;
 				break;
 			case 'd':
@@ -152,7 +152,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			}
 			key = privkey_from_raw(input_buffer, c);
 			break;
-		case INPUT_SHA:
+		case INPUT_STR:
 			c = btk_privkey_read_input();
 			t = crypto_get_sha256(input_buffer, c);
 			key = privkey_from_raw(t, 32);
