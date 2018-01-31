@@ -17,9 +17,9 @@
 #include "mods/assert.h"
 
 #define BUFFER_SIZE             1000
-#define INPUT_WIF               2
-#define INPUT_HEX               3
-#define INPUT_RAW               4
+#define INPUT_WIF               1
+#define INPUT_HEX               2
+#define INPUT_RAW               3
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
