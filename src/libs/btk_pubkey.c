@@ -16,6 +16,14 @@
 #include "mods/assert.h"
 
 #define BUFFER_SIZE             1000
+#define INPUT_WIF               2
+#define INPUT_HEX               3
+#define INPUT_RAW               4
+#define OUTPUT_ADDRESS          1
+#define OUTPUT_HEX              2
+#define OUTPUT_RAW              3
+#define TRUE                    1
+#define FALSE                   0
 
 /*
  * Static Function Declarations
@@ -26,46 +34,47 @@ static int btk_pubkey_read_input(void);
  * Static Variable Declarations
  */
 static unsigned char input_buffer[BUFFER_SIZE];
-static int flag_input_raw = 0;
-static int flag_input_hex = 0;
-static int flag_input_wif = 0;
-static int flag_output_address = 0;
-static int flag_output_hex = 0;
-static int flag_output_raw = 0;
-static int flag_format_newline = 0;
 
 int btk_pubkey_main(int argc, char *argv[]) {
-	int o;
+	int o, i, cnt;
 	PubKey key = NULL;
+	PrivKey priv;
+	size_t l;
+	unsigned char *r;
+
+	// Default flags
+	int input_format       = FALSE;
+	int output_format      = OUTPUT_ADDRESS;
+	int output_newline     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "rhwAHRN")) != -1) {
+	while ((o = getopt(argc, argv, "whrAHRN")) != -1) {
 		switch (o) {
 			// Input flags
-			case 'r':
-				flag_input_raw = 1;
+			case 'w':
+				input_format = INPUT_WIF;
 				break;
 			case 'h':
-				flag_input_hex = 1;
+				input_format = INPUT_HEX;
 				break;
-			case 'w':
-				flag_input_wif = 1;
+			case 'r':
+				input_format = INPUT_RAW;
 				break;
 
 			// Output flags
 			case 'A':
-				flag_output_address = 1;
+				output_format = OUTPUT_ADDRESS;
 				break;
 			case 'H':
-				flag_output_hex = 1;
+				output_format = OUTPUT_HEX;
 				break;
 			case 'R':
-				flag_output_raw = 1;
+				output_format = OUTPUT_RAW;
 				break;
 
 			// Format flags
 			case 'N':
-				flag_format_newline = 1;
+				output_newline = TRUE;
 				break;
 
 			case '?':
@@ -77,85 +86,84 @@ int btk_pubkey_main(int argc, char *argv[]) {
 		}
 	}
 	
-	// Process input flags
-	if (flag_input_raw) {
-		int cnt;
-		PrivKey priv;
-		cnt = btk_pubkey_read_input();
-		if (cnt < PRIVKEY_LENGTH) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		priv = privkey_from_raw(input_buffer, (size_t)cnt);
-		key = pubkey_get(priv);
-		privkey_free(priv);
-	} else if (flag_input_hex) {
-		int i, cnt;
-		PrivKey priv;
-		cnt = btk_pubkey_read_input();
-		if (cnt < PRIVKEY_LENGTH * 2) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		for (i = 0; i < cnt; ++i) {
-			if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
+	// Process input
+	switch (input_format) {
+		case INPUT_WIF:
+			cnt = btk_pubkey_read_input();
+			if (cnt < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-		}
-		priv = privkey_from_hex((char *)input_buffer);
-		key = pubkey_get(priv);
-		privkey_free(priv);
-	} else if (flag_input_wif) {
-		int i, cnt;
-		PrivKey priv;
-		cnt = btk_pubkey_read_input();
-		// TODO - make '51' globally defined value so it can be used here and in btk_privkey
-		if (cnt < 51) {
-			fprintf(stderr, "Error: Invalid input.\n");
-			return EXIT_FAILURE;
-		}
-		// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
-		for (i = 0; i < cnt; ++i) {
-			if (!base58_ischar(input_buffer[i])) {
+			priv = privkey_from_raw(input_buffer, (size_t)cnt);
+			key = pubkey_get(priv);
+			privkey_free(priv);
+			break;
+		case INPUT_HEX:
+			cnt = btk_pubkey_read_input();
+			if (cnt < PRIVKEY_LENGTH * 2) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-		}
-		input_buffer[cnt] = '\0';
-		priv = privkey_from_wif((char *)input_buffer);
-		key = pubkey_get(priv);
-		privkey_free(priv);
-	} else {
-		fprintf(stderr, "Error: Must specify input flag.\n");
-		return EXIT_FAILURE;
+			for (i = 0; i < cnt; ++i) {
+				if ((input_buffer[i] < 'A' || input_buffer[i] > 'F') && (input_buffer[i] < '0' || input_buffer[i] > '9') && (input_buffer[i] < 'a' || input_buffer[i] > 'z')) {
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+				}
+			}
+			priv = privkey_from_hex((char *)input_buffer);
+			key = pubkey_get(priv);
+			privkey_free(priv);
+			break;
+		case INPUT_RAW:
+			cnt = btk_pubkey_read_input();
+			// TODO - make '51' globally defined value so it can be used here and in btk_privkey
+			if (cnt < 51) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
+			// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
+			for (i = 0; i < cnt; ++i) {
+				if (!base58_ischar(input_buffer[i])) {
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+				}
+			}
+			input_buffer[cnt] = '\0';
+			priv = privkey_from_wif((char *)input_buffer);
+			key = pubkey_get(priv);
+			privkey_free(priv);
+			break;
+		default:
+			fprintf(stderr, "Error: Must specify input flag.\n");
+			return EXIT_FAILURE;
 	}
 	
 	// Ensure we have a key
 	assert(key);
 	
-	// Set default output flag if none specified
-	if (!flag_output_address && !flag_output_hex && !flag_output_raw)
-		flag_output_address = 1;
-	
-	// Process output flags
-	if (flag_output_address) {
-		printf("%s", pubkey_to_address(key));
-	} else if (flag_output_hex) {
-		printf("%s", pubkey_to_hex(key));
-	} else if (flag_output_raw) {
-		size_t i, l;
-		unsigned char *r;
-		r = pubkey_to_raw(key, &l);
-		for (i = 0; i < l; ++i) {
-			printf("%c", r[i]);
-		}
-		FREE(r);
+	// Process output
+	switch (output_format) {
+		case OUTPUT_ADDRESS:
+			printf("%s", pubkey_to_address(key));
+			break;
+		case OUTPUT_HEX:
+			printf("%s", pubkey_to_hex(key));
+			break;
+		case OUTPUT_RAW:
+			r = pubkey_to_raw(key, &l);
+			for (i = 0; i < (int)l; ++i) {
+				printf("%c", r[i]);
+			}
+			FREE(r);
+			break;
 	}
 
-	// Process format flags
-	if (flag_format_newline)
+	// Process newline flag
+	switch (output_newline) {
+		case TRUE:
 			printf("\n");
+			break;
+	}
 
 	// Free allocated memory
 	pubkey_free(key);
