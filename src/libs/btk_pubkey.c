@@ -91,11 +91,20 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	switch (input_format) {
 		case INPUT_WIF:
 			c = btk_pubkey_read_input();
-			if (c < PRIVKEY_LENGTH) {
+			// TODO - make '51' globally defined value so it can be used here and in btk_privkey
+			if (c < 51) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			priv = privkey_from_raw(input_buffer, c);
+			// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
+			for (i = 0; i < c; ++i) {
+				if (!base58_ischar(input_buffer[i])) {
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+				}
+			}
+			input_buffer[c] = '\0';
+			priv = privkey_from_wif((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
@@ -117,20 +126,11 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_RAW:
 			c = btk_pubkey_read_input();
-			// TODO - make '51' globally defined value so it can be used here and in btk_privkey
-			if (c < 51) {
+			if (c < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
-			for (i = 0; i < c; ++i) {
-				if (!base58_ischar(input_buffer[i])) {
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-			input_buffer[c] = '\0';
-			priv = privkey_from_wif((char *)input_buffer);
+			priv = privkey_from_raw(input_buffer, c);
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
