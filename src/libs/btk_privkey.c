@@ -126,7 +126,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			for (i = 0; i < c; ++i)
 				if (!base58_ischar(input_buffer[i]))
 					break;
-			if (i < 51) {
+			if (i < PRIVKEY_WIF_LENGTH_MIN) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}

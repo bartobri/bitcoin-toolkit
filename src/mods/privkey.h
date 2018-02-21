@@ -1,7 +1,8 @@
 #ifndef PRIVKEY_H
 #define PRIVKEY_H 1
 
-#define PRIVKEY_LENGTH 32
+#define PRIVKEY_LENGTH         32
+#define PRIVKEY_WIF_LENGTH_MIN 51
 
 typedef struct PrivKey *PrivKey;
 
