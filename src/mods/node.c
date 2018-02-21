@@ -158,11 +158,12 @@ static void node_write(Node n, unsigned char *data, size_t l) {
 	r = write(n->sockfd, data, l);
 
 	if (r < 0) {
+		// We don't necessarily need to kill the program on a write error.
+		// For now just display an error message and continue.
 		fprintf(stderr, "write() failed. Could write data to node socket. errno = %i\n", errno);
-		assert(0);
+	} else {
+		assert(r > 0);
 	}
-	
-	assert(r > 0);
 }
 
 static int node_read(Node n, unsigned char** buffer) {
