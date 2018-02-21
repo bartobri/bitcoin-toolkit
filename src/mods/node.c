@@ -1,8 +1,10 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
+#include <errno.h>
 #include "node.h"
 #include "message.h"
 #include "mem.h"
@@ -154,8 +156,12 @@ static void node_write(Node n, unsigned char *data, size_t l) {
 	assert(l);
 	
 	r = write(n->sockfd, data, l);
+
+	if (r < 0) {
+		fprintf(stderr, "write() failed. Could write data to node socket. errno = %i\n", errno);
+		assert(0);
+	}
 	
-	// TODO - handle this by reading errno and taking apropriate action
 	assert(r > 0);
 }
 
