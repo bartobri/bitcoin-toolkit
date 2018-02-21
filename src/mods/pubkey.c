@@ -15,18 +15,18 @@
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
+#define PUBKEY_POINTS                 (PRIVKEY_LENGTH * 8)
 
 struct PubKey{
 	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
 };
 
-// TODO - proper error handling
 PubKey pubkey_get(PrivKey k) {
 	size_t i, l;
 	char *prvkeyhex;
 	mpz_t prvkey;
 	Point pubkey;
-	Point points[PRIVKEY_LENGTH * 8];
+	Point points[PUBKEY_POINTS];
 	PubKey r;
 	
 	assert(k);
@@ -42,19 +42,19 @@ PubKey pubkey_get(PrivKey k) {
 	
 	// Initalize the points
 	point_init(&pubkey);
-	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
+	for (i = 0; i < PUBKEY_POINTS; ++i) {
 		point_init(points + i);
 	}
 
 	// Calculating public key
 	point_set_generator(&points[0]);
-	for (i = 1; i < PRIVKEY_LENGTH * 8; ++i) {
+	for (i = 1; i < PUBKEY_POINTS; ++i) {
 		point_double(&points[i], points[i-1]);
 		assert(point_verify(points[i]));
 	}
 
 	// Add all points corresponding to 1 bits
-	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
+	for (i = 0; i < PUBKEY_POINTS; ++i) {
 		if (mpz_tstbit(prvkey, i) == 1) {
 			if (mpz_cmp_ui(pubkey.x, 0) == 0 && mpz_cmp_ui(pubkey.y, 0) == 0) {
 				point_set(&pubkey, points[i]);
@@ -89,7 +89,7 @@ PubKey pubkey_get(PrivKey k) {
 
 	// Clear all points
 	mpz_clear(prvkey);
-	for (i = 0; i < PRIVKEY_LENGTH * 8; ++i) {
+	for (i = 0; i < PUBKEY_POINTS; ++i) {
 		point_clear(points + i);
 	}
 	
