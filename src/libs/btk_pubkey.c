@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <string.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/base58.h"
@@ -184,6 +185,8 @@ int btk_pubkey_main(int argc, char *argv[]) {
 // TODO - should this be merged with the function in btk_privkey, perhaps it's own module?
 static int btk_pubkey_read_input(void) {
 	int i, c;
+
+	memset(input_buffer, 0, BUFFER_SIZE);
 
 	for (i = 0; i < BUFFER_SIZE && (c = getchar()) != EOF; ++i)
 		input_buffer[i] = c;
