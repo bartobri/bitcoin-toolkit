@@ -103,12 +103,57 @@ unsigned char *serialize_char(unsigned char *dest, char *src, int len) {
 
 // TODO - handle compact size uints properly
 unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian) {
-	
+
 	assert(dest);
 	assert(src);
-	assert(endian);
-	
-	*dest++ = (unsigned char)src;
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+
+	if (src <= 0xfc) {
+		*dest++ = (unsigned char)src;
+	} else if (src <= 0xffff) {
+		*dest++ = 0xfd;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+		} else {
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+		}
+	} else if (src <= 0xffffffff) {
+		*dest++ = 0xfe;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+			*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+			*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+		} else {
+			*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+			*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+		}
+	} else if (src <= 0xffffffffffffffff) {
+		*dest++ = 0xff;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+			*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+			*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+			*dest++ = (unsigned char)((src & 0x000000FF00000000) >> 32);
+			*dest++ = (unsigned char)((src & 0x0000FF0000000000) >> 40);
+			*dest++ = (unsigned char)((src & 0x00FF000000000000) >> 48);
+			*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+		} else {
+			*dest++ = (unsigned char)((src & 0xFF00000000000000) >> 56);
+			*dest++ = (unsigned char)((src & 0x00FF000000000000) >> 48);
+			*dest++ = (unsigned char)((src & 0x0000FF0000000000) >> 40);
+			*dest++ = (unsigned char)((src & 0x000000FF00000000) >> 32);
+			*dest++ = (unsigned char)((src & 0x00000000FF000000) >> 24);
+			*dest++ = (unsigned char)((src & 0x0000000000FF0000) >> 16);
+			*dest++ = (unsigned char)((src & 0x000000000000FF00) >> 8);
+			*dest++ = (unsigned char)(src & 0x00000000000000FF);
+		}
+	}
 	
 	return dest;
 }
