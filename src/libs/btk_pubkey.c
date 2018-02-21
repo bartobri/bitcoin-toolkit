@@ -91,11 +91,15 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	switch (input_format) {
 		case INPUT_WIF:
 			c = btk_pubkey_read_input();
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
 			if (c < PRIVKEY_WIF_LENGTH_MIN) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			// TODO - this doesn't gracefully handle white space chars at the end of the WIF input
 			for (i = 0; i < c; ++i) {
 				if (!base58_ischar(input_buffer[i])) {
 					fprintf(stderr, "Error: Invalid input.\n");
