@@ -113,6 +113,11 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_HEX:
 			c = btk_pubkey_read_input();
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
 			if (c < PRIVKEY_LENGTH * 2) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
@@ -123,6 +128,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 					return EXIT_FAILURE;
 				}
 			}
+			input_buffer[c] = '\0';
 			priv = privkey_from_hex((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
