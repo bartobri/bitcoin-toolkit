@@ -101,7 +101,6 @@ unsigned char *serialize_char(unsigned char *dest, char *src, int len) {
 	return dest;
 }
 
-// TODO - handle compact size uints properly
 unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian) {
 
 	assert(dest);
@@ -267,7 +266,6 @@ unsigned char *deserialize_char(char *dest, unsigned char *src, int len) {
 	return src;
 }
 
-// TODO - handle compact size uints properly
 unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endian) {
 	
 	assert(dest);
@@ -275,8 +273,53 @@ unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endi
 	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
 	
 	*dest = 0;
-	
-	*dest += ((uint64_t)*src++);
+
+	if (*src <= 0xfc) {
+		*dest += ((uint64_t)*src++);
+	} else if (*src <= 0xfd) {
+		src++;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest += ((uint64_t)*src++);
+			*dest += (((uint64_t)*src++) << 8);
+		} else {
+			*dest += (((uint64_t)*src++) << 8);
+			*dest += ((uint64_t)*src++);
+		}
+	} else if (*src <= 0xfe) {
+		src++;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest += ((uint64_t)*src++);
+			*dest += (((uint64_t)*src++) << 8);
+			*dest += (((uint64_t)*src++) << 16);
+			*dest += (((uint64_t)*src++) << 24);
+		} else {
+			*dest += (((uint64_t)*src++) << 24);
+			*dest += (((uint64_t)*src++) << 16);
+			*dest += (((uint64_t)*src++) << 8);
+			*dest += ((uint64_t)*src++);
+		}
+	} else {
+		src++;
+		if (endian == SERIALIZE_ENDIAN_LIT) {
+			*dest += ((uint64_t)*src++);
+			*dest += (((uint64_t)*src++) << 8);
+			*dest += (((uint64_t)*src++) << 16);
+			*dest += (((uint64_t)*src++) << 24);
+			*dest += (((uint64_t)*src++) << 32);
+			*dest += (((uint64_t)*src++) << 40);
+			*dest += (((uint64_t)*src++) << 48);
+			*dest += (((uint64_t)*src++) << 56);
+		} else {
+			*dest += (((uint64_t)*src++) << 56);
+			*dest += (((uint64_t)*src++) << 48);
+			*dest += (((uint64_t)*src++) << 40);
+			*dest += (((uint64_t)*src++) << 32);
+			*dest += (((uint64_t)*src++) << 24);
+			*dest += (((uint64_t)*src++) << 16);
+			*dest += (((uint64_t)*src++) << 8);
+			*dest += ((uint64_t)*src++);
+		}
+	}
 	
 	return src;
 }
