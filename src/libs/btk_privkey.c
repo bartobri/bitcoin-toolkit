@@ -140,6 +140,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
+			if (i == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
 			key = privkey_from_hex((char *)input_buffer);
 			break;
 		case INPUT_RAW:
