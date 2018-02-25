@@ -171,6 +171,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_DEC:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
 			for (i = 0; i < c; ++i) {
 				if (input_buffer[i] < '0' || input_buffer[i] > '9') {
 					fprintf(stderr, "Error: Invalid input.\n");
