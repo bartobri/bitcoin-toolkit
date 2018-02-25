@@ -28,11 +28,6 @@
 #define FALSE                   0
 
 /*
- * Static Function Declarations
- */
-static int btk_pubkey_read_input(void);
-
-/*
  * Static Variable Declarations
  */
 static unsigned char input_buffer[BUFFER_SIZE];
@@ -48,6 +43,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	int input_format       = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_newline     = FALSE;
+
+	// Zero the input buffer
+	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
 	while ((o = getopt(argc, argv, "whrAHRN")) != -1) {
@@ -91,7 +89,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Process input
 	switch (input_format) {
 		case INPUT_WIF:
-			c = btk_pubkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 
 			// Ignore white spaces at the end of input
 			while (isspace((int)input_buffer[c-1]))
@@ -113,7 +111,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			privkey_free(priv);
 			break;
 		case INPUT_HEX:
-			c = btk_pubkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 
 			// Ignore white spaces at the end of input
 			while (isspace((int)input_buffer[c-1]))
@@ -135,7 +133,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			privkey_free(priv);
 			break;
 		case INPUT_RAW:
-			c = btk_pubkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			if (c < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
@@ -180,16 +178,4 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	pubkey_free(key);
 
 	return EXIT_SUCCESS;
-}
-
-// TODO - should this be merged with the function in btk_privkey, perhaps it's own module?
-static int btk_pubkey_read_input(void) {
-	int i, c;
-
-	memset(input_buffer, 0, BUFFER_SIZE);
-
-	for (i = 0; i < BUFFER_SIZE && (c = getchar()) != EOF; ++i)
-		input_buffer[i] = c;
-
-	return i;
 }
