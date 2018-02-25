@@ -133,6 +133,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_HEX:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
 			for (i = 0; i < c; ++i)
 				if (!hex_ischar(input_buffer[i]))
 					break;
@@ -144,6 +149,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
+			input_buffer[c] = '\0';
 			key = privkey_from_hex((char *)input_buffer);
 			break;
 		case INPUT_RAW:
