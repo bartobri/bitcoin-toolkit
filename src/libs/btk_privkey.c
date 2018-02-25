@@ -34,11 +34,6 @@
 #define FALSE                   0
 
 /*
- * Static Function Declarations
- */
-static size_t btk_privkey_read_input(void);
-
-/*
  * Static Variable Declarations
  */
 static unsigned char input_buffer[BUFFER_SIZE];
@@ -55,6 +50,9 @@ int btk_privkey_main(int argc, char *argv[]) {
 	int output_format      = OUTPUT_WIF;
 	int output_compression = FALSE;
 	int output_newline     = FALSE;
+
+	// Zero the input buffer
+	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Process arguments
 	while ((o = getopt(argc, argv, "nwhrsdWHRCUN")) != -1) {
@@ -122,7 +120,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_new();
 			break;
 		case INPUT_WIF:
-			c = btk_privkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			for (i = 0; i < c; ++i)
 				if (!base58_ischar(input_buffer[i]))
 					break;
@@ -134,7 +132,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_from_wif((char *)input_buffer);
 			break;
 		case INPUT_HEX:
-			c = btk_privkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			for (i = 0; i < c; ++i)
 				if (!hex_ischar(input_buffer[i]))
 					break;
@@ -145,7 +143,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_from_hex((char *)input_buffer);
 			break;
 		case INPUT_RAW:
-			c = btk_privkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			if (c < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
@@ -153,13 +151,13 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_from_raw(input_buffer, c);
 			break;
 		case INPUT_STR:
-			c = btk_privkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			t = crypto_get_sha256(input_buffer, c);
 			key = privkey_from_raw(t, 32);
 			free(t);
 			break;
 		case INPUT_DEC:
-			c = btk_privkey_read_input();
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			for (i = 0; i < c; ++i) {
 				if (input_buffer[i] < '0' || input_buffer[i] > '9') {
 					fprintf(stderr, "Error: Invalid input.\n");
@@ -222,16 +220,4 @@ int btk_privkey_main(int argc, char *argv[]) {
 
 	// Return
 	return EXIT_SUCCESS;
-}
-
-static size_t btk_privkey_read_input(void) {
-	size_t i;
-	int c;
-	
-	memset(input_buffer, 0, BUFFER_SIZE);
-
-	for (i = 0; i < BUFFER_SIZE - 1 && (c = getchar()) != EOF; ++i)
-		input_buffer[i] = c;
-
-	return i;
 }
