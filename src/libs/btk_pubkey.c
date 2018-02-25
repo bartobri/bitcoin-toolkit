@@ -121,15 +121,15 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
+			if (c == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
 			for (i = 0; i < c; ++i) {
 				if (!hex_ischar(input_buffer[i])) {
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
 				}
-			}
-			if (i == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
 			}
 			input_buffer[c] = '\0';
 			priv = privkey_from_hex((char *)input_buffer);
