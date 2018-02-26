@@ -121,6 +121,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_WIF:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
 			for (i = 0; i < c; ++i)
 				if (!base58_ischar(input_buffer[i]))
 					break;
