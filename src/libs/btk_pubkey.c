@@ -95,17 +95,14 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			while (isspace((int)input_buffer[c-1]))
 				--c;
 
-			if (c < PRIVKEY_WIF_LENGTH_MIN) {
+			for (i = 0; i < c; ++i)
+				if (!base58_ischar(input_buffer[i]))
+					break;
+			if (i < PRIVKEY_WIF_LENGTH_MIN) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			for (i = 0; i < c; ++i) {
-				if (!base58_ischar(input_buffer[i])) {
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-			input_buffer[c] = '\0';
+			input_buffer[i] = '\0';
 			priv = privkey_from_wif((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);

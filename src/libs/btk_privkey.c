@@ -133,7 +133,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			input_buffer[c] = '\0';
+			input_buffer[i] = '\0';
 			key = privkey_from_wif((char *)input_buffer);
 			break;
 		case INPUT_HEX:
