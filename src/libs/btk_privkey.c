@@ -138,21 +138,18 @@ int btk_privkey_main(int argc, char *argv[]) {
 			while (isspace((int)input_buffer[c-1]))
 				--c;
 
-			if (c < PRIVKEY_LENGTH * 2) {
+			for (i = 0; i < c; ++i)
+				if (!hex_ischar(input_buffer[i]))
+					break;
+			if (i < PRIVKEY_LENGTH * 2) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			if (c == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
+			if (i == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-			for (i = 0; i < c; ++i) {
-				if (!hex_ischar(input_buffer[i])) {
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-			input_buffer[c] = '\0';
+			input_buffer[i] = '\0';
 			key = privkey_from_hex((char *)input_buffer);
 			break;
 		case INPUT_RAW:
