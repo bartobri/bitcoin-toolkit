@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <gmp.h>
 #include "mods/privkey.h"
+#include "mods/network.h"
 #include "mods/base58.h"
 #include "mods/crypto.h"
 #include "mods/hex.h"
@@ -50,12 +51,13 @@ int btk_privkey_main(int argc, char *argv[]) {
 	int output_format      = OUTPUT_WIF;
 	int output_compression = FALSE;
 	int output_newline     = FALSE;
+	int output_testnet     = FALSE;
 
 	// Zero the input buffer
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Process arguments
-	while ((o = getopt(argc, argv, "nwhrsdWHRCUN")) != -1) {
+	while ((o = getopt(argc, argv, "nwhrsdWHRCUNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'n':
@@ -104,6 +106,11 @@ int btk_privkey_main(int argc, char *argv[]) {
 				output_newline = TRUE;
 				break;
 
+			// Network Options
+			case 'T':
+				output_testnet = TRUE;
+				break;
+
 			// Unknown option
 			case '?':
 				if (isprint(optopt))
@@ -112,6 +119,14 @@ int btk_privkey_main(int argc, char *argv[]) {
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
 				return EXIT_FAILURE;
 		}
+	}
+
+	// Process testnet option
+	switch (output_testnet) {
+		case FALSE:
+			break;
+		case TRUE:
+			network_set_test();
 	}
 	
 	// Process Input
