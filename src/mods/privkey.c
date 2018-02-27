@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <gmp.h>
 #include "privkey.h"
+#include "network.h"
 #include "random.h"
 #include "hex.h"
 #include "base58check.h"
@@ -108,7 +109,11 @@ char *privkey_to_wif(PrivKey k) {
 	int l;
 	unsigned char p[PRIVKEY_LENGTH + 2];
 
-	p[0] = MAINNET_PREFIX;
+	if (network_is_main()) {
+		p[0] = MAINNET_PREFIX;
+	} else if (network_is_test()) {
+		p[0] = TESTNET_PREFIX;
+	}
 	memcpy(p+1, k->data, PRIVKEY_LENGTH);
 	if (privkey_is_compressed(k)) {
 		p[PRIVKEY_LENGTH+1] = PRIVKEY_COMPRESSED_FLAG;
@@ -129,8 +134,17 @@ PrivKey privkey_from_wif(char *wif) {
 
 	p = base58check_decode(wif, strlen(wif), &l);
 	
-	assert(p[0] == MAINNET_PREFIX);
+	assert(p[0] == MAINNET_PREFIX || p[0] == TESTNET_PREFIX);
 	assert(l >= PRIVKEY_LENGTH + 1 && l <= PRIVKEY_LENGTH + 2);
+
+	switch (p[0]) {
+		case MAINNET_PREFIX:
+			network_set_main();
+			break;
+		case TESTNET_PREFIX:
+			network_set_test();
+			break;
+	}
 	
 	memcpy(k->data, p+1, PRIVKEY_LENGTH);
 	
