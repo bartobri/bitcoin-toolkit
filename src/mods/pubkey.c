@@ -8,10 +8,12 @@
 #include "crypto.h"
 #include "base58check.h"
 #include "hex.h"
+#include "network.h"
 #include "mem.h"
 #include "assert.h"
 
-#define ADDRESS_VERSION_BIT           0x00
+#define ADDRESS_VERSION_BIT_MAINNET   0x00
+#define ADDRESS_VERSION_BIT_TESTNET   0x6F
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
@@ -193,7 +195,11 @@ char *pubkey_to_address(PubKey k) {
 	rmd = crypto_get_rmd160(sha, 32);
 
 	// Set address version bit
-	r[0] = ADDRESS_VERSION_BIT;
+	if (network_is_main()) {
+		r[0] = ADDRESS_VERSION_BIT_MAINNET;
+	} else if (network_is_test()) {
+		r[0] = ADDRESS_VERSION_BIT_TESTNET;
+	}
 	
 	// Append rmd data
 	memcpy(r + 1, rmd, 20);
