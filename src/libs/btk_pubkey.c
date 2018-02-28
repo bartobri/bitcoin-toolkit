@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "mods/privkey.h"
+#include "mods/network.h"
 #include "mods/pubkey.h"
 #include "mods/base58.h"
 #include "mods/hex.h"
@@ -43,14 +44,15 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	int input_format       = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_newline     = FALSE;
+	int output_testnet     = FALSE;
 
 	// Zero the input buffer
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrAHRN")) != -1) {
+	while ((o = getopt(argc, argv, "whrAHRNT")) != -1) {
 		switch (o) {
-			// Input flags
+			// Input format
 			case 'w':
 				input_format = INPUT_WIF;
 				break;
@@ -61,7 +63,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				input_format = INPUT_RAW;
 				break;
 
-			// Output flags
+			// Output format
 			case 'A':
 				output_format = OUTPUT_ADDRESS;
 				break;
@@ -72,11 +74,17 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				output_format = OUTPUT_RAW;
 				break;
 
-			// Format flags
+			// Other options
 			case 'N':
 				output_newline = TRUE;
 				break;
 
+			// Testnet Option
+			case 'T':
+				output_testnet = TRUE;
+				break;
+
+			// Unknown option
 			case '?':
 				if (isprint(optopt))
 					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
@@ -84,6 +92,14 @@ int btk_pubkey_main(int argc, char *argv[]) {
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
 				return EXIT_FAILURE;
 		}
+	}
+
+	// Process testnet option
+	switch (output_testnet) {
+		case FALSE:
+			break;
+		case TRUE:
+			network_set_test();
 	}
 	
 	// Process input
