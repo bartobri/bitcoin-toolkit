@@ -63,3 +63,22 @@ unsigned char *base58check_decode(char *s, size_t l, size_t *rl) {
 	return r;
 }
 
+int base58check_valid_checksum(char *s, size_t l) {
+	unsigned char *r;
+	size_t i, b58l;
+	uint32_t checksum1 = 0, checksum2 = 0;
+
+	assert(s);
+	assert(l);
+	
+	r = base58_decode(s, l, &b58l);
+	
+	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
+		checksum1 <<= 8;
+		checksum1 += r[b58l-CHECKSUM_LENGTH+i];
+	}
+
+	checksum2 = crypto_get_checksum(r, b58l - CHECKSUM_LENGTH);
+	
+	return checksum1 == checksum2;
+}

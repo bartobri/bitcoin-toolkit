@@ -16,6 +16,7 @@
 #include "mods/base58.h"
 #include "mods/crypto.h"
 #include "mods/hex.h"
+#include "mods/base58check.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -149,6 +150,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 			input_buffer[i] = '\0';
+			if (!base58check_valid_checksum((char *)input_buffer, strlen((char *)input_buffer))) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
 			key = privkey_from_wif((char *)input_buffer);
 			break;
 		case INPUT_HEX:
