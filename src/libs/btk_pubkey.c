@@ -23,8 +23,9 @@
 #define INPUT_HEX               2
 #define INPUT_RAW               3
 #define OUTPUT_ADDRESS          1
-#define OUTPUT_HEX              2
-#define OUTPUT_RAW              3
+#define OUTPUT_BECH32_ADDRESS   2
+#define OUTPUT_HEX              3
+#define OUTPUT_RAW              4
 #define TRUE                    1
 #define FALSE                   0
 
@@ -50,7 +51,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrAHRNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrABHRNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -66,6 +67,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			// Output format
 			case 'A':
 				output_format = OUTPUT_ADDRESS;
+				break;
+			case 'B':
+				output_format = OUTPUT_BECH32_ADDRESS;
 				break;
 			case 'H':
 				output_format = OUTPUT_HEX;
@@ -168,6 +172,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	switch (output_format) {
 		case OUTPUT_ADDRESS:
 			printf("%s", pubkey_to_address(key));
+			break;
+		case OUTPUT_BECH32_ADDRESS:
+			printf("%s", pubkey_to_bech32address(key));
 			break;
 		case OUTPUT_HEX:
 			printf("%s", pubkey_to_hex(key));
