@@ -7,7 +7,7 @@
 #include "point.h"
 #include "crypto.h"
 #include "base58check.h"
-#include "base32.h"
+#include "bech32.h"
 #include "hex.h"
 #include "network.h"
 #include "mem.h"
@@ -15,10 +15,6 @@
 
 #define ADDRESS_VERSION_BIT_MAINNET   0x00
 #define ADDRESS_VERSION_BIT_TESTNET   0x6F
-#define BECH32_PREFIX_MAINNET         "bc"
-#define BECH32_PREFIX_TESTNET         "tb"
-#define BECH32_SEPARATOR              '1'
-#define BECH32_VERSION_BYTE           0
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
@@ -219,7 +215,7 @@ char *pubkey_to_address(PubKey k) {
 char *pubkey_to_bech32address(PubKey k) {
 	size_t l;
 	unsigned char *sha, *rmd;
-	char *hrp, *data, *bech32;
+	char *output;
 
 	if (pubkey_is_compressed(k)) {
 		l = PUBKEY_COMPRESSED_LENGTH + 1;
@@ -231,29 +227,14 @@ char *pubkey_to_bech32address(PubKey k) {
 	sha = crypto_get_sha256(k->data, l);
 	rmd = crypto_get_rmd160(sha, 32);
 
-	data = base32_encode(rmd, 20);
-
-	// Set human readable part
-	if (network_is_main()) {
-		hrp = BECH32_PREFIX_MAINNET;
-	} else if (network_is_test()) {
-		hrp = BECH32_PREFIX_TESTNET;
-	}
-
-	// Assembing bech32 address
-	bech32 = ALLOC(100);
-	memcpy(bech32 + 0, hrp, strlen(hrp));
-	bech32[strlen(hrp)] = BECH32_SEPARATOR;
-	bech32[strlen(hrp) + 1] = base32_get_char(BECH32_VERSION_BYTE);
-	memcpy(bech32 + strlen(hrp) + 2, data, strlen(data));
-	bech32[strlen(hrp) + 2 + strlen(data)] = '\0';
+	output = ALLOC(100);
+	bech32_get_address(output, rmd, 20);
 	
 	// Free resources
 	FREE(sha);
 	FREE(rmd);
-	FREE(data);
 
-	return bech32;
+	return output;
 }
 
 void pubkey_free(PubKey k) {
