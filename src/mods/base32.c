@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <string.h>
+#include <stdint.h>
 #include "base32.h"
 #include "mem.h"
 #include "assert.h"
@@ -16,7 +17,7 @@ void base32_encode(char *output, unsigned char *data, size_t data_len) {
 	base32_encode_raw((unsigned char*)output, &output_len, data, data_len);
 
 	for (i = 0; i < output_len; ++i) {
-		output[i] = base32_get_char((size_t)output[i]);
+		output[i] = base32_get_char((uint8_t)output[i]);
 	}
 	output[i] = '\0';
 }
@@ -44,7 +45,7 @@ void base32_encode_raw(unsigned char *output, size_t *output_len, unsigned char 
 	output = output_head;
 }
 
-char base32_get_char(size_t c) {
+char base32_get_char(uint8_t c) {
 	assert(c < strlen(code_string));
 	return code_string[c];
 }
