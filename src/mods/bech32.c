@@ -36,7 +36,7 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 	data_b32 = base32_encode(data, data_len);
 	data_b32_raw = ALLOC(strlen(data_b32));
 	for (i = 0; i < strlen(data_b32); ++i)
-		data_b32_raw[i] = base32_get_raw(data_b32[i]);
+		data_b32_raw[i] = (unsigned char)base32_get_raw(data_b32[i]);
 
 	// Get checksum
 	hrp_exp = ALLOC(100);
