@@ -41,7 +41,7 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 	// Get checksum
 	hrp_exp = ALLOC(100);
 	bech32_hrp_expand(hrp_exp, &hrp_exp_len, hrp);
-	polymod = bech32_polymod(hrp_exp, hrp_exp_len, data_b32_raw, strlen(data_b32)) ^ 1;
+	polymod = bech32_polymod(hrp_exp, hrp_exp_len, data_b32_raw, strlen(data_b32));
 	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i) {
 		checksum[i] = base32_get_char((polymod >> (5 * (5 - i))) & 31);
 	}
@@ -101,6 +101,8 @@ static uint32_t bech32_polymod(unsigned char *hrp_exp, size_t hrp_exp_len, unsig
 			chk ^= ((b >> j) & 1) ? gen[j] : 0;
 		}
 	}
+
+	chk ^= 1;
 
 	FREE(values);
 
