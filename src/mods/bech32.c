@@ -19,7 +19,7 @@ static uint32_t bech32_polymod(unsigned char *hrp_exp, size_t hrp_exp_len, unsig
 void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 	size_t i;
 	char *data_b32, *hrp, checksum[BECH32_CHECKSUM_LENGTH];
-	unsigned char *hrp_exp;
+	unsigned char *hrp_exp, *data_b32_raw;
 	size_t hrp_exp_len;
 	uint32_t polymod;
 
@@ -33,16 +33,18 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 		hrp = BECH32_PREFIX_TESTNET;
 	}
 
+	data_b32 = base32_encode(data, data_len);
+	data_b32_raw = ALLOC(strlen(data_b32));
+	for (i = 0; i < strlen(data_b32); ++i)
+		data_b32_raw[i] = base32_get_raw(data_b32[i]);
+
 	// Get checksum
 	hrp_exp = ALLOC(100);
 	bech32_hrp_expand(hrp_exp, &hrp_exp_len, hrp);
-	polymod = bech32_polymod(hrp_exp, hrp_exp_len, data, data_len) ^ 1;
+	polymod = bech32_polymod(hrp_exp, hrp_exp_len, data_b32_raw, strlen(data_b32)) ^ 1;
 	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i) {
-		//checksum[i] = (polymod >> 5 * (5 - i)) & 31;
-		checksum[i] = base32_get_char((polymod >> 5 * (5 - i)) & 31);
+		checksum[i] = base32_get_char((polymod >> (5 * (5 - i))) & 31);
 	}
-
-	data_b32 = base32_encode(data, data_len);
 
 	// Assembing bech32 address
 	memcpy(output, hrp, strlen(hrp));

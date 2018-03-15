@@ -41,3 +41,15 @@ char base32_get_char(size_t c) {
 	assert(c < strlen(code_string));
 	return code_string[c];
 }
+
+int base32_get_raw(char c) {
+	size_t i;
+
+	for (i = 0; i < strlen(code_string); ++i) {
+		if (c == code_string[i]) {
+			return i;
+		}
+	}
+
+	return -1;
+}
