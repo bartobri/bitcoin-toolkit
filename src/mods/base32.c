@@ -9,12 +9,13 @@ static char *code_string = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 void base32_encode(char *output, unsigned char *data, size_t data_len) {
 	size_t i, output_len;
 
-	// TODO - need asserts
+	assert(output);
+	assert(data);
+	assert(data_len);
 
 	base32_encode_raw((unsigned char*)output, &output_len, data, data_len);
 
 	for (i = 0; i < output_len; ++i) {
-		// TODO - Should this param be a size_t or int?
 		output[i] = base32_get_char((size_t)output[i]);
 	}
 	output[i] = '\0';
@@ -24,7 +25,9 @@ void base32_encode_raw(unsigned char *output, size_t *output_len, unsigned char 
 	size_t i, j, k;
 	unsigned char *output_head = output;
 
-	// TODO - need asserts
+	assert(output);
+	assert(data);
+	assert(data_len);
 
 	*output = 0;
 	for (i = 0, k = 0; i < data_len; ++i) {
@@ -48,6 +51,8 @@ char base32_get_char(size_t c) {
 
 int base32_get_raw(char c) {
 	size_t i;
+
+	assert(c);
 
 	for (i = 0; i < strlen(code_string); ++i) {
 		if (c == code_string[i]) {
