@@ -6,35 +6,39 @@
 
 static char *code_string = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 
-char *base32_encode(unsigned char *data, size_t data_len) {
-	size_t i, j, k;
-	char *rp, *rh;
+void base32_encode(char *output, unsigned char *data, size_t data_len) {
+	size_t i, output_len;
 
 	// TODO - need asserts
 
-	rp = rh = ALLOC(data_len * 2);
+	base32_encode_raw((unsigned char*)output, &output_len, data, data_len);
 
-	memset(rp, 0, data_len * 2);
+	for (i = 0; i < output_len; ++i) {
+		// TODO - Should this param be a size_t or int?
+		output[i] = base32_get_char((size_t)output[i]);
+	}
+	output[i] = '\0';
+}
 
+void base32_encode_raw(unsigned char *output, size_t *output_len, unsigned char *data, size_t data_len) {
+	size_t i, j, k;
+	unsigned char *output_head = output;
+
+	// TODO - need asserts
+
+	*output = 0;
 	for (i = 0, k = 0; i < data_len; ++i) {
 		for (j = 0; j < 8; ++j) {
-			*rp <<= 1;
-			*rp += ((data[i] << j) & 0x80) >> 7;
+			*output <<= 1;
+			*output += ((data[i] << j) & 0x80) >> 7;
 			if ((++k % 5) == 0) {
-				*rp = code_string[(int)*rp];
-				rp++;
+				output++;
+				*output = 0;
 			}
 		}
 	}
-
-	if ((k % 5) != 0) {
-		*rp = code_string[(int)*rp];
-		rp++;
-	}
-
-	*rp = '\0';
-
-	return rh;
+	*output_len = ++k / 5;
+	output = output_head;
 }
 
 char base32_get_char(size_t c) {

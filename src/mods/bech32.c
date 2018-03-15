@@ -33,7 +33,8 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 		hrp = BECH32_PREFIX_TESTNET;
 	}
 
-	data_b32 = base32_encode(data, data_len);
+	data_b32 = ALLOC(data_len * 2);
+	base32_encode(data_b32, data, data_len);
 	data_b32_raw = ALLOC(strlen(data_b32));
 	for (i = 0; i < strlen(data_b32); ++i)
 		data_b32_raw[i] = (unsigned char)base32_get_raw(data_b32[i]);
@@ -55,6 +56,7 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 	output[strlen(hrp) + 2 + strlen(data_b32) + BECH32_CHECKSUM_LENGTH] = '\0';
 
 	FREE(data_b32);
+	FREE(data_b32_raw);
 	FREE(hrp_exp);
 	
 }
