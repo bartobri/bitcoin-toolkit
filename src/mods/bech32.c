@@ -13,100 +13,82 @@
 #define BECH32_VERSION_BYTE           0
 #define BECH32_CHECKSUM_LENGTH        6
 
-static void bech32_hrp_expand(unsigned char *output, size_t *output_len, char *hrp);
-static uint32_t bech32_polymod(unsigned char *hrp_exp, size_t hrp_exp_len, unsigned char *data, size_t data_len);
+static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk);
 
 void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
-	size_t i;
-	char *data_b32, *hrp, checksum[BECH32_CHECKSUM_LENGTH];
-	unsigned char *hrp_exp, *data_b32_raw;
-	size_t hrp_exp_len;
-	uint32_t polymod;
+	size_t i, l;
+
+	char *hrp, *output_head = output;
+	uint32_t chk = 1;
+	unsigned char *data_b32r;
 
 	// For now I'm only supporting P2WPKH so the data length can only be 20
 	assert(data_len == 20);
 
-	// Get human readable part
+	// Get human readable part (hrp)
 	if (network_is_main()) {
 		hrp = BECH32_PREFIX_MAINNET;
 	} else if (network_is_test()) {
 		hrp = BECH32_PREFIX_TESTNET;
 	}
 
-	data_b32 = ALLOC(data_len * 2);
-	base32_encode(data_b32, data, data_len);
-	data_b32_raw = ALLOC(strlen(data_b32));
-	for (i = 0; i < strlen(data_b32); ++i)
-		data_b32_raw[i] = (unsigned char)base32_get_raw(data_b32[i]);
-
-	// Get checksum
-	hrp_exp = ALLOC(100);
-	bech32_hrp_expand(hrp_exp, &hrp_exp_len, hrp);
-	polymod = bech32_polymod(hrp_exp, hrp_exp_len, data_b32_raw, strlen(data_b32));
-	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i) {
-		checksum[i] = base32_get_char((polymod >> (5 * (5 - i))) & 31);
-	}
-
-	// Assembing bech32 address
-	memcpy(output, hrp, strlen(hrp));
-	output[strlen(hrp)] = BECH32_SEPARATOR;
-	output[strlen(hrp) + 1] = base32_get_char(BECH32_VERSION_BYTE);
-	memcpy(output + strlen(hrp) + 2, data_b32, strlen(data_b32));
-	memcpy(output + strlen(hrp) + 2 + strlen(data_b32), checksum, BECH32_CHECKSUM_LENGTH);
-	output[strlen(hrp) + 2 + strlen(data_b32) + BECH32_CHECKSUM_LENGTH] = '\0';
-
-	FREE(data_b32);
-	FREE(data_b32_raw);
-	FREE(hrp_exp);
-	
-}
-
-static void bech32_hrp_expand(unsigned char *output, size_t *output_len, char *hrp) {
-	size_t i, l;
-
+	// hrp
 	l = strlen(hrp);
-	*output_len = l * 2 + 1;
-
 	for (i = 0; i < l; ++i) {
-		output[i] = (hrp[i] >> 5);
+		*(output++) = hrp[i];
+		chk = bech32_polymod_step((hrp[i] >> 5), chk);
 	}
-	output[l] = 0;
+	chk = bech32_polymod_step(0, chk);
 	for (i = 0; i < l; ++i) {
-		output[i + l + 1] = (hrp[i] & 31);
+		chk = bech32_polymod_step((hrp[i] & 31), chk);
 	}
-}
 
-static uint32_t bech32_polymod(unsigned char *hrp_exp, size_t hrp_exp_len, unsigned char *data, size_t data_len) {
-	uint32_t gen[5] = {0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3};
-	uint32_t chk = 1;
-	uint8_t b;
-	size_t i, j;
-	unsigned char *values;
-	size_t values_len;
+	// separator
+	*(output++) = BECH32_SEPARATOR;
 
-	values_len = hrp_exp_len + 1 + data_len + 6;
-	values = ALLOC(values_len);
-	memcpy(values, hrp_exp, hrp_exp_len);
-	values[hrp_exp_len] = BECH32_VERSION_BYTE;
-	memcpy(values + hrp_exp_len + 1, data, data_len);
-	values[hrp_exp_len + 1 + data_len + 0] = 0;
-	values[hrp_exp_len + 1 + data_len + 1] = 0;
-	values[hrp_exp_len + 1 + data_len + 2] = 0;
-	values[hrp_exp_len + 1 + data_len + 3] = 0;
-	values[hrp_exp_len + 1 + data_len + 4] = 0;
-	values[hrp_exp_len + 1 + data_len + 5] = 0;
+	// version byte
+	*(output++) = base32_get_char(BECH32_VERSION_BYTE);
+	chk = bech32_polymod_step(BECH32_VERSION_BYTE, chk);
 
-	for (i = 0; i < values_len; ++i) {
-		b = (chk >> 25);
-		chk = (chk & 0x1ffffff) << 5 ^ values[i];
-		for (j = 0; j < 5; ++j) {
-			chk ^= ((b >> j) & 1) ? gen[j] : 0;
-		}
+	// data
+	data_b32r = ALLOC(data_len * 2);
+	base32_encode_raw(data_b32r, &l, data, data_len);
+	for (i = 0; i < l; ++i) {
+		*(output++) = base32_get_char(data_b32r[i]);
+		chk = bech32_polymod_step(data_b32r[i], chk);
+	}
+
+	// trailing zeros needed for checksum
+	for (i = 0; i < 6; ++i) {
+		chk = bech32_polymod_step(0, chk);
 	}
 
 	chk ^= 1;
 
-	FREE(values);
+	// get/append checksum
+	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i) {
+		*(output++) = base32_get_char((chk >> (5 * (5 - i))) & 31);
+	}
+
+	*output = '\0';
+
+	output = output_head;
+
+	FREE(data_b32r);
+	
+}
+
+
+static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk) {
+	size_t i;
+	uint8_t b;
+	uint32_t gen[5] = {0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3};
+
+	b = (chk >> 25);
+	chk = (chk & 0x1ffffff) << 5 ^ value;
+	for (i = 0; i < 5; ++i) {
+		chk ^= ((b >> i) & 1) ? gen[i] : 0;
+	}
 
 	return chk;
 }
