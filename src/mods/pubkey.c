@@ -213,18 +213,13 @@ char *pubkey_to_address(PubKey k) {
 }
 
 char *pubkey_to_bech32address(PubKey k) {
-	size_t l;
 	unsigned char *sha, *rmd;
 	char *output;
 
-	if (pubkey_is_compressed(k)) {
-		l = PUBKEY_COMPRESSED_LENGTH + 1;
-	} else {
-		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
-	}
+	assert(pubkey_is_compressed(k));
 
 	// RMD(SHA(data))
-	sha = crypto_get_sha256(k->data, l);
+	sha = crypto_get_sha256(k->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	rmd = crypto_get_rmd160(sha, 32);
 
 	output = ALLOC(100);
