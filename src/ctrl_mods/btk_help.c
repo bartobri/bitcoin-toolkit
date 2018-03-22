@@ -12,21 +12,21 @@
 #include "btk_privkey.h"
 
 int btk_help_main(int argc, char *argv[]) {
-	if (argc <= 2) {
+	if (argc <= 1) {
 		btk_help_help();
 		return EXIT_FAILURE;
 	}
 
-	if (strcmp(argv[2], "help") == 0) {
+	if (strcmp(argv[1], "help") == 0) {
 		btk_help_help();
-	} else if (strcmp(argv[2], "privkey") == 0) {
+	} else if (strcmp(argv[1], "privkey") == 0) {
 		fprintf(stderr, "privkey man page here\n");
-	} else if (strcmp(argv[2], "pubkey") == 0) {
+	} else if (strcmp(argv[1], "pubkey") == 0) {
 		fprintf(stderr, "pubkey man page here\n");
-	} else if (strcmp(argv[2], "keypair") == 0) {
+	} else if (strcmp(argv[1], "keypair") == 0) {
 		fprintf(stderr, "keypair man page here\n");
 	} else {
-		fprintf(stderr, "Unknown Command: %s\n", argv[2]);
+		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
 		return EXIT_FAILURE;
 	}

@@ -14,22 +14,29 @@
 #include "ctrl_mods/btk_keypair.h"
 
 int main(int argc, char *argv[]) {
+	char *cmd;
 
 	if (argc <= 1) {
 		btk_help_help();
 		return EXIT_FAILURE;
 	}
+
+	cmd = argv[1];
+
+	argv[1] = argv[0];
+	argv++;
+	argc--;
 	
-	if (strcmp(argv[1], "help") == 0) {
+	if (strcmp(cmd, "help") == 0) {
 		return btk_help_main(argc, argv);
-	} else if (strcmp(argv[1], "privkey") == 0) {
+	} else if (strcmp(cmd, "privkey") == 0) {
 		return btk_privkey_main(argc, argv);
-	} else if (strcmp(argv[1], "pubkey") == 0) {
+	} else if (strcmp(cmd, "pubkey") == 0) {
 		return btk_pubkey_main(argc, argv);
-	} else if (strcmp(argv[1], "keypair") == 0) {
+	} else if (strcmp(cmd, "keypair") == 0) {
 		return btk_keypair_main(argc, argv);
 	} else {
-		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
+		fprintf(stderr, "Unknown Command: %s\n", cmd);
 		return EXIT_FAILURE;
 	}
 
