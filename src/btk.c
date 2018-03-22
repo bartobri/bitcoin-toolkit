@@ -8,10 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "libs/btk_help.h"
-#include "libs/btk_privkey.h"
-#include "libs/btk_pubkey.h"
-#include "libs/btk_keypair.h"
+#include "ctrl_mods/btk_help.h"
+#include "ctrl_mods/btk_privkey.h"
+#include "ctrl_mods/btk_pubkey.h"
+#include "ctrl_mods/btk_keypair.h"
 
 int main(int argc, char *argv[]) {
 
