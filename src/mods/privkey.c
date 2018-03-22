@@ -47,7 +47,7 @@ PrivKey privkey_new(void) {
 	mpz_clear(max_key);
 	mpz_clear(cur_key);
 	
-	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+	k->cflag = PRIVKEY_COMPRESSED_FLAG;
 	
 	return k;
 }
