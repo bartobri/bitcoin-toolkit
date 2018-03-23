@@ -81,7 +81,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 'd':
 				input_format = INPUT_DEC;
-				output_compression = OUTPUT_COMPRESS;
 				break;
 
 			// Output format

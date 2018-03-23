@@ -211,6 +211,8 @@ PrivKey privkey_from_dec(char *data) {
 	key = privkey_from_raw(raw, PRIVKEY_LENGTH);
 
 	FREE(raw);
+
+	key = privkey_compress(key);
 	
 	return key;
 }
