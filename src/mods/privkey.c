@@ -195,6 +195,26 @@ PrivKey privkey_from_hex(char *hex) {
 	return k;
 }
 
+PrivKey privkey_from_dec(char *data) {
+	size_t i, c;
+	PrivKey key;
+	mpz_t d;
+	unsigned char *raw;
+
+	mpz_init(d);
+	mpz_set_str(d, data, 10);
+	i = (mpz_sizeinbase(d, 2) + 7) / 8;
+	raw = ALLOC((i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
+	memset(raw, 0, (i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
+	mpz_export(raw + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
+	mpz_clear(d);
+	key = privkey_from_raw(raw, PRIVKEY_LENGTH);
+
+	FREE(raw);
+	
+	return key;
+}
+
 PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	PrivKey k;
 	mpz_t cur_key, max_key;
@@ -226,6 +246,29 @@ PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	
 	return k;
 }
+
+/*
+PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
+	int i, str_len;
+	unsigned char *head = data;
+	PrivKey key = NULL;
+
+	str_len = (data[data_len-1] == '\n') ? data_len - 1 : data_len;
+
+	// Decimal
+	for (data = head, i = 0; i < str_len; ++i)
+		if (*data >= '0' && *data <= '9')
+			++data;
+		else 
+			break;
+	if (i == str_len) {
+		// Get key from Decimal
+		return key;
+	}
+
+	return key;
+}
+*/
 
 int privkey_is_compressed(PrivKey k) {
 	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;

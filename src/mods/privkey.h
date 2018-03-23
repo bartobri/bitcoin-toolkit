@@ -15,6 +15,7 @@ unsigned char *privkey_to_raw(PrivKey, size_t *);
 char   *privkey_to_wif(PrivKey);
 PrivKey privkey_from_wif(char *);
 PrivKey privkey_from_hex(char *);
+PrivKey privkey_from_dec(char *);
 PrivKey privkey_from_raw(unsigned char *, size_t);
 int     privkey_is_compressed(PrivKey);
 void    privkey_free(PrivKey);

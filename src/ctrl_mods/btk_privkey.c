@@ -43,7 +43,6 @@ static unsigned char input_buffer[BUFFER_SIZE];
 int btk_privkey_main(int argc, char *argv[]) {
 	int o;
 	size_t i, c;
-	mpz_t d;
 	PrivKey key = NULL;
 	unsigned char *t;
 	
@@ -208,15 +207,9 @@ int btk_privkey_main(int argc, char *argv[]) {
 					return EXIT_FAILURE;
 				}
 			}
-			mpz_init(d);
-			mpz_set_str(d, (char *)input_buffer, 10);
-			i = (mpz_sizeinbase(d, 2) + 7) / 8;
-			if (i > PRIVKEY_LENGTH)
-				i = PRIVKEY_LENGTH;
-			memset(input_buffer, 0, BUFFER_SIZE);
-			mpz_export(input_buffer + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
-			mpz_clear(d);
-			key = privkey_from_raw(input_buffer, PRIVKEY_LENGTH);
+
+			input_buffer[i] = '\0';
+			key = privkey_from_dec((char *)input_buffer);
 			break;
 	}
 	
