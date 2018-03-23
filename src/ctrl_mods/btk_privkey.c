@@ -77,7 +77,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 				break;
 			case 's':
 				input_format = INPUT_STR;
-				output_compression = OUTPUT_COMPRESS;
 				break;
 			case 'd':
 				input_format = INPUT_DEC;
@@ -188,12 +187,12 @@ int btk_privkey_main(int argc, char *argv[]) {
 		case INPUT_STR:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 
-			if ((int)input_buffer[c-1] == '\n')
+			// Ignore newline at the end of input
+			if((int)input_buffer[c-1] == '\n')
 				--c;
 
-			t = crypto_get_sha256(input_buffer, c);
-			key = privkey_from_raw(t, 32);
-			free(t);
+			input_buffer[c] = '\0';
+			key = privkey_from_str((char *)input_buffer);
 			break;
 		case INPUT_DEC:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);

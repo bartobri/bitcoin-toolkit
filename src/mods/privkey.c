@@ -7,6 +7,7 @@
 #include "random.h"
 #include "hex.h"
 #include "base58check.h"
+#include "crypto.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -193,6 +194,19 @@ PrivKey privkey_from_hex(char *hex) {
 	mpz_clear(cur_key);
 	
 	return k;
+}
+
+PrivKey privkey_from_str(char *data) {
+	PrivKey key;
+	unsigned char *tmp;
+	
+	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
+	key = privkey_from_raw(tmp, 32);
+	free(tmp);
+
+	key = privkey_compress(key);
+	
+	return key;
 }
 
 PrivKey privkey_from_dec(char *data) {
