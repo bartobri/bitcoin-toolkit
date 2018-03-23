@@ -187,6 +187,10 @@ int btk_privkey_main(int argc, char *argv[]) {
 			break;
 		case INPUT_STR:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			if ((int)input_buffer[c-1] == '\n')
+				--c;
+
 			t = crypto_get_sha256(input_buffer, c);
 			key = privkey_from_raw(t, 32);
 			free(t);
