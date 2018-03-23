@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <sys/ioctl.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
 #include "mods/base58.h"
@@ -27,6 +28,7 @@
 #define INPUT_RAW               4
 #define INPUT_STR               5
 #define INPUT_DEC               6
+#define INPUT_GUESS             7
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
@@ -47,7 +49,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 	unsigned char *t;
 	
 	// Default flags
-	int input_format       = INPUT_NEW;
+	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_WIF;
 	int output_compression = FALSE;
 	int output_newline     = FALSE;
@@ -210,6 +212,15 @@ int btk_privkey_main(int argc, char *argv[]) {
 
 			input_buffer[i] = '\0';
 			key = privkey_from_dec((char *)input_buffer);
+			break;
+		case INPUT_GUESS:
+			if (ioctl(STDIN_FILENO, FIONREAD, &i) >= 0 && i > 0) {
+				c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+				key = privkey_from_guess(input_buffer, c);
+			}
+			if (key == NULL) {
+				key = privkey_new();
+			}
 			break;
 	}
 	

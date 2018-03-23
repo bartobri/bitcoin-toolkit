@@ -247,10 +247,10 @@ PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	return k;
 }
 
-/*
 PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 	int i, str_len;
 	unsigned char *head = data;
+	char *tmp;
 	PrivKey key = NULL;
 
 	str_len = (data[data_len-1] == '\n') ? data_len - 1 : data_len;
@@ -262,13 +262,16 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		else 
 			break;
 	if (i == str_len) {
-		// Get key from Decimal
+		tmp = ALLOC(i + 1);
+		memcpy(tmp, head, i);
+		tmp[i] = '\n';
+		key = privkey_from_dec(tmp);
+		FREE(tmp);
 		return key;
 	}
 
 	return key;
 }
-*/
 
 int privkey_is_compressed(PrivKey k) {
 	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
