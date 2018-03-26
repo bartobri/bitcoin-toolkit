@@ -93,12 +93,12 @@ char *privkey_to_hex(PrivKey k) {
 unsigned char *privkey_to_raw(PrivKey k, size_t *l) {
 	unsigned char *r;
 	assert(k);
-	
-	r = ALLOC(PRIVKEY_LENGTH);
-	
+
+	r = ALLOC(PRIVKEY_LENGTH + 1);
 	memcpy(r, k->data, PRIVKEY_LENGTH);
 	
 	if (privkey_is_compressed(k)) {
+		r[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
 		*l = PRIVKEY_LENGTH + 1;
 	} else {
 		*l = PRIVKEY_LENGTH;
@@ -336,6 +336,12 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		key = privkey_from_str(tmp);
 		FREE(tmp);
 		return key;
+	}
+
+	// Raw
+	data = head;
+	if (data_len == PRIVKEY_LENGTH || (data_len == PRIVKEY_LENGTH + 1 && (data[data_len - 1] == PRIVKEY_COMPRESSED_FLAG || data[data_len - 1] == PRIVKEY_UNCOMPRESSED_FLAG))) {
+		key = privkey_from_raw(data, data_len);
 	}
 
 	return key;

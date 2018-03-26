@@ -248,7 +248,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 		case OUTPUT_RAW:
 			t = privkey_to_raw(key, &c);
 			for (i = 0; i < c; ++i) {
-				printf("%c", t[i]);
+				putchar(t[i]);
 			}
 			free(t);
 			break;
