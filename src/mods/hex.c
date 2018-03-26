@@ -3,6 +3,7 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include "hex.h"
 #include "assert.h"
 #include "mem.h"
 
@@ -11,8 +12,8 @@
 unsigned char hex_to_dec(char l, char r) {
 	unsigned char ret;
 
-	assert((l >= 'A' && l <= 'F') || (l >= '0' && l <= '9') || (l >= 'a' && l <= 'z'));
-	assert((r >= 'A' && r <= 'F') || (r >= '0' && r <= '9') || (r >= 'a' && r <= 'z'));
+	assert(hex_ischar(l));
+	assert(hex_ischar(r));
 
 	// force lowercase
 	if (l >= 'A' && l <= 'F') {
@@ -31,10 +32,10 @@ unsigned char hex_to_dec(char l, char r) {
 	}
 	
 	// Deal with letters
-	if (l >= 'a' && l <= 'z') {
+	if (l >= 'a' && l <= 'f') {
 		l -= 87;
 	}
-	if (r >= 'a' && r <= 'z') {
+	if (r >= 'a' && r <= 'f') {
 		r -= 87;
 	}
 	
@@ -89,10 +90,6 @@ unsigned char *hex_str_to_uc(char *hex) {
 }
 
 int hex_ischar(char c) {
-	if((c >= 'A' && c <= 'F') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
-		return 1;
-	} else {
-		return 0;
-	}
+	return (c >= 'A' && c <= 'F') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
 }
 
