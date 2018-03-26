@@ -168,7 +168,7 @@ PrivKey privkey_from_hex(char *hex) {
 	assert(strlen(hex) % 2 == 0);
 	assert(strlen(hex) >= PRIVKEY_LENGTH * 2);
 	for (i = 0; i < strlen(hex); ++i) {
-		assert((hex[i] >= 'A' && hex[i] <= 'F') || (hex[i] >= '0' && hex[i] <= '9') || (hex[i] >= 'a' && hex[i] <= 'z'));
+		assert(hex_ischar(hex[i]));
 	}
 	
 	// allocate memory
@@ -284,6 +284,24 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		key = privkey_from_dec(tmp);
 		FREE(tmp);
 		return key;
+	}
+
+	// Hex
+	if (str_len == PRIVKEY_LENGTH * 2 || str_len == (PRIVKEY_LENGTH + 1) * 2) {
+		for (data = head, i = 0; i < str_len; ++i) {
+			if (hex_ischar(*data))
+				++data;
+			else
+				break;
+		}
+		if (i == str_len) {
+			tmp = ALLOC(i + 1);
+			memcpy(tmp, head, i);
+			tmp[i] = '\0';
+			key = privkey_from_hex(tmp);
+			FREE(tmp);
+			return key;
+		}
 	}
 
 	// String
