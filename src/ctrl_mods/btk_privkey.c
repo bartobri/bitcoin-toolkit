@@ -64,7 +64,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 			// Input format
 			case 'n':
 				input_format = INPUT_NEW;
-				output_compression = OUTPUT_COMPRESS;
 				break;
 			case 'w':
 				input_format = INPUT_WIF;
