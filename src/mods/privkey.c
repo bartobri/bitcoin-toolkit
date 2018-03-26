@@ -280,7 +280,7 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 	if (i == str_len) {
 		tmp = ALLOC(i + 1);
 		memcpy(tmp, head, i);
-		tmp[i] = '\n';
+		tmp[i] = '\0';
 		key = privkey_from_dec(tmp);
 		FREE(tmp);
 		return key;
