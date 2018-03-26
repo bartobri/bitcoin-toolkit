@@ -14,6 +14,7 @@
 #include "mods/network.h"
 #include "mods/pubkey.h"
 #include "mods/base58.h"
+#include "mods/base58check.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
@@ -123,6 +124,10 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 			input_buffer[i] = '\0';
+			if (!base58check_valid_checksum((char *)input_buffer, strlen((char *)input_buffer))) {
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+			}
 			priv = privkey_from_wif((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
