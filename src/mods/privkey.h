@@ -3,6 +3,7 @@
 
 #define PRIVKEY_LENGTH         32
 #define PRIVKEY_WIF_LENGTH_MIN 51
+#define PRIVKEY_WIF_LENGTH_MAX 52
 
 typedef struct PrivKey *PrivKey;
 

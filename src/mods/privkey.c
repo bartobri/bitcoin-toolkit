@@ -6,6 +6,7 @@
 #include "network.h"
 #include "random.h"
 #include "hex.h"
+#include "base58.h"
 #include "base58check.h"
 #include "crypto.h"
 #include "mem.h"
@@ -299,6 +300,24 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
 			key = privkey_from_hex(tmp);
+			FREE(tmp);
+			return key;
+		}
+	}
+
+	// WIF
+	if (str_len >= PRIVKEY_WIF_LENGTH_MIN && str_len <= PRIVKEY_WIF_LENGTH_MAX) {
+		for (data = head, i = 0; i < str_len; ++i) {
+			if (base58_ischar(*data))
+				++data;
+			else
+				break;
+		}
+		if (i == str_len) {
+			tmp = ALLOC(i + 1);
+			memcpy(tmp, head, i);
+			tmp[i] = '\0';
+			key = privkey_from_wif(tmp);
 			FREE(tmp);
 			return key;
 		}
