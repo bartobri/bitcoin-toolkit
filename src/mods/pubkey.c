@@ -42,6 +42,9 @@ PubKey pubkey_get(PrivKey k) {
 	prvkeyhex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(prvkey, prvkeyhex, 16);
 	free(prvkeyhex);
+
+	// A private key of zero is invalid
+	assert(mpz_cmp_ui(prvkey, 0) != 0);
 	
 	// Initalize the points
 	point_init(&pubkey);
