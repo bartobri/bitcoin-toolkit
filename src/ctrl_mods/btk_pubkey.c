@@ -24,6 +24,7 @@
 #define INPUT_HEX               2
 #define INPUT_RAW               3
 #define INPUT_STR               4
+#define INPUT_DEC               5
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2
 #define OUTPUT_HEX              3
@@ -53,7 +54,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsABHRNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrsdABHRNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -67,6 +68,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 			case 's':
 				input_format = INPUT_STR;
+				break;
+			case 'd':
+				input_format = INPUT_DEC;
 				break;
 
 			// Output format
@@ -178,6 +182,25 @@ int btk_pubkey_main(int argc, char *argv[]) {
 
 			input_buffer[c] = '\0';
 			priv = privkey_from_str((char *)input_buffer);
+			key = pubkey_get(priv);
+			privkey_free(priv);
+			break;
+		case INPUT_DEC:
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			// Ignore white spaces at the end of input
+			while (isspace((int)input_buffer[c-1]))
+				--c;
+
+			for (i = 0; i < c; ++i) {
+				if (input_buffer[i] < '0' || input_buffer[i] > '9') {
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+				}
+			}
+
+			input_buffer[i] = '\0';
+			priv = privkey_from_dec((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
