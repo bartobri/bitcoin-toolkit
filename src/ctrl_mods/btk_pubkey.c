@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <errno.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
 #include "mods/pubkey.h"
@@ -207,13 +208,10 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			privkey_free(priv);
 			break;
 		case INPUT_GUESS:
-			i = 0;
-			if (ioctl(STDIN_FILENO, FIONREAD, &i) >= 0 && i > 0) {
-				c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
-				priv = privkey_from_guess(input_buffer, c);
-				key = pubkey_get(priv);
-				privkey_free(priv);
-			}
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+			priv = privkey_from_guess(input_buffer, c);
+			key = pubkey_get(priv);
+			privkey_free(priv);
 			break;
 	}
 	
