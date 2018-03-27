@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
 #include "mods/pubkey.h"
@@ -25,6 +26,7 @@
 #define INPUT_RAW               3
 #define INPUT_STR               4
 #define INPUT_DEC               5
+#define INPUT_GUESS             6
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2
 #define OUTPUT_HEX              3
@@ -45,7 +47,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	unsigned char *t;
 
 	// Default flags
-	int input_format       = FALSE;
+	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_newline     = FALSE;
 	int output_testnet     = FALSE;
@@ -204,13 +206,22 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
-		default:
-			fprintf(stderr, "Error: Must specify input flag.\n");
-			return EXIT_FAILURE;
+		case INPUT_GUESS:
+			i = 0;
+			if (ioctl(STDIN_FILENO, FIONREAD, &i) >= 0 && i > 0) {
+				c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+				priv = privkey_from_guess(input_buffer, c);
+				key = pubkey_get(priv);
+				privkey_free(priv);
+			}
+			break;
 	}
 	
 	// Ensure we have a key
-	assert(key);
+	if (!key) {
+		fprintf(stderr, "Unable to generate public key. Input required.\n");
+		return EXIT_FAILURE;
+	}
 	
 	// Process output
 	switch (output_format) {

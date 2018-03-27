@@ -211,6 +211,7 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_from_dec((char *)input_buffer);
 			break;
 		case INPUT_GUESS:
+			i = 0;
 			if (ioctl(STDIN_FILENO, FIONREAD, &i) >= 0 && i > 0) {
 				c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 				key = privkey_from_guess(input_buffer, c);
