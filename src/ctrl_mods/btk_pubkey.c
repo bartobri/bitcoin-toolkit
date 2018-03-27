@@ -23,6 +23,7 @@
 #define INPUT_WIF               1
 #define INPUT_HEX               2
 #define INPUT_RAW               3
+#define INPUT_STR               4
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2
 #define OUTPUT_HEX              3
@@ -52,7 +53,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrABHRNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrsABHRNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -63,6 +64,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 			case 'r':
 				input_format = INPUT_RAW;
+				break;
+			case 's':
+				input_format = INPUT_STR;
 				break;
 
 			// Output format
@@ -162,6 +166,18 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 			priv = privkey_from_raw(input_buffer, c);
+			key = pubkey_get(priv);
+			privkey_free(priv);
+			break;
+		case INPUT_STR:
+			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+
+			// Ignore newline at the end of input
+			if((int)input_buffer[c-1] == '\n')
+				--c;
+
+			input_buffer[c] = '\0';
+			priv = privkey_from_str((char *)input_buffer);
 			key = pubkey_get(priv);
 			privkey_free(priv);
 			break;
