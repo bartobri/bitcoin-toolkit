@@ -190,6 +190,15 @@ int btk_privkey_main(int argc, char *argv[]) {
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
+
+			for (i = 0; i < PRIVKEY_LENGTH; ++i)
+				if (input_buffer[i] != 0)
+					break;
+			if (i == PRIVKEY_LENGTH) {
+				fprintf(stderr, "Error: Invalid input. Private key can not be zero.\n");
+				return EXIT_FAILURE;
+			}
+
 			key = privkey_from_raw(input_buffer, c);
 			break;
 		case INPUT_STR:
