@@ -216,7 +216,15 @@ int btk_privkey_main(int argc, char *argv[]) {
 				}
 			}
 
-			input_buffer[i] = '\0';
+			for (i = 0; i < c; ++i)
+				if (input_buffer[i] != '0')
+					break;
+			if (i == c) {
+				fprintf(stderr, "Error: Invalid input. Private key can not be zero.\n");
+				return EXIT_FAILURE;
+			}
+
+			input_buffer[c] = '\0';
 			key = privkey_from_dec((char *)input_buffer);
 			break;
 		case INPUT_GUESS:
