@@ -50,6 +50,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Default flags
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_ADDRESS;
+	int output_privkey     = FALSE;
 	int output_newline     = FALSE;
 	int output_testnet     = FALSE;
 
@@ -57,7 +58,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsdABHRNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrsdABHRPNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -91,6 +92,9 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 
 			// Other options
+			case 'P':
+				output_privkey = TRUE;
+				break;
 			case 'N':
 				output_newline = TRUE;
 				break;
@@ -214,6 +218,11 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	if (!key) {
 		fprintf(stderr, "Unable to generate public key. Input required.\n");
 		return EXIT_FAILURE;
+	}
+
+	// Print private key here if flag is set
+	if (output_privkey) {
+		printf("%s ", privkey_to_wif(priv));
 	}
 	
 	// Process output
