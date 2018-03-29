@@ -43,7 +43,7 @@ static unsigned char input_buffer[BUFFER_SIZE];
 int btk_pubkey_main(int argc, char *argv[]) {
 	int o;
 	PubKey key = NULL;
-	PrivKey priv;
+	PrivKey priv = NULL;
 	size_t i, c;
 	unsigned char *t;
 
@@ -140,8 +140,6 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 			priv = privkey_from_wif((char *)input_buffer);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 		case INPUT_HEX:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
@@ -163,8 +161,6 @@ int btk_pubkey_main(int argc, char *argv[]) {
 			}
 			input_buffer[i] = '\0';
 			priv = privkey_from_hex((char *)input_buffer);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 		case INPUT_RAW:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
@@ -173,8 +169,6 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 			priv = privkey_from_raw(input_buffer, c);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 		case INPUT_STR:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
@@ -185,8 +179,6 @@ int btk_pubkey_main(int argc, char *argv[]) {
 
 			input_buffer[c] = '\0';
 			priv = privkey_from_str((char *)input_buffer);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 		case INPUT_DEC:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
@@ -204,17 +196,20 @@ int btk_pubkey_main(int argc, char *argv[]) {
 
 			input_buffer[i] = '\0';
 			priv = privkey_from_dec((char *)input_buffer);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 		case INPUT_GUESS:
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			priv = privkey_from_guess(input_buffer, c);
-			key = pubkey_get(priv);
-			privkey_free(priv);
 			break;
 	}
 	
+	// Don't allow the generation of public keys from a zero private key
+	if (privkey_is_zero(priv)) {
+		fprintf(stderr, "Error: Private key can not be zero.\n");
+		return EXIT_FAILURE;
+	} else
+		key = pubkey_get(priv);
+
 	// Ensure we have a key
 	if (!key) {
 		fprintf(stderr, "Unable to generate public key. Input required.\n");
@@ -253,6 +248,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	}
 
 	// Free allocated memory
+	privkey_free(priv);
 	pubkey_free(key);
 
 	return EXIT_SUCCESS;
