@@ -313,7 +313,7 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			else
 				break;
 		}
-		if (i == str_len) {
+		if (i == str_len && base58check_valid_checksum((char *)head, data_len)) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
