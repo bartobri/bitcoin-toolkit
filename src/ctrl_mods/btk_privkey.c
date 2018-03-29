@@ -173,14 +173,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 
-			for (i = 0; i < PRIVKEY_LENGTH * 2; ++i)
-				if (input_buffer[i] != '0')
-					break;
-			if (i == PRIVKEY_LENGTH * 2) {
-				fprintf(stderr, "Error: Invalid input. Private key can not be zero.\n");
-				return EXIT_FAILURE;
-			}
-
 			input_buffer[c] = '\0';
 			key = privkey_from_hex((char *)input_buffer);
 			break;
@@ -188,14 +180,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
 			if (c < PRIVKEY_LENGTH) {
 				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-
-			for (i = 0; i < PRIVKEY_LENGTH; ++i)
-				if (input_buffer[i] != 0)
-					break;
-			if (i == PRIVKEY_LENGTH) {
-				fprintf(stderr, "Error: Invalid input. Private key can not be zero.\n");
 				return EXIT_FAILURE;
 			}
 
@@ -225,14 +209,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 				}
 			}
 
-			for (i = 0; i < c; ++i)
-				if (input_buffer[i] != '0')
-					break;
-			if (i == c) {
-				fprintf(stderr, "Error: Invalid input. Private key can not be zero.\n");
-				return EXIT_FAILURE;
-			}
-
 			input_buffer[c] = '\0';
 			key = privkey_from_dec((char *)input_buffer);
 			break;
@@ -250,6 +226,12 @@ int btk_privkey_main(int argc, char *argv[]) {
 	
 	// Make sure we have a key
 	assert(key);
+
+	// Don't allow private keys with a zero value
+	if (privkey_is_zero(key)) {
+		fprintf(stderr, "Error: Private key can not be zero.\n");
+		return EXIT_FAILURE;
+	}
 	
 	// Set output compression only if the option is set. Otherwise,
 	// compression is based on input.

@@ -21,6 +21,7 @@ PrivKey privkey_from_str(char *);
 PrivKey privkey_from_raw(unsigned char *, size_t);
 PrivKey privkey_from_guess(unsigned char *, size_t);
 int     privkey_is_compressed(PrivKey);
+int     privkey_is_zero(PrivKey);
 void    privkey_free(PrivKey);
 
 #endif

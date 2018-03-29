@@ -351,6 +351,18 @@ int privkey_is_compressed(PrivKey k) {
 	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
 
+int privkey_is_zero(PrivKey key) {
+	int i;
+	
+	assert(key);
+
+	for (i = 0; i < PRIVKEY_LENGTH; ++i)
+		if (key->data[i] != 0)
+			break;
+
+	return i == PRIVKEY_LENGTH;
+}
+
 void privkey_free(PrivKey k) {
 	FREE(k);
 }
