@@ -23,8 +23,6 @@ int btk_help_main(int argc, char *argv[]) {
 		fprintf(stderr, "privkey man page here\n");
 	} else if (strcmp(argv[1], "pubkey") == 0) {
 		fprintf(stderr, "pubkey man page here\n");
-	} else if (strcmp(argv[1], "keypair") == 0) {
-		fprintf(stderr, "keypair man page here\n");
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
@@ -41,7 +39,6 @@ void btk_help_help(void) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "   privkey      Generate and/or format private keys\n");
 	fprintf(stderr, "   pubkey       Generate and/or format public keys\n");
-	fprintf(stderr, "   keypair      Generate and/or format key pairs\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Run 'btk help <command>' to read about the command and see a list of available options.\n");
 }

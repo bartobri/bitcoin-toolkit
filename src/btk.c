@@ -11,7 +11,6 @@
 #include "ctrl_mods/btk_help.h"
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
-#include "ctrl_mods/btk_keypair.h"
 
 int main(int argc, char *argv[]) {
 	char *cmd;
@@ -33,8 +32,6 @@ int main(int argc, char *argv[]) {
 		return btk_privkey_main(argc, argv);
 	} else if (strcmp(cmd, "pubkey") == 0) {
 		return btk_pubkey_main(argc, argv);
-	} else if (strcmp(cmd, "keypair") == 0) {
-		return btk_keypair_main(argc, argv);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", cmd);
 		return EXIT_FAILURE;
