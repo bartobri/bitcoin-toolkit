@@ -32,6 +32,8 @@
 #define OUTPUT_BECH32_ADDRESS   2
 #define OUTPUT_HEX              3
 #define OUTPUT_RAW              4
+#define OUTPUT_COMPRESS         1
+#define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
 #define FALSE                   0
 
@@ -50,6 +52,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	// Default flags
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_ADDRESS;
+	int output_compression = FALSE;
 	int output_privkey     = FALSE;
 	int output_newline     = FALSE;
 	int output_testnet     = FALSE;
@@ -58,7 +61,7 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsdABHRPNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrsdABHRCUPNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -89,6 +92,14 @@ int btk_pubkey_main(int argc, char *argv[]) {
 				break;
 			case 'R':
 				output_format = OUTPUT_RAW;
+				break;
+
+				// Output Compression
+			case 'C':
+				output_compression = OUTPUT_COMPRESS;
+				break;
+			case 'U':
+				output_compression = OUTPUT_UNCOMPRESS;
 				break;
 
 			// Other options
@@ -211,8 +222,23 @@ int btk_pubkey_main(int argc, char *argv[]) {
 	if (privkey_is_zero(priv)) {
 		fprintf(stderr, "Error: Private key can not be zero.\n");
 		return EXIT_FAILURE;
-	} else
-		key = pubkey_get(priv);
+	}
+
+	// Set output compression only if the option is set. Otherwise,
+	// compression is based on input.
+	switch (output_compression) {
+		case FALSE:
+			break;
+		case OUTPUT_COMPRESS:
+			priv = privkey_compress(priv);
+			break;
+		case OUTPUT_UNCOMPRESS:
+			priv = privkey_uncompress(priv);
+			break;
+	}
+
+	// Get public key from private key
+	key = pubkey_get(priv);
 
 	// Ensure we have a key
 	if (!key) {
