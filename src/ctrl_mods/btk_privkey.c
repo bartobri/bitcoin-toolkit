@@ -37,12 +37,7 @@
 #define TRUE                    1
 #define FALSE                   0
 
-/*
- * Static Variable Declarations
- */
-static unsigned char input_buffer[BUFFER_SIZE];
-
-int btk_privkey_main(int argc, char *argv[]) {
+int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o;
 	size_t i, c;
 	PrivKey key = NULL;
@@ -54,9 +49,6 @@ int btk_privkey_main(int argc, char *argv[]) {
 	int output_compression = FALSE;
 	int output_newline     = FALSE;
 	int output_testnet     = FALSE;
-
-	// Zero the input buffer
-	memset(input_buffer, 0, BUFFER_SIZE);
 	
 	// Process arguments
 	while ((o = getopt(argc, argv, "nwhrsdWHRCUNT")) != -1) {
@@ -134,93 +126,96 @@ int btk_privkey_main(int argc, char *argv[]) {
 			key = privkey_new();
 			break;
 		case INPUT_WIF:
-			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+			while (isspace((int)input[input_len - 1]))
+				--input_len;
 
-			// Ignore white spaces at the end of input
-			while (isspace((int)input_buffer[c-1]))
-				--c;
-
-			for (i = 0; i < c; ++i)
-				if (!base58_ischar(input_buffer[i]))
-					break;
-			if (i < PRIVKEY_WIF_LENGTH_MIN) {
+			if (input_len < PRIVKEY_WIF_LENGTH_MIN)
+				{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
-			}
-			input_buffer[i] = '\0';
-			if (!base58check_valid_checksum((char *)input_buffer, strlen((char *)input_buffer))) {
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-			key = privkey_from_wif((char *)input_buffer);
-			break;
-		case INPUT_HEX:
-			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
+				}
 
-			// Ignore white spaces at the end of input
-			while (isspace((int)input_buffer[c-1]))
-				--c;
-
-			for (i = 0; i < c; ++i)
-				if (!hex_ischar(input_buffer[i]))
-					break;
-			if (i < PRIVKEY_LENGTH * 2) {
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-			if (i == PRIVKEY_LENGTH * 2 + 1) {           // Incomplete compression flag
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-
-			input_buffer[c] = '\0';
-			key = privkey_from_hex((char *)input_buffer);
-			break;
-		case INPUT_RAW:
-			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
-			if (c < PRIVKEY_LENGTH) {
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-
-			key = privkey_from_raw(input_buffer, c);
-			break;
-		case INPUT_STR:
-			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
-
-			// Ignore newline at the end of input
-			if((int)input_buffer[c-1] == '\n')
-				--c;
-
-			input_buffer[c] = '\0';
-			key = privkey_from_str((char *)input_buffer);
-			break;
-		case INPUT_DEC:
-			c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
-
-			// Ignore white spaces at the end of input
-			while (isspace((int)input_buffer[c-1]))
-				--c;
-
-			for (i = 0; i < c; ++i) {
-				if (input_buffer[i] < '0' || input_buffer[i] > '9') {
+			for (i = 0; i < input_len; ++i)
+				if (!base58_ischar(input[i]))
+					{
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
-				}
-			}
+					}
 
-			input_buffer[c] = '\0';
-			key = privkey_from_dec((char *)input_buffer);
+			if (!base58check_valid_checksum((char *)input, input_len))
+				{
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+				}
+
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
+			key = privkey_from_wif((char *)input);
+			break;
+		case INPUT_HEX:
+			while (isspace((int)input[input_len - 1]))
+				--input_len;
+
+			if (input_len != PRIVKEY_LENGTH * 2 && input_len != (PRIVKEY_LENGTH + 1) * 2)
+				{
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+				}
+
+			for (i = 0; i < input_len; ++i)
+				if (!hex_ischar(input[i]))
+					{
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+					}
+
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
+			key = privkey_from_hex((char *)input);
+			break;
+		case INPUT_RAW:
+			if (input_len != PRIVKEY_LENGTH && input_len != PRIVKEY_LENGTH + 1)
+				{
+				fprintf(stderr, "Error: Invalid input.\n");
+				return EXIT_FAILURE;
+				}
+
+			key = privkey_from_raw(input, input_len);
+			break;
+		case INPUT_STR:
+			if((int)input[input_len - 1] == '\n')
+				--input_len;
+
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
+			key = privkey_from_str((char *)input);
+			break;
+		case INPUT_DEC:
+			while (isspace((int)input[input_len - 1]))
+				--input_len;
+
+			for (i = 0; i < input_len; ++i)
+				if (input[i] < '0' || input[i] > '9')
+					{
+					fprintf(stderr, "Error: Invalid input.\n");
+					return EXIT_FAILURE;
+					}
+
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
+			key = privkey_from_dec((char *)input);
 			break;
 		case INPUT_GUESS:
-			i = 0;
-			if (ioctl(STDIN_FILENO, FIONREAD, &i) >= 0 && i > 0) {
-				c = read(STDIN_FILENO, input_buffer, BUFFER_SIZE - 1);
-				key = privkey_from_guess(input_buffer, c);
-			}
-			if (key == NULL) {
+			if (input != NULL)
+				key = privkey_from_guess(input, input_len);
+
+			if (key == NULL)
 				key = privkey_new();
-			}
+
 			break;
 	}
 	
