@@ -9,6 +9,6 @@
 #define BTK_PUBKEY_H 1
 
 // Function prototypes
-int btk_pubkey_main(int argc, char *argv[]);
+int btk_pubkey_main(int argc, char *argv[], unsigned char*, size_t);
 
 #endif

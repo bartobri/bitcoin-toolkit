@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 	} else if (strcmp(argv[1], "privkey") == 0) {
 		return btk_privkey_main(argc, argv, input, input_len);
 	} else if (strcmp(argv[1], "pubkey") == 0) {
-		return btk_pubkey_main(argc, argv);
+		return btk_pubkey_main(argc, argv, input, input_len);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
