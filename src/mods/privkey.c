@@ -253,6 +253,7 @@ PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 
 	// Make sure key is not above PRIVKEY_MAX
+	// TODO - If PRIVKEY_MAX is greater than PRIVKEY_LENGTH chars, then do I really need to check for this?
 	mpz_init(max_key);
 	mpz_init(cur_key);
 	mpz_set_str(max_key, PRIVKEY_MAX, 16);
@@ -262,6 +263,21 @@ PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	mpz_clear(cur_key);
 	
 	return k;
+}
+
+PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
+	PrivKey key;
+	unsigned char *tmp;
+
+	NEW(key);
+	
+	tmp = crypto_get_sha256(data, data_len);
+	memcpy(key->data, tmp, PRIVKEY_LENGTH);
+	free(tmp);
+
+	key = privkey_compress(key);
+	
+	return key;
 }
 
 PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {

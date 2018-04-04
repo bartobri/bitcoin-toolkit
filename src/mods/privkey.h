@@ -19,6 +19,7 @@ PrivKey privkey_from_hex(char *);
 PrivKey privkey_from_dec(char *);
 PrivKey privkey_from_str(char *);
 PrivKey privkey_from_raw(unsigned char *, size_t);
+PrivKey privkey_from_blob(unsigned char *, size_t);
 PrivKey privkey_from_guess(unsigned char *, size_t);
 int     privkey_is_compressed(PrivKey);
 int     privkey_is_zero(PrivKey);

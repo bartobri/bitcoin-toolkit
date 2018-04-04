@@ -28,7 +28,8 @@
 #define INPUT_RAW               4
 #define INPUT_STR               5
 #define INPUT_DEC               6
-#define INPUT_GUESS             7
+#define INPUT_BLOB              7
+#define INPUT_GUESS             8
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
@@ -51,7 +52,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 	int output_testnet     = FALSE;
 	
 	// Process arguments
-	while ((o = getopt(argc, argv, "nwhrsdWHRCUNT")) != -1) {
+	while ((o = getopt(argc, argv, "nwhrsdbWHRCUNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'n':
@@ -71,6 +72,9 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 				break;
 			case 'd':
 				input_format = INPUT_DEC;
+				break;
+			case 'b':
+				input_format = INPUT_BLOB;
 				break;
 
 			// Output format
@@ -208,6 +212,9 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 			input[input_len] = '\0';
 
 			key = privkey_from_dec((char *)input);
+			break;
+		case INPUT_BLOB:
+			key = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
 			if (input != NULL)
