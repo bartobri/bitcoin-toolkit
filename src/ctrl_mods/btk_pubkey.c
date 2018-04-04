@@ -27,7 +27,8 @@
 #define INPUT_RAW               3
 #define INPUT_STR               4
 #define INPUT_DEC               5
-#define INPUT_GUESS             6
+#define INPUT_BLOB              6
+#define INPUT_GUESS             7
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2
 #define OUTPUT_HEX              3
@@ -53,7 +54,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int output_testnet     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsdABHRCUPNT")) != -1) {
+	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1) {
 		switch (o) {
 			// Input format
 			case 'w':
@@ -70,6 +71,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				break;
 			case 'd':
 				input_format = INPUT_DEC;
+				break;
+			case 'b':
+				input_format = INPUT_BLOB;
 				break;
 
 			// Output format
@@ -210,6 +214,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			input[input_len] = '\0';
 
 			priv = privkey_from_dec((char *)input);
+			break;
+		case INPUT_BLOB:
+			priv = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
 			priv = privkey_from_guess(input, input_len);
