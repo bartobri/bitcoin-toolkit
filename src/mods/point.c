@@ -22,21 +22,10 @@ void point_set(Point *a, Point b) {
 }
 
 void point_set_generator(Point *a) {
-	mpz_t gx, gy;
-	
 	assert(a);
 	
-	mpz_init(gx);
-	mpz_init(gy);
-	
-	mpz_set_str(gx, BITCOIN_GENERATOR_POINT_X, 16);
-	mpz_set_str(gy, BITCOIN_GENERATOR_POINT_Y, 16);
-	
-	mpz_set(a->x, gx);
-	mpz_set(a->y, gy);
-	
-	mpz_clear(gx);
-	mpz_clear(gy);
+	mpz_set_str(a->x, BITCOIN_GENERATOR_POINT_X, 16);
+	mpz_set_str(a->y, BITCOIN_GENERATOR_POINT_Y, 16);
 }
 
 void point_double(Point *result, Point a) {
