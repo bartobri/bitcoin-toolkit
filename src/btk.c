@@ -16,8 +16,8 @@
 #include "mods/mem.h"
 
 int main(int argc, char *argv[]) {
-	unsigned char*		input		= NULL;
-	size_t				input_len	= 0;
+	unsigned char* input = NULL;
+	size_t input_len = 0;
 
 	if (argc <= 1) {
 		btk_help_help();
