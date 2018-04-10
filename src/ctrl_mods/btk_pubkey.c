@@ -216,7 +216,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_dec((char *)input);
 			break;
 		case INPUT_BLOB:
-			if (input_len == 0)
+			if (input == NULL)
 				{
 				fprintf(stderr, "Error: Input required.\n");
 				return EXIT_FAILURE;
