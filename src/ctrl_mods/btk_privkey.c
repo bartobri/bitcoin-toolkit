@@ -38,7 +38,7 @@
 #define TRUE                    1
 #define FALSE                   0
 
-size_t btk_privkey_get_input(unsigned char** output);
+static size_t btk_privkey_get_input(unsigned char** output);
 
 int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o;
@@ -309,7 +309,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 	return EXIT_SUCCESS;
 }
 
-size_t btk_privkey_get_input(unsigned char** output) {
+static size_t btk_privkey_get_input(unsigned char** output) {
 	size_t i;
 	int o, mult = 100;
 
