@@ -180,6 +180,12 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 			key = privkey_from_hex((char *)input);
 			break;
 		case INPUT_RAW:
+			if (input == NULL)
+				{
+				fprintf(stderr, "Error: Input required.\n");
+				return EXIT_FAILURE;
+				}
+
 			if (input_len != PRIVKEY_LENGTH && input_len != PRIVKEY_LENGTH + 1)
 				{
 				fprintf(stderr, "Error: Invalid input.\n");
