@@ -244,9 +244,21 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
+			if (input == NULL)
+				input_len = btk_pubkey_get_input(&input);
+
 			priv = privkey_from_guess(input, input_len);
+
+			if (priv == NULL)
+				{
+				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
+				return EXIT_FAILURE;
+				}
+
 			break;
 	}
+
+	assert(priv);
 	
 	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv)) {
