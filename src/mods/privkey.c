@@ -286,6 +286,9 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 	char *tmp;
 	PrivKey key = NULL;
 
+	assert(data);
+	assert(data_len);
+
 	str_len = (data[data_len-1] == '\n') ? data_len - 1 : data_len;
 
 	// Decimal
