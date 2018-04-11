@@ -38,6 +38,8 @@
 #define TRUE                    1
 #define FALSE                   0
 
+static size_t btk_pubkey_get_input(unsigned char** output);
+
 int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o;
 	PubKey key = NULL;
@@ -132,6 +134,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	// Process input
 	switch (input_format) {
 		case INPUT_WIF:
+			if (input == NULL)
+				input_len = btk_pubkey_get_input(&input);
+
 			while (isspace((int)input[input_len - 1]))
 				--input_len;
 
@@ -160,6 +165,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_wif((char *)input);
 			break;
 		case INPUT_HEX:
+			if (input == NULL)
+				input_len = btk_pubkey_get_input(&input);
+
 			while (isspace((int)input[input_len - 1]))
 				--input_len;
 
@@ -197,6 +205,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_raw(input, input_len);
 			break;
 		case INPUT_STR:
+			if (input == NULL)
+				input_len = btk_pubkey_get_input(&input);
+
 			if((int)input[input_len - 1] == '\n')
 				--input_len;
 
@@ -206,6 +217,9 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_str((char *)input);
 			break;
 		case INPUT_DEC:
+			if (input == NULL)
+				input_len = btk_pubkey_get_input(&input);
+
 			while (isspace((int)input[input_len - 1]))
 				--input_len;
 
@@ -303,4 +317,25 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	pubkey_free(key);
 
 	return EXIT_SUCCESS;
+}
+
+static size_t btk_pubkey_get_input(unsigned char** output) {
+	size_t i, size, increment = 100;
+	int o;
+
+	size = increment;
+
+	*output = ALLOC(size);
+
+	for (i = 0; (o = getchar()) != '\n'; ++i)
+		{
+		if (i == size)
+			{
+			size += increment;
+			RESIZE(*output, size);
+			}
+		(*output)[i] = (unsigned char)o;
+		}
+
+	return i;
 }
