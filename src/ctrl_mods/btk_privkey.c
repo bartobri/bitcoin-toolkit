@@ -310,13 +310,22 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 }
 
 static size_t btk_privkey_get_input(unsigned char** output) {
-	size_t i;
-	int o, mult = 100;
+	size_t i, size, increment = 100;
+	int o;
 
-	*output = ALLOC(mult);
+	size = increment;
+
+	*output = ALLOC(size);
 
 	for (i = 0; (o = getchar()) != '\n'; ++i)
-			(*output)[i] = (unsigned char)o;
+		{
+		if (i == size)
+			{
+			size += increment;
+			RESIZE(*output, size);
+			}
+		(*output)[i] = (unsigned char)o;
+		}
 
 	return i;
 }
