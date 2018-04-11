@@ -242,17 +242,16 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 			key = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
-			if (input != NULL)
+			if (input == NULL)
+				input_len = btk_privkey_get_input(&input);
+
+			key = privkey_from_guess(input, input_len);
+
+			if (key == NULL)
 				{
-				key = privkey_from_guess(input, input_len);
-				if (key == NULL)
-					{
-					fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
-					return EXIT_FAILURE;
-					}
+				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
+				return EXIT_FAILURE;
 				}
-			else
-				key = privkey_new();
 
 			break;
 	}
