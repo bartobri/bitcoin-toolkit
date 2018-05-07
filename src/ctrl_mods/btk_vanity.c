@@ -34,6 +34,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	size_t i;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
+	char *pubkey_str;
 
 	// Default flags
 	int output_format      = OUTPUT_ADDRESS;
@@ -80,34 +81,38 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		input_len = btk_vanity_get_input(&input);
 
 	// Validate Input
+	while (isspace((int)input[input_len - 1]))
+	{
+		--input_len;
+	}
 	if (input_len > 10)
-		{
+	{
 		fprintf(stderr, "Match string too long. Must be 10 chars or less.\n");
 		return EXIT_FAILURE;
-		}
+	}
 	switch (output_format)
-		{
+	{
 		case OUTPUT_ADDRESS:
-		for (i = 0; i < input_len; ++i)
+			for (i = 0; i < input_len; ++i)
 			{
-			if (!base58_ischar(input[i]))
+				if (!base58_ischar(input[i]))
 				{
-				fprintf(stderr, "Match string must only contain base58 characters\n");
-				return EXIT_FAILURE;
+					fprintf(stderr, "Match string must only contain base58 characters\n");
+					return EXIT_FAILURE;
 				}
 			}
-		break;
+			break;
 		case OUTPUT_BECH32_ADDRESS:
-		for (i = 0; i < input_len; ++i)
+			for (i = 0; i < input_len; ++i)
 			{
-			if (base32_get_raw(input[i]) < 0)
+				if (base32_get_raw(input[i]) < 0)
 				{
-				fprintf(stderr, "Match string must only contain bech32 characters\n");
-				return EXIT_FAILURE;
+					fprintf(stderr, "Match string must only contain bech32 characters\n");
+					return EXIT_FAILURE;
 				}
 			}
-		break;
-		}
+			break;
+	}
 
 	// Process testnet option
 	switch (output_testnet) {
@@ -144,17 +149,30 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		// Process output
 		switch (output_format) {
 			case OUTPUT_ADDRESS:
-				printf("%s", pubkey_to_address(key));
+				pubkey_str = pubkey_to_address(key);
+				printf("%s\n", pubkey_str);
+				if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
+				{
+					printf("Vanity Address Found!\n");
+					return EXIT_SUCCESS;
+				}
+				FREE(pubkey_str);
 				break;
 			case OUTPUT_BECH32_ADDRESS:
 				if(!pubkey_is_compressed(key)) {
 					fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
 					return EXIT_FAILURE;
 				}
-				printf("%s", pubkey_to_bech32address(key));
+				pubkey_str = pubkey_to_bech32address(key);
+				printf("%s\n", pubkey_str);
+				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
+				{
+					printf("Vanity Address Found!\n");
+					return EXIT_SUCCESS;
+				}
+				FREE(pubkey_str);
 				break;
 		}
-		printf("\n");
 
 		// Free allocated memory
 		privkey_free(priv);
