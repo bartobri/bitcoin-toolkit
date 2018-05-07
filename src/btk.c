@@ -24,10 +24,18 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0) {
-		input = ALLOC(input_len);
-		read(STDIN_FILENO, input, input_len);
-	}
+	if (!isatty(fileno(stdin)))
+		{
+		while (1)
+			{
+			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
+				{
+				input = ALLOC(input_len);
+				read(STDIN_FILENO, input, input_len);
+				break;
+				}
+			}
+		}
 	
 	if (strcmp(argv[1], "help") == 0) {
 		return btk_help_main(argc, argv);
