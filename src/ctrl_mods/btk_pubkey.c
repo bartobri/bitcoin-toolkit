@@ -21,7 +21,6 @@
 #include "mods/mem.h"
 #include "mods/assert.h"
 
-#define BUFFER_SIZE             1000
 #define INPUT_WIF               1
 #define INPUT_HEX               2
 #define INPUT_RAW               3
