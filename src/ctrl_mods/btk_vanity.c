@@ -31,7 +31,6 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int o;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
-	unsigned char *t;
 
 	// Default flags
 	int output_format      = OUTPUT_ADDRESS;
@@ -39,7 +38,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int output_testnet     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1) {
+	while ((o = getopt(argc, argv, "ABCUT")) != -1) {
 		switch (o) {
 
 			// Output format
@@ -73,6 +72,10 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		}
 	}
 
+	// Get input if we need to
+	if (input == NULL)
+		input_len = btk_vanity_get_input(&input);
+
 	// Process testnet option
 	switch (output_testnet) {
 		case FALSE:
@@ -81,42 +84,45 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			network_set_test();
 	}
 
-	priv = privkey_new();
-	assert(priv);
+	while (1)
+	{
+		priv = privkey_new();
+		assert(priv);
 	
-	// Set output compression only if the option is set. Otherwise,
-	// compression is based on input.
-	switch (output_compression) {
-		case FALSE:
-			break;
-		case OUTPUT_COMPRESS:
-			priv = privkey_compress(priv);
-			break;
-		case OUTPUT_UNCOMPRESS:
-			priv = privkey_uncompress(priv);
-			break;
-	}
+		// Set output compression only if the option is set. Otherwise,
+		// compression is based on input.
+		switch (output_compression) {
+			case FALSE:
+				break;
+			case OUTPUT_COMPRESS:
+				priv = privkey_compress(priv);
+				break;
+			case OUTPUT_UNCOMPRESS:
+				priv = privkey_uncompress(priv);
+				break;
+		}
 
-	// Get public key from private key
-	key = pubkey_get(priv);
+		// Get public key from private key
+		key = pubkey_get(priv);
 
-	// Print private key
-	printf("%s ", privkey_to_wif(priv));
+		// Print private key
+		printf("%s ", privkey_to_wif(priv));
 	
-	// Process output
-	switch (output_format) {
-		case OUTPUT_ADDRESS:
-			printf("%s", pubkey_to_address(key));
-			break;
-		case OUTPUT_BECH32_ADDRESS:
-			if(!pubkey_is_compressed(key)) {
-				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
-				return EXIT_FAILURE;
-			}
-			printf("%s", pubkey_to_bech32address(key));
-			break;
+		// Process output
+		switch (output_format) {
+			case OUTPUT_ADDRESS:
+				printf("%s", pubkey_to_address(key));
+				break;
+			case OUTPUT_BECH32_ADDRESS:
+				if(!pubkey_is_compressed(key)) {
+					fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
+					return EXIT_FAILURE;
+				}
+				printf("%s", pubkey_to_bech32address(key));
+				break;
+		}
+		printf("\n");
 	}
-	printf("\n");
 
 	// Free allocated memory
 	privkey_free(priv);
