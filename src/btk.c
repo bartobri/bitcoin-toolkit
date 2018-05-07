@@ -13,6 +13,7 @@
 #include "ctrl_mods/btk_help.h"
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
+#include "ctrl_mods/btk_vanity.h"
 #include "mods/mem.h"
 
 int main(int argc, char *argv[]) {
@@ -43,6 +44,8 @@ int main(int argc, char *argv[]) {
 		return btk_privkey_main(argc, argv, input, input_len);
 	} else if (strcmp(argv[1], "pubkey") == 0) {
 		return btk_pubkey_main(argc, argv, input, input_len);
+	} else if (strcmp(argv[1], "vanity") == 0) {
+		return btk_vanity_main(argc, argv, input, input_len);
 	} else {
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
