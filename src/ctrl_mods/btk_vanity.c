@@ -15,6 +15,8 @@
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/network.h"
+#include "mods/base58.h"
+#include "mods/base32.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -29,6 +31,7 @@ static size_t btk_vanity_get_input(unsigned char** output);
 
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o;
+	size_t i;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 
@@ -76,6 +79,36 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	if (input == NULL)
 		input_len = btk_vanity_get_input(&input);
 
+	// Validate Input
+	if (input_len > 10)
+		{
+		fprintf(stderr, "Match string too long. Must be 10 chars or less.\n");
+		return EXIT_FAILURE;
+		}
+	switch (output_format)
+		{
+		case OUTPUT_ADDRESS:
+		for (i = 0; i < input_len; ++i)
+			{
+			if (!base58_ischar(input[i]))
+				{
+				fprintf(stderr, "Match string must only contain base58 characters\n");
+				return EXIT_FAILURE;
+				}
+			}
+		break;
+		case OUTPUT_BECH32_ADDRESS:
+		for (i = 0; i < input_len; ++i)
+			{
+			if (base32_get_raw(input[i]) < 0)
+				{
+				fprintf(stderr, "Match string must only contain bech32 characters\n");
+				return EXIT_FAILURE;
+				}
+			}
+		break;
+		}
+
 	// Process testnet option
 	switch (output_testnet) {
 		case FALSE:
@@ -122,11 +155,11 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				break;
 		}
 		printf("\n");
-	}
 
-	// Free allocated memory
-	privkey_free(priv);
-	pubkey_free(key);
+		// Free allocated memory
+		privkey_free(priv);
+		pubkey_free(key);
+	}
 
 	return EXIT_SUCCESS;
 }
