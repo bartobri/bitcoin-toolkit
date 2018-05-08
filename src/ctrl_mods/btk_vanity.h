@@ -9,6 +9,5 @@
 #define BTK_VANITY_H 1
 
 int btk_vanity_main(int argc, char *argv[], unsigned char*, size_t);
-void btk_vanity_help(void);
 
 #endif
