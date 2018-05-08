@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <gmp.h>
@@ -28,9 +29,11 @@
 #define FALSE                   0
 
 static size_t btk_vanity_get_input(unsigned char** output);
+static int btk_vanity_get_cursor_row(void);
+static void btk_vanity_move_cursor(int y, int x);
 
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
-	int o;
+	int o, row;
 	size_t i;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
@@ -122,8 +125,17 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			network_set_test();
 	}
 
+	row = btk_vanity_get_cursor_row();
+	// TODO - handle this better. Don't exit. Just deal with it without using terminal codes.
+	if (row < 0) {
+		fprintf(stderr, "Terminal Error. Quitting.\n");
+		return EXIT_FAILURE;
+	}
+
 	while (1)
 	{
+		btk_vanity_move_cursor(row, 0);
+
 		priv = privkey_new();
 		assert(priv);
 	
@@ -150,10 +162,10 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		switch (output_format) {
 			case OUTPUT_ADDRESS:
 				pubkey_str = pubkey_to_address(key);
-				printf("%s\n", pubkey_str);
+				printf("%s", pubkey_str);
 				if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
 				{
-					printf("Vanity Address Found!\n");
+					printf("\nVanity Address Found!\n");
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
@@ -164,10 +176,10 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 					return EXIT_FAILURE;
 				}
 				pubkey_str = pubkey_to_bech32address(key);
-				printf("%s\n", pubkey_str);
+				printf("%s", pubkey_str);
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("Vanity Address Found!\n");
+					printf("\nVanity Address Found!\n");
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
@@ -201,4 +213,60 @@ static size_t btk_vanity_get_input(unsigned char** output) {
 		}
 
 	return i;
+}
+
+static int btk_vanity_get_cursor_row(void) {
+	int i, r = 0;
+	int row = 0;
+	char buf[10];
+	char *cmd = "\033[6n";
+	struct termios tp;
+	struct termios save;
+
+	memset(buf, 0, sizeof(buf));
+
+	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
+	{
+		fprintf(stderr, "Error. Can't associate STDIN with terminal.\n");
+		return -1;
+	}
+
+	if (tcgetattr(STDIN_FILENO, &tp) == -1)
+	{
+		return -1;
+	}
+	save = tp;
+	tp.c_lflag &=(~ICANON & ~ECHO);
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tp) == -1)
+	{
+		return -1;
+	}
+
+	write(STDOUT_FILENO, cmd, sizeof(cmd));
+	r = read(STDIN_FILENO, buf, sizeof(buf));
+
+	if (tcsetattr(STDIN_FILENO, TCSANOW, &save) == -1)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < r; ++i) {
+		if (buf[i] == 27 || buf[i] == '[') {
+			continue;
+		}
+
+		if (buf[i] >= '0' && buf[i] <= '9') {
+			row = (row * 10) + (buf[i] - '0');
+		}
+
+		if (buf[i] == ';' || buf[i] == 'R' || buf[i] == 0) {
+			break;
+		}
+	}
+
+	return row;
+}
+
+static void btk_vanity_move_cursor(int y, int x) {
+	printf("\033[%i;%iH", y, x);
 }
