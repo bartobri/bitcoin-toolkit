@@ -126,15 +126,17 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 
 	row = btk_vanity_get_cursor_row();
-	// TODO - handle this better. Don't exit. Just deal with it without using terminal codes.
-	if (row < 0) {
-		fprintf(stderr, "Terminal Error. Quitting.\n");
-		return EXIT_FAILURE;
-	}
 
 	while (1)
 	{
-		btk_vanity_move_cursor(row, 0);
+		if (row >= 0)
+		{
+			btk_vanity_move_cursor(row, 0);
+		}
+		else
+		{
+			printf("\n");
+		}
 
 		priv = privkey_new();
 		assert(priv);
