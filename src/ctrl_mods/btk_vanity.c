@@ -34,7 +34,7 @@ static void btk_vanity_move_cursor(int y, int x);
 
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o, row;
-	size_t i;
+	size_t i, j;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	char *pubkey_str;
@@ -127,11 +127,19 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 
 	row = btk_vanity_get_cursor_row();
 
+	i = 0;
+	j = 0;
+
 	while (1)
 	{
 		if (row >= 0)
 		{
 			btk_vanity_move_cursor(row, 0);
+			if (i == 0)
+			{
+				printf("Searching...");
+				btk_vanity_move_cursor(row, 0);
+			}
 		}
 		else
 		{
@@ -158,16 +166,15 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		key = pubkey_get(priv);
 
 		// Print private key
-		printf("%s ", privkey_to_wif(priv));
+		//printf("%s ", privkey_to_wif(priv));
 	
 		// Process output
 		switch (output_format) {
 			case OUTPUT_ADDRESS:
 				pubkey_str = pubkey_to_address(key);
-				printf("%s", pubkey_str);
 				if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
 				{
-					printf("\nVanity Address Found!\n");
+					printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
@@ -178,14 +185,20 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 					return EXIT_FAILURE;
 				}
 				pubkey_str = pubkey_to_bech32address(key);
-				printf("%s", pubkey_str);
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("\nVanity Address Found!\n");
+					printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
 				break;
+		}
+
+		++j;
+		++i;
+		if (j == 100) {
+			j = 0;
+			printf("%lu Addresses Searched...", i);
 		}
 
 		// Free allocated memory
