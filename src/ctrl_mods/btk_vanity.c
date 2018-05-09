@@ -138,6 +138,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			if (i == 0)
 			{
 				printf("Searching...");
+				fflush(stdout);
 				btk_vanity_move_cursor(row, 0);
 			}
 		}
@@ -164,9 +165,6 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 
 		// Get public key from private key
 		key = pubkey_get(priv);
-
-		// Print private key
-		//printf("%s ", privkey_to_wif(priv));
 	
 		// Process output
 		switch (output_format) {
@@ -199,6 +197,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		if (j == 100) {
 			j = 0;
 			printf("%lu Addresses Searched...", i);
+			fflush(stdout);
 		}
 
 		// Free allocated memory
