@@ -34,19 +34,25 @@ static void btk_vanity_move_cursor(int y, int x);
 
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o, row;
-	size_t i, j;
+	size_t i, j, k;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	char *pubkey_str;
 
 	// Default flags
+	int input_insensitive  = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_compression = FALSE;
 	int output_testnet     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "ABCUT")) != -1) {
+	while ((o = getopt(argc, argv, "iABCUT")) != -1) {
 		switch (o) {
+
+			// Insensitive Search
+			case 'i':
+				input_insensitive = TRUE;
+				break;
 
 			// Output format
 			case 'A':
@@ -106,6 +112,19 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			}
 			break;
 		case OUTPUT_BECH32_ADDRESS:
+			// If we are executing a case insensitive search for a bech32 address,
+			// Just convert all uppercase letters to lowercase and performs a regular
+			// case sensitive search, since bech32 has no uppercase letters.
+			if (input_insensitive)
+			{
+				for (i = 0; i < input_len; ++i)
+				{
+					if (input[i] >= 'A' && input[i] <= 'Z')
+					{
+						input[i] = tolower(input[i]);
+					}
+				}
+			}
 			for (i = 0; i < input_len; ++i)
 			{
 				if (base32_get_raw(input[i]) < 0)
@@ -170,10 +189,28 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		switch (output_format) {
 			case OUTPUT_ADDRESS:
 				pubkey_str = pubkey_to_address(key);
-				if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
+				if (input_insensitive)
 				{
-					printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
-					return EXIT_SUCCESS;
+					for (k = 0; k < input_len; ++k)
+					{
+						if (pubkey_str[k+1] != toupper((int)input[k]) && pubkey_str[k+1] != tolower((int)input[k]))
+						{
+							break;
+						}
+					}
+					if (k == input_len)
+					{
+						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+						return EXIT_SUCCESS;
+					}
+				}
+				else
+				{
+					if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
+					{
+						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+						return EXIT_SUCCESS;
+					}
 				}
 				FREE(pubkey_str);
 				break;
@@ -185,7 +222,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				pubkey_str = pubkey_to_bech32address(key);
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+					printf("\nvanity address found!\nprivate key: %s\naddress:     %s\n", privkey_to_wif(priv), pubkey_str);
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
