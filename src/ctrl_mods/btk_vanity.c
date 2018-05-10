@@ -11,6 +11,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <time.h>
 #include <gmp.h>
 #include <sys/ioctl.h>
 #include "mods/privkey.h"
@@ -35,6 +36,8 @@ static void btk_vanity_move_cursor(int y, int x);
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
 	int o, row;
 	size_t i, j, k;
+	time_t current, start;
+	long int estimate;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	char *pubkey_str;
@@ -136,6 +139,50 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 	}
 
+	// Estimate time
+	switch (output_format)
+	{
+		case OUTPUT_ADDRESS:
+			if (!input_insensitive)
+			{
+				estimate = 58;
+				for (i = 1; i < input_len; ++i)
+				{
+					estimate *= 58;
+				}
+			}
+			else
+			{
+				if (isalpha(input[0]))
+				{
+					estimate = 34;
+				}
+				else
+				{
+					estimate = 58;
+				}
+				for (i = 1; i < input_len; ++i)
+				{
+					if (isalpha(input[i]))
+					{
+						estimate *= 34;
+					}
+					else
+					{
+						estimate *= 58;
+					}
+				}
+			}
+			break;
+		case OUTPUT_BECH32_ADDRESS:
+			estimate = 32;
+			for (i = 1; i < input_len; ++i)
+			{
+				estimate *= 32;
+			}
+			break;
+	}
+
 	// Process testnet option
 	switch (output_testnet) {
 		case FALSE:
@@ -148,6 +195,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 
 	i = 0;
 	j = 0;
+	start = time(NULL);
 
 	while (1)
 	{
@@ -222,18 +270,20 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				pubkey_str = pubkey_to_bech32address(key);
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("\nvanity address found!\nprivate key: %s\naddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+					printf("\nVanity address found!\nprivate key: %s\naddress:     %s\n", privkey_to_wif(priv), pubkey_str);
 					return EXIT_SUCCESS;
 				}
 				FREE(pubkey_str);
 				break;
 		}
 
+		current = time(NULL);
+
 		++j;
 		++i;
 		if (j == 100) {
 			j = 0;
-			printf("%lu Addresses Searched...", i);
+			printf("%lu Addresses Searched. Estimated Seconds: %ld, Elapsed Seconds: %ld", i, (estimate / (i / (current - start))), current - start);
 			fflush(stdout);
 		}
 
