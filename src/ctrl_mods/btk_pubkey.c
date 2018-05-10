@@ -289,7 +289,22 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 
 	// Print private key here if flag is set
 	if (output_privkey) {
-		printf("%s ", privkey_to_wif(priv));
+		switch  (output_format)
+		{
+			case OUTPUT_HEX:
+				printf("%s ", privkey_to_hex(priv));
+				break;
+			case OUTPUT_RAW:
+				t = privkey_to_raw(priv, &c);
+				for (i = 0; i < c; ++i) {
+					putchar(t[i]);
+				}
+				FREE(t);
+				break;
+			default:
+				printf("%s ", privkey_to_wif(priv));
+				break;
+		}
 	}
 	
 	// Process output
@@ -310,7 +325,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		case OUTPUT_RAW:
 			t = pubkey_to_raw(key, &c);
 			for (i = 0; i < c; ++i) {
-				printf("%c", t[i]);
+				putchar(t[i]);
 			}
 			FREE(t);
 			break;
