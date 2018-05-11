@@ -51,7 +51,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int output_format      = OUTPUT_ADDRESS;
 	int output_compression = FALSE;
 	int output_privkey     = FALSE;
-	int output_newline     = FALSE;
+	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
 	
 	// Check arguments
@@ -104,7 +104,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				output_privkey = TRUE;
 				break;
 			case 'N':
-				output_newline = TRUE;
+				output_newline = FALSE;
 				break;
 
 			// Testnet Option

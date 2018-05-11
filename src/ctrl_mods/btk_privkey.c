@@ -49,7 +49,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_WIF;
 	int output_compression = FALSE;
-	int output_newline     = FALSE;
+	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
 	
 	// Process arguments
@@ -99,7 +99,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 
 			// Other options
 			case 'N':
-				output_newline = TRUE;
+				output_newline = FALSE;
 				break;
 
 			// Network Options
