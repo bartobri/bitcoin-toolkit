@@ -15,8 +15,6 @@
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF
 
-// Private keys can not be larger than (1.158 * 10^77) - 1
-#define PRIVKEY_MAX                "100047a327efc14f7fe934ae56989375080f11619ff7157ffffffffffffffffff"
 #define PRIVKEY_COMPRESSED_FLAG    0x01
 #define PRIVKEY_UNCOMPRESSED_FLAG  0x00
 
@@ -28,25 +26,17 @@ struct PrivKey {
 PrivKey privkey_new(void) {
 	int i;
 	PrivKey k;
-	mpz_t cur_key, max_key;
+	mpz_t cur_key;
 	
 	NEW(k);
 
-	// Init and set max key size
-	mpz_init(max_key);
 	mpz_init(cur_key);
-	mpz_set_str(max_key, PRIVKEY_MAX, 16);
-	
-	// Creating private key as hex string
-	while (mpz_cmp_ui(cur_key, 1) <= 0 || mpz_cmp(cur_key, max_key) >= 0) {
 
-		for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-			k->data[i] = random_get();
-		}
-		mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
+	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+		k->data[i] = random_get();
 	}
+	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
 	
-	mpz_clear(max_key);
 	mpz_clear(cur_key);
 	
 	k->cflag = PRIVKEY_COMPRESSED_FLAG;
@@ -162,7 +152,6 @@ PrivKey privkey_from_wif(char *wif) {
 PrivKey privkey_from_hex(char *hex) {
 	size_t i;
 	PrivKey k;
-	mpz_t cur_key, max_key;
 	
 	// Validate hex string
 	assert(hex);
@@ -184,15 +173,6 @@ PrivKey privkey_from_hex(char *hex) {
 	} else {
 		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	}
-
-	// Make sure key is not above PRIVKEY_MAX
-	mpz_init(max_key);
-	mpz_init(cur_key);
-	mpz_set_str(max_key, PRIVKEY_MAX, 16);
-	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
-	assert(mpz_cmp(cur_key, max_key) < 0);
-	mpz_clear(max_key);
-	mpz_clear(cur_key);
 	
 	return k;
 }
@@ -234,7 +214,6 @@ PrivKey privkey_from_dec(char *data) {
 
 PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 	PrivKey k;
-	mpz_t cur_key, max_key;
 
 	// Check params
 	assert(raw);
@@ -251,16 +230,6 @@ PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
 		k->cflag = PRIVKEY_COMPRESSED_FLAG;
 	else
 		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
-
-	// Make sure key is not above PRIVKEY_MAX
-	// TODO - If PRIVKEY_MAX is greater than PRIVKEY_LENGTH chars, then do I really need to check for this?
-	mpz_init(max_key);
-	mpz_init(cur_key);
-	mpz_set_str(max_key, PRIVKEY_MAX, 16);
-	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
-	assert(mpz_cmp(cur_key, max_key) < 0);
-	mpz_clear(max_key);
-	mpz_clear(cur_key);
 	
 	return k;
 }
