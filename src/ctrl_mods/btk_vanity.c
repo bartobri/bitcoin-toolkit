@@ -33,7 +33,8 @@ static size_t btk_vanity_get_input(unsigned char** output);
 static int btk_vanity_get_cursor_row(void);
 static void btk_vanity_move_cursor(int y, int x);
 
-int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
+int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len)
+{
 	int o, row;
 	size_t i, j, k;
 	time_t current, start;
@@ -49,8 +50,10 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int output_testnet     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "iABCUT")) != -1) {
-		switch (o) {
+	while ((o = getopt(argc, argv, "iABCUT")) != -1)
+	{
+		switch (o)
+		{
 
 			// Insensitive Search
 			case 'i':
@@ -81,16 +84,22 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			// Unknown option
 			case '?':
 				if (isprint(optopt))
+				{
 					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
+				}
 				else
+				{
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
+				}
 				return EXIT_FAILURE;
 		}
 	}
 
 	// Get input if we need to
 	if (input == NULL)
+	{
 		input_len = btk_vanity_get_input(&input);
+	}
 
 	// Validate Input
 	while (isspace((int)input[input_len - 1]))
@@ -184,7 +193,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 
 	// Process testnet option
-	switch (output_testnet) {
+	switch (output_testnet)
+	{
 		case FALSE:
 			break;
 		case TRUE:
@@ -219,7 +229,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	
 		// Set output compression only if the option is set. Otherwise,
 		// compression is based on input.
-		switch (output_compression) {
+		switch (output_compression)
+		{
 			case FALSE:
 				break;
 			case OUTPUT_COMPRESS:
@@ -234,7 +245,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		key = pubkey_get(priv);
 	
 		// Process output
-		switch (output_format) {
+		switch (output_format)
+		{
 			case OUTPUT_ADDRESS:
 				pubkey_str = pubkey_to_address(key);
 				if (input_insensitive)
@@ -263,7 +275,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				FREE(pubkey_str);
 				break;
 			case OUTPUT_BECH32_ADDRESS:
-				if(!pubkey_is_compressed(key)) {
+				if(!pubkey_is_compressed(key))
+				{
 					fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
 					return EXIT_FAILURE;
 				}
@@ -281,7 +294,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 
 		++j;
 		++i;
-		if (j == 100) {
+		if (j == 100)
+		{
 			j = 0;
 			printf("%lu Addresses Searched. Estimated Seconds: %ld, Elapsed Seconds: %ld", i, (estimate / (i / (current - start))), current - start);
 			fflush(stdout);
@@ -295,7 +309,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	return EXIT_SUCCESS;
 }
 
-static size_t btk_vanity_get_input(unsigned char** output) {
+static size_t btk_vanity_get_input(unsigned char** output)
+{
 	size_t i, size, increment = 100;
 	int o;
 
@@ -304,19 +319,20 @@ static size_t btk_vanity_get_input(unsigned char** output) {
 	*output = ALLOC(size);
 
 	for (i = 0; (o = getchar()) != '\n'; ++i)
-		{
+	{
 		if (i == size)
-			{
+		{
 			size += increment;
 			RESIZE(*output, size);
-			}
-		(*output)[i] = (unsigned char)o;
 		}
+		(*output)[i] = (unsigned char)o;
+	}
 
 	return i;
 }
 
-static int btk_vanity_get_cursor_row(void) {
+static int btk_vanity_get_cursor_row(void)
+{
 	int i, r = 0;
 	int row = 0;
 	char buf[10];
@@ -368,6 +384,7 @@ static int btk_vanity_get_cursor_row(void) {
 	return row;
 }
 
-static void btk_vanity_move_cursor(int y, int x) {
+static void btk_vanity_move_cursor(int y, int x)
+{
 	printf("\033[%i;%iH", y, x);
 }

@@ -39,7 +39,8 @@
 
 static size_t btk_pubkey_get_input(unsigned char** output);
 
-int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_len) {
+int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_len)
+{
 	int o;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
@@ -55,8 +56,10 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	int output_testnet     = FALSE;
 	
 	// Check arguments
-	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1) {
-		switch (o) {
+	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1)
+	{
+		switch (o)
+		{
 			// Input format
 			case 'w':
 				input_format = INPUT_WIF;
@@ -115,15 +118,20 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			// Unknown option
 			case '?':
 				if (isprint(optopt))
+				{
 					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
+				}
 				else
+				{
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
+				}
 				return EXIT_FAILURE;
 		}
 	}
 
 	// Process testnet option
-	switch (output_testnet) {
+	switch (output_testnet)
+	{
 		case FALSE:
 			break;
 		case TRUE:
@@ -131,32 +139,39 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 	
 	// Process input
-	switch (input_format) {
+	switch (input_format)
+	{
 		case INPUT_WIF:
 			if (input == NULL)
+			{
 				input_len = btk_pubkey_get_input(&input);
+			}
 
 			while (isspace((int)input[input_len - 1]))
+			{
 				--input_len;
+			}
 
 			if (input_len < PRIVKEY_WIF_LENGTH_MIN)
-				{
+			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			for (i = 0; i < input_len; ++i)
+			{
 				if (!base58_ischar(input[i]))
-					{
+				{
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
-					}
+				}
+			}
 
 			if (!base58check_valid_checksum((char *)input, input_len))
-				{
+			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
@@ -165,23 +180,29 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 		case INPUT_HEX:
 			if (input == NULL)
+			{
 				input_len = btk_pubkey_get_input(&input);
+			}
 
 			while (isspace((int)input[input_len - 1]))
+			{
 				--input_len;
+			}
 
 			if (input_len != PRIVKEY_LENGTH * 2 && input_len != (PRIVKEY_LENGTH + 1) * 2)
-				{
+			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			for (i = 0; i < input_len; ++i)
+			{
 				if (!hex_ischar(input[i]))
-					{
+				{
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
-					}
+				}
+			}
 
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
@@ -190,25 +211,29 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 		case INPUT_RAW:
 			if (input == NULL)
-				{
+			{
 				fprintf(stderr, "Error: Input required.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			if (input_len != PRIVKEY_LENGTH && input_len != PRIVKEY_LENGTH + 1)
-				{
+			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			priv = privkey_from_raw(input, input_len);
 			break;
 		case INPUT_STR:
 			if (input == NULL)
+			{
 				input_len = btk_pubkey_get_input(&input);
+			}
 
 			if((int)input[input_len - 1] == '\n')
+			{
 				--input_len;
+			}
 
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
@@ -217,17 +242,23 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 		case INPUT_DEC:
 			if (input == NULL)
+			{
 				input_len = btk_pubkey_get_input(&input);
+			}
 
 			while (isspace((int)input[input_len - 1]))
+			{
 				--input_len;
+			}
 
 			for (i = 0; i < input_len; ++i)
+			{
 				if (input[i] < '0' || input[i] > '9')
-					{
+				{
 					fprintf(stderr, "Error: Invalid input.\n");
 					return EXIT_FAILURE;
-					}
+				}
+			}
 
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
@@ -236,23 +267,25 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 		case INPUT_BLOB:
 			if (input == NULL)
-				{
+			{
 				fprintf(stderr, "Error: Input required.\n");
 				return EXIT_FAILURE;
-				}
+			}
 			priv = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
 			if (input == NULL)
+			{
 				input_len = btk_pubkey_get_input(&input);
+			}
 
 			priv = privkey_from_guess(input, input_len);
 
 			if (priv == NULL)
-				{
+			{
 				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
 				return EXIT_FAILURE;
-				}
+			}
 
 			break;
 	}
@@ -260,14 +293,16 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	assert(priv);
 	
 	// Don't allow the generation of public keys from a zero private key
-	if (privkey_is_zero(priv)) {
+	if (privkey_is_zero(priv))
+	{
 		fprintf(stderr, "Error: Private key can not be zero.\n");
 		return EXIT_FAILURE;
 	}
 
 	// Set output compression only if the option is set. Otherwise,
 	// compression is based on input.
-	switch (output_compression) {
+	switch (output_compression)
+	{
 		case FALSE:
 			break;
 		case OUTPUT_COMPRESS:
@@ -282,13 +317,15 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	key = pubkey_get(priv);
 
 	// Ensure we have a key
-	if (!key) {
+	if (!key)
+	{
 		fprintf(stderr, "Unable to generate public key. Input required.\n");
 		return EXIT_FAILURE;
 	}
 
 	// Print private key here if flag is set
-	if (output_privkey) {
+	if (output_privkey)
+	{
 		switch  (output_format)
 		{
 			case OUTPUT_HEX:
@@ -296,7 +333,8 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 				break;
 			case OUTPUT_RAW:
 				t = privkey_to_raw(priv, &c);
-				for (i = 0; i < c; ++i) {
+				for (i = 0; i < c; ++i)
+				{
 					putchar(t[i]);
 				}
 				FREE(t);
@@ -308,12 +346,14 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 	
 	// Process output
-	switch (output_format) {
+	switch (output_format)
+	{
 		case OUTPUT_ADDRESS:
 			printf("%s", pubkey_to_address(key));
 			break;
 		case OUTPUT_BECH32_ADDRESS:
-			if(!pubkey_is_compressed(key)) {
+			if(!pubkey_is_compressed(key))
+			{
 				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
 				return EXIT_FAILURE;
 			}
@@ -324,7 +364,8 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			break;
 		case OUTPUT_RAW:
 			t = pubkey_to_raw(key, &c);
-			for (i = 0; i < c; ++i) {
+			for (i = 0; i < c; ++i)
+			{
 				putchar(t[i]);
 			}
 			FREE(t);
@@ -332,7 +373,8 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 
 	// Process newline flag
-	switch (output_newline) {
+	switch (output_newline)
+	{
 		case TRUE:
 			printf("\n");
 			break;
@@ -345,7 +387,8 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	return EXIT_SUCCESS;
 }
 
-static size_t btk_pubkey_get_input(unsigned char** output) {
+static size_t btk_pubkey_get_input(unsigned char** output)
+{
 	size_t i, size, increment = 100;
 	int o;
 
@@ -354,14 +397,14 @@ static size_t btk_pubkey_get_input(unsigned char** output) {
 	*output = ALLOC(size);
 
 	for (i = 0; (o = getchar()) != '\n'; ++i)
-		{
+	{
 		if (i == size)
-			{
+		{
 			size += increment;
 			RESIZE(*output, size);
-			}
-		(*output)[i] = (unsigned char)o;
 		}
+		(*output)[i] = (unsigned char)o;
+	}
 
 	return i;
 }

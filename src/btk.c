@@ -16,37 +16,48 @@
 #include "ctrl_mods/btk_vanity.h"
 #include "mods/mem.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	unsigned char* input = NULL;
 	size_t input_len = 0;
 
-	if (argc <= 1) {
+	if (argc <= 1)
+	{
 		btk_help_help();
 		return EXIT_FAILURE;
 	}
 
 	if (!isatty(fileno(stdin)))
-		{
+	{
 		while (1)
-			{
+		{
 			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
-				{
+			{
 				input = ALLOC(input_len);
 				read(STDIN_FILENO, input, input_len);
 				break;
-				}
 			}
 		}
+	}
 	
-	if (strcmp(argv[1], "help") == 0) {
+	if (strcmp(argv[1], "help") == 0)
+	{
 		return btk_help_main(argc, argv);
-	} else if (strcmp(argv[1], "privkey") == 0) {
+	}
+	else if (strcmp(argv[1], "privkey") == 0)
+	{
 		return btk_privkey_main(argc, argv, input, input_len);
-	} else if (strcmp(argv[1], "pubkey") == 0) {
+	}
+	else if (strcmp(argv[1], "pubkey") == 0)
+	{
 		return btk_pubkey_main(argc, argv, input, input_len);
-	} else if (strcmp(argv[1], "vanity") == 0) {
+	}
+	else if (strcmp(argv[1], "vanity") == 0)
+	{
 		return btk_vanity_main(argc, argv, input, input_len);
-	} else {
+	}
+	else
+	{
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		return EXIT_FAILURE;
 	}
