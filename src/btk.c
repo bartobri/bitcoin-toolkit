@@ -14,6 +14,7 @@
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
 #include "ctrl_mods/btk_vanity.h"
+#include "ctrl_mods/btk_node.h"
 #include "mods/mem.h"
 
 int main(int argc, char *argv[])
@@ -55,6 +56,10 @@ int main(int argc, char *argv[])
 	else if (strcmp(argv[1], "vanity") == 0)
 	{
 		return btk_vanity_main(argc, argv, input, input_len);
+	}
+	else if (strcmp(argv[1], "node") == 0)
+	{
+		return btk_node_main(argc, argv, input, input_len);
 	}
 	else
 	{

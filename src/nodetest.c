@@ -7,7 +7,8 @@
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
 
-#define HOST "10.0.0.195"
+#define HOST "bartonet.hopto.org"
+//#define HOST "10.0.0.195"
 //#define HOST "68.37.93.83"
 #define PORT 8333
 
