@@ -121,7 +121,8 @@ static Node node_connect(const char *host, int port) {
 	
 	// Get a pointer to 'hostent' containing info about host.
 	server = gethostbyname(host);
-	if (!server) {
+	if (!server)
+	{
 		return NULL;
 	}
 	
