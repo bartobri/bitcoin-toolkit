@@ -65,7 +65,6 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 	{
 		case MESSAGE_TYPE_VERSION:
 
-			// TODO - What happens if we use an invalid host?
 			node = node_new(host, port);
 			if (!node)
 			{

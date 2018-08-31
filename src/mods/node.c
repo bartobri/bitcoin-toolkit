@@ -212,9 +212,11 @@ static int node_read_messages(Node n) {
 	assert(n);
 
 	l = node_read(n, &s);
-	
-	// Read error if l is less than zero
-	assert(l >= 0);
+	if (l < 0)
+	{
+		perror("Host Read Error");
+		return l;
+	}
 
 	while (l > 0) {
 		m = NULL;
