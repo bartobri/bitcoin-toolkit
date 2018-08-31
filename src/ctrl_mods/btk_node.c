@@ -67,6 +67,11 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 			// TODO - What happens if we use an invalid host?
 			node = node_new(host, port);
+			if (!node)
+			{
+				fprintf(stderr, "Could not connect to host %s on port %i\n", host, port);
+				return EXIT_FAILURE;
+			}
 
 			// Construct and send a version message
 			message_string_len = version_new_serialize(&message_string);

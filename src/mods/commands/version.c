@@ -15,6 +15,7 @@
 #define SERVICES    0x00
 #define IP_ADDRESS  "00000000000000000000ffff7f000001"
 #define PORT        8333
+// TODO - This version number should come from another source
 #define USER_AGENT  "/Bitcoin-Toolkit:0.1.0/"
 
 struct Version {

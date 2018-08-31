@@ -39,8 +39,10 @@ Node node_new(const char *host, int port) {
 
 	n = node_connect(host, port);
 	
-	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-		n->mqueue[i] = NULL;
+	if (n) {
+		for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
+			n->mqueue[i] = NULL;
+		}
 	}
 
 	return n;
@@ -119,7 +121,9 @@ static Node node_connect(const char *host, int port) {
 	
 	// Get a pointer to 'hostent' containing info about host.
 	server = gethostbyname(host);
-	assert(server);
+	if (!server) {
+		return NULL;
+	}
 	
 	// Initializing serv_addr memory footprint to all integer zeros ('\0')
 	memset(&serv_addr, 0, sizeof(serv_addr));
@@ -131,7 +135,10 @@ static Node node_connect(const char *host, int port) {
 	
 	// Connect to server. Error if can't connect.
 	t = connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
-	assert(t >= 0);
+	if (t < 0)
+	{
+		return NULL;
+	}
 	
 	NEW(r);
 
