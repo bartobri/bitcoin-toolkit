@@ -168,7 +168,7 @@ static void node_write(Node n, unsigned char *data, size_t l) {
 	if (r < 0) {
 		// We don't necessarily need to kill the program on a write error.
 		// For now just display an error message and continue.
-		fprintf(stderr, "write() failed. Could write data to node socket. errno = %i\n", errno);
+		perror("Node Write Error");
 	} else {
 		assert(r > 0);
 	}
