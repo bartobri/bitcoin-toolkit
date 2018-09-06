@@ -68,10 +68,16 @@ void node_write_message(Node n, Message m) {
 }
 
 Message node_get_message(Node n, char *command) {
-	int i;
+	int i, c;
 	Message m = NULL;
 	
-	node_read_messages(n);
+	c = node_read_messages(n);
+
+	if (c < 0)
+	{
+		perror("Host Read Error");
+		return NULL;
+	}
 	
 	// Check if desired message is in the queue
 	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
@@ -212,9 +218,10 @@ static int node_read_messages(Node n) {
 	assert(n);
 
 	l = node_read(n, &s);
+
+	// If read() returns an error, pass it up the call stack
 	if (l < 0)
 	{
-		perror("Host Read Error");
 		return l;
 	}
 

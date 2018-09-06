@@ -359,8 +359,16 @@ static int btk_vanity_get_cursor_row(void)
 		return -1;
 	}
 
-	write(STDOUT_FILENO, cmd, sizeof(cmd));
-	r = read(STDIN_FILENO, buf, sizeof(buf));
+	if (write(STDOUT_FILENO, cmd, strlen(cmd)) == -1)
+	{
+		return -1;
+	}
+	
+	// TODO - replace 10 with a macro
+	if ((r = read(STDIN_FILENO, buf, 10)) < 0)
+	{
+		return -1;
+	}
 
 	if (tcsetattr(STDIN_FILENO, TCSANOW, &save) == -1)
 	{
