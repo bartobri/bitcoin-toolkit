@@ -25,8 +25,13 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 	Node node;
 	Message message;
-	unsigned char *message_string;
-	size_t message_string_len;
+	unsigned char *payload = NULL;
+	size_t payload_len;
+
+	Version v = NULL;
+	unsigned char *version_string;
+	size_t version_string_len;
+	char *json = NULL;
 
 
 	while ((o = getopt(argc, argv, "h:p:")) != -1)
@@ -73,9 +78,9 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			}
 
 			// Construct and send a version message
-			message_string_len = version_new_serialize(&message_string);
-			message = message_new(VERSION_COMMAND, message_string, message_string_len);
-			FREE(message_string);
+			version_string_len = version_new_serialize(&version_string);
+			message = message_new(VERSION_COMMAND, version_string, version_string_len);
+			FREE(version_string);
 			node_write_message(node, message);
 			message_free(message);
 
@@ -94,33 +99,17 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				return EXIT_FAILURE;
 			}
 
-			message_string_len = message_serialize(message, &message_string);
-			for (i = 0; i < (int)message_string_len; ++i)
-			{
-				printf("%02x", message_string[i]);
-			}
-			printf("\n");
-			message_free(message);
+			payload = NULL;
+			payload_len = message_get_payload(&payload, message);
 
-			// Wait for verack message response and send responding verack
-			for (i = 0; i < TIMEOUT; ++i)
-			{
-				if ((message = node_get_message(node, VERACK_COMMAND)))
-				{
-					break;
-				}
-				sleep(1);
-			}
-			if (message)
-			{
-				// Construct and send a version message
-				message_string_len = version_new_serialize(&message_string);
-				message = message_new(VERACK_COMMAND, message_string, message_string_len);
-				FREE(message_string);
-				// TODO - set version number in message to lesser of the two
-				//node_write_message(node, message);
-				message_free(message);
-			}
+			version_deserialize(payload, &v, payload_len);
+			json = version_to_json(v);
+
+			printf("%s\n", json);
+
+			message_free(message);
+			FREE(payload);
+			FREE(json);
 
 			break;
 	}

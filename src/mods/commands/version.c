@@ -1,7 +1,9 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
 #include <time.h>
+#include <inttypes.h>
 #include "version.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
@@ -154,4 +156,148 @@ void version_free(Version v) {
 		FREE(v->user_agent);
 	}
 	FREE(v);
+}
+
+char *version_to_json(Version v) {
+	int i;
+	uint64_t service;
+	char *head, *ptr;
+
+	assert(v);
+
+	head = ptr = ALLOC(1000);
+
+	// Opening bracket
+	ptr += sprintf(ptr, "{\n");
+
+	// version
+	ptr += sprintf(ptr, "  \"version\": %"PRIu32",\n", v->version);
+
+	// services
+	ptr += sprintf(ptr, "  \"services\": {\n");
+	for (i = 0; i < 8; ++i)
+	{
+		service = ((v->services >> (i * 8)) & 0x00000000000000FF);
+		if (service > 0)
+		{
+			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			switch (i)
+			{
+				case 0:
+					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
+					break;
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
+					break;
+			}
+		}
+	}
+	ptr += sprintf(ptr, "  },\n");
+
+	// timestamp
+	ptr += sprintf(ptr, "  \"timestamp\": %"PRIu64",\n", v->timestamp);
+
+	// addr_recv_services
+	ptr += sprintf(ptr, "  \"addr_recv_services\": {\n");
+	for (i = 0; i < 8; ++i)
+	{
+		service = ((v->addr_recv_services >> (i * 8)) & 0x00000000000000FF);
+		if (service > 0)
+		{
+			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			switch (i)
+			{
+				case 0:
+					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
+					break;
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
+					break;
+			}
+		}
+	}
+	ptr += sprintf(ptr, "  },\n");
+
+	// addr_recv_ip_address
+	ptr += sprintf(ptr, "  \"addr_recv_ip_address\": \"");
+	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+	{
+		ptr += sprintf(ptr, "%02x", v->addr_recv_ip_address[i]);
+	}
+	ptr += sprintf(ptr, "\",\n");
+
+	// addr_recv_port
+	ptr += sprintf(ptr, "  \"addr_recv_port\": %"PRIu16",\n", v->addr_recv_port);
+
+	// addr_trans_services
+	ptr += sprintf(ptr, "  \"addr_trans_services\": {\n");
+	for (i = 0; i < 8; ++i)
+	{
+		service = ((v->addr_trans_services >> (i * 8)) & 0x00000000000000FF);
+		if (service > 0)
+		{
+			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			switch (i)
+			{
+				case 0:
+					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
+					break;
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
+					break;
+			}
+		}
+	}
+	ptr += sprintf(ptr, "  },\n");
+
+	// addr_trans_ip_address
+	ptr += sprintf(ptr, "  \"addr_trans_ip_address\": \"");
+	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+	{
+		ptr += sprintf(ptr, "%02x", v->addr_trans_ip_address[i]);
+	}
+	ptr += sprintf(ptr, "\",\n");
+
+	// addr_trans_port
+	ptr += sprintf(ptr, "  \"addr_trans_port\": %"PRIu16",\n", v->addr_trans_port);
+
+	// nonce
+	ptr += sprintf(ptr, "  \"nonce\": %"PRIu64",\n", v->nonce);
+	
+	// user_agent
+	ptr += sprintf(ptr, "  \"user_agent\": \"");
+	for(i = 0; i < (int)v->user_agent_bytes; ++i)
+	{
+		ptr += sprintf(ptr, "%c", v->user_agent[i]);
+	}
+	ptr += sprintf(ptr, "\",\n");
+	
+	// start_height
+	ptr += sprintf(ptr, "  \"start_height\": %"PRIu32",\n", v->start_height);
+	
+	// relay
+	ptr += sprintf(ptr, "  \"relay\": \"%s\",\n", (v->relay == 0) ? "false" : "true");
+
+	// Closing bracket
+	sprintf(ptr, "}");
+
+	return head;
 }
