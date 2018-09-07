@@ -294,7 +294,7 @@ char *version_to_json(Version v) {
 	ptr += sprintf(ptr, "  \"start_height\": %"PRIu32",\n", v->start_height);
 	
 	// relay
-	ptr += sprintf(ptr, "  \"relay\": \"%s\",\n", (v->relay == 0) ? "false" : "true");
+	ptr += sprintf(ptr, "  \"relay\": %s,\n", (v->relay == 0) ? "false" : "true");
 
 	// Closing bracket
 	sprintf(ptr, "}");
