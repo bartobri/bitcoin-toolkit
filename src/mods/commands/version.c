@@ -175,24 +175,27 @@ char *version_to_json(Version v) {
 
 	// services
 	ptr += sprintf(ptr, "  \"services\": {\n");
-	for (i = 0; i < 8; ++i)
+	for (i = 0; i < 64; ++i)
 	{
-		service = ((v->services >> (i * 8)) & 0x00000000000000FF);
-		if (service > 0)
+		service = ((v->services >> i) & 0x0000000000000001);
+		if (service == 1)
 		{
-			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
 			switch (i)
 			{
 				case 0:
 					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
 					break;
 				case 1:
+					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
+					break;
 				case 2:
+					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
+					break;
 				case 3:
-				case 4:
-				case 5:
-				case 6:
-				case 7:
+					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
+					break;
+				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
 					break;
 			}
@@ -205,24 +208,27 @@ char *version_to_json(Version v) {
 
 	// addr_recv_services
 	ptr += sprintf(ptr, "  \"addr_recv_services\": {\n");
-	for (i = 0; i < 8; ++i)
+	for (i = 0; i < 64; ++i)
 	{
-		service = ((v->addr_recv_services >> (i * 8)) & 0x00000000000000FF);
-		if (service > 0)
+		service = ((v->addr_recv_services >> i) & 0x0000000000000001);
+		if (service == 1)
 		{
-			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
 			switch (i)
 			{
 				case 0:
 					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
 					break;
 				case 1:
+					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
+					break;
 				case 2:
+					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
+					break;
 				case 3:
-				case 4:
-				case 5:
-				case 6:
-				case 7:
+					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
+					break;
+				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
 					break;
 			}
@@ -243,24 +249,27 @@ char *version_to_json(Version v) {
 
 	// addr_trans_services
 	ptr += sprintf(ptr, "  \"addr_trans_services\": {\n");
-	for (i = 0; i < 8; ++i)
+	for (i = 0; i < 64; ++i)
 	{
-		service = ((v->addr_trans_services >> (i * 8)) & 0x00000000000000FF);
-		if (service > 0)
+		service = ((v->addr_trans_services >> i) & 0x0000000000000001);
+		if (service == 1)
 		{
-			ptr += sprintf(ptr, "    \"%#04x\": ", (unsigned int)service);
+			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
 			switch (i)
 			{
 				case 0:
 					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
 					break;
 				case 1:
+					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
+					break;
 				case 2:
+					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
+					break;
 				case 3:
-				case 4:
-				case 5:
-				case 6:
-				case 7:
+					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
+					break;
+				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
 					break;
 			}
