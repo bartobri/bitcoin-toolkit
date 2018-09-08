@@ -37,6 +37,9 @@ struct Version {
 	uint8_t   relay;
 };
 
+// Function Prototypes
+char *version_service_bit_to_str(int bit);
+
 Version version_new(void) {
 	Version r;
 	unsigned char *temp;
@@ -181,27 +184,7 @@ char *version_to_json(Version v) {
 		if (service == 1)
 		{
 			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			switch (i)
-			{
-				case 0:
-					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
-					break;
-				case 1:
-					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
-					break;
-				case 2:
-					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
-					break;
-				case 3:
-					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
-					break;
-				case 10:
-					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
-					break;
-				default:
-					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
-					break;
-			}
+			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
 		}
 	}
 	ptr += sprintf(ptr, "  },\n");
@@ -217,27 +200,7 @@ char *version_to_json(Version v) {
 		if (service == 1)
 		{
 			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			switch (i)
-			{
-				case 0:
-					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
-					break;
-				case 1:
-					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
-					break;
-				case 2:
-					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
-					break;
-				case 3:
-					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
-					break;
-				case 10:
-					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
-					break;
-				default:
-					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
-					break;
-			}
+			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
 		}
 	}
 	ptr += sprintf(ptr, "  },\n");
@@ -261,27 +224,7 @@ char *version_to_json(Version v) {
 		if (service == 1)
 		{
 			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			switch (i)
-			{
-				case 0:
-					ptr += sprintf(ptr, "\"NODE_NETWORK\",\n");
-					break;
-				case 1:
-					ptr += sprintf(ptr, "\"NODE_GETUTXO\",\n");
-					break;
-				case 2:
-					ptr += sprintf(ptr, "\"NODE_BLOOM\",\n");
-					break;
-				case 3:
-					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
-					break;
-				case 10:
-					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
-					break;
-				default:
-					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
-					break;
-			}
+			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
 		}
 	}
 	ptr += sprintf(ptr, "  },\n");
@@ -318,4 +261,29 @@ char *version_to_json(Version v) {
 	sprintf(ptr, "}");
 
 	return head;
+}
+
+char *version_service_bit_to_str(int bit) {
+	assert(bit >= 0 && bit < 64);
+
+	switch (bit)
+	{
+		case 0:
+			return "NODE_NETWORK";
+			break;
+		case 1:
+			return "NODE_GETUTXO";
+			break;
+		case 2:
+			return "NODE_BLOOM";
+			break;
+		case 3:
+			return "NODE_WITNESS";
+			break;
+		case 10:
+			return "NODE_NETWORK_LIMITED";
+			break;
+	}
+
+	return "UNKNOWN";
 }
