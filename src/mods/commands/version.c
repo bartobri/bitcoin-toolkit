@@ -195,6 +195,9 @@ char *version_to_json(Version v) {
 				case 3:
 					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
 					break;
+				case 10:
+					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
+					break;
 				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
 					break;
@@ -227,6 +230,9 @@ char *version_to_json(Version v) {
 					break;
 				case 3:
 					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
+					break;
+				case 10:
+					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
 					break;
 				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
@@ -268,6 +274,9 @@ char *version_to_json(Version v) {
 					break;
 				case 3:
 					ptr += sprintf(ptr, "\"NODE_WITNESS\",\n");
+					break;
+				case 10:
+					ptr += sprintf(ptr, "\"NODE_NETWORK_LIMITED\",\n");
 					break;
 				default:
 					ptr += sprintf(ptr, "\"UNKNOWN\",\n");
