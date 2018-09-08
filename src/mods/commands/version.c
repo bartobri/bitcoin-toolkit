@@ -39,6 +39,7 @@ struct Version {
 
 // Function Prototypes
 static char *version_service_bit_to_str(int bit);
+static int version_services_to_json(char *ptr, uint64_t value);
 
 Version version_new(void) {
 	Version r;
@@ -163,7 +164,6 @@ void version_free(Version v) {
 
 char *version_to_json(Version v) {
 	int i;
-	uint64_t service;
 	char *head, *ptr;
 
 	assert(v);
@@ -178,15 +178,7 @@ char *version_to_json(Version v) {
 
 	// services
 	ptr += sprintf(ptr, "  \"services\": {\n");
-	for (i = 0; i < 64; ++i)
-	{
-		service = ((v->services >> i) & 0x0000000000000001);
-		if (service == 1)
-		{
-			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
-		}
-	}
+	ptr += version_services_to_json(ptr, v->services);
 	ptr += sprintf(ptr, "  },\n");
 
 	// timestamp
@@ -194,15 +186,7 @@ char *version_to_json(Version v) {
 
 	// addr_recv_services
 	ptr += sprintf(ptr, "  \"addr_recv_services\": {\n");
-	for (i = 0; i < 64; ++i)
-	{
-		service = ((v->addr_recv_services >> i) & 0x0000000000000001);
-		if (service == 1)
-		{
-			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
-		}
-	}
+	ptr += version_services_to_json(ptr, v->addr_recv_services);
 	ptr += sprintf(ptr, "  },\n");
 
 	// addr_recv_ip_address
@@ -218,15 +202,7 @@ char *version_to_json(Version v) {
 
 	// addr_trans_services
 	ptr += sprintf(ptr, "  \"addr_trans_services\": {\n");
-	for (i = 0; i < 64; ++i)
-	{
-		service = ((v->addr_trans_services >> i) & 0x0000000000000001);
-		if (service == 1)
-		{
-			ptr += sprintf(ptr, "    \"bit %d\": ", i + 1);
-			ptr += sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
-		}
-	}
+	ptr += version_services_to_json(ptr, v->addr_trans_services);
 	ptr += sprintf(ptr, "  },\n");
 
 	// addr_trans_ip_address
@@ -261,6 +237,38 @@ char *version_to_json(Version v) {
 	sprintf(ptr, "}");
 
 	return head;
+}
+
+static int version_services_to_json(char *ptr, uint64_t value) {
+	int i, c, total;
+	
+	assert(ptr);
+
+	c = total = 0;
+
+	for (i = 0; i < 64; ++i)
+	{
+		if (((value >> i) & 0x0000000000000001) == 1)
+		{
+			c = sprintf(ptr, "    \"bit %d\": ", i + 1);
+			total += c;
+			ptr += c;
+			c = sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
+			total += c;
+			ptr += c;
+		}
+	}
+
+	// removing the trailing comma if we printed a list
+	if (total > 0)
+	{
+		ptr--;
+		ptr--;
+		sprintf(ptr, "\n");
+		total--;
+	}
+
+	return total;
 }
 
 static char *version_service_bit_to_str(int bit) {
