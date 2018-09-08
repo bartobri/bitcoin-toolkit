@@ -38,7 +38,7 @@ struct Version {
 };
 
 // Function Prototypes
-char *version_service_bit_to_str(int bit);
+static char *version_service_bit_to_str(int bit);
 
 Version version_new(void) {
 	Version r;
@@ -263,7 +263,7 @@ char *version_to_json(Version v) {
 	return head;
 }
 
-char *version_service_bit_to_str(int bit) {
+static char *version_service_bit_to_str(int bit) {
 	assert(bit >= 0 && bit < 64);
 
 	switch (bit)
