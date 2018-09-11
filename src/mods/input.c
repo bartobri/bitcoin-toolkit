@@ -43,8 +43,8 @@ size_t input_get_from_pipe(unsigned char** dest)
 		{
 			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
 			{
-				dest = ALLOC(input_len);
-				read(STDIN_FILENO, dest, input_len);
+				*dest = ALLOC(input_len);
+				read(STDIN_FILENO, *dest, input_len);
 				break;
 			}
 		}
