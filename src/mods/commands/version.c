@@ -5,10 +5,14 @@
 #include <time.h>
 #include <inttypes.h>
 #include "version.h"
+#include "mods/config.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
+
+#define STRINGIFY2(x) #x
+#define STRINGIFY(x)  STRINGIFY2(x)
 
 #define IP_ADDR_FIELD_LEN  16
 #define USER_AGENT_MAX_LEN 1024
@@ -17,8 +21,7 @@
 #define SERVICES    0x00
 #define IP_ADDRESS  "00000000000000000000ffff7f000001"
 #define PORT        8333
-// TODO - This version number should come from another source
-#define USER_AGENT  "/Bitcoin-Toolkit:0.1.0/"
+#define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
 
 struct Version {
 	uint32_t  version;
