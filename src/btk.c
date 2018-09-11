@@ -15,6 +15,7 @@
 #include "ctrl_mods/btk_pubkey.h"
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
+#include "ctrl_mods/btk_version.h"
 #include "mods/mem.h"
 
 int main(int argc, char *argv[])
@@ -60,6 +61,10 @@ int main(int argc, char *argv[])
 	else if (strcmp(argv[1], "node") == 0)
 	{
 		return btk_node_main(argc, argv, input, input_len);
+	}
+	else if (strcmp(argv[1], "version") == 0)
+	{
+		return btk_version_main(argc, argv, input, input_len);
 	}
 	else
 	{
