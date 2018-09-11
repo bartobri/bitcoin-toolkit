@@ -19,6 +19,7 @@
 #include "mods/network.h"
 #include "mods/base58.h"
 #include "mods/base32.h"
+#include "mods/btktermio.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -31,7 +32,6 @@
 
 static size_t btk_vanity_get_input(unsigned char** output);
 static int btk_vanity_get_cursor_row(void);
-static void btk_vanity_move_cursor(int y, int x);
 
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len)
 {
@@ -211,12 +211,12 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	{
 		if (row >= 0)
 		{
-			btk_vanity_move_cursor(row, 0);
+			btktermio_move_cursor(row, 0);
 			if (i == 0)
 			{
 				printf("Searching...");
 				fflush(stdout);
-				btk_vanity_move_cursor(row, 0);
+				btktermio_move_cursor(row, 0);
 			}
 		}
 		else
@@ -333,14 +333,7 @@ static size_t btk_vanity_get_input(unsigned char** output)
 
 static int btk_vanity_get_cursor_row(void)
 {
-	int i, r = 0;
 	int row = 0;
-	char buf[10];
-	char *cmd = "\033[6n";
-	struct termios tp;
-	struct termios save;
-
-	memset(buf, 0, sizeof(buf));
 
 	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
 	{
@@ -348,51 +341,11 @@ static int btk_vanity_get_cursor_row(void)
 		return -1;
 	}
 
-	if (tcgetattr(STDIN_FILENO, &tp) == -1)
-	{
-		return -1;
-	}
-	save = tp;
-	tp.c_lflag &=(~ICANON & ~ECHO);
-	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tp) == -1)
-	{
-		return -1;
-	}
+	btktermio_init_terminal();
 
-	if (write(STDOUT_FILENO, cmd, strlen(cmd)) == -1)
-	{
-		return -1;
-	}
-	
-	// TODO - replace 10 with a macro
-	if ((r = read(STDIN_FILENO, buf, 10)) < 0)
-	{
-		return -1;
-	}
+	row = btktermio_get_cursor_row();
 
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &save) == -1)
-	{
-		return -1;
-	}
-
-	for (i = 0; i < r; ++i) {
-		if (buf[i] == 27 || buf[i] == '[') {
-			continue;
-		}
-
-		if (buf[i] >= '0' && buf[i] <= '9') {
-			row = (row * 10) + (buf[i] - '0');
-		}
-
-		if (buf[i] == ';' || buf[i] == 'R' || buf[i] == 0) {
-			break;
-		}
-	}
+	btktermio_restore_terminal();
 
 	return row;
-}
-
-static void btk_vanity_move_cursor(int y, int x)
-{
-	printf("\033[%i;%iH", y, x);
 }
