@@ -116,7 +116,7 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		case OUTPUT_ADDRESS:
 			for (i = 0; i < input_len; ++i)
 			{
-				if (!base58_ischar(input[i]))
+				if ((input_insensitive && !base58_ischar(toupper(input[i])) && !base58_ischar(tolower(input[i]))) || (!input_insensitive && !base58_ischar(input[i])))
 				{
 					fprintf(stderr, "Match string must only contain base58 characters\n");
 					return EXIT_FAILURE;
