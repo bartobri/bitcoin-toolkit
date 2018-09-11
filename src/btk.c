@@ -63,7 +63,8 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
+		fprintf(stderr, "Invalid Command: %s\n", argv[1]);
+		btk_help_help();
 		return EXIT_FAILURE;
 	}
 
