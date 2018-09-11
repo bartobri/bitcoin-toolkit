@@ -16,12 +16,12 @@
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_version.h"
-#include "mods/mem.h"
+#include "mods/input.h"
 
 int main(int argc, char *argv[])
 {
 	unsigned char* input = NULL;
-	size_t input_len = 0;
+	size_t input_len;
 
 	if (argc <= 1)
 	{
@@ -29,18 +29,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!isatty(fileno(stdin)))
-	{
-		while (1)
-		{
-			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
-			{
-				input = ALLOC(input_len);
-				read(STDIN_FILENO, input, input_len);
-				break;
-			}
-		}
-	}
+	input_len = input_get_from_pipe(&input);
 	
 	if (strcmp(argv[1], "help") == 0)
 	{
