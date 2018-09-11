@@ -7,9 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include "ctrl_mods/btk_help.h"
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
