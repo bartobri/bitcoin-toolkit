@@ -12,7 +12,6 @@
 #include "mods/mem.h"
 
 #define INPUT_INCREMENT 100
-#define INPUT_MAX       20000000
 
 size_t input_get(unsigned char** dest)
 {
@@ -35,7 +34,7 @@ size_t input_get_from_keyboard(unsigned char** dest)
 
 	*dest = ALLOC(s);
 
-	for (i = 0; i < INPUT_MAX && (o = getchar()) != '\n'; ++i)
+	for (i = 0; (o = getchar()) != '\n'; ++i)
 	{
 		if (i == s)
 		{
