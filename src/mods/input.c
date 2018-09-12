@@ -8,10 +8,25 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include "mods/input.h"
 #include "mods/mem.h"
 
 #define INPUT_INCREMENT 100
 #define INPUT_MAX       20000000
+
+size_t input_get(unsigned char** dest)
+{
+	size_t input_len = 0;
+
+	input_len = input_get_from_pipe(dest);
+
+	if (input_len == 0)
+	{
+		input_len = input_get_from_keyboard(dest);
+	}
+
+	return input_len;
+}
 
 size_t input_get_from_keyboard(unsigned char** dest)
 {

@@ -38,13 +38,15 @@
 #define TRUE                    1
 #define FALSE                   0
 
-int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_len)
+int btk_pubkey_main(int argc, char *argv[])
 {
 	int o;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	size_t i, c;
 	unsigned char *t;
+	unsigned char *input;
+	size_t input_len;
 
 	// Default flags
 	int input_format       = INPUT_GUESS;
@@ -141,10 +143,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	switch (input_format)
 	{
 		case INPUT_WIF:
-			if (input == NULL)
-			{
-				input_len = input_get_from_keyboard(&input);
-			}
+			input_len = input_get(&input);
 
 			while (isspace((int)input[input_len - 1]))
 			{
@@ -178,10 +177,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_wif((char *)input);
 			break;
 		case INPUT_HEX:
-			if (input == NULL)
-			{
-				input_len = input_get_from_keyboard(&input);
-			}
+			input_len = input_get(&input);
 
 			while (isspace((int)input[input_len - 1]))
 			{
@@ -209,6 +205,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_hex((char *)input);
 			break;
 		case INPUT_RAW:
+			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
 				fprintf(stderr, "Error: Input required.\n");
@@ -224,10 +221,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_raw(input, input_len);
 			break;
 		case INPUT_STR:
-			if (input == NULL)
-			{
-				input_len = input_get_from_keyboard(&input);
-			}
+			input_len = input_get(&input);
 
 			if((int)input[input_len - 1] == '\n')
 			{
@@ -240,10 +234,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_str((char *)input);
 			break;
 		case INPUT_DEC:
-			if (input == NULL)
-			{
-				input_len = input_get_from_keyboard(&input);
-			}
+			input_len = input_get(&input);
 
 			while (isspace((int)input[input_len - 1]))
 			{
@@ -265,6 +256,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_dec((char *)input);
 			break;
 		case INPUT_BLOB:
+			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
 				fprintf(stderr, "Error: Input required.\n");
@@ -273,10 +265,7 @@ int btk_pubkey_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			priv = privkey_from_blob(input, input_len);
 			break;
 		case INPUT_GUESS:
-			if (input == NULL)
-			{
-				input_len = input_get_from_keyboard(&input);
-			}
+			input_len = input_get(&input);
 
 			priv = privkey_from_guess(input, input_len);
 

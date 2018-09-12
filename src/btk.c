@@ -14,20 +14,14 @@
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_version.h"
-#include "mods/input.h"
 
 int main(int argc, char *argv[])
 {
-	unsigned char* input = NULL;
-	size_t input_len;
-
 	if (argc <= 1)
 	{
 		btk_help_help();
 		return EXIT_FAILURE;
 	}
-
-	input_len = input_get_from_pipe(&input);
 	
 	if (strcmp(argv[1], "help") == 0)
 	{
@@ -35,23 +29,23 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(argv[1], "privkey") == 0)
 	{
-		return btk_privkey_main(argc, argv, input, input_len);
+		return btk_privkey_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "pubkey") == 0)
 	{
-		return btk_pubkey_main(argc, argv, input, input_len);
+		return btk_pubkey_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "vanity") == 0)
 	{
-		return btk_vanity_main(argc, argv, input, input_len);
+		return btk_vanity_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "node") == 0)
 	{
-		return btk_node_main(argc, argv, input, input_len);
+		return btk_node_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "version") == 0)
 	{
-		return btk_version_main(argc, argv, input, input_len);
+		return btk_version_main(argc, argv);
 	}
 	else
 	{

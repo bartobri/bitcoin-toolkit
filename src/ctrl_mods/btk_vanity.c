@@ -31,7 +31,7 @@
 #define TRUE                    1
 #define FALSE                   0
 
-int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len)
+int btk_vanity_main(int argc, char *argv[])
 {
 	int o, row;
 	size_t i, j, k;
@@ -40,6 +40,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	char *pubkey_str;
+	unsigned char *input;
+	size_t input_len;
 
 	// Default flags
 	int input_insensitive  = FALSE;
@@ -93,11 +95,8 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 		}
 	}
 
-	// Get input if we need to
-	if (input == NULL)
-	{
-		input_len = input_get_from_keyboard(&input);
-	}
+	// Get input
+	input_len = input_get(&input);
 
 	// Validate Input
 	while (isspace((int)input[input_len - 1]))

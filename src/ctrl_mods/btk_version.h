@@ -8,6 +8,6 @@
 #ifndef BTK_VERSION_H
 #define BTK_VERSION_H 1
 
-int btk_version_main(int argc, char *argv[], unsigned char* input, size_t input_len);
+int btk_version_main(int argc, char *argv[]);
 
 #endif

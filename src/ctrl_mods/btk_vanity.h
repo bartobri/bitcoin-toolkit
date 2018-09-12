@@ -8,6 +8,6 @@
 #ifndef BTK_VANITY_H
 #define BTK_VANITY_H 1
 
-int btk_vanity_main(int argc, char *argv[], unsigned char*, size_t);
+int btk_vanity_main(int argc, char *argv[]);
 
 #endif

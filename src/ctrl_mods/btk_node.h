@@ -8,6 +8,6 @@
 #ifndef BTK_NODE_H
 #define BTK_NODE_H 1
 
-int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len);
+int btk_node_main(int argc, char *argv[]);
 
 #endif
