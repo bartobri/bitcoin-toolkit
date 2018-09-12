@@ -18,6 +18,7 @@
 #include "mods/crypto.h"
 #include "mods/hex.h"
 #include "mods/base58check.h"
+#include "mods/input.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -36,8 +37,6 @@
 #define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
 #define FALSE                   0
-
-static size_t btk_privkey_get_input(unsigned char** output);
 
 int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_len)
 {
@@ -142,7 +141,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 		case INPUT_WIF:
 			if (input == NULL)
 			{
-				input_len = btk_privkey_get_input(&input);
+				input_len = input_get_from_keyboard(&input);
 			}
 
 			while (isspace((int)input[input_len - 1]))
@@ -179,7 +178,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 		case INPUT_HEX:
 			if (input == NULL)
 			{
-				input_len = btk_privkey_get_input(&input);
+				input_len = input_get_from_keyboard(&input);
 			}
 
 			while (isspace((int)input[input_len - 1]))
@@ -225,7 +224,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 		case INPUT_STR:
 			if (input == NULL)
 			{
-				input_len = btk_privkey_get_input(&input);
+				input_len = input_get_from_keyboard(&input);
 			}
 
 			if((int)input[input_len - 1] == '\n')
@@ -241,7 +240,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 		case INPUT_DEC:
 			if (input == NULL)
 			{
-				input_len = btk_privkey_get_input(&input);
+				input_len = input_get_from_keyboard(&input);
 			}
 
 			while (isspace((int)input[input_len - 1]))
@@ -274,7 +273,7 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 		case INPUT_GUESS:
 			if (input == NULL)
 			{
-				input_len = btk_privkey_get_input(&input);
+				input_len = input_get_from_keyboard(&input);
 			}
 
 			key = privkey_from_guess(input, input_len);
@@ -344,26 +343,4 @@ int btk_privkey_main(int argc, char *argv[], unsigned char *input, size_t input_
 
 	// Return
 	return EXIT_SUCCESS;
-}
-
-static size_t btk_privkey_get_input(unsigned char** output)
-{
-	size_t i, size, increment = 100;
-	int o;
-
-	size = increment;
-
-	*output = ALLOC(size);
-
-	for (i = 0; (o = getchar()) != '\n'; ++i)
-	{
-		if (i == size)
-		{
-			size += increment;
-			RESIZE(*output, size);
-		}
-		(*output)[i] = (unsigned char)o;
-	}
-
-	return i;
 }
