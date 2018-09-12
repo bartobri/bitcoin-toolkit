@@ -126,12 +126,9 @@ int btk_privkey_main(int argc, char *argv[])
 	}
 
 	// Process testnet option
-	switch (output_testnet)
+	if (output_testnet)
 	{
-		case FALSE:
-			break;
-		case TRUE:
-			network_set_test();
+		network_set_test();
 	}
 	
 	// Process Input
