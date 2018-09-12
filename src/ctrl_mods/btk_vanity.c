@@ -31,8 +31,6 @@
 #define TRUE                    1
 #define FALSE                   0
 
-static int btk_vanity_get_cursor_row(void);
-
 int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_len)
 {
 	int o, row;
@@ -201,7 +199,15 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 			network_set_test();
 	}
 
-	row = btk_vanity_get_cursor_row();
+	// Getting cursor row
+	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
+	{
+		fprintf(stderr, "Error. Can't associate STDIN with terminal.\n");
+		return -1;
+	}
+	btktermio_init_terminal();
+	row = btktermio_get_cursor_row();
+	btktermio_restore_terminal();
 
 	i = 0;
 	j = 0;
@@ -307,23 +313,4 @@ int btk_vanity_main(int argc, char *argv[], unsigned char *input, size_t input_l
 	}
 
 	return EXIT_SUCCESS;
-}
-
-static int btk_vanity_get_cursor_row(void)
-{
-	int row = 0;
-
-	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
-	{
-		fprintf(stderr, "Error. Can't associate STDIN with terminal.\n");
-		return -1;
-	}
-
-	btktermio_init_terminal();
-
-	row = btktermio_get_cursor_row();
-
-	btktermio_restore_terminal();
-
-	return row;
 }
