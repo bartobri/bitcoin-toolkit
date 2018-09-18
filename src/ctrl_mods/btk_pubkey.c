@@ -207,7 +207,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
 
-			priv = privkey_from_hex((char *)input);
+			key = ALLOC(privkey_sizeof());
+			r = privkey_from_hex(priv, (char *)input);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Invalid hex string.\n");
+				return EXIT_FAILURE;
+			}
 			break;
 		case INPUT_RAW:
 			input_len = input_get_from_pipe(&input);

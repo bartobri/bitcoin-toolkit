@@ -154,32 +154,34 @@ int privkey_from_wif(PrivKey key, char *wif) {
 	return 1;
 }
 
-PrivKey privkey_from_hex(char *hex) {
+int privkey_from_hex(PrivKey key, char *hex) {
 	size_t i;
-	PrivKey k;
 	
 	// Validate hex string
 	assert(hex);
-	assert(strlen(hex) % 2 == 0);
-	assert(strlen(hex) >= PRIVKEY_LENGTH * 2);
-	for (i = 0; i < strlen(hex); ++i) {
-		assert(hex_ischar(hex[i]));
+
+	if (strlen(hex) % 2 != 0 || strlen(hex) < PRIVKEY_LENGTH * 2)
+	{
+		return -1;
 	}
-	
-	// allocate memory
-	NEW(k);
+	for (i = 0; i < strlen(hex); ++i) {
+		if (!hex_ischar(hex[i]))
+		{
+			return -2;
+		}
+	}
 
 	// load hex string as private key
 	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
-		k->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+		key->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
 	}
 	if (hex[i] &&  hex[i+1] && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
-		k->cflag = PRIVKEY_COMPRESSED_FLAG;
+		key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	} else {
-		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+		key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	}
 	
-	return k;
+	return 1;
 }
 
 PrivKey privkey_from_str(char *data) {
@@ -292,9 +294,13 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
-			key = privkey_from_hex(tmp);
+			NEW(key);
+			r = privkey_from_hex(key, tmp);
 			FREE(tmp);
-			return key;
+			if (r > 0)
+			{
+				return key;
+			}
 		}
 	}
 
