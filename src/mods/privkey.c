@@ -218,17 +218,20 @@ int privkey_from_dec(PrivKey key, char *data) {
 	return 1;
 }
 
-PrivKey privkey_from_str(char *data) {
-	PrivKey key;
+int privkey_from_str(PrivKey key, char *data) {
 	unsigned char *tmp;
+	PrivKey rawkey;
 	
 	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
-	key = privkey_from_raw(tmp, 32);
-	free(tmp);
+	rawkey = privkey_from_raw(tmp, 32);
+	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
+
+	FREE(tmp);
+	FREE(rawkey);
 
 	privkey_compress(key);
 	
-	return key;
+	return 1;
 }
 
 PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
@@ -352,9 +355,13 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		tmp = ALLOC(i + 1);
 		memcpy(tmp, head, i);
 		tmp[i] = '\0';
-		key = privkey_from_str(tmp);
+		NEW(key);
+		r = privkey_from_str(key, tmp);
 		FREE(tmp);
-		return key;
+		if (r > 0)
+		{
+			return key;
+		}
 	}
 
 	// Raw
