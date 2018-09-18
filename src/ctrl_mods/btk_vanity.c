@@ -34,12 +34,12 @@
 int btk_vanity_main(int argc, char *argv[])
 {
 	int o, row;
-	size_t i, j, k;
+	size_t i, k;
 	time_t current, start;
 	long int estimate;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
-	char *pubkey_str;
+	char *pubkey_str, *privkey_str;
 	unsigned char *input;
 	size_t input_len;
 
@@ -206,8 +206,10 @@ int btk_vanity_main(int argc, char *argv[])
 	btktermio_restore_terminal();
 
 	i = 0;
-	j = 0;
 	start = time(NULL);
+
+	// Allocate memory for the public/private strings
+	privkey_str = ALLOC(PRIVKEY_WIF_LENGTH_MAX + 1);
 
 	while (1)
 	{
@@ -226,8 +228,8 @@ int btk_vanity_main(int argc, char *argv[])
 			printf("\n");
 		}
 
-		priv = privkey_new();
-		assert(priv);
+		priv = ALLOC(privkey_sizeof());
+		privkey_new(priv);
 	
 		// Set output compression only if the option is set. Otherwise,
 		// compression is based on input.
@@ -236,21 +238,39 @@ int btk_vanity_main(int argc, char *argv[])
 			case FALSE:
 				break;
 			case OUTPUT_COMPRESS:
-				priv = privkey_compress(priv);
+				privkey_compress(priv);
 				break;
 			case OUTPUT_UNCOMPRESS:
-				priv = privkey_uncompress(priv);
+				privkey_uncompress(priv);
 				break;
 		}
 
 		// Get public key from private key
 		key = pubkey_get(priv);
+
+		// Get key strings
+		privkey_to_wif(privkey_str, priv);
+		if (output_format == OUTPUT_ADDRESS)
+		{
+			pubkey_str = pubkey_to_address(key);
+		}
+		else if (output_format == OUTPUT_BECH32_ADDRESS)
+		{
+				pubkey_str = pubkey_to_bech32address(key);
+		}
+
+		// Track time and print status
+		current = time(NULL);
+		++i;
+		if (current - start != 0) {
+			printf("%s %lu Addresses Searched. Estimated Seconds: %ld, Elapsed Seconds: %ld", pubkey_str, i, (estimate / (i / (current - start))), current - start);
+			fflush(stdout);
+		}
 	
 		// Process output
 		switch (output_format)
 		{
 			case OUTPUT_ADDRESS:
-				pubkey_str = pubkey_to_address(key);
 				if (input_insensitive)
 				{
 					for (k = 0; k < input_len; ++k)
@@ -262,7 +282,7 @@ int btk_vanity_main(int argc, char *argv[])
 					}
 					if (k == input_len)
 					{
-						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 						return EXIT_SUCCESS;
 					}
 				}
@@ -270,11 +290,10 @@ int btk_vanity_main(int argc, char *argv[])
 				{
 					if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
 					{
-						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 						return EXIT_SUCCESS;
 					}
 				}
-				FREE(pubkey_str);
 				break;
 			case OUTPUT_BECH32_ADDRESS:
 				if(!pubkey_is_compressed(key))
@@ -282,31 +301,22 @@ int btk_vanity_main(int argc, char *argv[])
 					fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
 					return EXIT_FAILURE;
 				}
-				pubkey_str = pubkey_to_bech32address(key);
+
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("\nVanity address found!\nprivate key: %s\naddress:     %s\n", privkey_to_wif(priv), pubkey_str);
+					printf("\nVanity address found!\nPrivate Key: %s\naddress:     %s\n", privkey_str, pubkey_str);
 					return EXIT_SUCCESS;
 				}
-				FREE(pubkey_str);
 				break;
-		}
-
-		current = time(NULL);
-
-		++j;
-		++i;
-		if (j == 100)
-		{
-			j = 0;
-			printf("%lu Addresses Searched. Estimated Seconds: %ld, Elapsed Seconds: %ld", i, (estimate / (i / (current - start))), current - start);
-			fflush(stdout);
 		}
 
 		// Free allocated memory
 		privkey_free(priv);
 		pubkey_free(key);
+		FREE(pubkey_str);
 	}
+	
+	FREE(privkey_str);
 
 	return EXIT_SUCCESS;
 }

@@ -23,98 +23,90 @@ struct PrivKey {
 	int cflag;
 };
 
-PrivKey privkey_new(void) {
+int privkey_new(PrivKey key) {
 	int i;
-	PrivKey k;
-	mpz_t cur_key;
-	
-	NEW(k);
 
-	mpz_init(cur_key);
+	assert(key);
 
 	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		k->data[i] = random_get();
+		key->data[i] = random_get();
 	}
-	mpz_import(cur_key, PRIVKEY_LENGTH, 1, 1, 1, 0, k->data);
 	
-	mpz_clear(cur_key);
+	key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	
-	k->cflag = PRIVKEY_COMPRESSED_FLAG;
+	return 1;
+}
+
+int privkey_compress(PrivKey key) {
+	assert(key);
 	
-	return k;
+	key->cflag = PRIVKEY_COMPRESSED_FLAG;
+	
+	return 1;
 }
 
-PrivKey privkey_compress(PrivKey k) {
-	assert(k);
-	k->cflag = PRIVKEY_COMPRESSED_FLAG;
-	return k;
+int privkey_uncompress(PrivKey key) {
+	assert(key);
+
+	key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+
+	return 1;
 }
 
-PrivKey privkey_uncompress(PrivKey k) {
-	assert(k);
-	k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
-	return k;
-}
-
-PrivKey privkey_new_compressed(void) {
-	return privkey_compress(privkey_new());;
-}
-
-char *privkey_to_hex(PrivKey k) {
+int privkey_to_hex(char *str, PrivKey key) {
 	int i;
-	char *r;
 	
-	assert(k);
-	
-	r = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
-	
-	memset(r, 0, ((PRIVKEY_LENGTH + 1) * 2) + 1);
+	assert(key);
+	assert(str);
 	
 	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		sprintf(r + (i * 2), "%02x", k->data[i]);
+		sprintf(str + (i * 2), "%02x", key->data[i]);
 	}
-	if (k->cflag == PRIVKEY_COMPRESSED_FLAG) {
-		sprintf(r + (i * 2), "%02x", k->cflag);
+	if (key->cflag == PRIVKEY_COMPRESSED_FLAG) {
+		sprintf(str + (i * 2), "%02x", key->cflag);
 	}
+	str[++i * 2] = '\0';
 	
-	return r;
+	return 1;
 }
 
-unsigned char *privkey_to_raw(PrivKey k, size_t *l) {
-	unsigned char *r;
-	assert(k);
+int privkey_to_raw(unsigned char *raw, PrivKey key) {
+	int len = PRIVKEY_LENGTH;
 
-	r = ALLOC(PRIVKEY_LENGTH + 1);
-	memcpy(r, k->data, PRIVKEY_LENGTH);
+	assert(key);
+	assert(raw);
+
+	memcpy(raw, key->data, PRIVKEY_LENGTH);
 	
-	if (privkey_is_compressed(k)) {
-		r[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
-		*l = PRIVKEY_LENGTH + 1;
-	} else {
-		*l = PRIVKEY_LENGTH;
+	if (privkey_is_compressed(key)) {
+		raw[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
+		len += 1;
 	}
 
-	return r;
+	return len;
 }
 
-char *privkey_to_wif(PrivKey k) {
-	int l;
+int privkey_to_wif(char *str, PrivKey key) {
+	int len = PRIVKEY_LENGTH + 1;
 	unsigned char p[PRIVKEY_LENGTH + 2];
+	char *base58check;
 
 	if (network_is_main()) {
 		p[0] = MAINNET_PREFIX;
 	} else if (network_is_test()) {
 		p[0] = TESTNET_PREFIX;
 	}
-	memcpy(p+1, k->data, PRIVKEY_LENGTH);
-	if (privkey_is_compressed(k)) {
-		p[PRIVKEY_LENGTH+1] = PRIVKEY_COMPRESSED_FLAG;
-		l = PRIVKEY_LENGTH + 2;
-	} else {
-		l = PRIVKEY_LENGTH + 1;
+	memcpy(p+1, key->data, PRIVKEY_LENGTH);
+	if (privkey_is_compressed(key)) {
+		p[PRIVKEY_LENGTH + 1] = PRIVKEY_COMPRESSED_FLAG;
+		len += 1;
 	}
+
+	base58check = base58check_encode(p, len);
+	strcpy(str, base58check);
+	FREE(base58check);
 	
-	return base58check_encode(p, l);
+	return 1;
 }
 
 PrivKey privkey_from_wif(char *wif) {
@@ -185,7 +177,7 @@ PrivKey privkey_from_str(char *data) {
 	key = privkey_from_raw(tmp, 32);
 	free(tmp);
 
-	key = privkey_compress(key);
+	privkey_compress(key);
 	
 	return key;
 }
@@ -207,7 +199,7 @@ PrivKey privkey_from_dec(char *data) {
 
 	FREE(raw);
 
-	key = privkey_compress(key);
+	privkey_compress(key);
 	
 	return key;
 }
@@ -244,7 +236,7 @@ PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
 	free(tmp);
 
-	key = privkey_compress(key);
+	privkey_compress(key);
 	
 	return key;
 }
@@ -353,4 +345,8 @@ int privkey_is_zero(PrivKey key) {
 
 void privkey_free(PrivKey k) {
 	FREE(k);
+}
+
+size_t privkey_sizeof(void) {
+	return sizeof(struct PrivKey);
 }

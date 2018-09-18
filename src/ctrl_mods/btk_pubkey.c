@@ -43,10 +43,12 @@ int btk_pubkey_main(int argc, char *argv[])
 	int o;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
-	size_t i, c;
-	unsigned char *t;
+	size_t i;
 	unsigned char *input;
 	size_t input_len;
+	char *output;
+	unsigned char *uc_output;
+	size_t output_len;
 
 	// Default flags
 	int input_format       = INPUT_GUESS;
@@ -291,10 +293,10 @@ int btk_pubkey_main(int argc, char *argv[])
 		case FALSE:
 			break;
 		case OUTPUT_COMPRESS:
-			priv = privkey_compress(priv);
+			privkey_compress(priv);
 			break;
 		case OUTPUT_UNCOMPRESS:
-			priv = privkey_uncompress(priv);
+			privkey_uncompress(priv);
 			break;
 	}
 
@@ -314,18 +316,25 @@ int btk_pubkey_main(int argc, char *argv[])
 		switch  (output_format)
 		{
 			case OUTPUT_HEX:
-				printf("%s ", privkey_to_hex(priv));
+				output = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
+				privkey_to_hex(output, priv);
+				printf("%s ", output);
+				FREE(output);
 				break;
 			case OUTPUT_RAW:
-				t = privkey_to_raw(priv, &c);
-				for (i = 0; i < c; ++i)
+				uc_output = ALLOC(PRIVKEY_LENGTH + 1);
+				output_len = (size_t)privkey_to_raw(uc_output, priv);
+				for (i = 0; i < output_len; ++i)
 				{
-					putchar(t[i]);
+					putchar(uc_output[i]);
 				}
-				FREE(t);
+				FREE(uc_output);
 				break;
 			default:
-				printf("%s ", privkey_to_wif(priv));
+				output = ALLOC(PRIVKEY_WIF_LENGTH_MAX + 1);
+				privkey_to_wif(output, priv);
+				printf("%s ", output);
+				FREE(output);
 				break;
 		}
 	}
@@ -348,12 +357,12 @@ int btk_pubkey_main(int argc, char *argv[])
 			printf("%s", pubkey_to_hex(key));
 			break;
 		case OUTPUT_RAW:
-			t = pubkey_to_raw(key, &c);
-			for (i = 0; i < c; ++i)
+			uc_output = pubkey_to_raw(key, &output_len);
+			for (i = 0; i < output_len; ++i)
 			{
-				putchar(t[i]);
+				putchar(uc_output[i]);
 			}
-			FREE(t);
+			FREE(uc_output);
 			break;
 	}
 

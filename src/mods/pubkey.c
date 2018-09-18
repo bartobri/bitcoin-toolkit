@@ -35,10 +35,11 @@ PubKey pubkey_get(PrivKey k) {
 	assert(k);
 	
 	NEW0(r);
+	prvkeyhex = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
 
 	// Load private key from hex string, truncating the compression flag.
 	mpz_init(prvkey);
-	prvkeyhex = privkey_to_hex(k);
+	privkey_to_hex(prvkeyhex, k);
 	prvkeyhex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(prvkey, prvkeyhex, 16);
 	free(prvkeyhex);
