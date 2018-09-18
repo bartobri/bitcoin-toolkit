@@ -228,7 +228,13 @@ int btk_privkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			key = privkey_from_raw(input, input_len);
+			key = ALLOC(privkey_sizeof());
+			r = privkey_from_raw(key, input, input_len);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Invalid raw data.\n");
+				return EXIT_FAILURE;
+			}
 			break;
 		case INPUT_STR:
 			input_len = input_get(&input);

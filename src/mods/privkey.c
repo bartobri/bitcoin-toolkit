@@ -91,6 +91,9 @@ int privkey_to_wif(char *str, PrivKey key) {
 	unsigned char p[PRIVKEY_LENGTH + 2];
 	char *base58check;
 
+	assert(str);
+	assert(key);
+
 	if (network_is_main()) {
 		p[0] = MAINNET_PREFIX;
 	} else if (network_is_test()) {
@@ -112,6 +115,9 @@ int privkey_to_wif(char *str, PrivKey key) {
 int privkey_from_wif(PrivKey key, char *wif) {
 	unsigned char *p;
 	size_t l;
+
+	assert(key);
+	assert(wif);
 
 	p = base58check_decode(wif, strlen(wif), &l);
 
@@ -157,9 +163,10 @@ int privkey_from_wif(PrivKey key, char *wif) {
 int privkey_from_hex(PrivKey key, char *hex) {
 	size_t i;
 	
-	// Validate hex string
 	assert(hex);
+	assert(key);
 
+	// Validating hex string
 	if (strlen(hex) % 2 != 0 || strlen(hex) < PRIVKEY_LENGTH * 2)
 	{
 		return -1;
@@ -185,10 +192,14 @@ int privkey_from_hex(PrivKey key, char *hex) {
 }
 
 int privkey_from_dec(PrivKey key, char *data) {
+	int r;
 	size_t i, c, data_len;
 	mpz_t d;
 	unsigned char *raw;
 	PrivKey rawkey;
+
+	assert(key);
+	assert(data);
 
 	data_len = strlen(data);
 	for (i = 0; i < data_len; ++i)
@@ -207,7 +218,13 @@ int privkey_from_dec(PrivKey key, char *data) {
 	mpz_export(raw + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
 	mpz_clear(d);
 
-	rawkey = privkey_from_raw(raw, PRIVKEY_LENGTH);
+	NEW(rawkey);
+	r = privkey_from_raw(rawkey, raw, PRIVKEY_LENGTH);
+	if (r < 0)
+	{
+		return -1;
+	}
+
 	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
 	
 	FREE(rawkey);
@@ -219,11 +236,22 @@ int privkey_from_dec(PrivKey key, char *data) {
 }
 
 int privkey_from_str(PrivKey key, char *data) {
+	int r;
 	unsigned char *tmp;
 	PrivKey rawkey;
+
+	assert(key);
+	assert(data);
+
+	NEW(rawkey);
 	
 	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
-	rawkey = privkey_from_raw(tmp, 32);
+	r = privkey_from_raw(rawkey, tmp, 32);
+	if (r < 0)
+	{
+		return -1;
+	}
+
 	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
 
 	FREE(tmp);
@@ -234,26 +262,27 @@ int privkey_from_str(PrivKey key, char *data) {
 	return 1;
 }
 
-PrivKey privkey_from_raw(unsigned char *raw, size_t l) {
-	PrivKey k;
+int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l) {
 
-	// Check params
 	assert(raw);
-	assert(l >= PRIVKEY_LENGTH);
-	
-	// allocate memory
-	NEW(k);
+	assert(key);
+
+	// raw data length must be at least PRIVKEY_LENGTH bytes
+	if (l < PRIVKEY_LENGTH)
+	{
+		return -1;
+	}
 
 	// load raw string as private key
-	memcpy(k->data, raw, PRIVKEY_LENGTH);
+	memcpy(key->data, raw, PRIVKEY_LENGTH);
 	
 	// Set compression flag
 	if (l >= PRIVKEY_LENGTH + 1 && raw[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG)
-		k->cflag = PRIVKEY_COMPRESSED_FLAG;
+		key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	else
-		k->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+		key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	
-	return k;
+	return 1;
 }
 
 PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
@@ -366,8 +395,14 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 
 	// Raw
 	data = head;
-	if (data_len == PRIVKEY_LENGTH || (data_len == PRIVKEY_LENGTH + 1 && (data[data_len - 1] == PRIVKEY_COMPRESSED_FLAG || data[data_len - 1] == PRIVKEY_UNCOMPRESSED_FLAG))) {
-		key = privkey_from_raw(data, data_len);
+	if (data_len == PRIVKEY_LENGTH || (data_len == PRIVKEY_LENGTH + 1 && (data[data_len - 1] == PRIVKEY_COMPRESSED_FLAG || data[data_len - 1] == PRIVKEY_UNCOMPRESSED_FLAG)))
+	{
+		NEW(key);
+		r = privkey_from_raw(key, data, data_len);
+		if (r > 0)
+		{
+			return key;
+		}
 	}
 
 	return key;
