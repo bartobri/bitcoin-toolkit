@@ -263,7 +263,7 @@ int btk_vanity_main(int argc, char *argv[])
 		current = time(NULL);
 		++i;
 		if (current - start != 0) {
-			printf("%s %lu Addresses Searched. Estimated Seconds: %ld, Elapsed Seconds: %ld", pubkey_str, i, (estimate / (i / (current - start))), current - start);
+			printf("%-45s Estimated Seconds: %ld of %ld", pubkey_str, current - start, (estimate / (i / (current - start))));
 			fflush(stdout);
 		}
 	
@@ -304,7 +304,7 @@ int btk_vanity_main(int argc, char *argv[])
 
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
-					printf("\nVanity address found!\nPrivate Key: %s\naddress:     %s\n", privkey_str, pubkey_str);
+					printf("\nVanity address found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 					return EXIT_SUCCESS;
 				}
 				break;
