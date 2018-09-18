@@ -13,7 +13,7 @@ int privkey_uncompress(PrivKey);
 int privkey_to_hex(char *, PrivKey);
 int privkey_to_raw(unsigned char *, PrivKey);
 int privkey_to_wif(char *, PrivKey);
-PrivKey privkey_from_wif(char *);
+int privkey_from_wif(PrivKey, char *);
 PrivKey privkey_from_hex(char *);
 PrivKey privkey_from_dec(char *);
 PrivKey privkey_from_str(char *);

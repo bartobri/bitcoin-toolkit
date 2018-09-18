@@ -109,36 +109,49 @@ int privkey_to_wif(char *str, PrivKey key) {
 	return 1;
 }
 
-PrivKey privkey_from_wif(char *wif) {
+int privkey_from_wif(PrivKey key, char *wif) {
 	unsigned char *p;
-	PrivKey k;
 	size_t l;
-	
-	NEW(k);
 
 	p = base58check_decode(wif, strlen(wif), &l);
-	
-	assert(p[0] == MAINNET_PREFIX || p[0] == TESTNET_PREFIX);
-	assert(l >= PRIVKEY_LENGTH + 1 && l <= PRIVKEY_LENGTH + 2);
 
-	switch (p[0]) {
+	if (l != PRIVKEY_LENGTH + 1 && l != PRIVKEY_LENGTH + 2)
+	{
+		return -1;
+	}
+
+	switch (p[0])
+	{
 		case MAINNET_PREFIX:
 			network_set_main();
 			break;
 		case TESTNET_PREFIX:
 			network_set_test();
 			break;
+		default:
+			return -1;
+			break;
 	}
 	
-	memcpy(k->data, p+1, PRIVKEY_LENGTH);
-	
-	if (l == PRIVKEY_LENGTH + 2) {
-		privkey_compress(k);
-	} else {
-		privkey_uncompress(k);
+	if (l == PRIVKEY_LENGTH + 2)
+	{
+		if (p[l - 1] == PRIVKEY_COMPRESSED_FLAG)
+		{
+			privkey_compress(key);
+		}
+		else
+		{
+			return -1;
+		}
 	}
+	else
+	{
+		privkey_uncompress(key);
+	}
+
+	memcpy(key->data, p+1, PRIVKEY_LENGTH);
 	
-	return k;
+	return 1;
 }
 
 PrivKey privkey_from_hex(char *hex) {
@@ -242,7 +255,7 @@ PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
 }
 
 PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
-	int i, str_len;
+	int i, r, str_len;
 	unsigned char *head = data;
 	char *tmp;
 	PrivKey key = NULL;
@@ -297,9 +310,13 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
-			key = privkey_from_wif(tmp);
+			NEW(key);
+			r = privkey_from_wif(key, tmp);
 			FREE(tmp);
-			return key;
+			if (r > 0)
+			{
+				return key;
+			}
 		}
 	}
 
