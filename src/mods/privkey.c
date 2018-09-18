@@ -184,24 +184,20 @@ int privkey_from_hex(PrivKey key, char *hex) {
 	return 1;
 }
 
-PrivKey privkey_from_str(char *data) {
-	PrivKey key;
-	unsigned char *tmp;
-	
-	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
-	key = privkey_from_raw(tmp, 32);
-	free(tmp);
-
-	privkey_compress(key);
-	
-	return key;
-}
-
-PrivKey privkey_from_dec(char *data) {
-	size_t i, c;
-	PrivKey key;
+int privkey_from_dec(PrivKey key, char *data) {
+	size_t i, c, data_len;
 	mpz_t d;
 	unsigned char *raw;
+	PrivKey rawkey;
+
+	data_len = strlen(data);
+	for (i = 0; i < data_len; ++i)
+	{
+		if (data[i] < '0' || data[i] > '9')
+		{
+			return -1;
+		}
+	}
 
 	mpz_init(d);
 	mpz_set_str(d, data, 10);
@@ -210,9 +206,25 @@ PrivKey privkey_from_dec(char *data) {
 	memset(raw, 0, (i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
 	mpz_export(raw + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
 	mpz_clear(d);
-	key = privkey_from_raw(raw, PRIVKEY_LENGTH);
 
+	rawkey = privkey_from_raw(raw, PRIVKEY_LENGTH);
+	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
+	
+	FREE(rawkey);
 	FREE(raw);
+
+	privkey_compress(key);
+	
+	return 1;
+}
+
+PrivKey privkey_from_str(char *data) {
+	PrivKey key;
+	unsigned char *tmp;
+	
+	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
+	key = privkey_from_raw(tmp, 32);
+	free(tmp);
 
 	privkey_compress(key);
 	
@@ -277,9 +289,13 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		tmp = ALLOC(i + 1);
 		memcpy(tmp, head, i);
 		tmp[i] = '\0';
-		key = privkey_from_dec(tmp);
+		NEW(key);
+		r = privkey_from_dec(key, tmp);
 		FREE(tmp);
-		return key;
+		if (r > 0)
+		{
+			return key;
+		}
 	}
 
 	// Hex
