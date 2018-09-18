@@ -223,7 +223,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			if (input_len != PRIVKEY_LENGTH && input_len != PRIVKEY_LENGTH + 1)
+			if (input_len < PRIVKEY_LENGTH)
 			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
