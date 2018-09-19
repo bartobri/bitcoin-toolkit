@@ -389,7 +389,22 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (output_format)
 	{
 		case OUTPUT_ADDRESS:
-			printf("%s", pubkey_to_address(key));
+			if (pubkey_is_compressed(key))
+			{
+				output = ALLOC((PUBKEY_COMPRESSED_LENGTH + 1) * 2);
+			}
+			else
+			{
+				output = ALLOC((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2);
+			}
+			r = pubkey_to_address(output, key);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Can not convert public key to address.\n");
+				return EXIT_FAILURE;
+			}
+			printf("%s", output);
+			FREE(output);
 			break;
 		case OUTPUT_BECH32_ADDRESS:
 			if(!pubkey_is_compressed(key))
@@ -408,7 +423,12 @@ int btk_pubkey_main(int argc, char *argv[])
 			{
 				output = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
 			}
-			pubkey_to_hex(output, key);
+			r = pubkey_to_hex(output, key);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Can not convert public key to hex.\n");
+				return EXIT_FAILURE;
+			}
 			printf("%s", output);
 			FREE(output);
 			break;
@@ -421,8 +441,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			{
 				uc_output = ALLOC(PUBKEY_UNCOMPRESSED_LENGTH + 1);
 			}
-			output_len = pubkey_to_raw(uc_output, key);
-			for (i = 0; i < output_len; ++i)
+			r = pubkey_to_raw(uc_output, key);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Can not convert public key to raw.\n");
+				return EXIT_FAILURE;
+			}
+			for (i = 0; i < (size_t)r; ++i)
 			{
 				putchar(uc_output[i]);
 			}

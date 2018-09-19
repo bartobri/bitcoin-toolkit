@@ -258,11 +258,12 @@ int btk_vanity_main(int argc, char *argv[])
 		privkey_to_wif(privkey_str, priv);
 		if (output_format == OUTPUT_ADDRESS)
 		{
-			pubkey_str = pubkey_to_address(key);
+			pubkey_str = ALLOC(35);
+			r = pubkey_to_address(pubkey_str, key);
 		}
 		else if (output_format == OUTPUT_BECH32_ADDRESS)
 		{
-				pubkey_str = pubkey_to_bech32address(key);
+			pubkey_str = pubkey_to_bech32address(key);
 		}
 
 		// Track time and print status

@@ -193,6 +193,9 @@ int pubkey_to_hex(char *str, PubKey key) {
 
 int pubkey_to_raw(unsigned char *raw, PubKey key) {
 	int i, l;
+
+	assert(raw);
+	assert(key);
 	
 	l = pubkey_is_compressed(key) ? PUBKEY_COMPRESSED_LENGTH + 1 : PUBKEY_UNCOMPRESSED_LENGTH + 1;
 
@@ -204,19 +207,23 @@ int pubkey_to_raw(unsigned char *raw, PubKey key) {
 	return l;
 }
 
-char *pubkey_to_address(PubKey k) {
+int pubkey_to_address(char *address, PubKey key) {
 	size_t l;
 	unsigned char *sha, *rmd;
 	unsigned char r[21];
+	char *base58;
 
-	if (pubkey_is_compressed(k)) {
+	assert(address);
+	assert(key);
+
+	if (pubkey_is_compressed(key)) {
 		l = PUBKEY_COMPRESSED_LENGTH + 1;
 	} else {
 		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
 	}
 
 	// RMD(SHA(data))
-	sha = crypto_get_sha256(k->data, l);
+	sha = crypto_get_sha256(key->data, l);
 	rmd = crypto_get_rmd160(sha, 32);
 
 	// Set address version bit
@@ -233,7 +240,12 @@ char *pubkey_to_address(PubKey k) {
 	FREE(sha);
 	FREE(rmd);
 	
-	return base58check_encode(r, 21);
+	base58 = ALLOC(21 * 2);
+	base58 = base58check_encode(r, 21);
+	strcpy(address, base58);
+	FREE(base58);
+
+	return 1;
 }
 
 char *pubkey_to_bech32address(PubKey k) {
