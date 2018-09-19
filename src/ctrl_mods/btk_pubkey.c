@@ -413,7 +413,15 @@ int btk_pubkey_main(int argc, char *argv[])
 			FREE(output);
 			break;
 		case OUTPUT_RAW:
-			uc_output = pubkey_to_raw(key, &output_len);
+			if (pubkey_is_compressed(key))
+			{
+				uc_output = ALLOC(PUBKEY_COMPRESSED_LENGTH + 1);
+			}
+			else
+			{
+				uc_output = ALLOC(PUBKEY_UNCOMPRESSED_LENGTH + 1);
+			}
+			output_len = pubkey_to_raw(uc_output, key);
 			for (i = 0; i < output_len; ++i)
 			{
 				putchar(uc_output[i]);

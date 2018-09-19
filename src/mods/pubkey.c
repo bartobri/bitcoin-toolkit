@@ -191,37 +191,17 @@ int pubkey_to_hex(char *str, PubKey key) {
 	return 1;
 }
 
-unsigned char *pubkey_to_raw(PubKey k, size_t *rl) {
-	int i, l, r;
-	char *s;
-	unsigned char *ret;
+int pubkey_to_raw(unsigned char *raw, PubKey key) {
+	int i, l;
 	
-	if (pubkey_is_compressed(k))
+	l = pubkey_is_compressed(key) ? PUBKEY_COMPRESSED_LENGTH + 1 : PUBKEY_UNCOMPRESSED_LENGTH + 1;
+
+	for (i = 0; i < l; ++i)
 	{
-		s = ALLOC(((PUBKEY_COMPRESSED_LENGTH + 1) * 2) + 1);
-	}
-	else
-	{
-		s = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
-	}
-	// TODO - Why am i converting to hex and then back to raw???
-	r = pubkey_to_hex(s, k);
-	if (r < 0)
-	{
-		return NULL;
+		raw[i] = key->data[i];
 	}
 	
-	l = strlen(s);
-	
-	ret = ALLOC(l/2);
-	
-	for (i = 0; i < l; i += 2) {
-		ret[i/2] = hex_to_dec(s[i], s[i+1]);
-	}
-	
-	*rl = l/2;
-	
-	return ret;
+	return l;
 }
 
 char *pubkey_to_address(PubKey k) {
