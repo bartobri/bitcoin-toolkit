@@ -285,12 +285,12 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len) {
 	return 1;
 }
 
-PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
+int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len) {
 	int i, r, str_len;
 	unsigned char *head = data;
 	char *tmp;
-	PrivKey key = NULL;
 
+	assert(key);
 	assert(data);
 	assert(data_len);
 
@@ -306,12 +306,11 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		tmp = ALLOC(i + 1);
 		memcpy(tmp, head, i);
 		tmp[i] = '\0';
-		NEW(key);
 		r = privkey_from_dec(key, tmp);
 		FREE(tmp);
 		if (r > 0)
 		{
-			return key;
+			return 1;
 		}
 	}
 
@@ -327,12 +326,11 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
-			NEW(key);
 			r = privkey_from_hex(key, tmp);
 			FREE(tmp);
 			if (r > 0)
 			{
-				return key;
+				return 1;
 			}
 		}
 	}
@@ -349,12 +347,11 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
-			NEW(key);
 			r = privkey_from_wif(key, tmp);
 			FREE(tmp);
 			if (r > 0)
 			{
-				return key;
+				return 1;
 			}
 		}
 	}
@@ -369,12 +366,11 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 		tmp = ALLOC(i + 1);
 		memcpy(tmp, head, i);
 		tmp[i] = '\0';
-		NEW(key);
 		r = privkey_from_str(key, tmp);
 		FREE(tmp);
 		if (r > 0)
 		{
-			return key;
+			return 1;
 		}
 	}
 
@@ -382,15 +378,14 @@ PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {
 	data = head;
 	if (data_len == PRIVKEY_LENGTH || (data_len == PRIVKEY_LENGTH + 1 && (data[data_len - 1] == PRIVKEY_COMPRESSED_FLAG || data[data_len - 1] == PRIVKEY_UNCOMPRESSED_FLAG)))
 	{
-		NEW(key);
 		r = privkey_from_raw(key, data, data_len);
 		if (r > 0)
 		{
-			return key;
+			return 1;
 		}
 	}
 
-	return key;
+	return -1;
 }
 
 int privkey_is_compressed(PrivKey k) {

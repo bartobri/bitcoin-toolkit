@@ -303,9 +303,9 @@ int btk_privkey_main(int argc, char *argv[])
 		case INPUT_GUESS:
 			input_len = input_get(&input);
 
-			key = privkey_from_guess(input, input_len);
-
-			if (key == NULL)
+			key = ALLOC(privkey_sizeof());
+			r = privkey_from_guess(key, input, input_len);
+			if (r < 0)
 			{
 				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
 				return EXIT_FAILURE;

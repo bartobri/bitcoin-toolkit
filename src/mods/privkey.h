@@ -19,7 +19,7 @@ int privkey_from_dec(PrivKey, char *);
 int privkey_from_str(PrivKey, char *);
 int privkey_from_raw(PrivKey, unsigned char *, size_t);
 int privkey_from_blob(PrivKey, unsigned char *, size_t);
-PrivKey privkey_from_guess(unsigned char *, size_t);
+int privkey_from_guess(PrivKey, unsigned char *, size_t);
 int     privkey_is_compressed(PrivKey);
 int     privkey_is_zero(PrivKey);
 void    privkey_free(PrivKey);
