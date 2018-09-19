@@ -341,7 +341,13 @@ int btk_pubkey_main(int argc, char *argv[])
 	}
 
 	// Get public key from private key
-	key = pubkey_get(priv);
+	key = ALLOC(pubkey_sizeof());
+	r = pubkey_get(key, priv);
+	if (r < 0)
+	{
+		fprintf(stderr, "Error: Unable to calculate public key from private key.");
+		return EXIT_FAILURE;
+	}
 
 	// Ensure we have a key
 	if (!key)

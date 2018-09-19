@@ -33,7 +33,7 @@
 
 int btk_vanity_main(int argc, char *argv[])
 {
-	int o, row;
+	int o, r, row;
 	size_t i, k;
 	time_t current, start;
 	long int estimate;
@@ -246,7 +246,13 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 
 		// Get public key from private key
-		key = pubkey_get(priv);
+		key = ALLOC(pubkey_sizeof());
+		r = pubkey_get(key, priv);
+		if (r < 0)
+		{
+			fprintf(stderr, "Error: Unable to calculate public key from private key.");
+			return EXIT_FAILURE;
+		}
 
 		// Get key strings
 		privkey_to_wif(privkey_str, priv);

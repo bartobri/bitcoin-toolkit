@@ -24,83 +24,111 @@ struct PubKey{
 	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
 };
 
-PubKey pubkey_get(PrivKey k) {
+int pubkey_get(PubKey pubkey, PrivKey privkey) {
 	size_t i, l;
-	char *prvkeyhex;
-	mpz_t prvkey;
-	Point pubkey;
+	char *privkey_hex;
+	mpz_t bignum;
+	Point point;
 	Point points[PUBKEY_POINTS];
-	PubKey r;
 	
-	assert(k);
-	
-	NEW0(r);
-	prvkeyhex = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
+	assert(privkey);
+	assert(pubkey);
+
+	// Private keys of zero are invalid
+	if (privkey_is_zero(privkey))
+	{
+		return -1;
+	}
 
 	// Load private key from hex string, truncating the compression flag.
-	mpz_init(prvkey);
-	privkey_to_hex(prvkeyhex, k);
-	prvkeyhex[PRIVKEY_LENGTH * 2] = '\0';
-	mpz_set_str(prvkey, prvkeyhex, 16);
-	free(prvkeyhex);
-
-	// A private key of zero is invalid
-	assert(mpz_cmp_ui(prvkey, 0) != 0);
+	privkey_hex = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
+	mpz_init(bignum);
+	privkey_to_hex(privkey_hex, privkey);
+	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
+	mpz_set_str(bignum, privkey_hex, 16);
+	free(privkey_hex);
 	
 	// Initalize the points
-	point_init(&pubkey);
-	for (i = 0; i < PUBKEY_POINTS; ++i) {
+	point_init(&point);
+	for (i = 0; i < PUBKEY_POINTS; ++i)
+	{
 		point_init(points + i);
 	}
 
 	// Calculating public key
 	point_set_generator(&points[0]);
-	for (i = 1; i < PUBKEY_POINTS; ++i) {
+	for (i = 1; i < PUBKEY_POINTS; ++i)
+	{
 		point_double(&points[i], points[i-1]);
-		assert(point_verify(points[i]));
+		if (!point_verify(points[i]))
+		{
+			return -2;
+		}
 	}
 
 	// Add all points corresponding to 1 bits
-	for (i = 0; i < PUBKEY_POINTS; ++i) {
-		if (mpz_tstbit(prvkey, i) == 1) {
-			if (mpz_cmp_ui(pubkey.x, 0) == 0 && mpz_cmp_ui(pubkey.y, 0) == 0) {
-				point_set(&pubkey, points[i]);
-			} else {
-				point_add(&pubkey, pubkey, points[i]);
+	for (i = 0; i < PUBKEY_POINTS; ++i)
+	{
+		if (mpz_tstbit(bignum, i) == 1)
+		{
+			if (mpz_cmp_ui(point.x, 0) == 0 && mpz_cmp_ui(point.y, 0) == 0)
+			{
+				point_set(&point, points[i]);
 			}
-			assert(point_verify(pubkey));
+			else
+			{
+				point_add(&point, point, points[i]);
+			}
+			if (!point_verify(points[i]))
+			{
+				return -3;
+			}
 		}
 	}
 	
 	// Setting compression flag
-	if (privkey_is_compressed(k)) {
-		if (mpz_even_p(pubkey.y)) {
-			r->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
-		} else {
-			r->data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
+	if (privkey_is_compressed(privkey))
+	{
+		if (mpz_even_p(point.y))
+		{
+			pubkey->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
 		}
-	} else {
-		r->data[0] = PUBKEY_UNCOMPRESSED_FLAG;
+		else
+		{
+			pubkey->data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
+		}
+	}
+	else
+	{
+		pubkey->data[0] = PUBKEY_UNCOMPRESSED_FLAG;
 	}
 	
 	// Exporting x,y coordinates as byte string, making sure to leave leading
 	// zeros if either exports as less than 32 bytes.
-	l = (mpz_sizeinbase(pubkey.x, 2) + 7) / 8;
-	mpz_export(r->data + 1 + (32 - l), &i, 1, 1, 1, 0, pubkey.x);
-	assert(l == i);
-	if (!privkey_is_compressed(k)) {
-		l = (mpz_sizeinbase(pubkey.y, 2) + 7) / 8;
-		mpz_export(r->data + 33 + (32 - l), &i, 1, 1, 1, 0, pubkey.y);
-		assert(l == i);
+	l = (mpz_sizeinbase(point.x, 2) + 7) / 8;
+	mpz_export(pubkey->data + 1 + (32 - l), &i, 1, 1, 1, 0, point.x);
+	if (l != i)
+	{
+		return -4;
+	}
+	if (!privkey_is_compressed(privkey))
+	{
+		l = (mpz_sizeinbase(point.y, 2) + 7) / 8;
+		mpz_export(pubkey->data + 33 + (32 - l), &i, 1, 1, 1, 0, point.y);
+		if (l != i)
+		{
+			return -4;
+		}
 	}
 
 	// Clear all points
-	mpz_clear(prvkey);
-	for (i = 0; i < PUBKEY_POINTS; ++i) {
+	mpz_clear(bignum);
+	for (i = 0; i < PUBKEY_POINTS; ++i)
+	{
 		point_clear(points + i);
 	}
 	
-	return r;
+	return 1;
 }
 
 PubKey pubkey_compress(PubKey k) {
@@ -238,5 +266,10 @@ char *pubkey_to_bech32address(PubKey k) {
 
 void pubkey_free(PubKey k) {
 	FREE(k);
+}
+
+size_t pubkey_sizeof(void)
+{
+	return sizeof(struct PubKey);
 }
 
