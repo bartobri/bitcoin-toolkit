@@ -14,7 +14,7 @@ int pubkey_is_compressed(PubKey);
 int pubkey_to_hex(char *, PubKey);
 int pubkey_to_raw(unsigned char *, PubKey);
 int pubkey_to_address(char *, PubKey);
-char  *pubkey_to_bech32address(PubKey);
+int pubkey_to_bech32address(char *, PubKey);
 void   pubkey_free(PubKey);
 size_t pubkey_sizeof(void);
 

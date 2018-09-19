@@ -263,7 +263,13 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 		else if (output_format == OUTPUT_BECH32_ADDRESS)
 		{
-			pubkey_str = pubkey_to_bech32address(key);
+			if(!pubkey_is_compressed(key))
+			{
+				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
+				return EXIT_FAILURE;
+			}
+			pubkey_str = ALLOC(43);
+			r = pubkey_to_bech32address(pubkey_str, key);
 		}
 
 		// Track time and print status

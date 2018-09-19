@@ -248,24 +248,28 @@ int pubkey_to_address(char *address, PubKey key) {
 	return 1;
 }
 
-char *pubkey_to_bech32address(PubKey k) {
+int pubkey_to_bech32address(char *address, PubKey key) {
 	unsigned char *sha, *rmd;
-	char *output;
 
-	assert(pubkey_is_compressed(k));
+	assert(address);
+	assert(key);
+
+	if (!pubkey_is_compressed(key))
+	{
+		return -1;
+	}
 
 	// RMD(SHA(data))
-	sha = crypto_get_sha256(k->data, PUBKEY_COMPRESSED_LENGTH + 1);
+	sha = crypto_get_sha256(key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	rmd = crypto_get_rmd160(sha, 32);
 
-	output = ALLOC(100);
-	bech32_get_address(output, rmd, 20);
+	bech32_get_address(address, rmd, 20);
 	
 	// Free resources
 	FREE(sha);
 	FREE(rmd);
 
-	return output;
+	return 1;
 }
 
 void pubkey_free(PubKey k) {

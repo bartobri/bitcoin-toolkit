@@ -412,7 +412,15 @@ int btk_pubkey_main(int argc, char *argv[])
 				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
 				return EXIT_FAILURE;
 			}
-			printf("%s", pubkey_to_bech32address(key));
+			output = ALLOC(43);
+			r = pubkey_to_bech32address(output, key);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Can not convert public key to bech32 address.\n");
+				return EXIT_FAILURE;
+			}
+			printf("%s", output);
+			FREE(output);
 			break;
 		case OUTPUT_HEX:
 			if (pubkey_is_compressed(key))
