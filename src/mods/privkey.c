@@ -18,12 +18,14 @@
 #define PRIVKEY_COMPRESSED_FLAG    0x01
 #define PRIVKEY_UNCOMPRESSED_FLAG  0x00
 
-struct PrivKey {
+struct PrivKey
+{
 	unsigned char data[PRIVKEY_LENGTH];
 	int cflag;
 };
 
-int privkey_new(PrivKey key) {
+int privkey_new(PrivKey key)
+{
 	int i;
 
 	assert(key);
@@ -37,7 +39,8 @@ int privkey_new(PrivKey key) {
 	return 1;
 }
 
-int privkey_compress(PrivKey key) {
+int privkey_compress(PrivKey key)
+{
 	assert(key);
 	
 	key->cflag = PRIVKEY_COMPRESSED_FLAG;
@@ -45,7 +48,8 @@ int privkey_compress(PrivKey key) {
 	return 1;
 }
 
-int privkey_uncompress(PrivKey key) {
+int privkey_uncompress(PrivKey key)
+{
 	assert(key);
 
 	key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
@@ -53,7 +57,8 @@ int privkey_uncompress(PrivKey key) {
 	return 1;
 }
 
-int privkey_to_hex(char *str, PrivKey key) {
+int privkey_to_hex(char *str, PrivKey key)
+{
 	int i;
 	
 	assert(key);
@@ -70,7 +75,8 @@ int privkey_to_hex(char *str, PrivKey key) {
 	return 1;
 }
 
-int privkey_to_raw(unsigned char *raw, PrivKey key) {
+int privkey_to_raw(unsigned char *raw, PrivKey key)
+{
 	int len = PRIVKEY_LENGTH;
 
 	assert(key);
@@ -86,7 +92,8 @@ int privkey_to_raw(unsigned char *raw, PrivKey key) {
 	return len;
 }
 
-int privkey_to_wif(char *str, PrivKey key) {
+int privkey_to_wif(char *str, PrivKey key)
+{
 	int len = PRIVKEY_LENGTH + 1;
 	unsigned char p[PRIVKEY_LENGTH + 2];
 	char *base58check;
@@ -112,7 +119,8 @@ int privkey_to_wif(char *str, PrivKey key) {
 	return 1;
 }
 
-int privkey_from_wif(PrivKey key, char *wif) {
+int privkey_from_wif(PrivKey key, char *wif)
+{
 	unsigned char *p;
 	size_t l;
 
@@ -160,7 +168,8 @@ int privkey_from_wif(PrivKey key, char *wif) {
 	return 1;
 }
 
-int privkey_from_hex(PrivKey key, char *hex) {
+int privkey_from_hex(PrivKey key, char *hex)
+{
 	size_t i;
 	
 	assert(hex);
@@ -191,7 +200,8 @@ int privkey_from_hex(PrivKey key, char *hex) {
 	return 1;
 }
 
-int privkey_from_dec(PrivKey key, char *data) {
+int privkey_from_dec(PrivKey key, char *data)
+{
 	int r;
 	size_t i, c, data_len;
 	mpz_t d;
@@ -235,7 +245,8 @@ int privkey_from_dec(PrivKey key, char *data) {
 	return 1;
 }
 
-int privkey_from_str(PrivKey key, char *data) {
+int privkey_from_str(PrivKey key, char *data)
+{
 	unsigned char *tmp;
 
 	assert(key);
@@ -250,7 +261,8 @@ int privkey_from_str(PrivKey key, char *data) {
 	return 1;
 }
 
-int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l) {
+int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
+{
 
 	assert(raw);
 	assert(key);
@@ -273,7 +285,8 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l) {
 	return 1;
 }
 
-int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len) {
+int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
+{
 	unsigned char *tmp;
 	
 	tmp = crypto_get_sha256(data, data_len);
@@ -285,7 +298,8 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len) {
 	return 1;
 }
 
-int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len) {
+int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
+{
 	int i, r, str_len;
 	unsigned char *head = data;
 	char *tmp;
@@ -388,12 +402,14 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len) {
 	return -1;
 }
 
-int privkey_is_compressed(PrivKey key) {
+int privkey_is_compressed(PrivKey key)
+{
 	assert(key);
 	return (key->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
 
-int privkey_is_zero(PrivKey key) {
+int privkey_is_zero(PrivKey key)
+{
 	int i;
 	
 	assert(key);
@@ -405,11 +421,13 @@ int privkey_is_zero(PrivKey key) {
 	return i == PRIVKEY_LENGTH;
 }
 
-void privkey_free(PrivKey key) {
+void privkey_free(PrivKey key)
+{
 	assert(key);
 	FREE(key);
 }
 
-size_t privkey_sizeof(void) {
+size_t privkey_sizeof(void)
+{
 	return sizeof(struct PrivKey);
 }
