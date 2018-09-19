@@ -156,60 +156,72 @@ int pubkey_compress(PubKey key) {
 	return 1;
 }
 
-int pubkey_is_compressed(PubKey k) {
-	assert(k);
-	if (k->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+int pubkey_is_compressed(PubKey key) {
+	assert(key);
+	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
 		return 1;
 	}
 	return 0;
 }
 
-char *pubkey_to_hex(PubKey k) {
+int pubkey_to_hex(char *str, PubKey key) {
 	int i, l;
-	char *r;
 	
-	assert(k);
+	assert(str);
+	assert(key);
 	
-	if (k->data[0] == PUBKEY_UNCOMPRESSED_FLAG) {
-		l = (PUBKEY_UNCOMPRESSED_LENGTH * 2) + 2;
-	} else if (k->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
-		l = (PUBKEY_COMPRESSED_LENGTH * 2) + 2;
-	} else {
-		return NULL;
-	}
-
-	r = ALLOC(l + 1);
-	if (r == NULL) {
-		return NULL;
-	}
-
-	memset(r, 0, l + 1);
-	
-	for (i = 0; i < l/2; ++i) {
-		sprintf(r + (i * 2), "%02x", k->data[i]);
+	switch (key->data[0])
+	{
+		case PUBKEY_UNCOMPRESSED_FLAG:
+			l = (PUBKEY_UNCOMPRESSED_LENGTH * 2) + 2;
+			break;
+		case PUBKEY_COMPRESSED_FLAG_EVEN:
+		case PUBKEY_COMPRESSED_FLAG_ODD:
+			l = (PUBKEY_COMPRESSED_LENGTH * 2) + 2;
+			break;
+		default:
+			return -1;
 	}
 	
-	return r;
+	for (i = 0; i < l; i += 2) {
+		sprintf(str + i, "%02x", key->data[i/2]);
+	}
+	str[l] = '\0';
+	
+	return 1;
 }
 
 unsigned char *pubkey_to_raw(PubKey k, size_t *rl) {
-	int i, l;
+	int i, l, r;
 	char *s;
-	unsigned char *r;
+	unsigned char *ret;
 	
-	s = pubkey_to_hex(k);
+	if (pubkey_is_compressed(k))
+	{
+		s = ALLOC(((PUBKEY_COMPRESSED_LENGTH + 1) * 2) + 1);
+	}
+	else
+	{
+		s = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
+	}
+	// TODO - Why am i converting to hex and then back to raw???
+	r = pubkey_to_hex(s, k);
+	if (r < 0)
+	{
+		return NULL;
+	}
 	
 	l = strlen(s);
 	
-	r = ALLOC(l/2);
+	ret = ALLOC(l/2);
 	
 	for (i = 0; i < l; i += 2) {
-		r[i/2] = hex_to_dec(s[i], s[i+1]);
+		ret[i/2] = hex_to_dec(s[i], s[i+1]);
 	}
 	
 	*rl = l/2;
 	
-	return r;
+	return ret;
 }
 
 char *pubkey_to_address(PubKey k) {

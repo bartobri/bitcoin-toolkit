@@ -400,7 +400,17 @@ int btk_pubkey_main(int argc, char *argv[])
 			printf("%s", pubkey_to_bech32address(key));
 			break;
 		case OUTPUT_HEX:
-			printf("%s", pubkey_to_hex(key));
+			if (pubkey_is_compressed(key))
+			{
+				output = ALLOC(((PUBKEY_COMPRESSED_LENGTH + 1) * 2) + 1);
+			}
+			else
+			{
+				output = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
+			}
+			pubkey_to_hex(output, key);
+			printf("%s", output);
+			FREE(output);
 			break;
 		case OUTPUT_RAW:
 			uc_output = pubkey_to_raw(key, &output_len);

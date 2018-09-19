@@ -10,8 +10,8 @@ typedef struct PubKey *PubKey;
 
 int pubkey_get(PubKey, PrivKey);
 int pubkey_compress(PubKey);
-int    pubkey_is_compressed(PubKey);
-char  *pubkey_to_hex(PubKey);
+int pubkey_is_compressed(PubKey);
+int pubkey_to_hex(char *, PubKey);
 unsigned char *pubkey_to_raw(PubKey, size_t*);
 char  *pubkey_to_address(PubKey);
 char  *pubkey_to_bech32address(PubKey);
