@@ -20,11 +20,13 @@
 #define PUBKEY_UNCOMPRESSED_FLAG      0x04
 #define PUBKEY_POINTS                 (PRIVKEY_LENGTH * 8)
 
-struct PubKey{
+struct PubKey
+{
 	unsigned char data[PUBKEY_UNCOMPRESSED_LENGTH + 1];
 };
 
-int pubkey_get(PubKey pubkey, PrivKey privkey) {
+int pubkey_get(PubKey pubkey, PrivKey privkey)
+{
 	size_t i, l;
 	char *privkey_hex;
 	mpz_t bignum;
@@ -131,13 +133,15 @@ int pubkey_get(PubKey pubkey, PrivKey privkey) {
 	return 1;
 }
 
-int pubkey_compress(PubKey key) {
+int pubkey_compress(PubKey key)
+{
 	mpz_t y;
 	size_t point_length = 32;
 	
 	assert(key);
 	
-	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD)
+	{
 		return 1;
 	}
 
@@ -145,9 +149,12 @@ int pubkey_compress(PubKey key) {
 
 	mpz_import(y, point_length, 1, 1, 1, 0, key->data + 1 + point_length);
 	
-	if (mpz_even_p(y)) {
+	if (mpz_even_p(y))
+	{
 		key->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
-	} else {
+	}
+	else
+	{
 		key->data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
 	}
 
@@ -156,15 +163,18 @@ int pubkey_compress(PubKey key) {
 	return 1;
 }
 
-int pubkey_is_compressed(PubKey key) {
+int pubkey_is_compressed(PubKey key)
+{
 	assert(key);
-	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD)
+	{
 		return 1;
 	}
 	return 0;
 }
 
-int pubkey_to_hex(char *str, PubKey key) {
+int pubkey_to_hex(char *str, PubKey key)
+{
 	int i, l;
 	
 	assert(str);
@@ -183,7 +193,8 @@ int pubkey_to_hex(char *str, PubKey key) {
 			return -1;
 	}
 	
-	for (i = 0; i < l; i += 2) {
+	for (i = 0; i < l; i += 2)
+	{
 		sprintf(str + i, "%02x", key->data[i/2]);
 	}
 	str[l] = '\0';
@@ -191,7 +202,8 @@ int pubkey_to_hex(char *str, PubKey key) {
 	return 1;
 }
 
-int pubkey_to_raw(unsigned char *raw, PubKey key) {
+int pubkey_to_raw(unsigned char *raw, PubKey key)
+{
 	int i, l;
 
 	assert(raw);
@@ -207,7 +219,8 @@ int pubkey_to_raw(unsigned char *raw, PubKey key) {
 	return l;
 }
 
-int pubkey_to_address(char *address, PubKey key) {
+int pubkey_to_address(char *address, PubKey key)
+{
 	size_t l;
 	unsigned char *sha, *rmd;
 	unsigned char r[21];
@@ -216,9 +229,12 @@ int pubkey_to_address(char *address, PubKey key) {
 	assert(address);
 	assert(key);
 
-	if (pubkey_is_compressed(key)) {
+	if (pubkey_is_compressed(key))
+	{
 		l = PUBKEY_COMPRESSED_LENGTH + 1;
-	} else {
+	}
+	else
+	{
 		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
 	}
 
@@ -227,9 +243,12 @@ int pubkey_to_address(char *address, PubKey key) {
 	rmd = crypto_get_rmd160(sha, 32);
 
 	// Set address version bit
-	if (network_is_main()) {
+	if (network_is_main())
+	{
 		r[0] = ADDRESS_VERSION_BIT_MAINNET;
-	} else if (network_is_test()) {
+	}
+	else if (network_is_test())
+	{
 		r[0] = ADDRESS_VERSION_BIT_TESTNET;
 	}
 	
@@ -248,7 +267,8 @@ int pubkey_to_address(char *address, PubKey key) {
 	return 1;
 }
 
-int pubkey_to_bech32address(char *address, PubKey key) {
+int pubkey_to_bech32address(char *address, PubKey key)
+{
 	unsigned char *sha, *rmd;
 
 	assert(address);
@@ -272,7 +292,8 @@ int pubkey_to_bech32address(char *address, PubKey key) {
 	return 1;
 }
 
-void pubkey_free(PubKey key) {
+void pubkey_free(PubKey key)
+{
 	assert(key);
 	FREE(key);
 }
