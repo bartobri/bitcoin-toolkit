@@ -388,8 +388,9 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len) {
 	return -1;
 }
 
-int privkey_is_compressed(PrivKey k) {
-	return (k->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
+int privkey_is_compressed(PrivKey key) {
+	assert(key);
+	return (key->cflag == PRIVKEY_COMPRESSED_FLAG) ? 1 : 0;
 }
 
 int privkey_is_zero(PrivKey key) {
@@ -404,8 +405,9 @@ int privkey_is_zero(PrivKey key) {
 	return i == PRIVKEY_LENGTH;
 }
 
-void privkey_free(PrivKey k) {
-	FREE(k);
+void privkey_free(PrivKey key) {
+	assert(key);
+	FREE(key);
 }
 
 size_t privkey_sizeof(void) {
