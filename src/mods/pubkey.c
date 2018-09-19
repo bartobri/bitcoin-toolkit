@@ -272,8 +272,9 @@ int pubkey_to_bech32address(char *address, PubKey key) {
 	return 1;
 }
 
-void pubkey_free(PubKey k) {
-	FREE(k);
+void pubkey_free(PubKey key) {
+	assert(key);
+	FREE(key);
 }
 
 size_t pubkey_sizeof(void)
