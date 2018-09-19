@@ -131,29 +131,29 @@ int pubkey_get(PubKey pubkey, PrivKey privkey) {
 	return 1;
 }
 
-PubKey pubkey_compress(PubKey k) {
+int pubkey_compress(PubKey key) {
 	mpz_t y;
 	size_t point_length = 32;
 	
-	assert(k);
+	assert(key);
 	
-	if (k->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || k->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
-		return k;
+	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD) {
+		return 1;
 	}
 
 	mpz_init(y);
 
-	mpz_import(y, point_length, 1, 1, 1, 0, k->data + 1 + point_length);
+	mpz_import(y, point_length, 1, 1, 1, 0, key->data + 1 + point_length);
 	
 	if (mpz_even_p(y)) {
-		k->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
+		key->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
 	} else {
-		k->data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
+		key->data[0] = PUBKEY_COMPRESSED_FLAG_ODD;
 	}
 
 	mpz_clear(y);
 	
-	return k;
+	return 1;
 }
 
 int pubkey_is_compressed(PubKey k) {

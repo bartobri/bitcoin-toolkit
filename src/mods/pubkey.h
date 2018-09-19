@@ -9,7 +9,7 @@
 typedef struct PubKey *PubKey;
 
 int pubkey_get(PubKey, PrivKey);
-PubKey pubkey_compress(PubKey);
+int pubkey_compress(PubKey);
 int    pubkey_is_compressed(PubKey);
 char  *pubkey_to_hex(PubKey);
 unsigned char *pubkey_to_raw(PubKey, size_t*);
