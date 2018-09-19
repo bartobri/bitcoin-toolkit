@@ -285,11 +285,8 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l) {
 	return 1;
 }
 
-PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
-	PrivKey key;
+int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len) {
 	unsigned char *tmp;
-
-	NEW(key);
 	
 	tmp = crypto_get_sha256(data, data_len);
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
@@ -297,7 +294,7 @@ PrivKey privkey_from_blob(unsigned char *data, size_t data_len) {
 
 	privkey_compress(key);
 	
-	return key;
+	return 1;
 }
 
 PrivKey privkey_from_guess(unsigned char *data, size_t data_len) {

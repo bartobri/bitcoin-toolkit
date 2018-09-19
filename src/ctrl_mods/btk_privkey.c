@@ -291,7 +291,14 @@ int btk_privkey_main(int argc, char *argv[])
 				fprintf(stderr, "Error: Input required.\n");
 				return EXIT_FAILURE;
 			}
-			key = privkey_from_blob(input, input_len);
+
+			key = ALLOC(privkey_sizeof());
+			r = privkey_from_blob(key, input, input_len);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Invalid blob.\n");
+				return EXIT_FAILURE;
+			}
 			break;
 		case INPUT_GUESS:
 			input_len = input_get(&input);
