@@ -236,26 +236,14 @@ int privkey_from_dec(PrivKey key, char *data) {
 }
 
 int privkey_from_str(PrivKey key, char *data) {
-	int r;
 	unsigned char *tmp;
-	PrivKey rawkey;
 
 	assert(key);
 	assert(data);
-
-	NEW(rawkey);
 	
 	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
-	r = privkey_from_raw(rawkey, tmp, 32);
-	if (r < 0)
-	{
-		return -1;
-	}
-
-	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
-
+	memcpy(key->data, tmp, PRIVKEY_LENGTH);
 	FREE(tmp);
-	FREE(rawkey);
 
 	privkey_compress(key);
 	
