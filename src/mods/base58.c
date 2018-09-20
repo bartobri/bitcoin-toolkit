@@ -8,7 +8,8 @@
 
 static char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-int base58_encode(char *output, unsigned char *input, size_t input_len) {
+int base58_encode(char *output, unsigned char *input, size_t input_len)
+{
 	int i, j;
 	char t;
 	mpz_t x, r, d;
@@ -25,17 +26,20 @@ int base58_encode(char *output, unsigned char *input, size_t input_len) {
 
 	// Base58 encode
 	mpz_import(x, input_len, 1, sizeof(*input), 1, 0, input);
-	for (i = 0; mpz_cmp_ui(x, 0) > 0; ++i) {
+	for (i = 0; mpz_cmp_ui(x, 0) > 0; ++i)
+	{
 		mpz_tdiv_qr(x, r, x, d);
 		output[i] = code_string[mpz_get_ui(r)];
 	}
-	for (j = 0; input[j] == 0; ++j, ++i) {
+	for (j = 0; input[j] == 0; ++j, ++i)
+	{
 		output[i] = code_string[0];
 	}
 	output[i] = '\0';
 	
 	// Reverse result
-	for (i = 0, j = strlen(output) - 1; i < j; ++i, --j) {
+	for (i = 0, j = strlen(output) - 1; i < j; ++i, --j)
+	{
 		t = output[i];
 		output[i] = output[j];
 		output[j] = t;
@@ -48,7 +52,8 @@ int base58_encode(char *output, unsigned char *input, size_t input_len) {
 	return 1;
 }
 
-int base58_decode(unsigned char *output, char *input) {
+int base58_decode(unsigned char *output, char *input)
+{
 	int i, j;
 	size_t r, input_len;
 	mpz_t x, b;
@@ -87,8 +92,9 @@ int base58_decode(unsigned char *output, char *input) {
 	return (int)r;
 }
 
-int base58_ischar(char c) {
-	size_t i;
+int base58_ischar(char c)
+{
+	int i;
 
 	for (i = 0; i < BASE58_CODE_STRING_LENGTH && code_string[i] != c; ++i)
 		;
