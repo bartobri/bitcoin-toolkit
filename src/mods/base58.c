@@ -48,13 +48,15 @@ int base58_encode(char *output, unsigned char *input, size_t input_len) {
 	return 1;
 }
 
-unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
-	size_t i, j;
-	unsigned char *ret;
+int base58_decode(unsigned char *output, char *input) {
+	int i, j;
+	size_t r, input_len;
 	mpz_t x, b;
 	
-	assert(str);
-	assert(l);
+	assert(input);
+	assert(output);
+
+	input_len = strlen(input);
 	
 	mpz_init(x);
 	mpz_init(b);
@@ -62,22 +64,27 @@ unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 	mpz_set_ui(b, 58);
 	mpz_set_ui(x, 0);
 	
-	for (i = 0; i < l; ++i) {
-		for (j = 0; j < BASE58_CODE_STRING_LENGTH && code_string[j] != str[i]; ++j)
+	for (i = 0; i < (int)input_len; ++i)
+	{
+		for (j = 0; j < BASE58_CODE_STRING_LENGTH && code_string[j] != input[i]; ++j)
 			;
-		assert(j < BASE58_CODE_STRING_LENGTH);
+
+		if (j >= BASE58_CODE_STRING_LENGTH)
+		{
+			return -1;
+		}
 
 		mpz_mul(x, b, x);
 		mpz_add_ui(x, x, j);
 	}
 
-	ret = ALLOC((mpz_sizeinbase(x, 2) + 7) / 8);
-	mpz_export(ret, rl, 1, 1, 1, 0, x);
+	//ret = ALLOC((mpz_sizeinbase(x, 2) + 7) / 8);
+	mpz_export(output, &r, 1, 1, 1, 0, x);
 	
 	mpz_clear(x);
 	mpz_clear(b);
 	
-	return ret;
+	return (int)r;
 }
 
 int base58_ischar(char c) {

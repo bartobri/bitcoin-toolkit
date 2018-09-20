@@ -39,15 +39,20 @@ char *base58check_encode(unsigned char *s, size_t l) {
 	return output;
 }
 
+// TODO - don't need the size of the char * as a param
 unsigned char *base58check_decode(char *s, size_t l, size_t *rl) {
 	unsigned char *r;
-	size_t i, b58l;
+	int i, b58l;
 	uint32_t checksum1 = 0, checksum2 = 0;
 	
 	assert(s);
 	assert(l);
 	
-	r = base58_decode(s, l, &b58l);
+	// Assume that the length of the decoded data will always
+	// be less than the encoded data
+	r = ALLOC(strlen(s));
+
+	b58l = base58_decode(r, s);
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		checksum1 <<= 8;
@@ -65,13 +70,17 @@ unsigned char *base58check_decode(char *s, size_t l, size_t *rl) {
 
 int base58check_valid_checksum(char *s, size_t l) {
 	unsigned char *r;
-	size_t i, b58l;
+	int i, b58l;
 	uint32_t checksum1 = 0, checksum2 = 0;
 
 	assert(s);
 	assert(l);
 	
-	r = base58_decode(s, l, &b58l);
+	// Assume that the length of the decoded data will always
+	// be less than the encoded data
+	r = ALLOC(strlen(s));
+
+	b58l = base58_decode(r, s);
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		checksum1 <<= 8;
