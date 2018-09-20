@@ -1,31 +1,39 @@
 #include <stddef.h>
-#include <string.h>
-#include <stdint.h>
 #include "base32.h"
 #include "assert.h"
 
+#define BASE32_CODE_STRING_LENGTH 32
+
 static char *code_string = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 
-void base32_encode(char *output, unsigned char *data, size_t data_len)
+int base32_encode(char *output, unsigned char *data, size_t data_len)
 {
-	size_t i, output_len;
+	int i, c, output_len;
 
 	assert(output);
 	assert(data);
 	assert(data_len);
 
-	base32_encode_raw((unsigned char*)output, &output_len, data, data_len);
+	output_len = base32_encode_raw((unsigned char*)output, data, data_len);
 
 	for (i = 0; i < output_len; ++i)
 	{
-		output[i] = base32_get_char((uint8_t)output[i]);
+		c = base32_get_char((int)output[i]);
+		if (c < 0)
+		{
+			return c;
+		}
+		output[i] = (char)c;
 	}
 	output[i] = '\0';
+
+	return 1;
 }
 
-void base32_encode_raw(unsigned char *output, size_t *output_len, unsigned char *data, size_t data_len)
+int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_len)
 {
 	size_t i, j, k;
+	int r;
 	unsigned char *output_head = output;
 
 	assert(output);
@@ -46,23 +54,28 @@ void base32_encode_raw(unsigned char *output, size_t *output_len, unsigned char 
 			}
 		}
 	}
-	*output_len = ++k / 5;
+	r = ++k / 5;
 	output = output_head;
+
+	return r;
 }
 
-char base32_get_char(uint8_t c)
+int base32_get_char(int c)
 {
-	assert(c < strlen(code_string));
-	return code_string[c];
+	if (c >= BASE32_CODE_STRING_LENGTH)
+	{
+		return -1;
+	}
+	return (int)code_string[c];
 }
 
 int base32_get_raw(char c)
 {
-	size_t i;
+	int i;
 
 	assert(c);
 
-	for (i = 0; i < strlen(code_string); ++i)
+	for (i = 0; i < BASE32_CODE_STRING_LENGTH; ++i)
 	{
 		if (c == code_string[i])
 		{

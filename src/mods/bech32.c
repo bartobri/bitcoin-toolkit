@@ -16,7 +16,7 @@
 static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk);
 
 void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
-	size_t i, l;
+	int i, l, c;
 
 	char *hrp, *output_head = output;
 	uint32_t chk = 1;
@@ -47,14 +47,24 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 	*(output++) = BECH32_SEPARATOR;
 
 	// version byte
-	*(output++) = base32_get_char(BECH32_VERSION_BYTE);
+	c = base32_get_char(BECH32_VERSION_BYTE);
+	if (c < 0)
+	{
+		// return failure value here
+	}
+	*(output++) = (char)c;
 	chk = bech32_polymod_step(BECH32_VERSION_BYTE, chk);
 
 	// data
 	data_b32r = ALLOC(data_len * 2);
-	base32_encode_raw(data_b32r, &l, data, data_len);
+	l = base32_encode_raw(data_b32r, data, data_len);
 	for (i = 0; i < l; ++i) {
-		*(output++) = base32_get_char(data_b32r[i]);
+		c = base32_get_char((int)data_b32r[i]);
+		if (c < 0)
+		{
+			// return failure value here
+		}
+		*(output++) = (char)c;
 		chk = bech32_polymod_step(data_b32r[i], chk);
 	}
 
@@ -67,7 +77,12 @@ void bech32_get_address(char *output, unsigned char *data, size_t data_len) {
 
 	// get/append checksum
 	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i) {
-		*(output++) = base32_get_char((chk >> (5 * (5 - i))) & 31);
+		c = base32_get_char((chk >> (5 * (5 - i))) & 31);
+		if (c < 0)
+		{
+			// return failure value here
+		}
+		*(output++) = (char)c;
 	}
 
 	*output = '\0';
