@@ -4,48 +4,48 @@
 #include "mem.h"
 #include "assert.h"
 
+#define BASE58_CODE_STRING_LENGTH 58
+
 static char *code_string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-char *base58_encode(unsigned char *str, size_t l) {
+int base58_encode(char *output, unsigned char *input, size_t input_len) {
 	int i, j;
 	char t;
-	char *res;
 	mpz_t x, r, d;
-	
-	assert(str);
-	assert(l);
-	
+
+	assert(output);
+	assert(input);
+	assert(input_len);
+
 	mpz_init(x);
 	mpz_init(r);
 	mpz_init(d);
-	
+
 	mpz_set_ui(d, 58);
-	
-	res = ALLOC(l*2);
 
 	// Base58 encode
-	mpz_import(x, l, 1, sizeof(str[0]), 1, 0, str);
+	mpz_import(x, input_len, 1, sizeof(*input), 1, 0, input);
 	for (i = 0; mpz_cmp_ui(x, 0) > 0; ++i) {
 		mpz_tdiv_qr(x, r, x, d);
-		res[i] = code_string[mpz_get_ui(r)];
+		output[i] = code_string[mpz_get_ui(r)];
 	}
-	for (j = 0; str[j] == 0; ++j, ++i) {
-		res[i] = code_string[0];
+	for (j = 0; input[j] == 0; ++j, ++i) {
+		output[i] = code_string[0];
 	}
-	res[i] = '\0';
+	output[i] = '\0';
 	
 	// Reverse result
-	for (i = 0, j = strlen(res) - 1; i < j; ++i, --j) {
-		t = res[i];
-		res[i] = res[j];
-		res[j] = t;
+	for (i = 0, j = strlen(output) - 1; i < j; ++i, --j) {
+		t = output[i];
+		output[i] = output[j];
+		output[j] = t;
 	}
 	
 	mpz_clear(x);
 	mpz_clear(r);
 	mpz_clear(d);
 
-	return res;
+	return 1;
 }
 
 unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
@@ -63,9 +63,9 @@ unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 	mpz_set_ui(x, 0);
 	
 	for (i = 0; i < l; ++i) {
-		for (j = 0; j < strlen(code_string) && code_string[j] != str[i]; ++j)
+		for (j = 0; j < BASE58_CODE_STRING_LENGTH && code_string[j] != str[i]; ++j)
 			;
-		assert(j < strlen(code_string));
+		assert(j < BASE58_CODE_STRING_LENGTH);
 
 		mpz_mul(x, b, x);
 		mpz_add_ui(x, x, j);
@@ -83,8 +83,8 @@ unsigned char *base58_decode(char *str, size_t l, size_t *rl) {
 int base58_ischar(char c) {
 	size_t i;
 
-	for (i = 0; i < strlen(code_string) && code_string[i] != c; ++i)
+	for (i = 0; i < BASE58_CODE_STRING_LENGTH && code_string[i] != c; ++i)
 		;
 
-	return (i < strlen(code_string));
+	return (i < BASE58_CODE_STRING_LENGTH);
 }

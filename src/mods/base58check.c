@@ -9,34 +9,34 @@
 #define CHECKSUM_LENGTH 4
 
 char *base58check_encode(unsigned char *s, size_t l) {
+	int i, r;
+	uint32_t checksum;
 	unsigned char *scheck;
-	uint32_t i, checksum;
-	char *r;
+	char *output;
 	
 	assert(s);
 	assert(l);
 	
-	// Get memory for the checksummed string
 	scheck = ALLOC(l + CHECKSUM_LENGTH);
+	output = ALLOC((l + CHECKSUM_LENGTH) * 2);
 	
-	// Copy s to scheck
 	memcpy(scheck, s, l);
 	
-	// get checksum
 	checksum = crypto_get_checksum(s, l);
 	
-	// Copy bytes of checksum (big endian) as last 4 bytes of scheck
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		scheck[l+i] = ((checksum >> (24-i*8)) & 0x000000FF);
 	}
 	
-	// Encode checksumed string
-	r = base58_encode(scheck, l + CHECKSUM_LENGTH);
+	r = base58_encode(output, scheck, l + CHECKSUM_LENGTH);
+	if (r < 0)
+	{
+		// return a value indicating failure
+	}
 	
-	// Free memory
 	FREE(scheck);
 	
-	return r;
+	return output;
 }
 
 unsigned char *base58check_decode(char *s, size_t l, size_t *rl) {
