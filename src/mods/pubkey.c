@@ -221,9 +221,10 @@ int pubkey_to_raw(unsigned char *raw, PubKey key)
 
 int pubkey_to_address(char *address, PubKey key)
 {
-	size_t l;
+	int r;
+	size_t len;
 	unsigned char *sha, *rmd;
-	unsigned char r[21];
+	unsigned char rmd_bit[21];
 	char *base58;
 
 	assert(address);
@@ -231,37 +232,45 @@ int pubkey_to_address(char *address, PubKey key)
 
 	if (pubkey_is_compressed(key))
 	{
-		l = PUBKEY_COMPRESSED_LENGTH + 1;
+		len = PUBKEY_COMPRESSED_LENGTH + 1;
 	}
 	else
 	{
-		l = PUBKEY_UNCOMPRESSED_LENGTH + 1;
+		len = PUBKEY_UNCOMPRESSED_LENGTH + 1;
 	}
 
 	// RMD(SHA(data))
-	sha = crypto_get_sha256(key->data, l);
+	sha = crypto_get_sha256(key->data, len);
 	rmd = crypto_get_rmd160(sha, 32);
 
 	// Set address version bit
 	if (network_is_main())
 	{
-		r[0] = ADDRESS_VERSION_BIT_MAINNET;
+		rmd_bit[0] = ADDRESS_VERSION_BIT_MAINNET;
 	}
 	else if (network_is_test())
 	{
-		r[0] = ADDRESS_VERSION_BIT_TESTNET;
+		rmd_bit[0] = ADDRESS_VERSION_BIT_TESTNET;
 	}
 	
 	// Append rmd data
-	memcpy(r + 1, rmd, 20);
+	memcpy(rmd_bit + 1, rmd, 20);
 	
 	// Free resources
 	FREE(sha);
 	FREE(rmd);
 	
+	// Assume the base58 string will never be longer
+	// than twice the input string
 	base58 = ALLOC(21 * 2);
-	base58 = base58check_encode(r, 21);
+	r = base58check_encode(base58, rmd_bit, 21);
+	if (r < 0)
+	{
+		return r;
+	}
+
 	strcpy(address, base58);
+
 	FREE(base58);
 
 	return 1;

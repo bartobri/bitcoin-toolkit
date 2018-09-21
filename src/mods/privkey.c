@@ -94,26 +94,41 @@ int privkey_to_raw(unsigned char *raw, PrivKey key)
 
 int privkey_to_wif(char *str, PrivKey key)
 {
-	int len = PRIVKEY_LENGTH + 1;
+	int r, len;
 	unsigned char p[PRIVKEY_LENGTH + 2];
 	char *base58check;
 
 	assert(str);
 	assert(key);
 
-	if (network_is_main()) {
+	len = PRIVKEY_LENGTH + 1;
+
+	if (network_is_main())
+	{
 		p[0] = MAINNET_PREFIX;
-	} else if (network_is_test()) {
+	}
+	else if (network_is_test())
+	{
 		p[0] = TESTNET_PREFIX;
 	}
 	memcpy(p+1, key->data, PRIVKEY_LENGTH);
-	if (privkey_is_compressed(key)) {
+	if (privkey_is_compressed(key))
+	{
 		p[PRIVKEY_LENGTH + 1] = PRIVKEY_COMPRESSED_FLAG;
 		len += 1;
 	}
 
-	base58check = base58check_encode(p, len);
+	// Assume the base58 string will never be longer
+	// than twice the input string
+	base58check = ALLOC(len * 2);
+	r = base58check_encode(base58check, p, len);
+	if (r < 0)
+	{
+		return r;
+	}
+
 	strcpy(str, base58check);
+
 	FREE(base58check);
 	
 	return 1;

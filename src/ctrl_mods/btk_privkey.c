@@ -163,14 +163,14 @@ int btk_privkey_main(int argc, char *argv[])
 				}
 			}
 
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
 			if (!base58check_valid_checksum((char *)input, input_len))
 			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-
-			RESIZE(input, input_len + 1);
-			input[input_len] = '\0';
 
 			key = ALLOC(privkey_sizeof());
 			r = privkey_from_wif(key, (char *)input);
@@ -179,6 +179,7 @@ int btk_privkey_main(int argc, char *argv[])
 				fprintf(stderr, "Error: Invalid WIF string.\n");
 				return EXIT_FAILURE;
 			}
+
 			break;
 		case INPUT_HEX:
 			input_len = input_get(&input);

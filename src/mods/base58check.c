@@ -8,35 +8,35 @@
 
 #define CHECKSUM_LENGTH 4
 
-char *base58check_encode(unsigned char *s, size_t l) {
+int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	int i, r;
 	uint32_t checksum;
-	unsigned char *scheck;
-	char *output;
+	unsigned char *input_check;
 	
-	assert(s);
-	assert(l);
+	assert(output);
+	assert(input);
+	assert(input_len);
 	
-	scheck = ALLOC(l + CHECKSUM_LENGTH);
-	output = ALLOC((l + CHECKSUM_LENGTH) * 2);
+	input_check = ALLOC(input_len + CHECKSUM_LENGTH);
 	
-	memcpy(scheck, s, l);
+	memcpy(input_check, input, input_len);
 	
-	checksum = crypto_get_checksum(s, l);
+	checksum = crypto_get_checksum(input, input_len);
 	
-	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
-		scheck[l+i] = ((checksum >> (24-i*8)) & 0x000000FF);
+	for (i = 0; i < CHECKSUM_LENGTH; ++i)
+	{
+		input_check[input_len+i] = ((checksum >> (24-i*8)) & 0x000000FF);
 	}
 	
-	r = base58_encode(output, scheck, l + CHECKSUM_LENGTH);
+	r = base58_encode(output, input_check, input_len + CHECKSUM_LENGTH);
 	if (r < 0)
 	{
-		// return a value indicating failure
+		return r;
 	}
 	
-	FREE(scheck);
+	FREE(input_check);
 	
-	return output;
+	return 1;
 }
 
 // TODO - don't need the size of the char * as a param

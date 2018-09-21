@@ -164,14 +164,14 @@ int btk_pubkey_main(int argc, char *argv[])
 				}
 			}
 
+			RESIZE(input, input_len + 1);
+			input[input_len] = '\0';
+
 			if (!base58check_valid_checksum((char *)input, input_len))
 			{
 				fprintf(stderr, "Error: Invalid input.\n");
 				return EXIT_FAILURE;
 			}
-
-			RESIZE(input, input_len + 1);
-			input[input_len] = '\0';
 
 			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_wif(priv, (char *)input);
