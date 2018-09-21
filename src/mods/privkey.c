@@ -382,16 +382,21 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 			else
 				break;
 		}
-		if (i == str_len && base58check_valid_checksum((char *)head, str_len)) {
+		if (i == str_len) {
 			tmp = ALLOC(i + 1);
 			memcpy(tmp, head, i);
 			tmp[i] = '\0';
-			r = privkey_from_wif(key, tmp);
-			FREE(tmp);
+			r = base58check_valid_checksum((char *)tmp);
 			if (r > 0)
 			{
-				return 1;
+				r = privkey_from_wif(key, (char *)tmp);
+				if (r > 0)
+				{
+					FREE(tmp);
+					return 1;
+				}
 			}
+			FREE(tmp);
 		}
 	}
 

@@ -166,9 +166,15 @@ int btk_privkey_main(int argc, char *argv[])
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
 
-			if (!base58check_valid_checksum((char *)input, input_len))
+			r = base58check_valid_checksum((char *)input);
+			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid input.\n");
+				fprintf(stderr, "Error: Invalid WIF string.\n");
+				return EXIT_FAILURE;
+			}
+			if (r == 0)
+			{
+				fprintf(stderr, "Error: Invalid WIF string.\n");
 				return EXIT_FAILURE;
 			}
 
