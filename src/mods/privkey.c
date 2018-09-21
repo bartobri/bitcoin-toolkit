@@ -137,12 +137,20 @@ int privkey_to_wif(char *str, PrivKey key)
 int privkey_from_wif(PrivKey key, char *wif)
 {
 	unsigned char *p;
-	size_t l;
+	int l;
 
 	assert(key);
 	assert(wif);
 
-	p = base58check_decode(wif, strlen(wif), &l);
+	// Assume that the length of the decoded data will always
+	// be less than the encoded data
+	p = ALLOC(strlen(wif) * 2);
+
+	l = base58check_decode(p, wif);
+	if (l < 0)
+	{
+		return -1;
+	}
 
 	if (l != PRIVKEY_LENGTH + 1 && l != PRIVKEY_LENGTH + 2)
 	{
@@ -179,6 +187,8 @@ int privkey_from_wif(PrivKey key, char *wif)
 	}
 
 	memcpy(key->data, p+1, PRIVKEY_LENGTH);
+
+	FREE(p);
 	
 	return 1;
 }

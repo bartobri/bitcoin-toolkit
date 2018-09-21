@@ -39,31 +39,32 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	return 1;
 }
 
-// TODO - don't need the size of the char * as a param
-unsigned char *base58check_decode(char *s, size_t l, size_t *rl) {
-	unsigned char *r;
-	int i, b58l;
+int base58check_decode(unsigned char *output, char *input) {
+	int i, r;
 	uint32_t checksum1 = 0, checksum2 = 0;
 	
-	assert(s);
-	assert(l);
-	
-	// Assume that the length of the decoded data will always
-	// be less than the encoded data
-	r = ALLOC(strlen(s));
+	assert(input);
+	assert(output);
 
-	b58l = base58_decode(r, s);
+	r = base58_decode(output, input);
+	if (r < 0)
+	{
+		return -1;
+	}
+
+	r -= CHECKSUM_LENGTH;
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		checksum1 <<= 8;
-		checksum1 += r[b58l-CHECKSUM_LENGTH+i];
+		checksum1 += output[r+i];
 	}
 
-	checksum2 = crypto_get_checksum(r, b58l - CHECKSUM_LENGTH);
+	checksum2 = crypto_get_checksum(output, r);
 	
-	assert(checksum1 == checksum2);
-	
-	*rl = b58l - CHECKSUM_LENGTH;
+	if (checksum1 != checksum2)
+	{
+		return -2;
+	}
 
 	return r;
 }
