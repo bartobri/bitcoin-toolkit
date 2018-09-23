@@ -21,7 +21,11 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	
 	memcpy(input_check, input, input_len);
 	
-	checksum = crypto_get_checksum(input, input_len);
+	r = crypto_get_checksum(&checksum, input, input_len);
+	if (r < 0)
+	{
+		return -1;
+	}
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i)
 	{
@@ -31,7 +35,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = base58_encode(output, input_check, input_len + CHECKSUM_LENGTH);
 	if (r < 0)
 	{
-		return r;
+		return -1;
 	}
 	
 	FREE(input_check);
@@ -40,7 +44,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 }
 
 int base58check_decode(unsigned char *output, char *input) {
-	int i, r;
+	int i, r, len;
 	uint32_t checksum1 = 0, checksum2 = 0;
 	
 	assert(input);
@@ -52,21 +56,26 @@ int base58check_decode(unsigned char *output, char *input) {
 		return -1;
 	}
 
-	r -= CHECKSUM_LENGTH;
+	len = r;
+	len -= CHECKSUM_LENGTH;
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		checksum1 <<= 8;
-		checksum1 += output[r+i];
+		checksum1 += output[len+i];
 	}
 
-	checksum2 = crypto_get_checksum(output, r);
+	r = crypto_get_checksum(&checksum2, output, len);
+	if (r < 0)
+	{
+		return -1;
+	}
 	
 	if (checksum1 != checksum2)
 	{
-		return -2;
+		return -1;
 	}
 
-	return r;
+	return len;
 }
 
 int base58check_valid_checksum(char *input) {
@@ -93,7 +102,11 @@ int base58check_valid_checksum(char *input) {
 		checksum1 += decoded[r + i];
 	}
 
-	checksum2 = crypto_get_checksum(decoded, r);
+	r = crypto_get_checksum(&checksum2, decoded, r);
+	if (r < 0)
+	{
+		return -1;
+	}
 
 	FREE(decoded);
 	

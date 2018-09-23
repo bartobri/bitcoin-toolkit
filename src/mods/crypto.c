@@ -66,10 +66,9 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	return 1;
 }
 
-uint32_t crypto_get_checksum(unsigned char *data, size_t len) {
+int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len) {
 	int r;
 	unsigned char *sha1, *sha2;
-	uint32_t checksum = 0;
 
 	sha1 = ALLOC(32);
 	sha2 = ALLOC(32);
@@ -77,25 +76,25 @@ uint32_t crypto_get_checksum(unsigned char *data, size_t len) {
 	r = crypto_get_sha256(sha1, data, len);
 	if (r < 0)
 	{
-		// return negative value
+		return -1;
 	}
 	r = crypto_get_sha256(sha2, sha1, 32);
 	if (r < 0)
 	{
-		// return negative value
+		return -1;
 	}
 
-	checksum <<= 8;
-	checksum += sha2[0];
-	checksum <<= 8;
-	checksum += sha2[1];
-	checksum <<= 8;
-	checksum += sha2[2];
-	checksum <<= 8;
-	checksum += sha2[3];
+	*output <<= 8;
+	*output += sha2[0];
+	*output <<= 8;
+	*output += sha2[1];
+	*output <<= 8;
+	*output += sha2[2];
+	*output <<= 8;
+	*output += sha2[3];
 	
 	FREE(sha1);
 	FREE(sha2);
 	
-	return checksum;
+	return 1;
 }

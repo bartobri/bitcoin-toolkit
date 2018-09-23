@@ -21,6 +21,7 @@ struct Message {
 };
 
 Message message_new(const char *command, unsigned char *payload, size_t len) {
+	int r;
 	Message m;
 	
 	assert(command);
@@ -34,7 +35,11 @@ Message message_new(const char *command, unsigned char *payload, size_t len) {
 		m->payload = ALLOC(len);
 		memcpy(m->payload, payload, len);
 	}
-	m->checksum = crypto_get_checksum(m->payload, (size_t)m->length);
+	r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
+	if (r < 0)
+	{
+		// return negative value
+	}
 
 	return m;
 }
@@ -95,9 +100,14 @@ int message_cmp_command(Message m, char *command) {
 }
 
 int message_validate(Message m) {
+	int r;
 	uint32_t checksum;
 	
-	checksum = crypto_get_checksum(m->payload, (size_t)m->length);
+	r = crypto_get_checksum(&checksum, m->payload, (size_t)m->length);
+	if (r < 0)
+	{
+		// return negative value
+	}
 	
 	return (checksum == m->checksum);
 }

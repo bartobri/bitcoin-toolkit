@@ -5,6 +5,6 @@
 
 int crypto_get_sha256(unsigned char *, unsigned char *, size_t);
 int crypto_get_rmd160(unsigned char *, unsigned char *, size_t);
-uint32_t crypto_get_checksum(unsigned char *, size_t);
+int crypto_get_checksum(uint32_t *, unsigned char *, size_t);
 
 #endif
