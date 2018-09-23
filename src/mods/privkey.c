@@ -272,12 +272,19 @@ int privkey_from_dec(PrivKey key, char *data)
 
 int privkey_from_str(PrivKey key, char *data)
 {
+	int r;
 	unsigned char *tmp;
 
 	assert(key);
 	assert(data);
 	
-	tmp = crypto_get_sha256((unsigned char*)data, strlen(data));
+	tmp = ALLOC(32);
+
+	r = crypto_get_sha256(tmp, (unsigned char*)data, strlen(data));
+	if (r < 0)
+	{
+		return -1;
+	}
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
 	FREE(tmp);
 
@@ -312,9 +319,16 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 
 int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 {
+	int r;
 	unsigned char *tmp;
 	
-	tmp = crypto_get_sha256(data, data_len);
+	tmp = ALLOC(32);
+
+	r = crypto_get_sha256(tmp, data, data_len);
+	if (r < 0)
+	{
+		return -1;
+	}
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
 	free(tmp);
 
