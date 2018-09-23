@@ -7,49 +7,55 @@
 #include "assert.h"
 
 TXInput txinput_from_raw(unsigned char *raw, size_t l, size_t *c) {
+	int r;
 	size_t i, j;
-	TXInput r;
+	TXInput txinput;
 
 	assert(raw);
 	assert(l);
 
-	NEW(r);
+	NEW(txinput);
 	
 	*c = 0;
 	
 	// Transaction hash being spent
 	for (i = 0; i < 32; ++i, ++raw, --l, ++(*c)) {
 		assert(l);
-		r->tx_hash[31-i] = *raw;
+		txinput->tx_hash[31-i] = *raw;
 	}
 	
 	// Output index of transcaction hash
-	for (i = 0; i < sizeof(r->index); ++i, ++raw, --l, ++(*c)) {
+	for (i = 0; i < sizeof(txinput->index); ++i, ++raw, --l, ++(*c)) {
 		assert(l);
-		r->index <<= 8;
-		r->index += *raw;
+		txinput->index <<= 8;
+		txinput->index += *raw;
 	}
 	
 	// Unlocking Script Size
-	r->script_size = compactuint_get_value(raw, l, &j);
+	r = compactuint_get_value(&txinput->script_size, raw, l);
+	if (r < 0)
+	{
+		// return a negative value
+	}
+	j = r; // quick fix - make prettier later
 	raw += j;
 	*c += j;
 	l = (j > l) ? 0 : l - j;
 	assert(l);
 	
 	// Unlocking Script
-	r->script_raw = ALLOC(r->script_size);
-	for (i = 0; i < r->script_size; ++i, ++raw, --l, ++(*c)) {
+	txinput->script_raw = ALLOC(txinput->script_size);
+	for (i = 0; i < txinput->script_size; ++i, ++raw, --l, ++(*c)) {
 		assert(l);
-		r->script_raw[i] = *raw;
+		txinput->script_raw[i] = *raw;
 	}
 	
 	// Sequence
-	for (i = 0; i < sizeof(r->sequence); ++i, ++raw, --l, ++(*c)) {
+	for (i = 0; i < sizeof(txinput->sequence); ++i, ++raw, --l, ++(*c)) {
 		assert(l);
-		r->sequence <<= 8;
-		r->sequence += *raw;
+		txinput->sequence <<= 8;
+		txinput->sequence += *raw;
 	}
 	
-	return r;
+	return txinput;
 }

@@ -10,55 +10,66 @@
 #include "assert.h"
 
 Trans transaction_from_raw(unsigned char *raw, size_t l) {
+	int r;
 	size_t i, c;
-	Trans r;
+	Trans trans;
 
 	assert(raw);
 	assert(l);
 
-	NEW(r);
+	NEW(trans);
 
 	// Get Version
-	for (r->version = 0, i = 0; i < sizeof(r->version); ++i, ++raw, --l) {
+	for (trans->version = 0, i = 0; i < sizeof(trans->version); ++i, ++raw, --l) {
 		assert(l);
-		r->version += (((size_t)*raw) << (i * 8)); // Reverse byte order
+		trans->version += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
 	// Number of Inputs
-	r->input_count = compactuint_get_value(raw, l, &c);
+	r = compactuint_get_value(&trans->input_count, raw, l);
+	if (r < 0)
+	{
+		// return a negative value
+	}
+	c = r; // quick fix - make prettier later
 	raw += c;
 	l = (c > l) ? 0 : l - c;
 	assert(l);
 	
 	// Input Transactions
-	r->inputs = ALLOC(sizeof(TXInput) * r->input_count);
-	for (i = 0; i < r->input_count; ++i) {
-		r->inputs[i] = txinput_from_raw(raw, l, &c);
+	trans->inputs = ALLOC(sizeof(TXInput) * trans->input_count);
+	for (i = 0; i < trans->input_count; ++i) {
+		trans->inputs[i] = txinput_from_raw(raw, l, &c);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
 		assert(l);
 	}
 	
 	// Number of Outputs
-	r->output_count = compactuint_get_value(raw, l, &c);
+	r = compactuint_get_value(&trans->output_count, raw, l);
+	if (r < 0)
+	{
+		// return a negative value
+	}
+	c = r; // quick fix - make prettier later
 	raw += c;
 	l = (c > l) ? 0 : l - c;
 	assert(l);
 	
 	// Output Transactions
-	r->outputs = ALLOC(sizeof(TXOutput) * r->output_count);
-	for (i = 0; i < r->output_count; ++i) {
-		r->outputs[i] = txoutput_from_raw(raw, l, &c);
+	trans->outputs = ALLOC(sizeof(TXOutput) * trans->output_count);
+	for (i = 0; i < trans->output_count; ++i) {
+		trans->outputs[i] = txoutput_from_raw(raw, l, &c);
 		raw += c;
 		l = (c > l) ? 0 : l - c;
 		assert(l);
 	}
 	
 	// Lock Time
-	for (r->lock_time = 0, i = 0; i < sizeof(r->lock_time); ++i, ++raw, --l) {
+	for (trans->lock_time = 0, i = 0; i < sizeof(trans->lock_time); ++i, ++raw, --l) {
 		assert(l);
-		r->lock_time += (((size_t)*raw) << (i * 8)); // Reverse byte order
+		trans->lock_time += (((size_t)*raw) << (i * 8)); // Reverse byte order
 	}
 	
-	return r;
+	return trans;
 }
