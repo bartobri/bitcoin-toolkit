@@ -38,30 +38,32 @@ int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_
 	return 1;
 }
 
-unsigned char *crypto_get_rmd160(unsigned char *s, size_t l) {
+int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len) {
 	gcry_md_hd_t gc;
-	unsigned char *r;
 	
-	assert(s);
-	assert(l);
-	assert(crypto_init());
+	assert(output);
+	assert(input);
+	assert(input_len);
 	
-	r = ALLOC(20);
+	if (crypto_init() < 0)
+	{
+		return -1;
+	}
 	
 	// Initialize
 	gcry_md_open(&gc, GCRY_MD_RMD160, 0);
 	
 	// Crypt
-	gcry_md_write(gc, s, l);
+	gcry_md_write(gc, input, input_len);
 	
 	// Copy hash
-	memcpy(r, gcry_md_read(gc, 0), 20);
+	memcpy(output, gcry_md_read(gc, 0), 20);
 	
 	// Close gcrypt ADT
 	gcry_md_close(gc);
 	
 	// Return hash
-	return r;
+	return 1;
 }
 
 uint32_t crypto_get_checksum(unsigned char *data, size_t len) {

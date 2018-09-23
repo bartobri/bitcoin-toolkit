@@ -246,7 +246,12 @@ int pubkey_to_address(char *address, PubKey key)
 	{
 		return -1;
 	}
-	rmd = crypto_get_rmd160(sha, 32);
+	rmd = ALLOC(20);
+	r = crypto_get_rmd160(rmd, sha, 32);
+	if (r < 0)
+	{
+		return -1;
+	}
 
 	// Set address version bit
 	if (network_is_main())
@@ -301,7 +306,12 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	{
 		return -1;
 	}
-	rmd = crypto_get_rmd160(sha, 32);
+	rmd = ALLOC(20);
+	r = crypto_get_rmd160(rmd, sha, 32);
+	if (r < 0)
+	{
+		return -1;
+	}
 
 	r = bech32_get_address(address, rmd, 20);
 	if (r < 0)
