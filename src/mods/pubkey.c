@@ -278,6 +278,7 @@ int pubkey_to_address(char *address, PubKey key)
 
 int pubkey_to_bech32address(char *address, PubKey key)
 {
+	int r;
 	unsigned char *sha, *rmd;
 
 	assert(address);
@@ -292,7 +293,11 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	sha = crypto_get_sha256(key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	rmd = crypto_get_rmd160(sha, 32);
 
-	bech32_get_address(address, rmd, 20);
+	r = bech32_get_address(address, rmd, 20);
+	if (r < 0)
+	{
+		return -1;
+	}
 	
 	// Free resources
 	FREE(sha);
