@@ -1,21 +1,28 @@
-#include <gcrypt.h>
 #include <string.h>
+#include <stdint.h>
+#include <gcrypt.h>
 #include "crypto.h"
 #include "assert.h"
 #include "mem.h"
 
-static int crypto_init(void) {
+static int crypto_init(void)
+{
 	static int isInit = 0;
-	if (!isInit) {
-		if (!gcry_check_version(GCRYPT_VERSION)) {
+
+	if (!isInit)
+	{
+		if (!gcry_check_version(GCRYPT_VERSION))
+		{
 			return -1;
 		}
 		isInit = 1;
 	}
+
 	return 1;
 }
 
-int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len) {
+int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
+{
 	gcry_md_hd_t gc;
 	
 	assert(output);
@@ -38,7 +45,8 @@ int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_
 	return 1;
 }
 
-int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len) {
+int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len)
+{
 	gcry_md_hd_t gc;
 	
 	assert(output);
@@ -66,7 +74,8 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	return 1;
 }
 
-int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len) {
+int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
+{
 	int r;
 	unsigned char *sha1, *sha2;
 
