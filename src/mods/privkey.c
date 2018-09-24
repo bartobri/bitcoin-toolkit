@@ -193,35 +193,54 @@ int privkey_from_wif(PrivKey key, char *wif)
 	return 1;
 }
 
-int privkey_from_hex(PrivKey key, char *hex)
+int privkey_from_hex(PrivKey key, char *input)
 {
-	size_t i;
+	int r;
+	size_t i, input_len;
 	
-	assert(hex);
+	assert(input);
 	assert(key);
 
-	// Validating hex string
-	if (strlen(hex) % 2 != 0 || strlen(hex) < PRIVKEY_LENGTH * 2)
+	input_len = strlen(input);
+
+	// Validating input string
+	if (input_len % 2 != 0 || input_len < PRIVKEY_LENGTH * 2)
 	{
 		return -1;
 	}
-	for (i = 0; i < strlen(hex); ++i) {
-		if (!hex_ischar(hex[i]))
+	for (i = 0; i < input_len; ++i)
+	{
+		if (!hex_ischar(input[i]))
 		{
-			return -2;
+			return -1;
 		}
 	}
 
-	// load hex string as private key
-	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2) {
-		key->data[i/2] = hex_to_dec(hex[i], hex[i+1]);
+	// load input string as private key
+	for (i = 0; i < PRIVKEY_LENGTH * 2; i += 2)
+	{
+		r = hex_to_dec(input[i], input[i+1]);
+		if (r < 0)
+		{
+			return -1;
+		}
+		key->data[i/2] = r;
 	}
-	if (hex[i] &&  hex[i+1] && hex_to_dec(hex[i], hex[i+1]) == PRIVKEY_COMPRESSED_FLAG) {
-		key->cflag = PRIVKEY_COMPRESSED_FLAG;
-	} else {
-		key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+
+	key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+	if (input[i] && input[i+1])
+	{
+		r = hex_to_dec(input[i], input[i+1]);
+		if (r < 0)
+		{
+			return -1;
+		}
+		if (r == PRIVKEY_COMPRESSED_FLAG)
+		{
+			key->cflag = PRIVKEY_COMPRESSED_FLAG;
+		}
 	}
-	
+
 	return 1;
 }
 
