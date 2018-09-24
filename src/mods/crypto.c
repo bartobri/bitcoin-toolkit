@@ -57,20 +57,15 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	{
 		return -1;
 	}
-	
-	// Initialize
+
 	gcry_md_open(&gc, GCRY_MD_RMD160, 0);
-	
-	// Crypt
+
 	gcry_md_write(gc, input, input_len);
-	
-	// Copy hash
+
 	memcpy(output, gcry_md_read(gc, 0), 20);
-	
-	// Close gcrypt ADT
+
 	gcry_md_close(gc);
-	
-	// Return hash
+
 	return 1;
 }
 
