@@ -33,6 +33,9 @@ int hex_str_to_raw(unsigned char *output, char *input)
 {
 	int r;
 	size_t i, input_len;
+
+	assert(output);
+	assert(input);
 	
 	input_len = strlen(input);
 	
@@ -54,7 +57,10 @@ int hex_str_to_raw(unsigned char *output, char *input)
 	return 1;
 }
 
-int hex_ischar(char c) {
+int hex_ischar(char c)
+{
+	assert(c);
+
 	return (c >= 'A' && c <= 'F') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
 }
 
