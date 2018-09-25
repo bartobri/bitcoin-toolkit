@@ -31,6 +31,15 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t l
 		assert(payload);
 	}
 
+	if (strlen(command) > MESSAGE_COMMAND_MAXLEN)
+	{
+		return -1;
+	}
+	if (len > MESSAGE_PAYLOAD_MAXLEN)
+	{
+		return -1;
+	}
+
 	m->magic = MESSAGE_MAINNET;
 	memcpy(m->command, command, strlen(command));
 	m->length = len;
