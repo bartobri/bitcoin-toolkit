@@ -47,22 +47,22 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t l
 	return 1;
 }
 
-size_t message_serialize(Message m, unsigned char **s) {
-	unsigned char *head, *ptr;
-	
-	ptr = head = ALLOC(sizeof(struct Message) + MESSAGE_PAYLOAD_MAXLEN);
-	
-	// Serializing Message
-	ptr = serialize_uint32(ptr, m->magic, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_char(ptr, m->command, MESSAGE_COMMAND_MAXLEN);
-	ptr = serialize_uint32(ptr, m->length, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uint32(ptr, m->checksum, SERIALIZE_ENDIAN_BIG);
+int message_serialize(unsigned char *output, size_t *output_len, Message m)
+{
+	assert(output);
+	assert(output_len);
+	assert(m);
+
+	output = serialize_uint32(output, m->magic, SERIALIZE_ENDIAN_LIT);
+	output = serialize_char(output, m->command, MESSAGE_COMMAND_MAXLEN);
+	output = serialize_uint32(output, m->length, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint32(output, m->checksum, SERIALIZE_ENDIAN_BIG);
 	if (m->length)
-		ptr = serialize_uchar(ptr, m->payload, m->length);
+		output = serialize_uchar(output, m->payload, m->length);
+
+	*output_len = 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 	
-	*s = head;
-	
-	return 12 + MESSAGE_COMMAND_MAXLEN + m->length;
+	return 1;
 }
 
 size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {

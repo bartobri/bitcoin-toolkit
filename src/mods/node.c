@@ -56,15 +56,24 @@ void node_destroy(Node n) {
 }
 
 void node_write_message(Node n, Message m) {
+	int r;
 	unsigned char *s;
 	size_t l;
 
 	assert(n);
 	assert(m);
 
-	l = message_serialize(m, &s);
+	s = ALLOC(message_sizeof());
+
+	r = message_serialize(s, &l, m);
+	if (r < 0)
+	{
+		// return negative value
+	}
 
 	node_write(n, s, l);
+
+	FREE(s);
 }
 
 Message node_get_message(Node n, char *command) {
