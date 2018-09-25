@@ -20,13 +20,13 @@ struct Message {
 	unsigned char  payload[MESSAGE_PAYLOAD_MAXLEN];
 };
 
-int message_new(Message m, const char *command, unsigned char *payload, size_t len)
+int message_new(Message m, const char *command, unsigned char *payload, size_t payload_len)
 {
 	int r;
 	
 	assert(m);
 	assert(command);
-	if (len)
+	if (payload_len)
 	{
 		assert(payload);
 	}
@@ -35,22 +35,22 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t l
 	{
 		return -1;
 	}
-	if (len > MESSAGE_PAYLOAD_MAXLEN)
+	if (payload_len > MESSAGE_PAYLOAD_MAXLEN)
 	{
 		return -1;
 	}
 
 	m->magic = MESSAGE_MAINNET;
 	memcpy(m->command, command, strlen(command));
-	m->length = len;
-	if (len)
+	m->length = payload_len;
+	if (payload_len)
 	{
-		memcpy(m->payload, payload, len);
-	}
-	r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
-	if (r < 0)
-	{
-		return -1;
+		memcpy(m->payload, payload, payload_len);
+		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
+		if (r < 0)
+		{
+			return -1;
+		}
 	}
 
 	return 1;
