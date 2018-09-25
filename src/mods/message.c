@@ -17,7 +17,7 @@ struct Message {
 	char           command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
 	uint32_t       checksum;
-	unsigned char *payload;
+	unsigned char  payload[MESSAGE_PAYLOAD_MAXLEN];
 };
 
 int message_new(Message m, const char *command, unsigned char *payload, size_t len)
@@ -36,7 +36,6 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t l
 	m->length = len;
 	if (len)
 	{
-		m->payload = ALLOC(len);
 		memcpy(m->payload, payload, len);
 	}
 	r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
@@ -81,20 +80,13 @@ size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
 	src = deserialize_uint32(&((*dest)->checksum), src, SERIALIZE_ENDIAN_BIG);
 	if ((*dest)->length) {
 		assert(l >= 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length);
-		FREE((*dest)->payload);
-		(*dest)->payload = ALLOC((*dest)->length);
 		src = deserialize_uchar((*dest)->payload, src, (*dest)->length);
-	} else {
-		(*dest)->payload = NULL;
 	}
 	
 	return 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length;
 }
 
 void message_free(Message m) {
-	if (m) {
-		FREE(m->payload);
-	}
 	FREE(m);
 }
 
