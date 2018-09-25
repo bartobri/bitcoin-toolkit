@@ -69,7 +69,6 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 	switch (message_type)
 	{
 		case MESSAGE_TYPE_VERSION:
-
 			node = node_new(host, port);
 			if (!node)
 			{

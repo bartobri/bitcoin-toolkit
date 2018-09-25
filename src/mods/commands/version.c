@@ -55,14 +55,18 @@ Version version_new(void) {
 	r->timestamp = time(NULL);
 	r->addr_recv_services = SERVICES;
 
-	temp = hex_str_to_uc(IP_ADDRESS);
+	temp = ALLOC(strlen(IP_ADDRESS) / 2);
+	hex_str_to_raw(temp, IP_ADDRESS);
+	// check return value of hex_str_to_raw
 	memcpy(r->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
 	FREE(temp);
 	
 	r->addr_recv_port = PORT;
 	r->addr_trans_services = SERVICES;
 	
-	temp = hex_str_to_uc(IP_ADDRESS);
+	temp = ALLOC(strlen(IP_ADDRESS) / 2);
+	hex_str_to_raw(temp, IP_ADDRESS);
+	// check return value of hex_str_to_raw
 	memcpy(r->addr_trans_ip_address, temp, IP_ADDR_FIELD_LEN);
 	FREE(temp);
 	

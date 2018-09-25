@@ -74,6 +74,10 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 	int r;
 	unsigned char *sha1, *sha2;
 
+	assert(output);
+	assert(data);
+	assert(len);
+
 	sha1 = ALLOC(32);
 	sha2 = ALLOC(32);
 

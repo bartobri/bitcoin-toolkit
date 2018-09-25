@@ -2,10 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-
-#include <limits.h>
-#include <errno.h>
-
 #include "hex.h"
 #include "assert.h"
 #include "mem.h"
@@ -33,27 +29,29 @@ int hex_to_dec(char l, char r)
 	return decimal;
 }
 
-unsigned char *hex_str_to_uc(char *hex) {
+int hex_str_to_raw(unsigned char *output, char *input)
+{
 	int r;
-	size_t i, l;
-	unsigned char *raw;
+	size_t i, input_len;
 	
-	l = strlen(hex);
+	input_len = strlen(input);
 	
-	assert(l % 2 == 0);
-	
-	raw = ALLOC(l / 2);
-	
-	for (i = 0; i < l / 2; ++i, hex += 2) {
-		r = hex_to_dec(hex[0], hex[1]);
-		if (r < 0)
-		{
-			// return error value here
-		}
-		raw[i] = r;
+	if (input_len % 2 != 0)
+	{
+		return -1;
 	}
 	
-	return raw;
+	for (i = 0; i < input_len; i += 2)
+	{
+		r = hex_to_dec(input[i], input[i + 1]);
+		if (r < 0)
+		{
+			return -1;
+		}
+		*output++ = r;
+	}
+	
+	return 1;
 }
 
 int hex_ischar(char c) {

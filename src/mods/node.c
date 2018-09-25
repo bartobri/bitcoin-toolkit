@@ -70,7 +70,7 @@ void node_write_message(Node n, Message m) {
 Message node_get_message(Node n, char *command) {
 	int i, c;
 	Message m = NULL;
-	
+
 	c = node_read_messages(n);
 
 	if (c < 0)
@@ -78,7 +78,7 @@ Message node_get_message(Node n, char *command) {
 		perror("Host Read Error");
 		return NULL;
 	}
-	
+
 	// Check if desired message is in the queue
 	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
 		if (n->mqueue[i] == NULL) {
@@ -99,7 +99,7 @@ Message node_get_message(Node n, char *command) {
 			break;
 		}
 	}
-	
+
 	return m;
 }
 
@@ -227,10 +227,11 @@ static int node_read_messages(Node n) {
 
 	while (l > 0) {
 		m = NULL;
+
 		j += (int)message_deserialize(s + j, &m, (size_t)l);
 		l -= j;
-		
-		if (message_validate(m)) {
+
+		if (message_get_payload_len(m) == 0 || message_validate(m)) {
 			for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
 				if (n->mqueue[i] == NULL) {
 					break;
@@ -244,6 +245,5 @@ static int node_read_messages(Node n) {
 			message_free(m);
 		}
 	}
-
 	return c;
 }

@@ -102,13 +102,18 @@ int message_cmp_command(Message m, char *command) {
 int message_validate(Message m) {
 	int r;
 	uint32_t checksum;
-	
+
+	if (m->length == 0)
+	{
+		// return negative value
+	}
+
 	r = crypto_get_checksum(&checksum, m->payload, (size_t)m->length);
 	if (r < 0)
 	{
 		// return negative value
 	}
-	
+
 	return (checksum == m->checksum);
 }
 
