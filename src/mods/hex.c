@@ -33,34 +33,6 @@ int hex_to_dec(char l, char r)
 	return decimal;
 }
 
-uint64_t hex_to_dec_substr(size_t offset, char *str, size_t len) {
-	char *t;
-	unsigned long long r;
-	
-	assert(offset <= strlen(str));
-
-	str += offset;
-	
-	assert(len % 2 == 0);
-	assert(len <= strlen(str));
-	
-	t = ALLOC(len + 1);
-	
-	memset(t, 0, len + 1);
-	memcpy(t, str, len);
-	
-	errno = 0;
-
-	r = strtoull(t, NULL, 16);
-	
-	assert(errno != ERANGE);
-	assert(r <= UINT64_MAX);
-	
-	free(t);
-	
-	return (uint64_t)r;
-}
-
 unsigned char *hex_str_to_uc(char *hex) {
 	int r;
 	size_t i, l;
