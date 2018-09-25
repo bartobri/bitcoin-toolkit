@@ -18,7 +18,7 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 	(void)input;
 	(void)input_len;
 
-	int o, i;
+	int o, i, r;
 	char* host = NULL;
 	int port = HOST_PORT;
 	int message_type = MESSAGE_TYPE_VERSION;
@@ -78,7 +78,13 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 			// Construct and send a version message
 			version_string_len = version_new_serialize(&version_string);
-			message = message_new(VERSION_COMMAND, version_string, version_string_len);
+			message = ALLOC(message_sizeof());
+			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Could not generate new message\n");
+				return EXIT_FAILURE;
+			}
 			FREE(version_string);
 			node_write_message(node, message);
 			message_free(message);

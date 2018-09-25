@@ -20,28 +20,32 @@ struct Message {
 	unsigned char *payload;
 };
 
-Message message_new(const char *command, unsigned char *payload, size_t len) {
+int message_new(Message m, const char *command, unsigned char *payload, size_t len)
+{
 	int r;
-	Message m;
 	
+	assert(m);
 	assert(command);
-	
-	NEW0(m);
+	if (len)
+	{
+		assert(payload);
+	}
 
 	m->magic = MESSAGE_MAINNET;
 	memcpy(m->command, command, strlen(command));
 	m->length = len;
-	if (len) {
+	if (len)
+	{
 		m->payload = ALLOC(len);
 		memcpy(m->payload, payload, len);
 	}
 	r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
 	if (r < 0)
 	{
-		// return negative value
+		return -1;
 	}
 
-	return m;
+	return 1;
 }
 
 size_t message_serialize(Message m, unsigned char **s) {
@@ -134,4 +138,9 @@ size_t message_get_payload(unsigned char **dest, Message m) {
 	memcpy(*dest, m->payload, m->length);
 	
 	return m->length;
+}
+
+size_t message_sizeof(void)
+{
+	return sizeof(struct Message);
 }
