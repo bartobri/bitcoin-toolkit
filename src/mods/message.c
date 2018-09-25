@@ -41,7 +41,7 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 	}
 
 	m->magic = MESSAGE_MAINNET;
-	memcpy(m->command, command, strlen(command));
+	strncpy(m->command, command, MESSAGE_COMMAND_MAXLEN);
 	m->length = payload_len;
 	if (payload_len)
 	{
