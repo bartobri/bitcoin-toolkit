@@ -75,22 +75,18 @@ void node_disconnect(Node node) {
 	close(node->sockfd);
 }
 
-int node_write(Node n, unsigned char *data, size_t l) {
+int node_write(Node node, unsigned char *input, size_t input_len) {
 	ssize_t r;
 
-	assert(n);
-	assert(n->sockfd);
-	assert(data);
-	assert(l);
+	assert(node);
+	assert(node->sockfd);
+	assert(input);
+	assert(input_len);
 	
-	r = write(n->sockfd, data, l);
+	r = write(node->sockfd, input, input_len);
 
 	if (r < 0) {
-		// We don't necessarily need to kill the program on a write error.
-		// For now just display an error message and continue.
-		perror("Node Write Error");
-	} else {
-		assert(r > 0);
+		return -1;
 	}
 
 	return 1;
