@@ -25,6 +25,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 	Node node;
 	Message message;
+	unsigned char *message_raw;
+	size_t message_raw_len;
 	unsigned char *payload = NULL;
 	size_t payload_len;
 
@@ -86,8 +88,23 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				return EXIT_FAILURE;
 			}
 			FREE(version_string);
-			node_write_message(node, message);
+
+			message_raw = ALLOC(message_sizeof());
+			r = message_serialize(message_raw, &message_raw_len, message);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Could not serialize new message\n");
+				return EXIT_FAILURE;
+			}
+
+			r = node_write(node, message_raw, message_raw_len);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Could not send message to node\n");
+				return EXIT_FAILURE;
+			}
 			FREE(message);
+			FREE(message_raw);
 
 			for (i = 0; i < TIMEOUT; ++i)
 			{

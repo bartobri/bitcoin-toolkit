@@ -18,7 +18,6 @@ struct Node
 	Message mqueue[MAX_MESSAGE_QUEUE];
 };
 
-static void node_write(Node, unsigned char *, size_t);
 static int node_read(Node, unsigned char**);
 static int node_read_messages(Node);
 
@@ -76,25 +75,25 @@ void node_disconnect(Node node) {
 	close(node->sockfd);
 }
 
-void node_write_message(Node n, Message m) {
-	int r;
-	unsigned char *s;
-	size_t l;
+int node_write(Node n, unsigned char *data, size_t l) {
+	ssize_t r;
 
 	assert(n);
-	assert(m);
+	assert(n->sockfd);
+	assert(data);
+	assert(l);
+	
+	r = write(n->sockfd, data, l);
 
-	s = ALLOC(message_sizeof());
-
-	r = message_serialize(s, &l, m);
-	if (r < 0)
-	{
-		// return negative value
+	if (r < 0) {
+		// We don't necessarily need to kill the program on a write error.
+		// For now just display an error message and continue.
+		perror("Node Write Error");
+	} else {
+		assert(r > 0);
 	}
 
-	node_write(n, s, l);
-
-	FREE(s);
+	return 1;
 }
 
 Message node_get_message(Node n, char *command) {
@@ -147,25 +146,6 @@ size_t node_sizeof(void)
 /*
  * Static functions
  */
-
-static void node_write(Node n, unsigned char *data, size_t l) {
-	ssize_t r;
-
-	assert(n);
-	assert(n->sockfd);
-	assert(data);
-	assert(l);
-	
-	r = write(n->sockfd, data, l);
-
-	if (r < 0) {
-		// We don't necessarily need to kill the program on a write error.
-		// For now just display an error message and continue.
-		perror("Node Write Error");
-	} else {
-		assert(r > 0);
-	}
-}
 
 static int node_read(Node n, unsigned char** buffer) {
 	int r;
