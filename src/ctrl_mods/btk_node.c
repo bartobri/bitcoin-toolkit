@@ -69,8 +69,9 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 	switch (message_type)
 	{
 		case MESSAGE_TYPE_VERSION:
-			node = node_new(host, port);
-			if (!node)
+			node = ALLOC(node_sizeof());
+			r = node_connect(node, host, port);
+			if (r < 0)
 			{
 				fprintf(stderr, "Could not connect to host %s on port %i\n", host, port);
 				return EXIT_FAILURE;
