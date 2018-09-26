@@ -110,19 +110,23 @@ int message_cmp_command(Message m, char *command)
 	return strncmp(m->command, command, MESSAGE_COMMAND_MAXLEN);
 }
 
-int message_validate(Message m) {
+int message_is_valid(Message m)
+{
 	int r;
 	uint32_t checksum;
 
+	assert(m);
+
+	// If we don't have a payload then there is nothing to validate
 	if (m->length == 0)
 	{
-		// return negative value
+		return 1;
 	}
 
 	r = crypto_get_checksum(&checksum, m->payload, (size_t)m->length);
 	if (r < 0)
 	{
-		// return negative value
+		return -1;
 	}
 
 	return (checksum == m->checksum);

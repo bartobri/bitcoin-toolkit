@@ -247,7 +247,13 @@ static int node_read_messages(Node n) {
 		j += r;
 		l -= j;
 
-		if (message_get_payload_len(m) == 0 || message_validate(m)) {
+		r = message_is_valid(m);
+		if (r < 0)
+		{
+			// return a negative value here
+		}
+
+		if (r) {
 			for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
 				if (n->mqueue[i] == NULL) {
 					break;
