@@ -87,7 +87,7 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			}
 			FREE(version_string);
 			node_write_message(node, message);
-			message_free(message);
+			FREE(message);
 
 			// Wait for version message response
 			for (i = 0; i < TIMEOUT; ++i)
@@ -112,7 +112,7 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 			printf("%s\n", json);
 
-			message_free(message);
+			FREE(message);
 			FREE(payload);
 			FREE(json);
 

@@ -258,7 +258,7 @@ static int node_read_messages(Node n) {
 			
 			++c;
 		} else {
-			message_free(m);
+			FREE(m);
 		}
 	}
 	return c;
