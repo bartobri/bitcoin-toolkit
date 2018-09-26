@@ -74,25 +74,31 @@ int message_serialize(unsigned char *output, size_t *output_len, Message m)
 	return 1;
 }
 
-size_t message_deserialize(unsigned char *src, Message *dest, size_t l) {
+int message_deserialize(Message output, unsigned char *input, size_t input_len)
+{
+	assert(output);
+	assert(input);
+	assert(input_len);
 
-	assert(src);
-	assert(l >= 12 + MESSAGE_COMMAND_MAXLEN);
+	if (input_len < 12 + MESSAGE_COMMAND_MAXLEN)
+	{
+		return -1;
+	}
 
-	if (*dest == NULL)
-		NEW0(*dest);
-	
-	// De-Serializing Message
-	src = deserialize_uint32(&((*dest)->magic), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_char((*dest)->command, src, MESSAGE_COMMAND_MAXLEN);
-	src = deserialize_uint32(&((*dest)->length), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uint32(&((*dest)->checksum), src, SERIALIZE_ENDIAN_BIG);
-	if ((*dest)->length) {
-		assert(l >= 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length);
-		src = deserialize_uchar((*dest)->payload, src, (*dest)->length);
+	input = deserialize_uint32(&(output->magic), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_char(output->command, input, MESSAGE_COMMAND_MAXLEN);
+	input = deserialize_uint32(&(output->length), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint32(&(output->checksum), input, SERIALIZE_ENDIAN_BIG);
+	if (output->length)
+	{
+		if (input_len < 12 + MESSAGE_COMMAND_MAXLEN + output->length)
+		{
+			return -1;
+		}
+		input = deserialize_uchar(output->payload, input, output->length);
 	}
 	
-	return 12 + MESSAGE_COMMAND_MAXLEN + (*dest)->length;
+	return 12 + MESSAGE_COMMAND_MAXLEN + output->length;
 }
 
 void message_free(Message m) {

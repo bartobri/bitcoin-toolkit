@@ -222,9 +222,12 @@ static void node_free(Node n) {
 static int node_read_messages(Node n) {
 	Message m;
 	unsigned char *s = NULL;
-	int l, i, j = 0, c = 0;
+	int l, i, j, r, c;
 	
 	assert(n);
+
+	j = 0;
+	c = 0;
 
 	l = node_read(n, &s);
 
@@ -235,9 +238,13 @@ static int node_read_messages(Node n) {
 	}
 
 	while (l > 0) {
-		m = NULL;
-
-		j += (int)message_deserialize(s + j, &m, (size_t)l);
+		m = ALLOC(message_sizeof());
+		r = message_deserialize(m, s + j, (size_t)l);
+		if (r < 0)
+		{
+			// return negative value here
+		}
+		j += r;
 		l -= j;
 
 		if (message_get_payload_len(m) == 0 || message_validate(m)) {
