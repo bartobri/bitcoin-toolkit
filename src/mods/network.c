@@ -5,18 +5,22 @@
 
 static int network_type = MAINNET;
 
-void network_set_main(void) {
+void network_set_main(void)
+{
 	network_type = MAINNET;
 }
 
-void network_set_test(void) {
+void network_set_test(void)
+{
 	network_type = TESTNET;
 }
 
-int network_is_main(void) {
+int network_is_main(void)
+{
 	return network_type == MAINNET;
 }
 
-int network_is_test(void) {
+int network_is_test(void)
+{
 	return network_type == TESTNET;
 }
