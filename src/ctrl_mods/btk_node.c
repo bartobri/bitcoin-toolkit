@@ -104,8 +104,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				return EXIT_FAILURE;
 			}
 
-			payload = NULL;
-			payload_len = message_get_payload(&payload, message);
+			payload = ALLOC(message_get_payload_len(message));
+			payload_len = message_get_payload(payload, message);
 
 			version_deserialize(payload, &v, payload_len);
 			json = version_to_json(v);

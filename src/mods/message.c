@@ -128,22 +128,20 @@ int message_validate(Message m) {
 	return (checksum == m->checksum);
 }
 
-uint32_t message_get_payload_len(Message m) {
+int message_get_payload(unsigned char *output, Message m)
+{
+	assert(output);
 	assert(m);
 
-	return m->length;
+	memcpy(output, m->payload, m->length);
+	
+	return (int)m->length;
 }
 
-size_t message_get_payload(unsigned char **dest, Message m) {
+uint32_t message_get_payload_len(Message m)
+{
 	assert(m);
 
-	if (*dest == NULL)
-	{
-		*dest = ALLOC(m->length);
-	}
-
-	memcpy(*dest, m->payload, m->length);
-	
 	return m->length;
 }
 
