@@ -77,7 +77,6 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				return EXIT_FAILURE;
 			}
 
-			// Construct and send a version message
 			version_string_len = version_new_serialize(&version_string);
 			message = ALLOC(message_sizeof());
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
@@ -90,7 +89,6 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			node_write_message(node, message);
 			FREE(message);
 
-			// Wait for version message response
 			for (i = 0; i < TIMEOUT; ++i)
 			{
 				if ((message = node_get_message(node, VERSION_COMMAND)))
@@ -99,6 +97,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				}
 				sleep(1);
 			}
+			node_disconnect(node);
+
 			if (message == NULL)
 			{
 				fprintf(stderr, "Timeout Error. Did not receive version message response from target node.\n");
@@ -116,6 +116,7 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			FREE(message);
 			FREE(payload);
 			FREE(json);
+			FREE(node);
 
 			break;
 	}

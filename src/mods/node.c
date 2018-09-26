@@ -18,10 +18,8 @@ struct Node
 	Message mqueue[MAX_MESSAGE_QUEUE];
 };
 
-static void node_disconnect(Node);
 static void node_write(Node, unsigned char *, size_t);
 static int node_read(Node, unsigned char**);
-static void node_free(Node);
 static int node_read_messages(Node);
 
 int node_connect(Node node, const char *host, int port) {
@@ -71,11 +69,11 @@ int node_connect(Node node, const char *host, int port) {
 	return 1;
 }
 
-void node_destroy(Node n) {
-	assert(n);
-
-	node_disconnect(n);
-	node_free(n);
+void node_disconnect(Node node) {
+	assert(node);
+	assert(node->sockfd);
+	
+	close(node->sockfd);
 }
 
 void node_write_message(Node n, Message m) {
@@ -149,12 +147,6 @@ size_t node_sizeof(void)
 /*
  * Static functions
  */
-static void node_disconnect(Node n) {
-	assert(n);
-	assert(n->sockfd);
-	
-	close(n->sockfd);
-}
 
 static void node_write(Node n, unsigned char *data, size_t l) {
 	ssize_t r;
@@ -199,10 +191,6 @@ static int node_read(Node n, unsigned char** buffer) {
 	}
 	
 	return 0;
-}
-
-static void node_free(Node n) {
-	FREE(n);
 }
 
 static int node_read_messages(Node n) {
