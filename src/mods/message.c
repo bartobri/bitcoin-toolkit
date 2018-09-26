@@ -12,7 +12,8 @@
 #define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_PAYLOAD_MAXLEN 1024
 
-struct Message {
+struct Message
+{
 	uint32_t       magic;
 	char           command[MESSAGE_COMMAND_MAXLEN];
 	uint32_t       length;
@@ -67,7 +68,9 @@ int message_serialize(unsigned char *output, size_t *output_len, Message m)
 	output = serialize_uint32(output, m->length, SERIALIZE_ENDIAN_LIT);
 	output = serialize_uint32(output, m->checksum, SERIALIZE_ENDIAN_BIG);
 	if (m->length)
+	{
 		output = serialize_uchar(output, m->payload, m->length);
+	}
 
 	*output_len = 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 	
