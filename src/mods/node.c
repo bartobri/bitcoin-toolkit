@@ -18,7 +18,6 @@ struct Node
 	Message mqueue[MAX_MESSAGE_QUEUE];
 };
 
-static int node_read(Node, unsigned char**);
 static int node_read_messages(Node);
 
 int node_connect(Node node, const char *host, int port) {
@@ -68,13 +67,6 @@ int node_connect(Node node, const char *host, int port) {
 	return 1;
 }
 
-void node_disconnect(Node node) {
-	assert(node);
-	assert(node->sockfd);
-	
-	close(node->sockfd);
-}
-
 int node_write(Node node, unsigned char *input, size_t input_len) {
 	ssize_t r;
 
@@ -90,6 +82,45 @@ int node_write(Node node, unsigned char *input, size_t input_len) {
 	}
 
 	return 1;
+}
+
+int node_read(Node node, unsigned char** buffer)
+{
+	int r, input_len;
+	
+	assert(node);
+	assert(buffer);
+
+	input_len = 0;
+
+	r = ioctl(node->sockfd, FIONREAD, &input_len);
+	if (r < 0)
+	{
+		return -1;
+	}
+
+	if (input_len > 0)
+	{
+		if (*buffer == NULL)
+		{
+			*buffer = ALLOC(input_len + 1);
+		}
+
+		r = read(node->sockfd, *buffer, input_len);
+		if (r < 0)
+		{
+			return -1;
+		}
+	}
+	
+	return input_len;
+}
+
+void node_disconnect(Node node) {
+	assert(node);
+	assert(node->sockfd);
+	
+	close(node->sockfd);
 }
 
 Message node_get_message(Node n, char *command) {
@@ -142,32 +173,6 @@ size_t node_sizeof(void)
 /*
  * Static functions
  */
-
-static int node_read(Node n, unsigned char** buffer) {
-	int r;
-	int l = 0;
-	
-	assert(n);
-	assert(buffer);
-
-	// Get length of data waiting to be read
-	ioctl(n->sockfd, FIONREAD, &r);
-
-	if (r > 0) {
-
-		// Allocate buffer if null
-		if (*buffer == NULL) {
-			*buffer = ALLOC(r + 1);
-		}
-
-		// read incoming data in to buffer
-		l = read(n->sockfd, *buffer, r);
-		
-		return l;
-	}
-	
-	return 0;
-}
 
 static int node_read_messages(Node n) {
 	Message m;

@@ -24,6 +24,9 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 	int message_type = MESSAGE_TYPE_VERSION;
 
 	Node node;
+	unsigned char *node_data, *node_data_walk;
+	size_t node_data_len;
+
 	Message message;
 	unsigned char *message_raw;
 	size_t message_raw_len;
@@ -108,23 +111,72 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 			for (i = 0; i < TIMEOUT; ++i)
 			{
-				if ((message = node_get_message(node, VERSION_COMMAND)))
+				node_data = NULL;
+				node_data_len = 0;
+				r = node_read(node, &node_data);
+				if (r < 0)
 				{
+					fprintf(stderr, "Error: Could not read data from node\n");
+					return EXIT_FAILURE;
+				}
+
+				if (r > 0)
+				{
+					node_data_len = r;
 					break;
 				}
+
 				sleep(1);
 			}
 			node_disconnect(node);
 
+			node_data_walk = node_data;
+
+			while (node_data_len > 0)
+			{
+				message = ALLOC(message_sizeof());
+				r = message_deserialize(message, node_data_walk, node_data_len);
+				if (r < 0)
+				{
+					fprintf(stderr, "Error: Could not deserialize data from node\n");
+					return EXIT_FAILURE;
+				}
+				node_data_len -= r;
+				node_data_walk += r;
+
+				r = message_is_valid(message);
+				if (r < 0)
+				{
+					fprintf(stderr, "Error: Could not validate message checksum from node\n");
+					return EXIT_FAILURE;
+				}
+				if (r == 0)
+				{
+					fprintf(stderr, "Error: Invalid message checksum from node\n");
+					return EXIT_FAILURE;
+				}
+
+				r = message_cmp_command(message, VERSION_COMMAND);
+				if (r == 0)
+				{
+					break;
+				}
+				else
+				{
+					FREE(message);
+					message = NULL;
+				}
+			}
+			
 			if (message == NULL)
 			{
 				fprintf(stderr, "Timeout Error. Did not receive version message response from target node.\n");
 				return EXIT_FAILURE;
 			}
-
+			
 			payload = ALLOC(message_get_payload_len(message));
 			payload_len = message_get_payload(payload, message);
-
+			
 			version_deserialize(payload, &v, payload_len);
 			json = version_to_json(v);
 
@@ -134,6 +186,7 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			FREE(payload);
 			FREE(json);
 			FREE(node);
+			FREE(node_data);
 
 			break;
 	}
