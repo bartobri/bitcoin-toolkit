@@ -8,35 +8,38 @@
 
 void point_math_inversemod(mpz_t, mpz_t, mpz_t);
 
-void point_init(Point *p)
+void point_init(Point p)
 {
 	assert(p);
+
 	mpz_init(p->x);
 	mpz_init(p->y);
 }
 
-void point_set(Point *a, Point b)
+void point_set(Point a, Point b)
 {
 	assert(a);
-	assert(b.x && b.y);
-	mpz_set(a->x, b.x);
-	mpz_set(a->y, b.y);
+	assert(b);
+	assert(b->x && b->y);
+
+	mpz_set(a->x, b->x);
+	mpz_set(a->y, b->y);
 }
 
-void point_set_generator(Point *a)
+void point_set_generator(Point p)
 {
-	assert(a);
+	assert(p);
 	
-	mpz_set_str(a->x, BITCOIN_GENERATOR_POINT_X, 16);
-	mpz_set_str(a->y, BITCOIN_GENERATOR_POINT_Y, 16);
+	mpz_set_str(p->x, BITCOIN_GENERATOR_POINT_X, 16);
+	mpz_set_str(p->y, BITCOIN_GENERATOR_POINT_Y, 16);
 }
 
-void point_double(Point *result, Point a)
+void point_double(Point result, Point a)
 {
 	mpz_t tempx, tempy, p, slope;
 	
 	assert(result);
-	assert(a.x && a.y);
+	assert(a->x && a->y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
@@ -46,23 +49,23 @@ void point_double(Point *result, Point a)
 	mpz_set_str(p, BITCOIN_PRIME, 16);
 	
 	// slope = ((3 * x^2) * inverseMod((2*y), p)) % p
-	mpz_pow_ui(tempx, a.x, 2);
+	mpz_pow_ui(tempx, a->x, 2);
 	mpz_mul_ui(tempx, tempx, 3);
-	mpz_mul_ui(tempy, a.y, 2);
+	mpz_mul_ui(tempy, a->y, 2);
 	point_math_inversemod(tempy, tempy, p);
 	mpz_mul(slope, tempx, tempy);
 	mpz_mod(slope, slope, p);
 
 	// xdbl = slope^2 - 2*x
-	mpz_mul_ui(tempx, a.x, 2);
+	mpz_mul_ui(tempx, a->x, 2);
 	mpz_pow_ui(result->x, slope, 2);
 	mpz_sub(result->x, result->x, tempx);
 	mpz_mod(result->x, result->x, p);
 
 	// ydbl = slope *(x-xdbl)-y
-	mpz_sub(tempx, a.x, result->x);
+	mpz_sub(tempx, a->x, result->x);
 	mpz_mul(tempx, slope, tempx);
-	mpz_sub(result->y, tempx, a.y);
+	mpz_sub(result->y, tempx, a->y);
 	mpz_mod(result->y, result->y, p);
 	
 	mpz_clear(tempx);
@@ -71,13 +74,15 @@ void point_double(Point *result, Point a)
 	mpz_clear(slope);
 }
 
-void point_add(Point *result, Point a, Point b)
+void point_add(Point result, Point a, Point b)
 {
 	mpz_t tempx, tempy, sumx, sumy, p, slope;
 	
 	assert(result);
-	assert(a.x && a.y);
-	assert(b.x && b.y);
+	assert(a);
+	assert(b);
+	assert(a->x && a->y);
+	assert(b->x && b->y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
@@ -89,22 +94,22 @@ void point_add(Point *result, Point a, Point b)
 	mpz_set_str(p, BITCOIN_PRIME, 16);
 	
 	// slope = (y1-y2) * inverseMod(x1-x2, p)
-	mpz_sub(tempx, a.x, b.x);
-	mpz_sub(tempy, a.y, b.y);
+	mpz_sub(tempx, a->x, b->x);
+	mpz_sub(tempy, a->y, b->y);
 	point_math_inversemod(tempx, tempx, p);
 	mpz_mul(slope, tempy, tempx);
 	mpz_mod(slope, slope, p);
 	
 	// xsum = slope^2 - (x1+x2)
 	mpz_pow_ui(tempy, slope, 2);
-	mpz_add(tempx, a.x, b.x);
+	mpz_add(tempx, a->x, b->x);
 	mpz_sub(sumx, tempy, tempx);
 	mpz_mod(sumx, sumx, p);
 	
 	// ysum = slope*(x1-xsum)-y1
-	mpz_sub(tempx, a.x, sumx);
+	mpz_sub(tempx, a->x, sumx);
 	mpz_mul(tempx, slope, tempx);
-	mpz_sub(sumy, tempx, a.y);
+	mpz_sub(sumy, tempx, a->y);
 	mpz_mod(sumy, sumy, p);
 	
 	mpz_set(result->x, sumx);
@@ -203,7 +208,7 @@ int point_verify(Point a)
 	int r = 0;
 	mpz_t tempx, tempy, tempr, p;
 	
-	assert(a.x && a.y);
+	assert(a->x && a->y);
 	
 	mpz_init(tempx);
 	mpz_init(tempy);
@@ -212,8 +217,8 @@ int point_verify(Point a)
 	
 	mpz_set_str(p, BITCOIN_PRIME, 16);
 	
-	mpz_set(tempx, a.x);
-	mpz_set(tempy, a.y);
+	mpz_set(tempx, a->x);
+	mpz_set(tempy, a->y);
 	
 	// ((x^3) + 7 - (y^2)) % p == 0
 	mpz_pow_ui(tempx, tempx, 3);
@@ -235,7 +240,7 @@ int point_verify(Point a)
 	return r;
 }
 
-void point_clear(Point *p)
+void point_clear(Point p)
 {
 	mpz_clear(p->x);
 	mpz_clear(p->y);

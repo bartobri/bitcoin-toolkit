@@ -51,17 +51,19 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	free(privkey_hex);
 	
 	// Initalize the points
-	point_init(&point);
+	point = ALLOC(sizeof(*point));
+	point_init(point);
 	for (i = 0; i < PUBKEY_POINTS; ++i)
 	{
-		point_init(points + i);
+		points[i] = ALLOC(sizeof(*point));
+		point_init(points[i]);
 	}
 
 	// Calculating public key
-	point_set_generator(&points[0]);
+	point_set_generator(points[0]);
 	for (i = 1; i < PUBKEY_POINTS; ++i)
 	{
-		point_double(&points[i], points[i-1]);
+		point_double(points[i], points[i-1]);
 		if (!point_verify(points[i]))
 		{
 			return -2;
@@ -73,13 +75,13 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	{
 		if (mpz_tstbit(bignum, i) == 1)
 		{
-			if (mpz_cmp_ui(point.x, 0) == 0 && mpz_cmp_ui(point.y, 0) == 0)
+			if (mpz_cmp_ui(point->x, 0) == 0 && mpz_cmp_ui(point->y, 0) == 0)
 			{
-				point_set(&point, points[i]);
+				point_set(point, points[i]);
 			}
 			else
 			{
-				point_add(&point, point, points[i]);
+				point_add(point, point, points[i]);
 			}
 			if (!point_verify(points[i]))
 			{
@@ -91,7 +93,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	// Setting compression flag
 	if (privkey_is_compressed(privkey))
 	{
-		if (mpz_even_p(point.y))
+		if (mpz_even_p(point->y))
 		{
 			pubkey->data[0] = PUBKEY_COMPRESSED_FLAG_EVEN;
 		}
@@ -107,16 +109,16 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	
 	// Exporting x,y coordinates as byte string, making sure to leave leading
 	// zeros if either exports as less than 32 bytes.
-	l = (mpz_sizeinbase(point.x, 2) + 7) / 8;
-	mpz_export(pubkey->data + 1 + (32 - l), &i, 1, 1, 1, 0, point.x);
+	l = (mpz_sizeinbase(point->x, 2) + 7) / 8;
+	mpz_export(pubkey->data + 1 + (32 - l), &i, 1, 1, 1, 0, point->x);
 	if (l != i)
 	{
 		return -4;
 	}
 	if (!privkey_is_compressed(privkey))
 	{
-		l = (mpz_sizeinbase(point.y, 2) + 7) / 8;
-		mpz_export(pubkey->data + 33 + (32 - l), &i, 1, 1, 1, 0, point.y);
+		l = (mpz_sizeinbase(point->y, 2) + 7) / 8;
+		mpz_export(pubkey->data + 33 + (32 - l), &i, 1, 1, 1, 0, point->y);
 		if (l != i)
 		{
 			return -4;
@@ -127,7 +129,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	mpz_clear(bignum);
 	for (i = 0; i < PUBKEY_POINTS; ++i)
 	{
-		point_clear(points + i);
+		point_clear(points[i]);
 	}
 	
 	return 1;
