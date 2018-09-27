@@ -138,7 +138,12 @@ int btk_privkey_main(int argc, char *argv[])
 	{
 		case INPUT_NEW:
 			key = ALLOC(privkey_sizeof());
-			privkey_new(key);
+			r = privkey_new(key);
+			if (r < 0)
+			{
+				fprintf(stderr, "Error: Unable to generate new private key.\n");
+				return EXIT_FAILURE;
+			}
 			break;
 		case INPUT_WIF:
 			input_len = input_get(&input);

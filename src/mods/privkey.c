@@ -26,12 +26,14 @@ struct PrivKey
 
 int privkey_new(PrivKey key)
 {
-	int i;
+	int r;
 
 	assert(key);
 
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
-		key->data[i] = random_get();
+	r = random_get(key->data, PRIVKEY_LENGTH);
+	if (r < 0)
+	{
+		return -1;
 	}
 	
 	key->cflag = PRIVKEY_COMPRESSED_FLAG;

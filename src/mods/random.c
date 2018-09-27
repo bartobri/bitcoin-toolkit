@@ -3,19 +3,33 @@
 
 #define RANDOM_SOURCE "/dev/urandom"
 
-unsigned char random_get(void) {
+int random_get(unsigned char *output, size_t bytes)
+{
+	size_t i;
 	int c;
 	FILE *source;
 
-	source = fopen(RANDOM_SOURCE, "r");
-	
-	assert(source);
+	assert(output);
+	assert(bytes);
 
-	c = fgetc(source);
+	source = fopen(RANDOM_SOURCE, "r");
+	if (source == NULL)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < bytes; ++i)
+	{
+		c = fgetc(source);
+		if (c == EOF)
+		{
+			return -1;
+		}
+
+		output[i] = c;
+	}
 
 	fclose(source);
-	
-	assert(c >= 0);
 
-	return (unsigned char)c;
+	return 1;
 }

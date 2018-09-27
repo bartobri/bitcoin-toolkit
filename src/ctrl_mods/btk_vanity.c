@@ -229,7 +229,12 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 
 		priv = ALLOC(privkey_sizeof());
-		privkey_new(priv);
+		r = privkey_new(priv);
+		if (r < 0)
+		{
+			fprintf(stderr, "Error: Unable to generate new private key.\n");
+			return EXIT_FAILURE;
+		}
 	
 		// Set output compression only if the option is set. Otherwise,
 		// compression is based on input.
