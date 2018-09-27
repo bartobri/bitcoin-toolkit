@@ -10,6 +10,6 @@ struct TXOutput {
 	unsigned char* script_raw;
 };
 
-TXOutput txoutput_from_raw(unsigned char *, size_t, size_t *);
+int txoutput_from_raw(TXOutput, unsigned char *, size_t);
 
 #endif

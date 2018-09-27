@@ -6,42 +6,52 @@
 #include "mem.h"
 #include "assert.h"
 
-TXOutput txoutput_from_raw(unsigned char *raw, size_t l, size_t *c) {
+int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
+{
 	int r;
-	size_t i, j;
-	TXOutput txoutput;
+	size_t i, j, c;
 	
-	assert(raw);
-	assert(l);
-
-	NEW(txoutput);
+	assert(txoutput);
+	assert(input);
+	assert(input_len);
 	
-	*c = 0;
+	c = 0;
 	
 	// Output Amount
-	for (txoutput->amount = 0, i = 0; i < sizeof(txoutput->amount); ++i, ++raw, --l, ++(*c)) {
-		assert(l);
-		txoutput->amount += (((size_t)*raw) << (i * 8)); // Reverse byte order
+	for (txoutput->amount = 0, i = 0; i < sizeof(txoutput->amount); ++i, ++input, --input_len, ++c)
+	{
+		if (input_len == 0)
+		{
+			return -1;
+		}
+		txoutput->amount += (((size_t)*input) << (i * 8)); // Reverse byte order
 	}
 	
 	// Unlocking Script Size
-	r = compactuint_get_value(&txoutput->script_size, raw, l);
+	r = compactuint_get_value(&txoutput->script_size, input, input_len);
 	if (r < 0)
 	{
-		// return a negative value
+		return -1;
 	}
 	j = r; // quick fix - make prettier later
-	raw += j;
-	*c += j;
-	l = (j > l) ? 0 : l - j;
-	assert(l);
+	input += j;
+	c += j;
+	input_len = (j > input_len) ? 0 : input_len - j;
+	if (input_len == 0)
+	{
+		return -1;
+	}
 	
 	// Unlocking Script
 	txoutput->script_raw = ALLOC(txoutput->script_size);
-	for (i = 0; i < txoutput->script_size; ++i, ++raw, --l, ++(*c)) {
-		assert(l);
-		txoutput->script_raw[i] = *raw;
+	for (i = 0; i < txoutput->script_size; ++i, ++input, --input_len, ++c)
+	{
+		if (input_len == 0)
+		{
+			return -1;
+		}
+		txoutput->script_raw[i] = *input;
 	}
 	
-	return txoutput;
+	return (int)c;
 }

@@ -78,7 +78,12 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	trans->outputs = ALLOC(sizeof(TXOutput) * trans->output_count);
 	for (i = 0; i < trans->output_count; ++i)
 	{
-		trans->outputs[i] = txoutput_from_raw(input, input_len, &c);
+		r = txoutput_from_raw(trans->outputs[i], input, input_len);
+		if (r < 0)
+		{
+			return -1;
+		}
+		c = r;
 		input += c;
 		input_len = (c > input_len) ? 0 : input_len - c;
 		if (input_len == 0)
