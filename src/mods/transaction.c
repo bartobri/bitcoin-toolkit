@@ -46,7 +46,12 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	trans->inputs = ALLOC(sizeof(TXInput) * trans->input_count);
 	for (i = 0; i < trans->input_count; ++i)
 	{
-		trans->inputs[i] = txinput_from_raw(input, input_len, &c);
+		r = txinput_from_raw(trans->inputs[i], input, input_len);
+		if (r < 0)
+		{
+			return -1;
+		}
+		c = r; // quick fix - make prettier later
 		input += c;
 		input_len = (c > input_len) ? 0 : input_len - c;
 		if (input_len == 0)
