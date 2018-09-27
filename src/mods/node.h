@@ -9,9 +9,6 @@ int node_connect(Node, const char *, int);
 int node_write(Node, unsigned char *, size_t);
 int node_read(Node, unsigned char**);
 void node_disconnect(Node);
-
-Message node_get_message(Node, char *);
-int node_socket(Node);
 size_t node_sizeof(void);
 
 #endif

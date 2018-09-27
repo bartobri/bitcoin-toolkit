@@ -15,13 +15,10 @@
 struct Node
 {
 	int sockfd;
-	Message mqueue[MAX_MESSAGE_QUEUE];
 };
 
-static int node_read_messages(Node);
-
 int node_connect(Node node, const char *host, int port) {
-	int i, r, sockfd;
+	int r, sockfd;
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
 	
@@ -60,9 +57,6 @@ int node_connect(Node node, const char *host, int port) {
 
 	// If we get here, connection succeeded. Set up node struct.
 	node->sockfd = sockfd;
-	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-		node->mqueue[i] = NULL;
-	}
 	
 	return 1;
 }
@@ -123,104 +117,7 @@ void node_disconnect(Node node) {
 	close(node->sockfd);
 }
 
-Message node_get_message(Node n, char *command) {
-	int i, c;
-	Message m = NULL;
-
-	c = node_read_messages(n);
-
-	if (c < 0)
-	{
-		perror("Host Read Error");
-		return NULL;
-	}
-
-	// Check if desired message is in the queue
-	for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-		if (n->mqueue[i] == NULL) {
-			break;
-		}
-		if (message_cmp_command(n->mqueue[i], command) == 0) {
-			m = n->mqueue[i];
-			break;
-		}
-	}
-
-	// Bump the position of the remaining messages in the queue
-	while (++i < MAX_MESSAGE_QUEUE) {
-		if (n->mqueue[i]) {
-			n->mqueue[i-1] = n->mqueue[i];
-			n->mqueue[i] = NULL;
-		} else {
-			break;
-		}
-	}
-
-	return m;
-}
-
-int node_socket(Node n) {
-	assert(n);
-	
-	return n->sockfd;
-}
-
 size_t node_sizeof(void)
 {
 	return sizeof(struct Node);
-}
-
-/*
- * Static functions
- */
-
-static int node_read_messages(Node n) {
-	Message m;
-	unsigned char *s = NULL;
-	int l, i, j, r, c;
-	
-	assert(n);
-
-	j = 0;
-	c = 0;
-
-	l = node_read(n, &s);
-
-	// If read() returns an error, pass it up the call stack
-	if (l < 0)
-	{
-		return l;
-	}
-
-	while (l > 0) {
-		m = ALLOC(message_sizeof());
-		r = message_deserialize(m, s + j, (size_t)l);
-		if (r < 0)
-		{
-			// return negative value here
-		}
-		j += r;
-		l -= j;
-
-		r = message_is_valid(m);
-		if (r < 0)
-		{
-			// return a negative value here
-		}
-
-		if (r) {
-			for (i = 0; i < MAX_MESSAGE_QUEUE; ++i) {
-				if (n->mqueue[i] == NULL) {
-					break;
-				}
-			}
-			assert(i < MAX_MESSAGE_QUEUE);
-			n->mqueue[i] = m;
-			
-			++c;
-		} else {
-			FREE(m);
-		}
-	}
-	return c;
 }
