@@ -15,6 +15,6 @@ struct Trans {
 	uint32_t  lock_time;
 };
 
-Trans transaction_from_raw(unsigned char *, size_t);
+int transaction_from_raw(Trans, unsigned char *, size_t);
 
 #endif
