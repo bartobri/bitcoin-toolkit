@@ -2,33 +2,37 @@
 #include "point.h"
 #include "assert.h"
 
-#define BITCOIN_PRIME "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
+#define BITCOIN_PRIME             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
 #define BITCOIN_GENERATOR_POINT_X "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
 #define BITCOIN_GENERATOR_POINT_Y "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"
 
 void point_math_inversemod(mpz_t, mpz_t, mpz_t);
 
-void point_init(Point *p) {
+void point_init(Point *p)
+{
 	assert(p);
 	mpz_init(p->x);
 	mpz_init(p->y);
 }
 
-void point_set(Point *a, Point b) {
+void point_set(Point *a, Point b)
+{
 	assert(a);
 	assert(b.x && b.y);
 	mpz_set(a->x, b.x);
 	mpz_set(a->y, b.y);
 }
 
-void point_set_generator(Point *a) {
+void point_set_generator(Point *a)
+{
 	assert(a);
 	
 	mpz_set_str(a->x, BITCOIN_GENERATOR_POINT_X, 16);
 	mpz_set_str(a->y, BITCOIN_GENERATOR_POINT_Y, 16);
 }
 
-void point_double(Point *result, Point a) {
+void point_double(Point *result, Point a)
+{
 	mpz_t tempx, tempy, p, slope;
 	
 	assert(result);
@@ -67,7 +71,8 @@ void point_double(Point *result, Point a) {
 	mpz_clear(slope);
 }
 
-void point_add(Point *result, Point a, Point b) {
+void point_add(Point *result, Point a, Point b)
+{
 	mpz_t tempx, tempy, sumx, sumy, p, slope;
 	
 	assert(result);
@@ -113,7 +118,8 @@ void point_add(Point *result, Point a, Point b) {
 	mpz_clear(slope);
 }
 
-void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
+void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m)
+{
 	mpz_t c, d, uc, vc, ud, vd, rem, q, uct, vct, udt, vdt, temp;
 	
 	mpz_init(c);
@@ -130,11 +136,13 @@ void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
 	mpz_init(vdt);
 	mpz_init(temp);
 	
-	while (mpz_cmp_ui(a, 0) < 0) {
+	while (mpz_cmp_ui(a, 0) < 0)
+	{
 		mpz_add(a, a, m);
 	}
 	
-	if (mpz_cmp_ui(a, 0) < 0 || mpz_cmp(m, a) <= 0) {
+	if (mpz_cmp_ui(a, 0) < 0 || mpz_cmp(m, a) <= 0)
+	{
 		mpz_mod(a, a, m);
 	}
 	
@@ -145,7 +153,8 @@ void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
 	mpz_set_ui(ud, 0);
 	mpz_set_ui(vd, 1);
 	
-	while (mpz_cmp_ui(c, 0) != 0) {
+	while (mpz_cmp_ui(c, 0) != 0)
+	{
 		mpz_tdiv_q(q, d, c);
 		mpz_mod(rem, d, c);
 		
@@ -165,9 +174,12 @@ void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
 		mpz_set(vd, vct);
 	}
 	
-	if (mpz_cmp_ui(ud, 0) > 0) {
+	if (mpz_cmp_ui(ud, 0) > 0)
+	{
 		mpz_set(r, ud);
-	} else {
+	}
+	else
+	{
 		mpz_add(r, ud, m);
 	}
 	
@@ -186,7 +198,8 @@ void point_math_inversemod(mpz_t r, mpz_t a, mpz_t m) {
 	mpz_clear(temp);
 }
 
-int point_verify(Point a) {
+int point_verify(Point a)
+{
 	int r = 0;
 	mpz_t tempx, tempy, tempr, p;
 	
@@ -209,7 +222,8 @@ int point_verify(Point a) {
 	mpz_sub(tempr, tempx, tempy);
 	mpz_mod(tempr, tempr, p);
 	
-	if (mpz_cmp_ui(tempr, 0) == 0) {
+	if (mpz_cmp_ui(tempr, 0) == 0)
+	{
 		r = 1;
 	}
 	
@@ -221,7 +235,8 @@ int point_verify(Point a) {
 	return r;
 }
 
-void point_clear(Point *p) {
+void point_clear(Point *p)
+{
 	mpz_clear(p->x);
 	mpz_clear(p->y);
 }

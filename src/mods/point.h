@@ -3,7 +3,8 @@
 
 #include <gmp.h>
 
-typedef struct {
+typedef struct
+{
 	mpz_t x;
 	mpz_t y;
 } Point;
