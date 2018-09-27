@@ -6,7 +6,6 @@
 #include <netdb.h>
 #include <errno.h>
 #include "node.h"
-#include "message.h"
 #include "mem.h"
 #include "assert.h"
 

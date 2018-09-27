@@ -1,8 +1,6 @@
 #ifndef NODE_H
 #define NODE_H 1
 
-#include "message.h"
-
 typedef struct Node *Node;
 
 int node_connect(Node, const char *, int);
