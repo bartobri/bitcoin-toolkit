@@ -320,16 +320,13 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 	assert(raw);
 	assert(key);
 
-	// raw data length must be at least PRIVKEY_LENGTH bytes
 	if (l < PRIVKEY_LENGTH)
 	{
 		return -1;
 	}
 
-	// load raw string as private key
 	memcpy(key->data, raw, PRIVKEY_LENGTH);
 	
-	// Set compression flag
 	if (l >= PRIVKEY_LENGTH + 1 && raw[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG)
 		key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	else
@@ -342,6 +339,10 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 {
 	int r;
 	unsigned char *tmp;
+
+	assert(key);
+	assert(data);
+	assert(data_len);
 	
 	tmp = ALLOC(32);
 
