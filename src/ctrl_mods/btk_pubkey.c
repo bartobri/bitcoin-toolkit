@@ -479,7 +479,7 @@ int btk_pubkey_main(int argc, char *argv[])
 
 	// Free allocated memory
 	FREE(priv);
-	pubkey_free(key);
+	FREE(key);
 
 	return EXIT_SUCCESS;
 }
