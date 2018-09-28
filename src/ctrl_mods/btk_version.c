@@ -10,12 +10,10 @@
 #include <ctype.h>
 #include "mods/config.h"
 
-int btk_version_main(int argc, char *argv[], unsigned char *input, size_t input_len)
+int btk_version_main(int argc, char *argv[])
 {
 	(void)argc;
 	(void)argv;
-	(void)input;
-	(void)input_len;
 
 	printf("Bitcoin Toolkit Version %d.%d.%d\n", BTK_VERSION_MAJOR, BTK_VERSION_MINOR, BTK_VERSION_REVISION);
 
