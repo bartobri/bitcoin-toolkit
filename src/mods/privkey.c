@@ -362,7 +362,8 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 
 int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 {
-	int i, r;
+	size_t i;
+	int r;
 	unsigned char *head = data;
 	char *data_str;
 
@@ -371,14 +372,14 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	assert(data_len);
 
 	data_str = NULL;
-	for (i = 0; i < (int)data_len; ++i)   // TODO - change i to a size_t
+	for (i = 0; i < data_len; ++i)
 	{
 		if (!isascii(data[i]))
 		{
 			break;
 		}
 	}
-	if (i == (int)data_len)
+	if (i == data_len)
 	{
 		data_str = ALLOC(data_len + 1);
 		memcpy(data_str, data, data_len);
