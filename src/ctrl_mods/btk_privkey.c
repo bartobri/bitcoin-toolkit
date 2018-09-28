@@ -153,35 +153,8 @@ int btk_privkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			if (input_len < PRIVKEY_WIF_LENGTH_MIN)
-			{
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-
-			for (i = 0; i < input_len; ++i)
-			{
-				if (!base58_ischar(input[i]))
-				{
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
-
-			r = base58check_valid_checksum((char *)input);
-			if (r < 0)
-			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
-				return EXIT_FAILURE;
-			}
-			if (r == 0)
-			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
-				return EXIT_FAILURE;
-			}
 
 			key = ALLOC(privkey_sizeof());
 			r = privkey_from_wif(key, (char *)input);

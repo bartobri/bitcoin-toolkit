@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <gmp.h>
 #include "privkey.h"
 #include "network.h"
@@ -364,10 +365,26 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	int i, r, str_len;
 	unsigned char *head = data;
 	char *tmp;
+	char *data_str;
 
 	assert(key);
 	assert(data);
 	assert(data_len);
+
+	data_str = NULL;
+	for (i = 0; i < (int)data_len; ++i)   // TODO - change i to a size_t
+	{
+		if (!isascii(data[i]))
+		{
+			break;
+		}
+	}
+	if (i == (int)data_len)
+	{
+		data_str = ALLOC(data_len + 1);
+		memcpy(data_str, data, data_len);
+		data_str[data_len] = '\0';
+	}
 
 	str_len = (data[data_len-1] == '\n') ? data_len - 1 : data_len;
 
@@ -410,29 +427,13 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		}
 	}
 
-	// WIF
-	if (str_len >= PRIVKEY_WIF_LENGTH_MIN && str_len <= PRIVKEY_WIF_LENGTH_MAX) {
-		for (data = head, i = 0; i < str_len; ++i) {
-			if (base58_ischar(*data))
-				++data;
-			else
-				break;
-		}
-		if (i == str_len) {
-			tmp = ALLOC(i + 1);
-			memcpy(tmp, head, i);
-			tmp[i] = '\0';
-			r = base58check_valid_checksum((char *)tmp);
-			if (r > 0)
-			{
-				r = privkey_from_wif(key, (char *)tmp);
-				if (r > 0)
-				{
-					FREE(tmp);
-					return 1;
-				}
-			}
-			FREE(tmp);
+	if (data_str != NULL)
+	{
+		// WIF
+		r = privkey_from_wif(key, data_str);
+		if (r > 0)
+		{
+			return 1;
 		}
 	}
 

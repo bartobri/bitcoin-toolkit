@@ -144,40 +144,13 @@ int btk_pubkey_main(int argc, char *argv[])
 		case INPUT_WIF:
 			input_len = input_get(&input);
 
-			while (isspace((int)input[input_len - 1]))
+			while (isspace(input[input_len - 1]))
 			{
 				--input_len;
 			}
 
-			if (input_len < PRIVKEY_WIF_LENGTH_MIN)
-			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
-				return EXIT_FAILURE;
-			}
-
-			for (i = 0; i < input_len; ++i)
-			{
-				if (!base58_ischar(input[i]))
-				{
-					fprintf(stderr, "Error: Invalid WIF string.\n");
-					return EXIT_FAILURE;
-				}
-			}
-
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
-
-			r = base58check_valid_checksum((char *)input);
-			if (r < 0)
-			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
-				return EXIT_FAILURE;
-			}
-			if (r == 0)
-			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
-				return EXIT_FAILURE;
-			}
 
 			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_wif(priv, (char *)input);
@@ -186,6 +159,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				fprintf(stderr, "Error: Invalid WIF string.\n");
 				return EXIT_FAILURE;
 			}
+
 			break;
 		case INPUT_HEX:
 			input_len = input_get(&input);
