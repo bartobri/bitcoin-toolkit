@@ -408,6 +408,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 
 	if (data_str != NULL)
 	{
+		// Hex
 		r = privkey_from_hex(key, data_str);
 		if (r > 0)
 		{
@@ -420,20 +421,9 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			return 1;
 		}
-	}
 
-	// String
-	for (data = head, i = 0; i < str_len; ++i)
-		if (*data > 0 && *data < 128)
-			++data;
-		else
-			break;
-	if (i == str_len) {
-		tmp = ALLOC(i + 1);
-		memcpy(tmp, head, i);
-		tmp[i] = '\0';
-		r = privkey_from_str(key, tmp);
-		FREE(tmp);
+		// String
+		r = privkey_from_str(key, data_str);
 		if (r > 0)
 		{
 			return 1;
