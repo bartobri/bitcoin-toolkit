@@ -320,6 +320,7 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 
 	assert(raw);
 	assert(key);
+	assert(l);
 
 	if (l < PRIVKEY_LENGTH)
 	{
@@ -364,7 +365,6 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 {
 	size_t i;
 	int r;
-	unsigned char *head = data;
 	char *data_str;
 
 	assert(key);
@@ -418,14 +418,10 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	}
 
 	// Raw
-	data = head;
-	if (data_len == PRIVKEY_LENGTH || (data_len == PRIVKEY_LENGTH + 1 && (data[data_len - 1] == PRIVKEY_COMPRESSED_FLAG || data[data_len - 1] == PRIVKEY_UNCOMPRESSED_FLAG)))
+	r = privkey_from_raw(key, data, data_len);
+	if (r > 0)
 	{
-		r = privkey_from_raw(key, data, data_len);
-		if (r > 0)
-		{
-			return 1;
-		}
+		return 1;
 	}
 
 	return -1;
