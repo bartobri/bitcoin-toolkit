@@ -22,7 +22,6 @@ int privkey_from_blob(PrivKey, unsigned char *, size_t);
 int privkey_from_guess(PrivKey, unsigned char *, size_t);
 int privkey_is_compressed(PrivKey);
 int privkey_is_zero(PrivKey);
-void privkey_free(PrivKey);
 size_t privkey_sizeof(void);
 
 #endif

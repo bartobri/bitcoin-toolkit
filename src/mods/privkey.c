@@ -487,12 +487,6 @@ int privkey_is_zero(PrivKey key)
 	return i == PRIVKEY_LENGTH;
 }
 
-void privkey_free(PrivKey key)
-{
-	assert(key);
-	FREE(key);
-}
-
 size_t privkey_sizeof(void)
 {
 	return sizeof(struct PrivKey);

@@ -385,7 +385,7 @@ int btk_privkey_main(int argc, char *argv[])
 	}
 
 	// Free key
-	privkey_free(key);
+	FREE(key);
 
 	// Return
 	return EXIT_SUCCESS;

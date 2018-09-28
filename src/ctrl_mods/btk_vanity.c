@@ -329,7 +329,7 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 
 		// Free allocated memory
-		privkey_free(priv);
+		FREE(priv);
 		pubkey_free(key);
 		FREE(pubkey_str);
 	}
