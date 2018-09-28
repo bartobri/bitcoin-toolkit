@@ -169,21 +169,6 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			if (input_len != PRIVKEY_LENGTH * 2 && input_len != (PRIVKEY_LENGTH + 1) * 2)
-			{
-				fprintf(stderr, "Error: Invalid input.\n");
-				return EXIT_FAILURE;
-			}
-
-			for (i = 0; i < input_len; ++i)
-			{
-				if (!hex_ischar(input[i]))
-				{
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
 

@@ -406,29 +406,14 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		}
 	}
 
-	// Hex
-	if (str_len == PRIVKEY_LENGTH * 2 || str_len == (PRIVKEY_LENGTH + 1) * 2) {
-		for (data = head, i = 0; i < str_len; ++i) {
-			if (hex_ischar(*data))
-				++data;
-			else
-				break;
-		}
-		if (i == str_len) {
-			tmp = ALLOC(i + 1);
-			memcpy(tmp, head, i);
-			tmp[i] = '\0';
-			r = privkey_from_hex(key, tmp);
-			FREE(tmp);
-			if (r > 0)
-			{
-				return 1;
-			}
-		}
-	}
-
 	if (data_str != NULL)
 	{
+		r = privkey_from_hex(key, data_str);
+		if (r > 0)
+		{
+			return 1;
+		}
+
 		// WIF
 		r = privkey_from_wif(key, data_str);
 		if (r > 0)
