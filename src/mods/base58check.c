@@ -58,6 +58,11 @@ int base58check_decode(unsigned char *output, char *input) {
 
 	len = r;
 	len -= CHECKSUM_LENGTH;
+
+	if (len <= 0)
+	{
+		return -1;
+	}
 	
 	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
 		checksum1 <<= 8;
