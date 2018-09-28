@@ -362,9 +362,8 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 
 int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 {
-	int i, r, str_len;
+	int i, r;
 	unsigned char *head = data;
-	char *tmp;
 	char *data_str;
 
 	assert(key);
@@ -386,28 +385,15 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		data_str[data_len] = '\0';
 	}
 
-	str_len = (data[data_len-1] == '\n') ? data_len - 1 : data_len;
-
-	// Decimal
-	for (data = head, i = 0; i < str_len; ++i)
-		if (*data >= '0' && *data <= '9')
-			++data;
-		else 
-			break;
-	if (i == str_len) {
-		tmp = ALLOC(i + 1);
-		memcpy(tmp, head, i);
-		tmp[i] = '\0';
-		r = privkey_from_dec(key, tmp);
-		FREE(tmp);
+	if (data_str != NULL)
+	{
+		// Decimal
+		r = privkey_from_dec(key, data_str);
 		if (r > 0)
 		{
 			return 1;
 		}
-	}
 
-	if (data_str != NULL)
-	{
 		// Hex
 		r = privkey_from_hex(key, data_str);
 		if (r > 0)

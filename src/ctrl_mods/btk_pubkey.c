@@ -231,15 +231,6 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			for (i = 0; i < input_len; ++i)
-			{
-				if (input[i] < '0' || input[i] > '9')
-				{
-					fprintf(stderr, "Error: Invalid input.\n");
-					return EXIT_FAILURE;
-				}
-			}
-
 			RESIZE(input, input_len + 1);
 			input[input_len] = '\0';
 
