@@ -5,7 +5,7 @@
 static char *error_stack[ERROR_MAX];
 static int N = 0;
 
-void error_push(char *error)
+void error_register(char *error)
 {
 	if (N < ERROR_MAX)
 	{
@@ -13,7 +13,7 @@ void error_push(char *error)
 	}
 }
 
-char *error_pop(void)
+char *error_get(void)
 {
 	if (N > 0)
 	{

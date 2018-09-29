@@ -1,7 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H 1
 
-void error_push(char *);
-char *error_pop(void);
+void error_register(char *);
+char *error_get(void);
 
 #endif
