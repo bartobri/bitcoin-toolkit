@@ -1,15 +1,24 @@
+#include <stdio.h>
 #include <stddef.h>
+#include <stdarg.h>
 
-#define ERROR_MAX 50
+#define ERROR_LIST_MAX		20
+#define ERROR_LENGTH_MAX	100
 
-static char *error_stack[ERROR_MAX];
+static char error_stack[ERROR_LIST_MAX][ERROR_LENGTH_MAX];
 static int N = 0;
 
-void error_log(char *error)
+void error_log(char *error, ...)
 {
-	if (N < ERROR_MAX)
+	va_list argList;
+
+	if (N < ERROR_LIST_MAX)
 	{
-		error_stack[N++] = error;
+		va_start(argList, error);
+		vsnprintf(error_stack[N++], ERROR_LENGTH_MAX - 1, error, argList);
+		va_end(argList);
+
+		//error_stack[N++] = error;
 	}
 }
 
