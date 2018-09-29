@@ -21,7 +21,7 @@ int base32_encode(char *output, unsigned char *data, size_t data_len)
 		c = base32_get_char((int)output[i]);
 		if (c < 0)
 		{
-			return c;
+			return -1;
 		}
 		output[i] = (char)c;
 	}
