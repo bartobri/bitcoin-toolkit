@@ -17,8 +17,6 @@ void error_log(char *error, ...)
 		va_start(argList, error);
 		vsnprintf(error_stack[N++], ERROR_LENGTH_MAX - 1, error, argList);
 		va_end(argList);
-
-		//error_stack[N++] = error;
 	}
 }
 
