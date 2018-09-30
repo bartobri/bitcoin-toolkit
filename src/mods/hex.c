@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include "hex.h"
 #include "assert.h"
-#include "mem.h"
 
 int hex_to_dec(char l, char r)
 {

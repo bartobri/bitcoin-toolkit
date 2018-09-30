@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include "mods/input.h"
-#include "mods/mem.h"
+#include "input.h"
+#include "mem.h"
 
 #define INPUT_INCREMENT 100
 
