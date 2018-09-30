@@ -17,10 +17,9 @@ static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk);
 
 int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 {
-	int i, l, c;
-	char *hrp, *output_head;
+	int i, l, c, r;
+	char *hrp;
 	uint32_t chk;
-	unsigned char *data_b32r;
 
 	assert(output);
 	assert(data);
@@ -28,7 +27,6 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 	// For now I'm only supporting P2WPKH so the data length can only be 20
 	assert(data_len == 20);
 
-	output_head = output;
 	chk = 1;
 
 	// Get human readable part (hrp)
@@ -67,17 +65,21 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 	chk = bech32_polymod_step(BECH32_VERSION_BYTE, chk);
 
 	// data
-	data_b32r = ALLOC(data_len * 2);
-	l = base32_encode_raw(data_b32r, data, data_len);
+	r = base32_encode(output, data, data_len);
+	if (r < 0)
+	{
+		return -1;
+	}
+	l = strlen(output);
 	for (i = 0; i < l; ++i)
 	{
-		c = base32_get_char((int)data_b32r[i]);
-		if (c < 0)
+		r = base32_get_raw(*output);
+		if (r < 0)
 		{
 			return -1;
 		}
-		*(output++) = (char)c;
-		chk = bech32_polymod_step(data_b32r[i], chk);
+		chk = bech32_polymod_step(r, chk);
+		output++;
 	}
 
 	// trailing zeros needed for checksum
@@ -100,10 +102,6 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 	}
 
 	*output = '\0';
-
-	output = output_head;
-
-	FREE(data_b32r);
 
 	return 1;
 	
