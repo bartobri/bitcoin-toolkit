@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gmp.h>
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -76,6 +77,7 @@ int base58_decode(unsigned char *output, char *input)
 
 		if (j >= BASE58_CODE_STRING_LENGTH)
 		{
+			error_log("base58_decode: Invalid base58 character at index %i (0x%02x) of input.", i, input[i]);
 			return -1;
 		}
 

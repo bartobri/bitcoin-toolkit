@@ -86,6 +86,6 @@ int base32_get_raw(char c)
 		}
 	}
 
-	error_log("base32_get_raw: character not found in code string: %02x", c);
+	error_log("base32_get_raw: Invalid base32 character: 0x%02x.", c);
 	return -1;
 }
