@@ -77,7 +77,7 @@ int base58_decode(unsigned char *output, char *input)
 
 		if (j >= BASE58_CODE_STRING_LENGTH)
 		{
-			error_log("base58_decode: Invalid base58 character at index %i (0x%02x) of input.", i, input[i]);
+			error_log("Input contains invalid base58 character at index %i (0x%02x).", i, input[i]);
 			return -1;
 		}
 

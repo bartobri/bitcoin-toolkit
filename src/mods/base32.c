@@ -22,7 +22,7 @@ int base32_encode(char *output, unsigned char *data, size_t data_len)
 		c = base32_get_char((int)output[i]);
 		if (c < 0)
 		{
-			error_log("base32_encode: Could not get base32 char for index %i.", (int)output[i]);
+			error_log("Error while encoding input.", (int)output[i]);
 			return -1;
 		}
 		output[i] = (char)c;
@@ -66,7 +66,7 @@ int base32_get_char(int c)
 {
 	if (c < 0 || c >= BASE32_CODE_STRING_LENGTH)
 	{
-		error_log("base32_get_char: Index %i not within code string boundaries.", c);
+		error_log("Value %i has no corresponding base32 character.", c);
 		return -1;
 	}
 	return (int)code_string[c];
@@ -86,6 +86,6 @@ int base32_get_raw(char c)
 		}
 	}
 
-	error_log("base32_get_raw: Invalid base32 character: 0x%02x.", c);
+	error_log("Invalid base32 character: 0x%02x.", c);
 	return -1;
 }

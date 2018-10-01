@@ -25,7 +25,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = crypto_get_checksum(&checksum, input, input_len);
 	if (r < 0)
 	{
-		error_log("base58check_encode: Error while generating checksum.");
+		error_log("Error while generating checksum from input.");
 		return -1;
 	}
 	
@@ -37,7 +37,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = base58_encode(output, input_check, input_len + CHECKSUM_LENGTH);
 	if (r < 0)
 	{
-		error_log("base58check_encode: Error while encoding data.");
+		error_log("Error while encoding input.");
 		return -1;
 	}
 	
@@ -56,7 +56,7 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = base58_decode(output, input);
 	if (r < 0)
 	{
-		error_log("base58check_decode: Error while decoding data.");
+		error_log("Error while decoding input.");
 		return -1;
 	}
 
@@ -65,7 +65,7 @@ int base58check_decode(unsigned char *output, char *input) {
 
 	if (len <= 0)
 	{
-		error_log("base58check_decode: Length of decoded data (%i) is too short to contain a checksum.", len);
+		error_log("Length of decoded data (%i) is too short to contain both data and checksum.", r);
 		return -1;
 	}
 	
@@ -77,13 +77,13 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = crypto_get_checksum(&checksum2, output, len);
 	if (r < 0)
 	{
-		error_log("base58check_decode: Error while generating checksum.");
+		error_log("Error while validating checksum.");
 		return -1;
 	}
 	
 	if (checksum1 != checksum2)
 	{
-		error_log("base58check_decode: Data contains invalid checksum.");
+		error_log("Input contains invalid checksum.");
 		return -1;
 	}
 
