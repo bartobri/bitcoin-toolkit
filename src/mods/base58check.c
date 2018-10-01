@@ -89,38 +89,3 @@ int base58check_decode(unsigned char *output, char *input) {
 
 	return len;
 }
-
-int base58check_valid_checksum(char *input) {
-	int i, r;
-	uint32_t checksum1 = 0, checksum2 = 0;
-	unsigned char *decoded;
-
-	assert(input);
-	
-	// Assume that the length of the decoded data will always
-	// be less than the encoded data
-	decoded = ALLOC(strlen(input));
-
-	r = base58_decode(decoded, input);
-	if (r < 0)
-	{
-		return -1;
-	}
-
-	r -= CHECKSUM_LENGTH;
-	
-	for (i = 0; i < CHECKSUM_LENGTH; ++i) {
-		checksum1 <<= 8;
-		checksum1 += decoded[r + i];
-	}
-
-	r = crypto_get_checksum(&checksum2, decoded, r);
-	if (r < 0)
-	{
-		return -1;
-	}
-
-	FREE(decoded);
-	
-	return checksum1 == checksum2;
-}
