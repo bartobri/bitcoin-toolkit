@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "base58.h"
 #include "crypto.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -24,6 +25,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = crypto_get_checksum(&checksum, input, input_len);
 	if (r < 0)
 	{
+		error_log("base58check_encode: Error while generating checksum.");
 		return -1;
 	}
 	
@@ -35,6 +37,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = base58_encode(output, input_check, input_len + CHECKSUM_LENGTH);
 	if (r < 0)
 	{
+		error_log("base58check_encode: Error while encoding data.");
 		return -1;
 	}
 	
@@ -53,6 +56,7 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = base58_decode(output, input);
 	if (r < 0)
 	{
+		error_log("base58check_decode: Error while decoding data.");
 		return -1;
 	}
 
@@ -61,6 +65,7 @@ int base58check_decode(unsigned char *output, char *input) {
 
 	if (len <= 0)
 	{
+		error_log("base58check_decode: Length of decoded data (%i) is too short to contain a checksum.", len);
 		return -1;
 	}
 	
@@ -72,11 +77,13 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = crypto_get_checksum(&checksum2, output, len);
 	if (r < 0)
 	{
+		error_log("base58check_decode: Error while generating checksum.");
 		return -1;
 	}
 	
 	if (checksum1 != checksum2)
 	{
+		error_log("base58check_decode: Data contains invalid checksum.");
 		return -1;
 	}
 
