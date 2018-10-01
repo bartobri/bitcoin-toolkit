@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include "error.h"
 #include "base32.h"
 #include "assert.h"
 
@@ -21,6 +22,7 @@ int base32_encode(char *output, unsigned char *data, size_t data_len)
 		c = base32_get_char((int)output[i]);
 		if (c < 0)
 		{
+			error_log("base32_encode: Could not get base32 char for index %i.", (int)output[i]);
 			return -1;
 		}
 		output[i] = (char)c;
@@ -62,8 +64,9 @@ int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_le
 
 int base32_get_char(int c)
 {
-	if (c >= BASE32_CODE_STRING_LENGTH)
+	if (c < 0 || c >= BASE32_CODE_STRING_LENGTH)
 	{
+		error_log("base32_get_char: Index %i not within code string boundaries.", c);
 		return -1;
 	}
 	return (int)code_string[c];
@@ -83,5 +86,6 @@ int base32_get_raw(char c)
 		}
 	}
 
+	error_log("base32_get_raw: character not found in code string: %02x", c);
 	return -1;
 }
