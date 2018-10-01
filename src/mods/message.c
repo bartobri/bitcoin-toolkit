@@ -4,6 +4,7 @@
 #include "crypto.h"
 #include "message.h"
 #include "serialize.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -34,10 +35,12 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 
 	if (strlen(command) > MESSAGE_COMMAND_MAXLEN)
 	{
+		error_log("Command length (%i) can not exceed %i bytes in length.", (int)strlen(command), MESSAGE_COMMAND_MAXLEN);
 		return -1;
 	}
 	if (payload_len > MESSAGE_PAYLOAD_MAXLEN)
 	{
+		error_log("Message length (%i) can not exceed %i bytes in length.", payload_len, MESSAGE_PAYLOAD_MAXLEN);
 		return -1;
 	}
 
@@ -50,6 +53,7 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
 		if (r < 0)
 		{
+			error_log("Error computing checksum for message payload.");
 			return -1;
 		}
 	}
@@ -85,6 +89,7 @@ int message_deserialize(Message output, unsigned char *input, size_t input_len)
 
 	if (input_len < 12 + MESSAGE_COMMAND_MAXLEN)
 	{
+		error_log("Input length (%i) insifficient to create a new message. At least %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN);
 		return -1;
 	}
 
@@ -96,6 +101,7 @@ int message_deserialize(Message output, unsigned char *input, size_t input_len)
 	{
 		if (input_len < 12 + MESSAGE_COMMAND_MAXLEN + output->length)
 		{
+			error_log("Input length (%i) insifficient to create a new message. %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN + output->length);
 			return -1;
 		}
 		input = deserialize_uchar(output->payload, input, output->length);
@@ -129,6 +135,7 @@ int message_is_valid(Message m)
 	r = crypto_get_checksum(&checksum, m->payload, (size_t)m->length);
 	if (r < 0)
 	{
+		error_log("Error computing checksum for message payload.");
 		return -1;
 	}
 
