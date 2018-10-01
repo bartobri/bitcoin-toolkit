@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <errno.h>
 #include "node.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -16,7 +17,8 @@ struct Node
 	int sockfd;
 };
 
-int node_connect(Node node, const char *host, int port) {
+int node_connect(Node node, const char *host, int port)
+{
 	int r, sockfd;
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
@@ -29,6 +31,7 @@ int node_connect(Node node, const char *host, int port) {
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 	{
+		error_log("Unable to create new socket. Errno %i.", errno);
 		return -1;
 	}
 	
@@ -36,6 +39,7 @@ int node_connect(Node node, const char *host, int port) {
 	server = gethostbyname(host);
 	if (!server)
 	{
+		error_log("Unable to lookup host %s. Errno %i.", host, h_errno);
 		return -1;
 	}
 	
@@ -51,6 +55,7 @@ int node_connect(Node node, const char *host, int port) {
 	r = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if (r < 0)
 	{
+		error_log("Unable to connect to host %s. Errno %i.", host, errno);
 		return -1;
 	}
 
@@ -60,7 +65,8 @@ int node_connect(Node node, const char *host, int port) {
 	return 1;
 }
 
-int node_write(Node node, unsigned char *input, size_t input_len) {
+int node_write(Node node, unsigned char *input, size_t input_len)
+{
 	ssize_t r;
 
 	assert(node);
@@ -70,7 +76,9 @@ int node_write(Node node, unsigned char *input, size_t input_len) {
 	
 	r = write(node->sockfd, input, input_len);
 
-	if (r < 0) {
+	if (r < 0)
+	{
+		error_log("Unable to write message to node. Error %i.", errno);
 		return -1;
 	}
 
@@ -89,6 +97,7 @@ int node_read(Node node, unsigned char** buffer)
 	r = ioctl(node->sockfd, FIONREAD, &input_len);
 	if (r < 0)
 	{
+		error_log("Unable to read from socket. Errno %i.", errno);
 		return -1;
 	}
 
@@ -102,6 +111,7 @@ int node_read(Node node, unsigned char** buffer)
 		r = read(node->sockfd, *buffer, input_len);
 		if (r < 0)
 		{
+			error_log("Unable to read from socket. Errno %i.", errno);
 			return -1;
 		}
 	}
@@ -109,7 +119,8 @@ int node_read(Node node, unsigned char** buffer)
 	return input_len;
 }
 
-void node_disconnect(Node node) {
+void node_disconnect(Node node)
+{
 	assert(node);
 	assert(node->sockfd);
 	
