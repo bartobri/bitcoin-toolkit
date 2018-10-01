@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include "error.h"
 #include "assert.h"
 
 int compactuint_get_value(uint64_t *output, unsigned char *input, size_t input_len)
@@ -36,6 +37,7 @@ int compactuint_get_value(uint64_t *output, unsigned char *input, size_t input_l
 
 		if (input_len < (size_t)r)
 		{
+			error_log("Input length (%i) insufficient to deserialize compactSize unsigned integer (%i).", (int)input_len, r);
 			return -1;
 		}
 
