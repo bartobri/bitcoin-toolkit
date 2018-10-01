@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "hex.h"
+#include "error.h"
 #include "assert.h"
 
 int hex_to_dec(char l, char r)
@@ -14,6 +15,7 @@ int hex_to_dec(char l, char r)
 
 	if (!hex_ischar(l) || !hex_ischar(r))
 	{
+		error_log("Invalid hex character: 0x%c%c.", l, r);
 		return -1;
 	}
 
@@ -40,6 +42,7 @@ int hex_str_to_raw(unsigned char *output, char *input)
 	
 	if (input_len % 2 != 0)
 	{
+		error_log("Invalid hex string. Length is not even.");
 		return -1;
 	}
 	
@@ -48,6 +51,7 @@ int hex_str_to_raw(unsigned char *output, char *input)
 		r = hex_to_dec(input[i], input[i + 1]);
 		if (r < 0)
 		{
+			error_log("Could not convert hex character to decimal.");
 			return -1;
 		}
 		*output++ = r;
