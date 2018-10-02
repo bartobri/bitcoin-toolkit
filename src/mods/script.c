@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "script.h"
+#include "error.h"
 #include "mem.h"
 
 #define MAX_OPS_PER_SCRIPT 201
@@ -229,6 +230,7 @@ char *script_from_raw(unsigned char *raw, size_t l)
 	{
 		if (c >= MAX_OPS_PER_SCRIPT)
 		{
+			error_log("Script has more operations than the allowed limit of %i.", MAX_OPS_PER_SCRIPT);
 			return NULL;
 		}
 		
@@ -239,6 +241,7 @@ char *script_from_raw(unsigned char *raw, size_t l)
 		{
 			if (i + op >= l)
 			{
+				error_log("Script length is too short for operation 0x%02x.", op);
 				return NULL;
 			}
 			ops[c] = ALLOC(op * 2 + 1);
