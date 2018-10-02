@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <errno.h>
+#include "error.h"
 #include "assert.h"
 
 #define RANDOM_SOURCE "/dev/urandom"
@@ -15,6 +17,7 @@ int random_get(unsigned char *output, size_t bytes)
 	source = fopen(RANDOM_SOURCE, "r");
 	if (source == NULL)
 	{
+		error_log("Unable to open source file %s. Errno %i.", RANDOM_SOURCE, errno);
 		return -1;
 	}
 
@@ -23,6 +26,7 @@ int random_get(unsigned char *output, size_t bytes)
 		c = fgetc(source);
 		if (c == EOF)
 		{
+			error_log("Could not read character from source file %s.", RANDOM_SOURCE);
 			return -1;
 		}
 
