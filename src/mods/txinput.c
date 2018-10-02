@@ -3,6 +3,7 @@
 #include "txinput.h"
 #include "hex.h"
 #include "compactuint.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -22,6 +23,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	{
 		if (input_len == 0)
 		{
+			error_log("Transaction input data is incomplete.");
 			return -1;
 		}
 		txinput->tx_hash[31-i] = *input;
@@ -32,6 +34,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	{
 		if (input_len == 0)
 		{
+			error_log("Transaction input data is incomplete.");
 			return -1;
 		}
 		txinput->index <<= 8;
@@ -42,6 +45,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	r = compactuint_get_value(&txinput->script_size, input, input_len);
 	if (r < 0)
 	{
+		error_log("Error while parsing compact size integer from transaction input data.");
 		return -1;
 	}
 	j = r; // quick fix - make prettier later
@@ -50,6 +54,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	input_len = (j > input_len) ? 0 : input_len - j;
 	if (input_len == 0)
 	{
+		error_log("Transaction input data is incomplete.");
 		return -1;
 	}
 	
@@ -59,6 +64,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	{
 		if (input_len == 0)
 		{
+			error_log("Transaction input data is incomplete.");
 			return -1;
 		}
 		txinput->script_raw[i] = *input;
@@ -69,6 +75,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	{
 		if (input_len == 0)
 		{
+			error_log("Transaction input data is incomplete.");
 			return -1;
 		}
 		txinput->sequence <<= 8;
