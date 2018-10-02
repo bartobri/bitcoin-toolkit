@@ -7,7 +7,8 @@
 
 #define MAX_OPS_PER_SCRIPT 201
 
-typedef struct {
+typedef struct
+{
 	const char *word;
 	// placeholder for function pointer
 } Words;
@@ -210,11 +211,15 @@ Words words[256] = {
 
 const char *script_get_word(uint8_t w)
 {
+	// TODO - change this function to use a pointer as a parameter
+	// for output and return an int for success or failure
 	return words[w].word;
 }
 
 char *script_from_raw(unsigned char *raw, size_t l)
 {
+	// TODO - change this function to use a pointer as a parameter
+	// for output and return an int for success or failure
 	size_t c, i, j;
 	unsigned char op;
 	char *ops[MAX_OPS_PER_SCRIPT];
