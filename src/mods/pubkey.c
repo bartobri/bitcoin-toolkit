@@ -10,6 +10,7 @@
 #include "bech32.h"
 #include "hex.h"
 #include "network.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -36,9 +37,9 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	assert(privkey);
 	assert(pubkey);
 
-	// Private keys of zero are invalid
 	if (privkey_is_zero(privkey))
 	{
+		error_log("Private key can not be zero.");
 		return -1;
 	}
 
@@ -66,7 +67,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		point_double(points[i], points[i-1]);
 		if (!point_verify(points[i]))
 		{
-			return -2;
+			error_log("Unexpected point value while calculating public key.");
+			return -1;
 		}
 	}
 
@@ -85,7 +87,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 			}
 			if (!point_verify(points[i]))
 			{
-				return -3;
+				error_log("Unexpected point value while calculating public key.");
+				return -1;
 			}
 		}
 	}
@@ -113,7 +116,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	mpz_export(pubkey->data + 1 + (32 - l), &i, 1, 1, 1, 0, point->x);
 	if (l != i)
 	{
-		return -4;
+		error_log("Length of public key x-value export (%zu) does not match expected length (%zu).", i, l);
+		return -1;
 	}
 	if (!privkey_is_compressed(privkey))
 	{
@@ -121,7 +125,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		mpz_export(pubkey->data + 33 + (32 - l), &i, 1, 1, 1, 0, point->y);
 		if (l != i)
 		{
-			return -4;
+			error_log("Length of public key y-value export (%zu) does not match expected length (%zu).", i, l);
+			return -1;
 		}
 	}
 
@@ -168,11 +173,8 @@ int pubkey_compress(PubKey key)
 int pubkey_is_compressed(PubKey key)
 {
 	assert(key);
-	if (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD)
-	{
-		return 1;
-	}
-	return 0;
+
+	return (key->data[0] == PUBKEY_COMPRESSED_FLAG_EVEN || key->data[0] == PUBKEY_COMPRESSED_FLAG_ODD);
 }
 
 int pubkey_to_hex(char *str, PubKey key)
@@ -192,6 +194,7 @@ int pubkey_to_hex(char *str, PubKey key)
 			l = (PUBKEY_COMPRESSED_LENGTH * 2) + 2;
 			break;
 		default:
+			error_log("Public key contains invalid compression flag.");
 			return -1;
 	}
 	
@@ -246,12 +249,14 @@ int pubkey_to_address(char *address, PubKey key)
 	r = crypto_get_sha256(sha, key->data, len);
 	if (r < 0)
 	{
+		error_log("Error generating SHA256 hash from public key data.");
 		return -1;
 	}
 	rmd = ALLOC(20);
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
+		error_log("Error generating RMD160 hash from public key data.");
 		return -1;
 	}
 
@@ -278,7 +283,8 @@ int pubkey_to_address(char *address, PubKey key)
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
 	{
-		return r;
+		error_log("Error generating address from public key data.");
+		return -1;
 	}
 
 	strcpy(address, base58);
@@ -298,6 +304,7 @@ int pubkey_to_bech32address(char *address, PubKey key)
 
 	if (!pubkey_is_compressed(key))
 	{
+		error_log("Public key is uncompressed. Bech32 addresses require a compressed public key.");
 		return -1;
 	}
 
@@ -306,18 +313,21 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	r = crypto_get_sha256(sha, key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	if (r < 0)
 	{
+		error_log("Error generating SHA256 hash from public key data.");
 		return -1;
 	}
 	rmd = ALLOC(20);
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
+		error_log("Error generating RMD160 hash from public key data.");
 		return -1;
 	}
 
 	r = bech32_get_address(address, rmd, 20);
 	if (r < 0)
 	{
+		error_log("Error generating bech32 address from public key data.");
 		return -1;
 	}
 	
