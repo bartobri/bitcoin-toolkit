@@ -19,6 +19,7 @@
 #include "mods/base58check.h"
 #include "mods/hex.h"
 #include "mods/input.h"
+#include "mods/error.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -156,7 +157,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_wif(priv, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -176,7 +178,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_hex(priv, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid hex string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -184,7 +187,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
-				fprintf(stderr, "Error: Input required.\n");
+				error_log("Piped or redirected input required for raw data.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -192,7 +196,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_raw(priv, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid raw data.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -212,7 +217,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_str(priv, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -232,7 +238,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_dec(priv, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid decimal string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -241,7 +248,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
-				fprintf(stderr, "Error: Input required.\n");
+				error_log("Piped or redirected input required for blob data.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -249,7 +257,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_blob(priv, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid blob.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -260,7 +269,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_guess(priv, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
+				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -272,7 +282,8 @@ int btk_pubkey_main(int argc, char *argv[])
 	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv))
 	{
-		fprintf(stderr, "Error: Private key can not be zero.\n");
+		error_log("Invalid private key. Key value cannot be zero.");
+		error_print();
 		return EXIT_FAILURE;
 	}
 
@@ -295,14 +306,8 @@ int btk_pubkey_main(int argc, char *argv[])
 	r = pubkey_get(key, priv);
 	if (r < 0)
 	{
-		fprintf(stderr, "Error: Unable to calculate public key from private key.");
-		return EXIT_FAILURE;
-	}
-
-	// Ensure we have a key
-	if (!key)
-	{
-		fprintf(stderr, "Unable to generate public key. Input required.\n");
+		error_log("Error while calculating public key.");
+		error_print();
 		return EXIT_FAILURE;
 	}
 
@@ -339,70 +344,48 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (output_format)
 	{
 		case OUTPUT_ADDRESS:
-			if (pubkey_is_compressed(key))
-			{
-				output = ALLOC((PUBKEY_COMPRESSED_LENGTH + 1) * 2);
-			}
-			else
-			{
-				output = ALLOC((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2);
-			}
+			output = ALLOC(35);
 			r = pubkey_to_address(output, key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Can not convert public key to address.\n");
+				error_log("Error while calculating address for public key.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
 			FREE(output);
 			break;
 		case OUTPUT_BECH32_ADDRESS:
-			if(!pubkey_is_compressed(key))
-			{
-				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
-				return EXIT_FAILURE;
-			}
 			output = ALLOC(43);
 			r = pubkey_to_bech32address(output, key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Can not convert public key to bech32 address.\n");
+				error_log("Error while calculating bech32 address for public key.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
 			FREE(output);
 			break;
 		case OUTPUT_HEX:
-			if (pubkey_is_compressed(key))
-			{
-				output = ALLOC(((PUBKEY_COMPRESSED_LENGTH + 1) * 2) + 1);
-			}
-			else
-			{
-				output = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
-			}
+			output = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Can not convert public key to hex.\n");
+				error_log("Error while calculating bech32 address for public key.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
 			FREE(output);
 			break;
 		case OUTPUT_RAW:
-			if (pubkey_is_compressed(key))
-			{
-				uc_output = ALLOC(PUBKEY_COMPRESSED_LENGTH + 1);
-			}
-			else
-			{
-				uc_output = ALLOC(PUBKEY_UNCOMPRESSED_LENGTH + 1);
-			}
+			uc_output = ALLOC(PUBKEY_UNCOMPRESSED_LENGTH + 1);
 			r = pubkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Can not convert public key to raw.\n");
+				error_log("Error while generating raw data for public key.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			for (i = 0; i < (size_t)r; ++i)
