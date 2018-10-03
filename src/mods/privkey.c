@@ -10,6 +10,7 @@
 #include "base58.h"
 #include "base58check.h"
 #include "crypto.h"
+#include "error.h"
 #include "mem.h"
 #include "assert.h"
 
@@ -34,6 +35,7 @@ int privkey_new(PrivKey key)
 	r = random_get(key->data, PRIVKEY_LENGTH);
 	if (r < 0)
 	{
+		error_log("Error while getting random data for new private key.");
 		return -1;
 	}
 	
@@ -127,7 +129,8 @@ int privkey_to_wif(char *str, PrivKey key)
 	r = base58check_encode(base58check, p, len);
 	if (r < 0)
 	{
-		return r;
+		error_log("Error while encoding private key to WIF format.");
+		return -1;
 	}
 
 	strcpy(str, base58check);
@@ -152,11 +155,13 @@ int privkey_from_wif(PrivKey key, char *wif)
 	l = base58check_decode(p, wif);
 	if (l < 0)
 	{
+		error_log("Error while decoding private key from WIF format.");
 		return -1;
 	}
 
 	if (l != PRIVKEY_LENGTH + 1 && l != PRIVKEY_LENGTH + 2)
 	{
+		error_log("Decoded input contains %i bytes. Valid byte length must be %i or %i.", l, PRIVKEY_LENGTH + 1, PRIVKEY_LENGTH + 2);
 		return -1;
 	}
 
@@ -169,6 +174,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 			network_set_test();
 			break;
 		default:
+			error_log("Input contains invalid network prefix.");
 			return -1;
 			break;
 	}
@@ -181,6 +187,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 		}
 		else
 		{
+			error_log("Input contains invalid compression flag.");
 			return -1;
 		}
 	}
@@ -207,16 +214,15 @@ int privkey_from_hex(PrivKey key, char *input)
 	input_len = strlen(input);
 
 	// Validating input string
-	if (input_len % 2 != 0 || input_len < PRIVKEY_LENGTH * 2)
+	if (input_len % 2 != 0)
 	{
+		error_log("Input must contain an even number of characters to be valid hexidecimal.");
 		return -1;
 	}
-	for (i = 0; i < input_len; ++i)
+	if (input_len < PRIVKEY_LENGTH * 2)
 	{
-		if (!hex_ischar(input[i]))
-		{
-			return -1;
-		}
+		error_log("Input too short. Hexidecimal input must be at least %i characters in length.", PRIVKEY_LENGTH * 2);
+		return -1;
 	}
 
 	// load input string as private key
@@ -225,6 +231,7 @@ int privkey_from_hex(PrivKey key, char *input)
 		r = hex_to_dec(input[i], input[i+1]);
 		if (r < 0)
 		{
+			error_log("Error while converting hexidecimal characters to decimal.");
 			return -1;
 		}
 		key->data[i/2] = r;
@@ -236,6 +243,7 @@ int privkey_from_hex(PrivKey key, char *input)
 		r = hex_to_dec(input[i], input[i+1]);
 		if (r < 0)
 		{
+			error_log("Error while converting hexidecimal characters to decimal.");
 			return -1;
 		}
 		if (r == PRIVKEY_COMPRESSED_FLAG)
@@ -263,6 +271,7 @@ int privkey_from_dec(PrivKey key, char *data)
 	{
 		if (data[i] < '0' || data[i] > '9')
 		{
+			error_log("Input contains non-decimal characters.");
 			return -1;
 		}
 	}
@@ -279,6 +288,7 @@ int privkey_from_dec(PrivKey key, char *data)
 	r = privkey_from_raw(rawkey, raw, PRIVKEY_LENGTH);
 	if (r < 0)
 	{
+		error_log("Error generating private key from input.");
 		return -1;
 	}
 
@@ -305,6 +315,7 @@ int privkey_from_str(PrivKey key, char *data)
 	r = crypto_get_sha256(tmp, (unsigned char*)data, strlen(data));
 	if (r < 0)
 	{
+		error_log("Error generating SHA256 hash from input string.");
 		return -1;
 	}
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
@@ -324,6 +335,7 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 
 	if (l < PRIVKEY_LENGTH)
 	{
+		error_log("Length of input bytes (%i) is less than the minimum required (%i).", l, PRIVKEY_LENGTH);
 		return -1;
 	}
 
@@ -351,6 +363,7 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 	r = crypto_get_sha256(tmp, data, data_len);
 	if (r < 0)
 	{
+		error_log("Error generating SHA256 hash from input.");
 		return -1;
 	}
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
@@ -424,6 +437,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		return 1;
 	}
 
+	error_log("Unable to guess input type.");
 	return -1;
 }
 
