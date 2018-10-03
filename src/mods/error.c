@@ -20,6 +20,17 @@ void error_log(char *error, ...)
 	}
 }
 
+void error_print(void)
+{
+	int i;
+
+	for (i = N-1; i >= 0; --i)
+	{
+		fprintf(stderr, "%s ", error_stack[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
 char *error_get(void)
 {
 	if (N > 0)

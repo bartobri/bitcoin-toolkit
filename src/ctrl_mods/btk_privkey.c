@@ -19,6 +19,7 @@
 #include "mods/hex.h"
 #include "mods/base58check.h"
 #include "mods/input.h"
+#include "mods/error.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -141,7 +142,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_new(key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Unable to generate new private key.\n");
+				fprintf(stderr, "Error while generating new private key.\n");
 				return EXIT_FAILURE;
 			}
 			break;
@@ -161,6 +162,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				fprintf(stderr, "Error: Invalid WIF string.\n");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
