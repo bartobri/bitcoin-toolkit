@@ -142,7 +142,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_new(key);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error while generating new private key.\n");
+				error_log("Error while generating new private key.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -161,7 +162,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_wif(key, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid WIF string.\n");
+				error_log("Error while handling input.");
 				error_print();
 				return EXIT_FAILURE;
 			}
@@ -182,7 +183,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_hex(key, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid hex string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -190,7 +192,8 @@ int btk_privkey_main(int argc, char *argv[])
 			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
-				fprintf(stderr, "Error: Input required.\n");
+				error_log("Piped or redirected input required for raw data.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -198,7 +201,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_raw(key, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid raw data.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -217,7 +221,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_str(key, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -237,7 +242,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_dec(key, (char *)input);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid decimal string.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -245,7 +251,8 @@ int btk_privkey_main(int argc, char *argv[])
 			input_len = input_get_from_pipe(&input);
 			if (input == NULL)
 			{
-				fprintf(stderr, "Error: Input required.\n");
+				error_log("Piped or redirected input required for blob data.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -253,7 +260,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_blob(key, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Invalid blob.\n");
+				error_log("Error while handling input.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			break;
@@ -264,7 +272,8 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_guess(key, input, input_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Unable to interpret input automatically. Use an input switch to specify how this input should be interpreted.\n");
+				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -277,7 +286,8 @@ int btk_privkey_main(int argc, char *argv[])
 	// Don't allow private keys with a zero value
 	if (privkey_is_zero(key))
 	{
-		fprintf(stderr, "Error: Private key can not be zero.\n");
+		error_log("Invalid private key. Key value cannot be zero.");
+		error_print();
 		return EXIT_FAILURE;
 	}
 
@@ -300,19 +310,38 @@ int btk_privkey_main(int argc, char *argv[])
 	{
 		case OUTPUT_WIF:
 			output = ALLOC(PRIVKEY_WIF_LENGTH_MAX + 1);
-			privkey_to_wif(output, key);
+			r = privkey_to_wif(output, key);
+			if (r < 0)
+			{
+				error_log("Error while converting key to WIF format.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			printf("%s", output);
 			FREE(output);
 			break;
 		case OUTPUT_HEX:
 			output = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
-			privkey_to_hex(output, key);
+			r = privkey_to_hex(output, key);
+			if (r < 0)
+			{
+				error_log("Error while converting key to hex format.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			printf("%s", output);
 			FREE(output);
 			break;
 		case OUTPUT_RAW:
 			uc_output = ALLOC(PRIVKEY_LENGTH + 1);
-			output_len = (size_t)privkey_to_raw(uc_output, key);
+			r = privkey_to_raw(uc_output, key);
+			if (r < 0)
+			{
+				error_log("Error while converting key to raw format.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+			output_len = (size_t)r;
 			for (i = 0; i < output_len; ++i)
 			{
 				putchar(uc_output[i]);
