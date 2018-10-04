@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "mods/node.h"
 #include "mods/message.h"
+#include "mods/error.h"
 #include "mods/mem.h"
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
@@ -67,7 +68,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 
 	if (host == NULL)
 	{
-		fprintf(stderr, "Please specify a target host with the -h command option.\n");
+		error_log("Missing argument. Specify a hostname with the -h option.");
+		error_print();
 		return EXIT_FAILURE;
 	}
 
@@ -78,7 +80,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			r = node_connect(node, host, port);
 			if (r < 0)
 			{
-				fprintf(stderr, "Could not connect to host %s on port %i\n", host, port);
+				error_log("Error while connecting to host.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
@@ -87,7 +90,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Could not generate new message\n");
+				error_log("Error while creating message.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			FREE(version_string);
@@ -96,14 +100,16 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			r = message_serialize(message_raw, &message_raw_len, message);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Could not serialize new message\n");
+				error_log("Error while serializing message message.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 
 			r = node_write(node, message_raw, message_raw_len);
 			if (r < 0)
 			{
-				fprintf(stderr, "Error: Could not send message to node\n");
+				error_log("Error while sending message to host.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			FREE(message);
@@ -116,7 +122,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				r = node_read(node, &node_data);
 				if (r < 0)
 				{
-					fprintf(stderr, "Error: Could not read data from node\n");
+					error_log("Error while reading message from host.");
+					error_print();
 					return EXIT_FAILURE;
 				}
 
@@ -138,7 +145,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				r = message_deserialize(message, node_data_walk, node_data_len);
 				if (r < 0)
 				{
-					fprintf(stderr, "Error: Could not deserialize data from node\n");
+					error_log("Error while deserializing message from host.");
+					error_print();
 					return EXIT_FAILURE;
 				}
 				node_data_len -= r;
@@ -147,12 +155,14 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				r = message_is_valid(message);
 				if (r < 0)
 				{
-					fprintf(stderr, "Error: Could not validate message checksum from node\n");
+					error_log("Error while validating message from host.");
+					error_print();
 					return EXIT_FAILURE;
 				}
 				if (r == 0)
 				{
-					fprintf(stderr, "Error: Invalid message checksum from node\n");
+					error_log("The message received from host contains an invalid checksum.");
+					error_print();
 					return EXIT_FAILURE;
 				}
 
@@ -170,7 +180,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			
 			if (message == NULL)
 			{
-				fprintf(stderr, "Timeout Error. Did not receive version message response from target node.\n");
+				error_log("Timeout Error. Did not receive response from host.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			
