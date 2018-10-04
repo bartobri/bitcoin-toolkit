@@ -21,6 +21,7 @@
 #include "mods/base32.h"
 #include "mods/btktermio.h"
 #include "mods/input.h"
+#include "mods/error.h"
 #include "mods/mem.h"
 #include "mods/assert.h"
 
@@ -105,7 +106,8 @@ int btk_vanity_main(int argc, char *argv[])
 	}
 	if (input_len > 10)
 	{
-		fprintf(stderr, "Match string too long. Must be 10 chars or less.\n");
+		error_log("Match string is too long. This program only supports 10 characters or less.");
+		error_print();
 		return EXIT_FAILURE;
 	}
 	switch (output_format)
@@ -115,7 +117,8 @@ int btk_vanity_main(int argc, char *argv[])
 			{
 				if ((input_insensitive && !base58_ischar(toupper(input[i])) && !base58_ischar(tolower(input[i]))) || (!input_insensitive && !base58_ischar(input[i])))
 				{
-					fprintf(stderr, "Match string must only contain base58 characters\n");
+					error_log("Invalid characters in match string. Must only contain base58 characters");
+					error_print();
 					return EXIT_FAILURE;
 				}
 			}
@@ -138,7 +141,8 @@ int btk_vanity_main(int argc, char *argv[])
 			{
 				if (base32_get_raw(input[i]) < 0)
 				{
-					fprintf(stderr, "Match string must only contain bech32 characters\n");
+					error_log("Invalid characters in match string. Must only contain bech32 characters");
+					error_print();
 					return EXIT_FAILURE;
 				}
 			}
@@ -198,8 +202,9 @@ int btk_vanity_main(int argc, char *argv[])
 	// Getting cursor row
 	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
 	{
-		fprintf(stderr, "Error. Can't associate STDIN with terminal.\n");
-		return -1;
+		error_log("Terminal error. Cannot associate STDIN with terminal.");
+		error_print();
+		return EXIT_FAILURE;
 	}
 	btktermio_init_terminal();
 	row = btktermio_get_cursor_row();
@@ -232,7 +237,8 @@ int btk_vanity_main(int argc, char *argv[])
 		r = privkey_new(priv);
 		if (r < 0)
 		{
-			fprintf(stderr, "Error: Unable to generate new private key.\n");
+			error_log("Error while generating a new private key.");
+			error_print();
 			return EXIT_FAILURE;
 		}
 	
@@ -255,7 +261,8 @@ int btk_vanity_main(int argc, char *argv[])
 		r = pubkey_get(key, priv);
 		if (r < 0)
 		{
-			fprintf(stderr, "Error: Unable to calculate public key from private key.");
+			error_log("Error while calculating public key.");
+			error_print();
 			return EXIT_FAILURE;
 		}
 
@@ -270,7 +277,8 @@ int btk_vanity_main(int argc, char *argv[])
 		{
 			if(!pubkey_is_compressed(key))
 			{
-				fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
+				error_log("Bech32 addresses cannot be uncompressed.");
+				error_print();
 				return EXIT_FAILURE;
 			}
 			pubkey_str = ALLOC(43);
@@ -316,7 +324,8 @@ int btk_vanity_main(int argc, char *argv[])
 			case OUTPUT_BECH32_ADDRESS:
 				if(!pubkey_is_compressed(key))
 				{
-					fprintf(stderr, "Error: Can not use an uncompressed private key for a bech32 address.\n");
+					error_log("Bech32 addresses cannot be uncompressed.");
+					error_print();
 					return EXIT_FAILURE;
 				}
 
