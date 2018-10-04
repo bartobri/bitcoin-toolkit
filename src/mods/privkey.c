@@ -394,6 +394,10 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	}
 	if (i == data_len)
 	{
+		while (isspace(data[data_len - 1]))
+		{
+			--data_len;
+		}
 		data_str = ALLOC(data_len + 1);
 		memcpy(data_str, data, data_len);
 		data_str[data_len] = '\0';
