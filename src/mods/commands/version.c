@@ -44,47 +44,57 @@ struct Version {
 static char *version_service_bit_to_str(int bit);
 static int version_services_to_json(char *ptr, uint64_t value);
 
-Version version_new(void) {
-	Version r;
+int version_new(Version v)
+{
+	int r;
 	unsigned char *temp;
 	
-	NEW(r);
-	
-	r->version = VERSION;
-	r->services = SERVICES;
-	r->timestamp = time(NULL);
-	r->addr_recv_services = SERVICES;
+	v->version = VERSION;
+	v->services = SERVICES;
+	v->timestamp = time(NULL);
+	v->addr_recv_services = SERVICES;
 
 	temp = ALLOC(strlen(IP_ADDRESS) / 2);
-	hex_str_to_raw(temp, IP_ADDRESS);
-	// check return value of hex_str_to_raw
-	memcpy(r->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
-	FREE(temp);
-	
-	r->addr_recv_port = PORT;
-	r->addr_trans_services = SERVICES;
-	
-	temp = ALLOC(strlen(IP_ADDRESS) / 2);
-	hex_str_to_raw(temp, IP_ADDRESS);
-	// check return value of hex_str_to_raw
-	memcpy(r->addr_trans_ip_address, temp, IP_ADDR_FIELD_LEN);
-	FREE(temp);
-	
-	r->addr_trans_port = PORT;
-	r->nonce = 0x00;
-	r->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
-	
-	if (r->user_agent_bytes) {
-		r->user_agent = ALLOC(r->user_agent_bytes);
-		memcpy(r->user_agent, USER_AGENT, strlen(USER_AGENT));
-	} else {
-		r->user_agent = NULL;
+
+	r = hex_str_to_raw(temp, IP_ADDRESS);
+	if (r < 0)
+	{
+		return -1;
 	}
 
-	r->start_height = 0x00;
-	r->relay = 0x00;
+	memcpy(v->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
+	FREE(temp);
 	
-	return r;
+	v->addr_recv_port = PORT;
+	v->addr_trans_services = SERVICES;
+	
+	temp = ALLOC(strlen(IP_ADDRESS) / 2);
+	r = hex_str_to_raw(temp, IP_ADDRESS);
+	if (r < 0)
+	{
+		return -1;
+	}
+	memcpy(v->addr_trans_ip_address, temp, IP_ADDR_FIELD_LEN);
+	FREE(temp);
+	
+	v->addr_trans_port = PORT;
+	v->nonce = 0x00;
+	v->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
+	
+	if (v->user_agent_bytes)
+	{
+		v->user_agent = ALLOC(v->user_agent_bytes);
+		memcpy(v->user_agent, USER_AGENT, strlen(USER_AGENT));
+	}
+	else
+	{
+		v->user_agent = NULL;
+	}
+
+	v->start_height = 0x00;
+	v->relay = 0x00;
+	
+	return 1;
 }
 
 size_t version_serialize(Version v, unsigned char **s) {
@@ -119,8 +129,11 @@ size_t version_serialize(Version v, unsigned char **s) {
 size_t version_new_serialize(unsigned char **s) {
 	size_t r;
 	Version v;
+
+	NEW(v);
 	
-	v = version_new();
+	r = version_new(v);
+	// check return value here
 	
 	r = version_serialize(v, s);
 	
