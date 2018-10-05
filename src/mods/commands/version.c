@@ -184,70 +184,41 @@ int version_to_json(char *output, Version v)
 	assert(output);
 	assert(v);
 
-	// Opening bracket
 	output += sprintf(output, "{\n");
-
-	// version
 	output += sprintf(output, "  \"version\": %"PRIu32",\n", v->version);
-
-	// services
 	output += sprintf(output, "  \"services\": {\n");
 	output += version_services_to_json(output, v->services);
 	output += sprintf(output, "  },\n");
-
-	// timestamp
 	output += sprintf(output, "  \"timestamp\": %"PRIu64",\n", v->timestamp);
-
-	// addr_recv_services
 	output += sprintf(output, "  \"addr_recv_services\": {\n");
 	output += version_services_to_json(output, v->addr_recv_services);
 	output += sprintf(output, "  },\n");
-
-	// addr_recv_ip_address
 	output += sprintf(output, "  \"addr_recv_ip_address\": \"");
 	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
 	{
 		output += sprintf(output, "%02x", v->addr_recv_ip_address[i]);
 	}
 	output += sprintf(output, "\",\n");
-
-	// addr_recv_port
 	output += sprintf(output, "  \"addr_recv_port\": %"PRIu16",\n", v->addr_recv_port);
-
-	// addr_trans_services
 	output += sprintf(output, "  \"addr_trans_services\": {\n");
 	output += version_services_to_json(output, v->addr_trans_services);
 	output += sprintf(output, "  },\n");
-
-	// addr_trans_ip_address
 	output += sprintf(output, "  \"addr_trans_ip_address\": \"");
 	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
 	{
 		output += sprintf(output, "%02x", v->addr_trans_ip_address[i]);
 	}
 	output += sprintf(output, "\",\n");
-
-	// addr_trans_port
 	output += sprintf(output, "  \"addr_trans_port\": %"PRIu16",\n", v->addr_trans_port);
-
-	// nonce
 	output += sprintf(output, "  \"nonce\": %"PRIu64",\n", v->nonce);
-	
-	// user_agent
 	output += sprintf(output, "  \"user_agent\": \"");
 	for(i = 0; i < (int)v->user_agent_bytes; ++i)
 	{
 		output += sprintf(output, "%c", v->user_agent[i]);
 	}
 	output += sprintf(output, "\",\n");
-	
-	// start_height
 	output += sprintf(output, "  \"start_height\": %"PRIu32",\n", v->start_height);
-	
-	// relay
 	output += sprintf(output, "  \"relay\": %s\n", (v->relay == 0) ? "false" : "true");
-
-	// Closing bracket
 	sprintf(output, "}");
 
 	return 1;
