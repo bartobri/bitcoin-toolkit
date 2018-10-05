@@ -117,7 +117,8 @@ int version_serialize(unsigned char *output, Version v)
 	return r;
 }
 
-int version_new_serialize(unsigned char *output) {
+int version_new_serialize(unsigned char *output)
+{
 	int r;
 	Version v;
 
@@ -140,33 +141,41 @@ int version_new_serialize(unsigned char *output) {
 	return r;
 }
 
-size_t version_deserialize(unsigned char *src, Version *dest, size_t l) {
-	
-	assert(src);
-	assert(l >= 54 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN);
-	
-	if (*dest == NULL)
-		NEW0(*dest);
-	
-	src = deserialize_uint32(&((*dest)->version), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uint64(&((*dest)->services), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uint64(&((*dest)->timestamp), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uint64(&((*dest)->addr_recv_services), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uchar((*dest)->addr_recv_ip_address, src, IP_ADDR_FIELD_LEN);
-	src = deserialize_uint16(&((*dest)->addr_recv_port), src, SERIALIZE_ENDIAN_BIG);
-	src = deserialize_uint64(&((*dest)->addr_trans_services), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uchar((*dest)->addr_trans_ip_address, src, IP_ADDR_FIELD_LEN);
-	src = deserialize_uint16(&((*dest)->addr_trans_port), src, SERIALIZE_ENDIAN_BIG);
-	src = deserialize_uint64(&((*dest)->nonce), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_compuint(&((*dest)->user_agent_bytes), src, SERIALIZE_ENDIAN_LIT);
-	if ((*dest)->user_agent_bytes) {
-		assert(l >= 54 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes);
-		src = deserialize_char((*dest)->user_agent, src, (*dest)->user_agent_bytes);
+int version_deserialize(Version output, unsigned char *input, size_t input_len)
+{
+	assert(output);
+	assert(input);
+	assert(input_len);
+
+	if (input_len < 85)
+	{
+		printf("gar 1\n");
+		return -1;
 	}
-	src = deserialize_uint32(&((*dest)->start_height), src, SERIALIZE_ENDIAN_LIT);
-	src = deserialize_uint8(&((*dest)->relay), src, SERIALIZE_ENDIAN_LIT);
 	
-	return 61 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes;
+	input = deserialize_uint32(&(output->version), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&(output->services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&(output->timestamp), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&(output->addr_recv_services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar(output->addr_recv_ip_address, input, IP_ADDR_FIELD_LEN);
+	input = deserialize_uint16(&(output->addr_recv_port), input, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint64(&(output->addr_trans_services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar(output->addr_trans_ip_address, input, IP_ADDR_FIELD_LEN);
+	input = deserialize_uint16(&(output->addr_trans_port), input, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint64(&(output->nonce), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_compuint(&(output->user_agent_bytes), input, SERIALIZE_ENDIAN_LIT);
+	if (output->user_agent_bytes)
+	{
+		if (input_len < 85 + output->user_agent_bytes)
+		{
+			return -1;
+		}
+		input = deserialize_char(output->user_agent, input, output->user_agent_bytes);
+	}
+	input = deserialize_uint32(&(output->start_height), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint8(&(output->relay), input, SERIALIZE_ENDIAN_LIT);
+	
+	return 1;
 }
 
 char *version_to_json(Version v) {

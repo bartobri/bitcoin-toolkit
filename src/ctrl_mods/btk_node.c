@@ -189,11 +189,19 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			payload = ALLOC(message_get_payload_len(message));
 			payload_len = message_get_payload(payload, message);
 			
-			version_deserialize(payload, &v, payload_len);
+			v = ALLOC(version_sizeof());
+			r = version_deserialize(v, payload, payload_len);
+			if (r < 0)
+			{
+				error_log("Error while deserializing host response.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			json = version_to_json(v);
 
 			printf("%s\n", json);
 
+			FREE(v);
 			FREE(message);
 			FREE(payload);
 			FREE(json);
