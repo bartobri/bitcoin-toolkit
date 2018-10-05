@@ -197,7 +197,9 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				error_print();
 				return EXIT_FAILURE;
 			}
-			json = version_to_json(v);
+
+			json = ALLOC(1000);
+			version_to_json(json, v);
 
 			printf("%s\n", json);
 

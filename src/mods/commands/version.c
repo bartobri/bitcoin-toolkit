@@ -177,81 +177,80 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-char *version_to_json(Version v) {
+int version_to_json(char *output, Version v)
+{
 	int i;
-	char *head, *ptr;
 
+	assert(output);
 	assert(v);
 
-	head = ptr = ALLOC(1000);
-
 	// Opening bracket
-	ptr += sprintf(ptr, "{\n");
+	output += sprintf(output, "{\n");
 
 	// version
-	ptr += sprintf(ptr, "  \"version\": %"PRIu32",\n", v->version);
+	output += sprintf(output, "  \"version\": %"PRIu32",\n", v->version);
 
 	// services
-	ptr += sprintf(ptr, "  \"services\": {\n");
-	ptr += version_services_to_json(ptr, v->services);
-	ptr += sprintf(ptr, "  },\n");
+	output += sprintf(output, "  \"services\": {\n");
+	output += version_services_to_json(output, v->services);
+	output += sprintf(output, "  },\n");
 
 	// timestamp
-	ptr += sprintf(ptr, "  \"timestamp\": %"PRIu64",\n", v->timestamp);
+	output += sprintf(output, "  \"timestamp\": %"PRIu64",\n", v->timestamp);
 
 	// addr_recv_services
-	ptr += sprintf(ptr, "  \"addr_recv_services\": {\n");
-	ptr += version_services_to_json(ptr, v->addr_recv_services);
-	ptr += sprintf(ptr, "  },\n");
+	output += sprintf(output, "  \"addr_recv_services\": {\n");
+	output += version_services_to_json(output, v->addr_recv_services);
+	output += sprintf(output, "  },\n");
 
 	// addr_recv_ip_address
-	ptr += sprintf(ptr, "  \"addr_recv_ip_address\": \"");
+	output += sprintf(output, "  \"addr_recv_ip_address\": \"");
 	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
 	{
-		ptr += sprintf(ptr, "%02x", v->addr_recv_ip_address[i]);
+		output += sprintf(output, "%02x", v->addr_recv_ip_address[i]);
 	}
-	ptr += sprintf(ptr, "\",\n");
+	output += sprintf(output, "\",\n");
 
 	// addr_recv_port
-	ptr += sprintf(ptr, "  \"addr_recv_port\": %"PRIu16",\n", v->addr_recv_port);
+	output += sprintf(output, "  \"addr_recv_port\": %"PRIu16",\n", v->addr_recv_port);
 
 	// addr_trans_services
-	ptr += sprintf(ptr, "  \"addr_trans_services\": {\n");
-	ptr += version_services_to_json(ptr, v->addr_trans_services);
-	ptr += sprintf(ptr, "  },\n");
+	output += sprintf(output, "  \"addr_trans_services\": {\n");
+	output += version_services_to_json(output, v->addr_trans_services);
+	output += sprintf(output, "  },\n");
 
 	// addr_trans_ip_address
-	ptr += sprintf(ptr, "  \"addr_trans_ip_address\": \"");
+	output += sprintf(output, "  \"addr_trans_ip_address\": \"");
 	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
 	{
-		ptr += sprintf(ptr, "%02x", v->addr_trans_ip_address[i]);
+		output += sprintf(output, "%02x", v->addr_trans_ip_address[i]);
 	}
-	ptr += sprintf(ptr, "\",\n");
+	output += sprintf(output, "\",\n");
 
 	// addr_trans_port
-	ptr += sprintf(ptr, "  \"addr_trans_port\": %"PRIu16",\n", v->addr_trans_port);
+	output += sprintf(output, "  \"addr_trans_port\": %"PRIu16",\n", v->addr_trans_port);
 
 	// nonce
-	ptr += sprintf(ptr, "  \"nonce\": %"PRIu64",\n", v->nonce);
+	output += sprintf(output, "  \"nonce\": %"PRIu64",\n", v->nonce);
 	
 	// user_agent
-	ptr += sprintf(ptr, "  \"user_agent\": \"");
+	output += sprintf(output, "  \"user_agent\": \"");
 	for(i = 0; i < (int)v->user_agent_bytes; ++i)
 	{
-		ptr += sprintf(ptr, "%c", v->user_agent[i]);
+		output += sprintf(output, "%c", v->user_agent[i]);
 	}
-	ptr += sprintf(ptr, "\",\n");
+	output += sprintf(output, "\",\n");
 	
 	// start_height
-	ptr += sprintf(ptr, "  \"start_height\": %"PRIu32",\n", v->start_height);
+	output += sprintf(output, "  \"start_height\": %"PRIu32",\n", v->start_height);
 	
 	// relay
-	ptr += sprintf(ptr, "  \"relay\": %s\n", (v->relay == 0) ? "false" : "true");
+	output += sprintf(output, "  \"relay\": %s\n", (v->relay == 0) ? "false" : "true");
 
 	// Closing bracket
-	sprintf(ptr, "}");
+	sprintf(output, "}");
 
-	return head;
+	return 1;
 }
 
 static int version_services_to_json(char *ptr, uint64_t value) {
