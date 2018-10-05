@@ -122,17 +122,23 @@ int version_serialize(unsigned char *output, Version v)
 	return r;
 }
 
-size_t version_new_serialize(unsigned char **s) {
-	size_t r;
+int version_new_serialize(unsigned char *output) {
+	int r;
 	Version v;
 
 	NEW(v);
+
 	r = version_new(v);
-	// check return value here
+	if (r < 0)
+	{
+		return -1;
+	}
 	
-	*s = ALLOC(sizeof(struct Version) + USER_AGENT_MAX_LEN);
-	r = version_serialize(*s, v);
-	// check return value here
+	r = version_serialize(output, v);
+	if (r < 0)
+	{
+		return -1;
+	}
 	
 	version_free(v);
 	
@@ -311,4 +317,14 @@ static char *version_service_bit_to_str(int bit) {
 	}
 
 	return "UNKNOWN";
+}
+
+size_t version_sizeof(void)
+{
+	return sizeof(struct Version);
+}
+
+size_t version_max_user_agent(void)
+{
+	return USER_AGENT_MAX_LEN;
 }

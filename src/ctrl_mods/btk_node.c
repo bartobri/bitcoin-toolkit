@@ -85,7 +85,8 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 				return EXIT_FAILURE;
 			}
 
-			version_string_len = version_new_serialize(&version_string);
+			version_string = ALLOC(version_sizeof() + version_max_user_agent());
+			version_string_len = version_new_serialize(version_string);
 			message = ALLOC(message_sizeof());
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
