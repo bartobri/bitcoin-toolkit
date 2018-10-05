@@ -23,7 +23,8 @@
 #define PORT        8333
 #define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
 
-struct Version {
+struct Version
+{
 	uint32_t version;
 	uint64_t services;
 	uint64_t timestamp;
@@ -224,7 +225,8 @@ int version_to_json(char *output, Version v)
 	return 1;
 }
 
-static int version_services_to_json(char *ptr, uint64_t value) {
+static int version_services_to_json(char *ptr, uint64_t value)
+{
 	int i, c, total;
 	
 	assert(ptr);
@@ -256,7 +258,8 @@ static int version_services_to_json(char *ptr, uint64_t value) {
 	return total;
 }
 
-static char *version_service_bit_to_str(int bit) {
+static char *version_service_bit_to_str(int bit)
+{
 	assert(bit >= 0 && bit < 64);
 
 	switch (bit)
