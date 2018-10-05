@@ -149,7 +149,6 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 
 	if (input_len < 85)
 	{
-		printf("gar 1\n");
 		return -1;
 	}
 	
