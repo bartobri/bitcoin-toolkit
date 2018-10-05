@@ -13,12 +13,8 @@
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len)
+int btk_node_main(int argc, char *argv[])
 {
-	// Temporarily suppressing warnings for these
-	(void)input;
-	(void)input_len;
-
 	int o, i, r;
 	char* host = NULL;
 	int port = HOST_PORT;
