@@ -24,9 +24,9 @@
 #define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
 
 struct Version {
-	uint32_t  version;
+	uint32_t version;
 	uint64_t services;
-	uint64_t  timestamp;
+	uint64_t timestamp;
 	uint64_t addr_recv_services;
 	unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
 	uint16_t addr_recv_port;
@@ -35,9 +35,9 @@ struct Version {
 	uint16_t addr_trans_port;
 	uint64_t nonce;
 	uint64_t user_agent_bytes;
-	char*    user_agent;
-	uint32_t  start_height;
-	uint8_t   relay;
+	char     user_agent[USER_AGENT_MAX_LEN];
+	uint32_t start_height;
+	uint8_t  relay;
 };
 
 // Function Prototypes
@@ -79,12 +79,7 @@ int version_new(Version v)
 	
 	if (v->user_agent_bytes)
 	{
-		v->user_agent = ALLOC(v->user_agent_bytes);
 		memcpy(v->user_agent, USER_AGENT, strlen(USER_AGENT));
-	}
-	else
-	{
-		v->user_agent = NULL;
 	}
 
 	v->start_height = 0x00;
@@ -140,7 +135,7 @@ int version_new_serialize(unsigned char *output) {
 		return -1;
 	}
 	
-	version_free(v);
+	FREE(v);
 	
 	return r;
 }
@@ -166,23 +161,12 @@ size_t version_deserialize(unsigned char *src, Version *dest, size_t l) {
 	src = deserialize_compuint(&((*dest)->user_agent_bytes), src, SERIALIZE_ENDIAN_LIT);
 	if ((*dest)->user_agent_bytes) {
 		assert(l >= 54 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes);
-		FREE((*dest)->user_agent);
-		(*dest)->user_agent = ALLOC((*dest)->user_agent_bytes);
 		src = deserialize_char((*dest)->user_agent, src, (*dest)->user_agent_bytes);
-	} else {
-		(*dest)->user_agent = NULL;
 	}
 	src = deserialize_uint32(&((*dest)->start_height), src, SERIALIZE_ENDIAN_LIT);
 	src = deserialize_uint8(&((*dest)->relay), src, SERIALIZE_ENDIAN_LIT);
 	
 	return 61 + IP_ADDR_FIELD_LEN + IP_ADDR_FIELD_LEN + (*dest)->user_agent_bytes;
-}
-
-void version_free(Version v) {
-	if (v && v->user_agent_bytes) {
-		FREE(v->user_agent);
-	}
-	FREE(v);
 }
 
 char *version_to_json(Version v) {
@@ -322,9 +306,4 @@ static char *version_service_bit_to_str(int bit) {
 size_t version_sizeof(void)
 {
 	return sizeof(struct Version);
-}
-
-size_t version_max_user_agent(void)
-{
-	return USER_AGENT_MAX_LEN;
 }
