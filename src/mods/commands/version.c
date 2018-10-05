@@ -47,7 +47,6 @@ static int version_services_to_json(char *ptr, uint64_t value);
 int version_new(Version v)
 {
 	int r;
-	//unsigned char *temp;
 	
 	v->version = VERSION;
 	v->services = SERVICES;
@@ -94,33 +93,33 @@ int version_new(Version v)
 	return 1;
 }
 
-size_t version_serialize(Version v, unsigned char **s) {
-	size_t len = 0;
-	unsigned char *head, *ptr;
-	
-	ptr = head = ALLOC(sizeof(struct Version) + USER_AGENT_MAX_LEN);
-	
-	ptr = serialize_uint32(ptr, v->version, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uint64(ptr, v->services, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uint64(ptr, v->timestamp, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uint64(ptr, v->addr_recv_services, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uchar(ptr, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
-	ptr = serialize_uint16(ptr, v->addr_recv_port, SERIALIZE_ENDIAN_BIG);
-	ptr = serialize_uint64(ptr, v->addr_trans_services, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uchar(ptr, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
-	ptr = serialize_uint16(ptr, v->addr_trans_port, SERIALIZE_ENDIAN_BIG);
-	ptr = serialize_uint64(ptr, v->nonce, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_compuint(ptr, v->user_agent_bytes, SERIALIZE_ENDIAN_LIT);	
-	ptr = serialize_char(ptr, v->user_agent, strlen(v->user_agent));
-	ptr = serialize_uint32(ptr, v->start_height, SERIALIZE_ENDIAN_LIT);
-	ptr = serialize_uint8(ptr, v->relay, SERIALIZE_ENDIAN_LIT);
-	
-	*s = head;
-	
-	while (head++ != ptr)
-		len++;
+int version_serialize(unsigned char *output, Version v)
+{
+	int r;
+	unsigned char *head;
 
-	return len;
+	r = 0;
+	head = output;
+	
+	output = serialize_uint32(output, v->version, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, v->services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, v->timestamp, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, v->addr_recv_services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uchar(output, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
+	output = serialize_uint16(output, v->addr_recv_port, SERIALIZE_ENDIAN_BIG);
+	output = serialize_uint64(output, v->addr_trans_services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uchar(output, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
+	output = serialize_uint16(output, v->addr_trans_port, SERIALIZE_ENDIAN_BIG);
+	output = serialize_uint64(output, v->nonce, SERIALIZE_ENDIAN_LIT);
+	output = serialize_compuint(output, v->user_agent_bytes, SERIALIZE_ENDIAN_LIT);	
+	output = serialize_char(output, v->user_agent, strlen(v->user_agent));
+	output = serialize_uint32(output, v->start_height, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint8(output, v->relay, SERIALIZE_ENDIAN_LIT);
+	
+	while (head++ != output)
+		r++;
+
+	return r;
 }
 
 size_t version_new_serialize(unsigned char **s) {
@@ -128,11 +127,12 @@ size_t version_new_serialize(unsigned char **s) {
 	Version v;
 
 	NEW(v);
-	
 	r = version_new(v);
 	// check return value here
 	
-	r = version_serialize(v, s);
+	*s = ALLOC(sizeof(struct Version) + USER_AGENT_MAX_LEN);
+	r = version_serialize(*s, v);
+	// check return value here
 	
 	version_free(v);
 	

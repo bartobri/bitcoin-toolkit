@@ -8,7 +8,7 @@
 typedef struct Version *Version;
 
 int version_new(Version);
-size_t version_serialize(Version, unsigned char **);
+int version_serialize(unsigned char *, Version);
 size_t version_new_serialize(unsigned char **);
 size_t version_deserialize(unsigned char *, Version *, size_t);
 void version_free(Version);
