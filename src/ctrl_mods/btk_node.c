@@ -86,7 +86,15 @@ int btk_node_main(int argc, char *argv[], unsigned char* input, size_t input_len
 			}
 
 			version_string = ALLOC(version_sizeof());
-			version_string_len = version_new_serialize(version_string);
+			r = version_new_serialize(version_string);
+			if (r < 0)
+			{
+				error_log("Error while serializing version data.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+			version_string_len = r;
+
 			message = ALLOC(message_sizeof());
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
