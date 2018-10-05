@@ -48,6 +48,8 @@ static int version_services_to_json(char *ptr, uint64_t value);
 int version_new(Version v)
 {
 	int r;
+
+	assert(v);
 	
 	v->version = VERSION;
 	v->services = SERVICES;
@@ -94,6 +96,9 @@ int version_serialize(unsigned char *output, Version v)
 	int r;
 	unsigned char *head;
 
+	assert(output);
+	assert(v);
+
 	r = 0;
 	head = output;
 	
@@ -113,7 +118,9 @@ int version_serialize(unsigned char *output, Version v)
 	output = serialize_uint8(output, v->relay, SERIALIZE_ENDIAN_LIT);
 	
 	while (head++ != output)
+	{
 		r++;
+	}
 
 	return r;
 }
@@ -122,6 +129,8 @@ int version_new_serialize(unsigned char *output)
 {
 	int r;
 	Version v;
+
+	assert(output);
 
 	NEW(v);
 
