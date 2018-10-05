@@ -47,35 +47,32 @@ static int version_services_to_json(char *ptr, uint64_t value);
 int version_new(Version v)
 {
 	int r;
-	unsigned char *temp;
+	//unsigned char *temp;
 	
 	v->version = VERSION;
 	v->services = SERVICES;
 	v->timestamp = time(NULL);
 	v->addr_recv_services = SERVICES;
 
-	temp = ALLOC(strlen(IP_ADDRESS) / 2);
-
-	r = hex_str_to_raw(temp, IP_ADDRESS);
-	if (r < 0)
+	if (strlen(IP_ADDRESS) / 2 > IP_ADDR_FIELD_LEN)
 	{
 		return -1;
 	}
 
-	memcpy(v->addr_recv_ip_address, temp, IP_ADDR_FIELD_LEN);
-	FREE(temp);
+	r = hex_str_to_raw(v->addr_recv_ip_address, IP_ADDRESS);
+	if (r < 0)
+	{
+		return -1;
+	}
 	
 	v->addr_recv_port = PORT;
 	v->addr_trans_services = SERVICES;
 	
-	temp = ALLOC(strlen(IP_ADDRESS) / 2);
-	r = hex_str_to_raw(temp, IP_ADDRESS);
+	r = hex_str_to_raw(v->addr_trans_ip_address, IP_ADDRESS);
 	if (r < 0)
 	{
 		return -1;
 	}
-	memcpy(v->addr_trans_ip_address, temp, IP_ADDR_FIELD_LEN);
-	FREE(temp);
 	
 	v->addr_trans_port = PORT;
 	v->nonce = 0x00;
