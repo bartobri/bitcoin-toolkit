@@ -20,7 +20,6 @@
 #include "mods/hex.h"
 #include "mods/input.h"
 #include "mods/error.h"
-#include "mods/mem.h"
 
 #define INPUT_WIF               1
 #define INPUT_HEX               2
@@ -137,6 +136,14 @@ int btk_pubkey_main(int argc, char *argv[])
 	{
 		network_set_test();
 	}
+
+	priv = malloc(privkey_sizeof());
+	if (priv == NULL)
+	{
+		error_log("Memory allocation error.");
+		error_print();
+		return EXIT_FAILURE;
+	}
 	
 	// Process input
 	switch (input_format)
@@ -149,10 +156,15 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			RESIZE(input, input_len + 1);
+			input = realloc(input, input_len + 1);
+			if (input == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			input[input_len] = '\0';
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_wif(priv, (char *)input);
 			if (r < 0)
 			{
@@ -170,10 +182,15 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			RESIZE(input, input_len + 1);
+			input = realloc(input, input_len + 1);
+			if (input == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			input[input_len] = '\0';
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_hex(priv, (char *)input);
 			if (r < 0)
 			{
@@ -191,7 +208,6 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_raw(priv, input, input_len);
 			if (r < 0)
 			{
@@ -209,10 +225,15 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			RESIZE(input, input_len + 1);
+			input = realloc(input, input_len + 1);
+			if (input == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			input[input_len] = '\0';
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_str(priv, (char *)input);
 			if (r < 0)
 			{
@@ -230,10 +251,15 @@ int btk_pubkey_main(int argc, char *argv[])
 				--input_len;
 			}
 
-			RESIZE(input, input_len + 1);
+			input = realloc(input, input_len + 1);
+			if (input == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			input[input_len] = '\0';
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_dec(priv, (char *)input);
 			if (r < 0)
 			{
@@ -252,7 +278,6 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_blob(priv, input, input_len);
 			if (r < 0)
 			{
@@ -264,7 +289,6 @@ int btk_pubkey_main(int argc, char *argv[])
 		case INPUT_GUESS:
 			input_len = input_get(&input);
 
-			priv = ALLOC(privkey_sizeof());
 			r = privkey_from_guess(priv, input, input_len);
 			if (r < 0)
 			{
@@ -307,7 +331,14 @@ int btk_pubkey_main(int argc, char *argv[])
 	}
 
 	// Get public key from private key
-	key = ALLOC(pubkey_sizeof());
+	key = malloc(pubkey_sizeof());
+	if (key == NULL)
+	{
+		error_log("Memory allocation error");
+		error_print();
+		return EXIT_FAILURE;
+	}
+
 	r = pubkey_get(key, priv);
 	if (r < 0)
 	{
@@ -322,25 +353,43 @@ int btk_pubkey_main(int argc, char *argv[])
 		switch  (output_format)
 		{
 			case OUTPUT_HEX:
-				output = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
+				output = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
+				if (output == NULL)
+				{
+					error_log("Memory allocation error");
+					error_print();
+					return EXIT_FAILURE;
+				}
 				privkey_to_hex(output, priv);
 				printf("%s ", output);
-				FREE(output);
+				free(output);
 				break;
 			case OUTPUT_RAW:
-				uc_output = ALLOC(PRIVKEY_LENGTH + 1);
+				uc_output = malloc(PRIVKEY_LENGTH + 1);
+				if (uc_output == NULL)
+				{
+					error_log("Memory allocation error");
+					error_print();
+					return EXIT_FAILURE;
+				}
 				output_len = (size_t)privkey_to_raw(uc_output, priv);
 				for (i = 0; i < output_len; ++i)
 				{
 					putchar(uc_output[i]);
 				}
-				FREE(uc_output);
+				free(uc_output);
 				break;
 			default:
-				output = ALLOC(PRIVKEY_WIF_LENGTH_MAX + 1);
+				output = malloc(PRIVKEY_WIF_LENGTH_MAX + 1);
+				if (output == NULL)
+				{
+					error_log("Memory allocation error");
+					error_print();
+					return EXIT_FAILURE;
+				}
 				privkey_to_wif(output, priv);
 				printf("%s ", output);
-				FREE(output);
+				free(output);
 				break;
 		}
 	}
@@ -349,7 +398,13 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (output_format)
 	{
 		case OUTPUT_ADDRESS:
-			output = ALLOC(35);
+			output = malloc(35);
+			if (output == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_address(output, key);
 			if (r < 0)
 			{
@@ -358,10 +413,16 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
-			FREE(output);
+			free(output);
 			break;
 		case OUTPUT_BECH32_ADDRESS:
-			output = ALLOC(43);
+			output = malloc(43);
+			if (output == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_bech32address(output, key);
 			if (r < 0)
 			{
@@ -370,10 +431,16 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
-			FREE(output);
+			free(output);
 			break;
 		case OUTPUT_HEX:
-			output = ALLOC(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
+			output = malloc(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
+			if (output == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
 			{
@@ -382,10 +449,16 @@ int btk_pubkey_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 			printf("%s", output);
-			FREE(output);
+			free(output);
 			break;
 		case OUTPUT_RAW:
-			uc_output = ALLOC(PUBKEY_UNCOMPRESSED_LENGTH + 1);
+			uc_output = malloc(PUBKEY_UNCOMPRESSED_LENGTH + 1);
+			if (uc_output == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
@@ -397,7 +470,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
-			FREE(uc_output);
+			free(uc_output);
 			break;
 	}
 
@@ -410,8 +483,8 @@ int btk_pubkey_main(int argc, char *argv[])
 	}
 
 	// Free allocated memory
-	FREE(priv);
-	FREE(key);
+	free(priv);
+	free(key);
 
 	return EXIT_SUCCESS;
 }
