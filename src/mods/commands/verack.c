@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "verack.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
@@ -14,7 +15,7 @@ int verack_new(Verack v) {
 	return 1;
 }
 
-int verack_sizeof(void)
+size_t verack_sizeof(void)
 {
 	return sizeof(struct Verack);
 }
