@@ -18,9 +18,3 @@ int verack_sizeof(void)
 {
 	return sizeof(struct Verack);
 }
-
-void verack_free(Verack v) {
-	assert(v);
-	
-	FREE(v);
-}
