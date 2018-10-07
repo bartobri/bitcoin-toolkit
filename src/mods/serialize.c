@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdint.h>
+#include <assert.h>
 #include "serialize.h"
-#include "assert.h"
 
 unsigned char *serialize_uint8(unsigned char *dest, uint8_t src, int endian)
 {

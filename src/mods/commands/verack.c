@@ -1,8 +1,5 @@
 #include <stddef.h>
 #include "verack.h"
-#include "mods/hex.h"
-#include "mods/mem.h"
-#include "mods/assert.h"
 
 
 struct Verack {

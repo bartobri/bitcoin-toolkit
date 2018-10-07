@@ -1,9 +1,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <gcrypt.h>
+#include <assert.h>
 #include "crypto.h"
 #include "error.h"
-#include "assert.h"
 #include "mem.h"
 
 static int crypto_init(void)

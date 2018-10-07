@@ -2,9 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include "hex.h"
 #include "error.h"
-#include "assert.h"
 
 int hex_to_dec(char l, char r)
 {

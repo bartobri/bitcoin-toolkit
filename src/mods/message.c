@@ -1,12 +1,12 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <assert.h>
 #include "crypto.h"
 #include "message.h"
 #include "serialize.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B

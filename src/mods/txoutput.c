@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 #include "txoutput.h"
 #include "hex.h"
 #include "compactuint.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
 {

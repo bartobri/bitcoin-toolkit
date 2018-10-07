@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gmp.h>
+#include <assert.h>
 #include "pubkey.h"
 #include "privkey.h"
 #include "point.h"
@@ -12,7 +13,6 @@
 #include "network.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 #define ADDRESS_VERSION_BIT_MAINNET   0x00
 #define ADDRESS_VERSION_BIT_TESTNET   0x6F

@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 #include "txinput.h"
 #include "hex.h"
 #include "compactuint.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 {

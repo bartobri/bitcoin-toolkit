@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 #include "error.h"
-#include "assert.h"
 
 int compactuint_get_value(uint64_t *output, unsigned char *input, size_t input_len)
 {

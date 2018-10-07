@@ -23,7 +23,6 @@
 #include "mods/input.h"
 #include "mods/error.h"
 #include "mods/mem.h"
-#include "mods/assert.h"
 
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2

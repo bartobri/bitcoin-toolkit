@@ -21,7 +21,6 @@
 #include "mods/input.h"
 #include "mods/error.h"
 #include "mods/mem.h"
-#include "mods/assert.h"
 
 #define INPUT_WIF               1
 #define INPUT_HEX               2
@@ -277,7 +276,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 	}
 
-	assert(priv);
+	// Make sure we have a key
+	if (!priv)
+	{
+		error_log("Unable to generate private key from input.");
+		error_print();
+		return EXIT_FAILURE;
+	}
 	
 	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv))

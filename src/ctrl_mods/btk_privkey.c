@@ -21,7 +21,6 @@
 #include "mods/input.h"
 #include "mods/error.h"
 #include "mods/mem.h"
-#include "mods/assert.h"
 
 #define INPUT_NEW               1
 #define INPUT_WIF               2
@@ -281,7 +280,12 @@ int btk_privkey_main(int argc, char *argv[])
 	}
 	
 	// Make sure we have a key
-	assert(key);
+	if (!key)
+	{
+		error_log("Unable to generate key from input.");
+		error_print();
+		return EXIT_FAILURE;
+	}
 
 	// Don't allow private keys with a zero value
 	if (privkey_is_zero(key))

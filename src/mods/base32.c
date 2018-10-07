@@ -1,7 +1,7 @@
 #include <stddef.h>
+#include <assert.h>
 #include "error.h"
 #include "base32.h"
-#include "assert.h"
 
 #define BASE32_CODE_STRING_LENGTH 32
 

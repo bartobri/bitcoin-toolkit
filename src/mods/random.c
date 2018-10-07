@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <errno.h>
+#include <assert.h>
 #include "error.h"
-#include "assert.h"
 
 #define RANDOM_SOURCE "/dev/urandom"
 

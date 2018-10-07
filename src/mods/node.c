@@ -5,10 +5,10 @@
 #include <sys/ioctl.h>
 #include <netdb.h>
 #include <errno.h>
+#include <assert.h>
 #include "node.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 #define MAX_MESSAGE_QUEUE 100
 

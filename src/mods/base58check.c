@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <assert.h>
 #include "base58.h"
 #include "crypto.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 #define CHECKSUM_LENGTH 4
 

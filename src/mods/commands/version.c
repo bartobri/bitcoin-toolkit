@@ -4,12 +4,12 @@
 #include <stddef.h>
 #include <time.h>
 #include <inttypes.h>
+#include <assert.h>
 #include "version.h"
 #include "mods/config.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
 #include "mods/mem.h"
-#include "mods/assert.h"
 
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x)  STRINGIFY2(x)

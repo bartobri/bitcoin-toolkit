@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include "transaction.h"
 #include "txinput.h"
 #include "txoutput.h"
@@ -8,7 +9,6 @@
 #include "compactuint.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 {

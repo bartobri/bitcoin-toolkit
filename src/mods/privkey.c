@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <assert.h>
 #include "privkey.h"
 #include "network.h"
 #include "random.h"
@@ -12,7 +13,6 @@
 #include "crypto.h"
 #include "error.h"
 #include "mem.h"
-#include "assert.h"
 
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF
