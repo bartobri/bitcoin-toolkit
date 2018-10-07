@@ -5,7 +5,6 @@
 #include "mods/node.h"
 #include "mods/message.h"
 #include "mods/error.h"
-#include "mods/mem.h"
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
 
@@ -72,7 +71,14 @@ int btk_node_main(int argc, char *argv[])
 	switch (message_type)
 	{
 		case MESSAGE_TYPE_VERSION:
-			node = ALLOC(node_sizeof());
+			node = malloc(node_sizeof());
+			if (node == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			r = node_connect(node, host, port);
 			if (r < 0)
 			{
@@ -81,7 +87,14 @@ int btk_node_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			version_string = ALLOC(version_sizeof());
+			version_string = malloc(version_sizeof());
+			if (version_string == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			r = version_new_serialize(version_string);
 			if (r < 0)
 			{
@@ -91,7 +104,14 @@ int btk_node_main(int argc, char *argv[])
 			}
 			version_string_len = r;
 
-			message = ALLOC(message_sizeof());
+			message = malloc(message_sizeof());
+			if (message == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
 			{
@@ -99,9 +119,16 @@ int btk_node_main(int argc, char *argv[])
 				error_print();
 				return EXIT_FAILURE;
 			}
-			FREE(version_string);
+			free(version_string);
 
-			message_raw = ALLOC(message_sizeof());
+			message_raw = malloc(message_sizeof());
+			if (message_raw == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			r = message_serialize(message_raw, &message_raw_len, message);
 			if (r < 0)
 			{
@@ -117,8 +144,8 @@ int btk_node_main(int argc, char *argv[])
 				error_print();
 				return EXIT_FAILURE;
 			}
-			FREE(message);
-			FREE(message_raw);
+			free(message);
+			free(message_raw);
 
 			for (i = 0; i < TIMEOUT; ++i)
 			{
@@ -143,10 +170,18 @@ int btk_node_main(int argc, char *argv[])
 			node_disconnect(node);
 
 			node_data_walk = node_data;
+			message = NULL;
 
 			while (node_data_len > 0)
 			{
-				message = ALLOC(message_sizeof());
+				message = malloc(message_sizeof());
+				if (message == NULL)
+				{
+					error_log("Memory allocation error.");
+					error_print();
+					return EXIT_FAILURE;
+				}
+
 				r = message_deserialize(message, node_data_walk, node_data_len);
 				if (r < 0)
 				{
@@ -178,7 +213,7 @@ int btk_node_main(int argc, char *argv[])
 				}
 				else
 				{
-					FREE(message);
+					free(message);
 					message = NULL;
 				}
 			}
@@ -190,10 +225,24 @@ int btk_node_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 			
-			payload = ALLOC(message_get_payload_len(message));
+			payload = malloc(message_get_payload_len(message));
+			if (payload == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			payload_len = message_get_payload(payload, message);
 			
-			v = ALLOC(version_sizeof());
+			v = malloc(version_sizeof());
+			if (v == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			r = version_deserialize(v, payload, payload_len);
 			if (r < 0)
 			{
@@ -202,17 +251,24 @@ int btk_node_main(int argc, char *argv[])
 				return EXIT_FAILURE;
 			}
 
-			json = ALLOC(1000);
+			json = malloc(1000);
+			if (json == NULL)
+			{
+				error_log("Memory allocation error.");
+				error_print();
+				return EXIT_FAILURE;
+			}
+
 			version_to_json(json, v);
 
 			printf("%s\n", json);
 
-			FREE(v);
-			FREE(message);
-			FREE(payload);
-			FREE(json);
-			FREE(node);
-			FREE(node_data);
+			free(v);
+			free(message);
+			free(payload);
+			free(json);
+			free(node);
+			free(node_data);
 
 			break;
 	}
