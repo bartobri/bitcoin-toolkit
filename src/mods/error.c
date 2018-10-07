@@ -42,3 +42,8 @@ char *error_get(void)
 		return NULL;
 	}
 }
+
+void error_clear(void)
+{
+	N = 0;
+}

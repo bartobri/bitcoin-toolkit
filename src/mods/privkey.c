@@ -411,6 +411,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			return 1;
 		}
+		error_clear();
 
 		// Hex
 		r = privkey_from_hex(key, data_str);
@@ -418,6 +419,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			return 1;
 		}
+		error_clear();
 
 		// WIF
 		r = privkey_from_wif(key, data_str);
@@ -425,6 +427,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			return 1;
 		}
+		error_clear();
 
 		// String
 		r = privkey_from_str(key, data_str);
@@ -432,6 +435,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			return 1;
 		}
+		error_clear();
 	}
 
 	// Raw
@@ -440,6 +444,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	{
 		return 1;
 	}
+	error_clear();
 
 	error_log("Unable to guess input type.");
 	return -1;
