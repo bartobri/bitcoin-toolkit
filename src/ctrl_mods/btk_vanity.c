@@ -22,7 +22,6 @@
 #include "mods/btktermio.h"
 #include "mods/input.h"
 #include "mods/error.h"
-#include "mods/mem.h"
 
 #define OUTPUT_ADDRESS          1
 #define OUTPUT_BECH32_ADDRESS   2
@@ -212,8 +211,13 @@ int btk_vanity_main(int argc, char *argv[])
 	i = 0;
 	start = time(NULL);
 
-	// Allocate memory for the public/private strings
-	privkey_str = ALLOC(PRIVKEY_WIF_LENGTH_MAX + 1);
+	privkey_str = malloc(PRIVKEY_WIF_LENGTH_MAX + 1);
+	if (privkey_str == NULL)
+	{
+		error_log("Memory allocation error");
+		error_print();
+		return EXIT_FAILURE;
+	}
 
 	while (1)
 	{
@@ -232,7 +236,14 @@ int btk_vanity_main(int argc, char *argv[])
 			printf("\n");
 		}
 
-		priv = ALLOC(privkey_sizeof());
+		priv = malloc(privkey_sizeof());
+		if (priv == NULL)
+		{
+			error_log("Memory allocation error");
+			error_print();
+			return EXIT_FAILURE;
+		}
+
 		r = privkey_new(priv);
 		if (r < 0)
 		{
@@ -241,8 +252,6 @@ int btk_vanity_main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 	
-		// Set output compression only if the option is set. Otherwise,
-		// compression is based on input.
 		switch (output_compression)
 		{
 			case FALSE:
@@ -255,8 +264,14 @@ int btk_vanity_main(int argc, char *argv[])
 				break;
 		}
 
-		// Get public key from private key
-		key = ALLOC(pubkey_sizeof());
+		key = malloc(pubkey_sizeof());
+		if (key == NULL)
+		{
+			error_log("Memory allocation error");
+			error_print();
+			return EXIT_FAILURE;
+		}
+
 		r = pubkey_get(key, priv);
 		if (r < 0)
 		{
@@ -269,7 +284,13 @@ int btk_vanity_main(int argc, char *argv[])
 		privkey_to_wif(privkey_str, priv);
 		if (output_format == OUTPUT_ADDRESS)
 		{
-			pubkey_str = ALLOC(35);
+			pubkey_str = malloc(35);
+			if (pubkey_str == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_address(pubkey_str, key);
 		}
 		else if (output_format == OUTPUT_BECH32_ADDRESS)
@@ -280,7 +301,13 @@ int btk_vanity_main(int argc, char *argv[])
 				error_print();
 				return EXIT_FAILURE;
 			}
-			pubkey_str = ALLOC(43);
+			pubkey_str = malloc(43);
+			if (pubkey_str == NULL)
+			{
+				error_log("Memory allocation error");
+				error_print();
+				return EXIT_FAILURE;
+			}
 			r = pubkey_to_bech32address(pubkey_str, key);
 		}
 
@@ -337,12 +364,12 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 
 		// Free allocated memory
-		FREE(priv);
-		FREE(key);
-		FREE(pubkey_str);
+		free(priv);
+		free(key);
+		free(pubkey_str);
 	}
 	
-	FREE(privkey_str);
+	free(privkey_str);
 
 	return EXIT_SUCCESS;
 }
