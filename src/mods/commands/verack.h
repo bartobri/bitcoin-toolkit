@@ -5,7 +5,7 @@
 
 typedef struct Verack *Verack;
 
-Verack verack_new(void);
+int verack_new(Verack);
 void verack_free(Verack);
 
 #endif

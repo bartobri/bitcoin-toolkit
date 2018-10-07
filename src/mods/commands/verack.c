@@ -8,12 +8,10 @@ struct Verack {
 	// nothing here
 };
 
-Verack verack_new(void) {
-	Verack r;
-	
-	NEW(r);
-	
-	return r;
+int verack_new(Verack v) {
+	(void)v;
+
+	return 1;
 }
 
 void verack_free(Verack v) {
