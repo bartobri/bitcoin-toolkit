@@ -12,7 +12,6 @@
 #include "base58check.h"
 #include "crypto.h"
 #include "error.h"
-#include "mem.h"
 
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF
@@ -125,7 +124,12 @@ int privkey_to_wif(char *str, PrivKey key)
 
 	// Assume the base58 string will never be longer
 	// than twice the input string
-	base58check = ALLOC(len * 2);
+	base58check = malloc(len * 2);
+	if (base58check == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = base58check_encode(base58check, p, len);
 	if (r < 0)
 	{
@@ -135,7 +139,7 @@ int privkey_to_wif(char *str, PrivKey key)
 
 	strcpy(str, base58check);
 
-	FREE(base58check);
+	free(base58check);
 	
 	return 1;
 }
@@ -150,7 +154,12 @@ int privkey_from_wif(PrivKey key, char *wif)
 
 	// Assume that the length of the decoded data will always
 	// be less than the encoded data
-	p = ALLOC(strlen(wif) * 2);
+	p = malloc(strlen(wif) * 2);
+	if (p == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 
 	l = base58check_decode(p, wif);
 	if (l < 0)
@@ -198,7 +207,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 
 	memcpy(key->data, p+1, PRIVKEY_LENGTH);
 
-	FREE(p);
+	free(p);
 	
 	return 1;
 }
@@ -279,12 +288,22 @@ int privkey_from_dec(PrivKey key, char *data)
 	mpz_init(d);
 	mpz_set_str(d, data, 10);
 	i = (mpz_sizeinbase(d, 2) + 7) / 8;
-	raw = ALLOC((i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
+	raw = malloc((i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
+	if (raw == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	memset(raw, 0, (i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
 	mpz_export(raw + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
 	mpz_clear(d);
 
-	NEW(rawkey);
+	rawkey = malloc(sizeof(*rawkey));
+	if (rawkey == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = privkey_from_raw(rawkey, raw, PRIVKEY_LENGTH);
 	if (r < 0)
 	{
@@ -294,8 +313,8 @@ int privkey_from_dec(PrivKey key, char *data)
 
 	memcpy(key->data, rawkey->data, PRIVKEY_LENGTH);
 	
-	FREE(rawkey);
-	FREE(raw);
+	free(rawkey);
+	free(raw);
 
 	privkey_compress(key);
 	
@@ -310,7 +329,12 @@ int privkey_from_str(PrivKey key, char *data)
 	assert(key);
 	assert(data);
 	
-	tmp = ALLOC(32);
+	tmp = malloc(32);
+	if (tmp == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 
 	r = crypto_get_sha256(tmp, (unsigned char*)data, strlen(data));
 	if (r < 0)
@@ -319,7 +343,7 @@ int privkey_from_str(PrivKey key, char *data)
 		return -1;
 	}
 	memcpy(key->data, tmp, PRIVKEY_LENGTH);
-	FREE(tmp);
+	free(tmp);
 
 	privkey_compress(key);
 	
@@ -358,7 +382,12 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 	assert(data);
 	assert(data_len);
 	
-	tmp = ALLOC(32);
+	tmp = malloc(32);
+	if (tmp == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 
 	r = crypto_get_sha256(tmp, data, data_len);
 	if (r < 0)
@@ -398,7 +427,12 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		{
 			--data_len;
 		}
-		data_str = ALLOC(data_len + 1);
+		data_str = malloc(data_len + 1);
+		if (data_str == NULL)
+		{
+			error_log("Memory allocation error.");
+			return EXIT_FAILURE;
+		}
 		memcpy(data_str, data, data_len);
 		data_str[data_len] = '\0';
 	}
