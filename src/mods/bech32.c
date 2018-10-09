@@ -6,7 +6,6 @@
 #include "base32.h"
 #include "network.h"
 #include "error.h"
-#include "mem.h"
 
 #define BECH32_PREFIX_MAINNET         "bc"
 #define BECH32_PREFIX_TESTNET         "tb"
