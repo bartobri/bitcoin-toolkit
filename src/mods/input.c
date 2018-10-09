@@ -6,10 +6,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include "input.h"
-#include "mem.h"
+#include "error.h"
 
 #define INPUT_INCREMENT 100
 
@@ -32,14 +33,24 @@ size_t input_get_from_keyboard(unsigned char** dest)
 	size_t i, s = INPUT_INCREMENT;
 	int o;
 
-	*dest = ALLOC(s);
+	*dest = malloc(s);
+	if (*dest == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 
 	for (i = 0; (o = getchar()) != '\n'; ++i)
 	{
 		if (i == s)
 		{
 			s += INPUT_INCREMENT;
-			RESIZE(*dest, s);
+			*dest = realloc(*dest, s);
+			if (*dest == NULL)
+			{
+				error_log("Memory allocation error.");
+				return EXIT_FAILURE;
+			}
 		}
 		(*dest)[i] = (unsigned char)o;
 	}
@@ -57,7 +68,12 @@ size_t input_get_from_pipe(unsigned char** dest)
 		{
 			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
 			{
-				*dest = ALLOC(input_len);
+				*dest = malloc(input_len);
+				if (*dest == NULL)
+				{
+					error_log("Memory allocation error.");
+					return EXIT_FAILURE;
+				}
 				read(STDIN_FILENO, *dest, input_len);
 				break;
 			}
