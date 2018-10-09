@@ -109,7 +109,7 @@ int node_read(Node node, unsigned char** buffer)
 			if (*buffer == NULL)
 			{
 				error_log("Memory allocation error.");
-				return EXIT_FAILURE;
+				return -1;
 			}
 		}
 

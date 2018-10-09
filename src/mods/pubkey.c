@@ -47,7 +47,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	if (privkey_hex == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	mpz_init(bignum);
 	privkey_to_hex(privkey_hex, privkey);
@@ -60,7 +60,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	if (point == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	point_init(point);
 	for (i = 0; i < PUBKEY_POINTS; ++i)
@@ -69,7 +69,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		if (points[i] == NULL)
 		{
 			error_log("Memory allocation error.");
-			return EXIT_FAILURE;
+			return -1;
 		}
 		point_init(points[i]);
 	}
@@ -263,7 +263,7 @@ int pubkey_to_address(char *address, PubKey key)
 	if (sha == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = crypto_get_sha256(sha, key->data, len);
 	if (r < 0)
@@ -275,7 +275,7 @@ int pubkey_to_address(char *address, PubKey key)
 	if (rmd == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
@@ -307,7 +307,7 @@ int pubkey_to_address(char *address, PubKey key)
 	if (base58 == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
@@ -342,7 +342,7 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	if (sha == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = crypto_get_sha256(sha, key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	if (r < 0)
@@ -354,7 +354,7 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	if (rmd == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)

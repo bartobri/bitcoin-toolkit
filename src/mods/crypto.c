@@ -90,13 +90,13 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 	if (sha1 == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	sha2 = malloc(32);
 	if (sha2 == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	r = crypto_get_sha256(sha1, data, len);

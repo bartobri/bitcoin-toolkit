@@ -21,7 +21,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	if (input_check == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	
 	memcpy(input_check, input, input_len);

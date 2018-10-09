@@ -37,7 +37,7 @@ size_t input_get_from_keyboard(unsigned char** dest)
 	if (*dest == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	for (i = 0; (o = getchar()) != '\n'; ++i)
@@ -49,7 +49,7 @@ size_t input_get_from_keyboard(unsigned char** dest)
 			if (*dest == NULL)
 			{
 				error_log("Memory allocation error.");
-				return EXIT_FAILURE;
+				return -1;
 			}
 		}
 		(*dest)[i] = (unsigned char)o;
@@ -72,7 +72,7 @@ size_t input_get_from_pipe(unsigned char** dest)
 				if (*dest == NULL)
 				{
 					error_log("Memory allocation error.");
-					return EXIT_FAILURE;
+					return -1;
 				}
 				read(STDIN_FILENO, *dest, input_len);
 				break;

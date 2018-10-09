@@ -128,7 +128,7 @@ int privkey_to_wif(char *str, PrivKey key)
 	if (base58check == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = base58check_encode(base58check, p, len);
 	if (r < 0)
@@ -158,7 +158,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 	if (p == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	l = base58check_decode(p, wif);
@@ -292,7 +292,7 @@ int privkey_from_dec(PrivKey key, char *data)
 	if (raw == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	memset(raw, 0, (i < PRIVKEY_LENGTH) ? PRIVKEY_LENGTH : i);
 	mpz_export(raw + PRIVKEY_LENGTH - i, &c, 1, 1, 1, 0, d);
@@ -302,7 +302,7 @@ int privkey_from_dec(PrivKey key, char *data)
 	if (rawkey == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	r = privkey_from_raw(rawkey, raw, PRIVKEY_LENGTH);
 	if (r < 0)
@@ -333,7 +333,7 @@ int privkey_from_str(PrivKey key, char *data)
 	if (tmp == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	r = crypto_get_sha256(tmp, (unsigned char*)data, strlen(data));
@@ -386,7 +386,7 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 	if (tmp == NULL)
 	{
 		error_log("Memory allocation error.");
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	r = crypto_get_sha256(tmp, data, data_len);
@@ -431,7 +431,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		if (data_str == NULL)
 		{
 			error_log("Memory allocation error.");
-			return EXIT_FAILURE;
+			return -1;
 		}
 		memcpy(data_str, data, data_len);
 		data_str[data_len] = '\0';
