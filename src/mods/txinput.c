@@ -5,7 +5,6 @@
 #include "hex.h"
 #include "compactuint.h"
 #include "error.h"
-#include "mem.h"
 
 int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 {
@@ -59,7 +58,12 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	}
 	
 	// Unlocking Script
-	txinput->script_raw = ALLOC(txinput->script_size);
+	txinput->script_raw = malloc(txinput->script_size);
+	if (txinput->script_raw == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
 	for (i = 0; i < txinput->script_size; ++i, ++input, --input_len, ++c)
 	{
 		if (input_len == 0)
