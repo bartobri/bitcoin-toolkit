@@ -6,7 +6,6 @@
 #include "message.h"
 #include "serialize.h"
 #include "error.h"
-#include "mem.h"
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
