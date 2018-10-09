@@ -8,7 +8,6 @@
 #include "hex.h"
 #include "compactuint.h"
 #include "error.h"
-#include "mem.h"
 
 int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 {
@@ -47,7 +46,12 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	}
 	
 	// Input Transactions
-	trans->inputs = ALLOC(sizeof(TXInput) * trans->input_count);
+	trans->inputs = malloc(sizeof(TXInput) * trans->input_count);
+	if (trans->inputs == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
 	for (i = 0; i < trans->input_count; ++i)
 	{
 		r = txinput_from_raw(trans->inputs[i], input, input_len);
@@ -83,7 +87,12 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	}
 	
 	// Output Transactions
-	trans->outputs = ALLOC(sizeof(TXOutput) * trans->output_count);
+	trans->outputs = malloc(sizeof(TXOutput) * trans->output_count);
+	if (trans->outputs == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
 	for (i = 0; i < trans->output_count; ++i)
 	{
 		r = txoutput_from_raw(trans->outputs[i], input, input_len);
