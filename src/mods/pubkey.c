@@ -12,7 +12,6 @@
 #include "hex.h"
 #include "network.h"
 #include "error.h"
-#include "mem.h"
 
 #define ADDRESS_VERSION_BIT_MAINNET   0x00
 #define ADDRESS_VERSION_BIT_TESTNET   0x6F
@@ -44,7 +43,12 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	}
 
 	// Load private key from hex string, truncating the compression flag.
-	privkey_hex = ALLOC(((PRIVKEY_LENGTH + 1) * 2) + 1);
+	privkey_hex = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
+	if (privkey_hex == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	mpz_init(bignum);
 	privkey_to_hex(privkey_hex, privkey);
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
@@ -52,11 +56,21 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	free(privkey_hex);
 	
 	// Initalize the points
-	point = ALLOC(sizeof(*point));
+	point = malloc(sizeof(*point));
+	if (point == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	point_init(point);
 	for (i = 0; i < PUBKEY_POINTS; ++i)
 	{
-		points[i] = ALLOC(sizeof(*point));
+		points[i] = malloc(sizeof(*point));
+		if (points[i] == NULL)
+		{
+			error_log("Memory allocation error.");
+			return EXIT_FAILURE;
+		}
 		point_init(points[i]);
 	}
 
@@ -245,14 +259,24 @@ int pubkey_to_address(char *address, PubKey key)
 	}
 
 	// RMD(SHA(data))
-	sha = ALLOC(32);
+	sha = malloc(32);
+	if (sha == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = crypto_get_sha256(sha, key->data, len);
 	if (r < 0)
 	{
 		error_log("Error generating SHA256 hash from public key data.");
 		return -1;
 	}
-	rmd = ALLOC(20);
+	rmd = malloc(20);
+	if (rmd == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
@@ -274,12 +298,17 @@ int pubkey_to_address(char *address, PubKey key)
 	memcpy(rmd_bit + 1, rmd, 20);
 	
 	// Free resources
-	FREE(sha);
-	FREE(rmd);
+	free(sha);
+	free(rmd);
 	
 	// Assume the base58 string will never be longer
 	// than twice the input string
-	base58 = ALLOC(21 * 2);
+	base58 = malloc(21 * 2);
+	if (base58 == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
 	{
@@ -289,7 +318,7 @@ int pubkey_to_address(char *address, PubKey key)
 
 	strcpy(address, base58);
 
-	FREE(base58);
+	free(base58);
 
 	return 1;
 }
@@ -309,14 +338,24 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	}
 
 	// RMD(SHA(data))
-	sha = ALLOC(32);
+	sha = malloc(32);
+	if (sha == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = crypto_get_sha256(sha, key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	if (r < 0)
 	{
 		error_log("Error generating SHA256 hash from public key data.");
 		return -1;
 	}
-	rmd = ALLOC(20);
+	rmd = malloc(20);
+	if (rmd == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
@@ -332,8 +371,8 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	}
 	
 	// Free resources
-	FREE(sha);
-	FREE(rmd);
+	free(sha);
+	free(rmd);
 
 	return 1;
 }
