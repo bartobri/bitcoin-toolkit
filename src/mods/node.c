@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -8,7 +9,6 @@
 #include <assert.h>
 #include "node.h"
 #include "error.h"
-#include "mem.h"
 
 #define MAX_MESSAGE_QUEUE 100
 
@@ -105,7 +105,12 @@ int node_read(Node node, unsigned char** buffer)
 	{
 		if (*buffer == NULL)
 		{
-			*buffer = ALLOC(input_len + 1);
+			*buffer = malloc(input_len + 1);
+			if (*buffer == NULL)
+			{
+				error_log("Memory allocation error.");
+				return EXIT_FAILURE;
+			}
 		}
 
 		r = read(node->sockfd, *buffer, input_len);
