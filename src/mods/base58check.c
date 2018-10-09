@@ -5,7 +5,6 @@
 #include "base58.h"
 #include "crypto.h"
 #include "error.h"
-#include "mem.h"
 
 #define CHECKSUM_LENGTH 4
 
@@ -18,7 +17,12 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	assert(input);
 	assert(input_len);
 	
-	input_check = ALLOC(input_len + CHECKSUM_LENGTH);
+	input_check = malloc(input_len + CHECKSUM_LENGTH);
+	if (input_check == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 	
 	memcpy(input_check, input, input_len);
 	
@@ -41,7 +45,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 		return -1;
 	}
 	
-	FREE(input_check);
+	free(input_check);
 	
 	return 1;
 }
