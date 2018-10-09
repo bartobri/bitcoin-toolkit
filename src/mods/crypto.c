@@ -4,7 +4,6 @@
 #include <assert.h>
 #include "crypto.h"
 #include "error.h"
-#include "mem.h"
 
 static int crypto_init(void)
 {
@@ -87,8 +86,18 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 	assert(data);
 	assert(len);
 
-	sha1 = ALLOC(32);
-	sha2 = ALLOC(32);
+	sha1 = malloc(32);
+	if (sha1 == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
+	sha2 = malloc(32);
+	if (sha2 == NULL)
+	{
+		error_log("Memory allocation error.");
+		return EXIT_FAILURE;
+	}
 
 	r = crypto_get_sha256(sha1, data, len);
 	if (r < 0)
@@ -112,8 +121,8 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 	*output <<= 8;
 	*output += sha2[3];
 	
-	FREE(sha1);
-	FREE(sha2);
+	free(sha1);
+	free(sha2);
 	
 	return 1;
 }
