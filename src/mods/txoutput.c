@@ -5,7 +5,6 @@
 #include "hex.h"
 #include "compactuint.h"
 #include "error.h"
-#include "mem.h"
 
 int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
 {
@@ -47,7 +46,12 @@ int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
 	}
 	
 	// Unlocking Script
-	txoutput->script_raw = ALLOC(txoutput->script_size);
+	txoutput->script_raw = malloc(txoutput->script_size);
+	if (txoutput->script_raw == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
 	for (i = 0; i < txoutput->script_size; ++i, ++input, --input_len, ++c)
 	{
 		if (input_len == 0)
