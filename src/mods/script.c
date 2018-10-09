@@ -4,7 +4,6 @@
 #include <string.h>
 #include "script.h"
 #include "error.h"
-#include "mem.h"
 
 #define MAX_OPS_PER_SCRIPT 201
 
@@ -244,7 +243,11 @@ char *script_from_raw(unsigned char *raw, size_t l)
 				error_log("Script length is too short for operation 0x%02x.", op);
 				return NULL;
 			}
-			ops[c] = ALLOC(op * 2 + 1);
+			ops[c] = malloc(op * 2 + 1);
+			if (ops[c] == NULL)
+			{
+				// TODO - handle memory allocation error
+			}
 			for (j = 0; j < op; ++j, ++raw)
 			{
 				sprintf(ops[c] + (j * 2), "%02x", *raw);
@@ -257,7 +260,11 @@ char *script_from_raw(unsigned char *raw, size_t l)
 		}
 		else
 		{
-			ops[c] = ALLOC(strlen(words[op].word) + 1);
+			ops[c] = malloc(strlen(words[op].word) + 1);
+			if (ops[c] == NULL)
+			{
+				// TODO - handle memory allocation error
+			}
 			strcpy(ops[c], words[op].word);
 		}
 	}
@@ -266,13 +273,17 @@ char *script_from_raw(unsigned char *raw, size_t l)
 	{
 		j += strlen(ops[i]) + 1;
 	}
-	r = ALLOC(j + 1);
+	r = malloc(j + 1);
+	if (r == NULL)
+	{
+		// TODO - handle memory allocation error
+	}
 	memset(r, 0, j + 1);
 	for (i = 0; i < c; ++i)
 	{
 		strcat(r, ops[i]);
 		strcat(r, " ");
-		FREE(ops[i]);
+		free(ops[i]);
 	}
 	
 	return r;
