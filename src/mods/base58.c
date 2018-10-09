@@ -3,7 +3,6 @@
 #include <gmp.h>
 #include <assert.h>
 #include "error.h"
-#include "mem.h"
 
 #define BASE58_CODE_STRING_LENGTH 58
 
@@ -85,7 +84,6 @@ int base58_decode(unsigned char *output, char *input)
 		mpz_add_ui(x, x, j);
 	}
 
-	//ret = ALLOC((mpz_sizeinbase(x, 2) + 7) / 8);
 	mpz_export(output, &r, 1, 1, 1, 0, x);
 	
 	mpz_clear(x);
