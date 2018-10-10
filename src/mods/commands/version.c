@@ -10,6 +10,7 @@
 #include "mods/config.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
+#include "mods/error.h"
 
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x)  STRINGIFY2(x)
@@ -58,12 +59,14 @@ int version_new(Version v)
 
 	if (strlen(IP_ADDRESS) / 2 > IP_ADDR_FIELD_LEN)
 	{
+		error_log("Invalid IP address.");
 		return -1;
 	}
 
 	r = hex_str_to_raw(v->addr_recv_ip_address, IP_ADDRESS);
 	if (r < 0)
 	{
+		error_log("Error while converting hex string to raw data.");
 		return -1;
 	}
 	
@@ -73,6 +76,7 @@ int version_new(Version v)
 	r = hex_str_to_raw(v->addr_trans_ip_address, IP_ADDRESS);
 	if (r < 0)
 	{
+		error_log("Error while converting hex string to raw data.");
 		return -1;
 	}
 	
@@ -135,19 +139,21 @@ int version_new_serialize(unsigned char *output)
 	v = malloc(sizeof(*v));
 	if (v == NULL)
 	{
-		//error_log("Memory allocation error.");
+		error_log("Memory allocation error.");
 		return -1;
 	}
 
 	r = version_new(v);
 	if (r < 0)
 	{
+		error_log("Error while generating new version message.");
 		return -1;
 	}
 	
 	r = version_serialize(output, v);
 	if (r < 0)
 	{
+		error_log("Error while serializing new version message.");
 		return -1;
 	}
 	
@@ -164,6 +170,7 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 
 	if (input_len < 85)
 	{
+		error_log("Length of input is insufficient to deserialize all data needed for a version command.");
 		return -1;
 	}
 	
@@ -182,6 +189,7 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 	{
 		if (input_len < 85 + output->user_agent_bytes)
 		{
+			error_log("Length of input is too short to accommodate the user agent field size.");
 			return -1;
 		}
 		input = deserialize_char(output->user_agent, input, output->user_agent_bytes);
