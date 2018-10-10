@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
@@ -9,7 +10,6 @@
 #include "mods/config.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
-#include "mods/mem.h"
 
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x)  STRINGIFY2(x)
@@ -132,7 +132,12 @@ int version_new_serialize(unsigned char *output)
 
 	assert(output);
 
-	NEW(v);
+	v = malloc(sizeof(*v));
+	if (v == NULL)
+	{
+		//error_log("Memory allocation error.");
+		return -1;
+	}
 
 	r = version_new(v);
 	if (r < 0)
@@ -146,7 +151,7 @@ int version_new_serialize(unsigned char *output)
 		return -1;
 	}
 	
-	FREE(v);
+	free(v);
 	
 	return r;
 }
