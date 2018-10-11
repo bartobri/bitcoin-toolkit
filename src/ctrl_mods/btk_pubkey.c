@@ -127,7 +127,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				{
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
 				}
-				return EXIT_FAILURE;
+				return -1;
 		}
 	}
 
@@ -141,8 +141,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	if (priv == NULL)
 	{
 		error_log("Memory allocation error.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 	
 	// Process input
@@ -160,8 +159,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			input[input_len] = '\0';
 
@@ -169,8 +167,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -186,8 +183,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			input[input_len] = '\0';
 
@@ -195,8 +191,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_RAW:
@@ -204,16 +199,14 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for raw data.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = privkey_from_raw(priv, input, input_len);
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -229,8 +222,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			input[input_len] = '\0';
 
@@ -238,8 +230,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -255,8 +246,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			input[input_len] = '\0';
 
@@ -264,8 +254,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -274,16 +263,14 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for blob data.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = privkey_from_blob(priv, input, input_len);
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_GUESS:
@@ -293,8 +280,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -304,16 +290,14 @@ int btk_pubkey_main(int argc, char *argv[])
 	if (!priv)
 	{
 		error_log("Unable to generate private key from input.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 	
 	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv))
 	{
 		error_log("Invalid private key. Key value cannot be zero.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	// Set output compression only if the option is set. Otherwise,
@@ -335,16 +319,14 @@ int btk_pubkey_main(int argc, char *argv[])
 	if (key == NULL)
 	{
 		error_log("Memory allocation error");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	r = pubkey_get(key, priv);
 	if (r < 0)
 	{
 		error_log("Error while calculating public key.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	// Print private key here if flag is set
@@ -357,8 +339,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				if (output == NULL)
 				{
 					error_log("Memory allocation error");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 				privkey_to_hex(output, priv);
 				printf("%s ", output);
@@ -369,8 +350,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				if (uc_output == NULL)
 				{
 					error_log("Memory allocation error");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 				output_len = (size_t)privkey_to_raw(uc_output, priv);
 				for (i = 0; i < output_len; ++i)
@@ -384,8 +364,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				if (output == NULL)
 				{
 					error_log("Memory allocation error");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 				privkey_to_wif(output, priv);
 				printf("%s ", output);
@@ -402,15 +381,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (output == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_address(output, key);
 			if (r < 0)
 			{
 				error_log("Error while calculating address for public key.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			printf("%s", output);
 			free(output);
@@ -420,15 +397,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (output == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_bech32address(output, key);
 			if (r < 0)
 			{
 				error_log("Error while calculating bech32 address for public key.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			printf("%s", output);
 			free(output);
@@ -438,15 +413,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (output == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
 			{
 				error_log("Error while calculating bech32 address for public key.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			printf("%s", output);
 			free(output);
@@ -456,15 +429,13 @@ int btk_pubkey_main(int argc, char *argv[])
 			if (uc_output == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
 				error_log("Error while generating raw data for public key.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			for (i = 0; i < (size_t)r; ++i)
 			{
@@ -474,7 +445,6 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Process newline flag
 	switch (output_newline)
 	{
 		case TRUE:
@@ -482,9 +452,8 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Free allocated memory
 	free(priv);
 	free(key);
 
-	return EXIT_SUCCESS;
+	return 1;
 }
