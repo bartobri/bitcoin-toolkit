@@ -365,27 +365,17 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 {
 	int r;
-	unsigned char *tmp;
 
 	assert(key);
 	assert(data);
 	assert(data_len);
-	
-	tmp = malloc(32);
-	if (tmp == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 
-	r = crypto_get_sha256(tmp, data, data_len);
+	r = crypto_get_sha256(key->data, data, data_len);
 	if (r < 0)
 	{
 		error_log("Error generating SHA256 hash from input.");
 		return -1;
 	}
-	memcpy(key->data, tmp, PRIVKEY_LENGTH);
-	free(tmp);
 
 	privkey_compress(key);
 	
