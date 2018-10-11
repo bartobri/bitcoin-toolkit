@@ -51,21 +51,20 @@ int btk_node_main(int argc, char *argv[])
 			case '?':
 				if (isprint(optopt))
 				{
-					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
+					error_log("Unknown option '-%c'.", optopt);
 				}
 				else
 				{
-					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
+					error_log("Unknown option character '\\x%x'.", optopt);
 				}
-				return EXIT_FAILURE;
+				return -1;
 		}
 	}
 
 	if (host == NULL)
 	{
 		error_log("Missing argument. Specify a hostname with the -h option.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	switch (message_type)
@@ -75,32 +74,28 @@ int btk_node_main(int argc, char *argv[])
 			if (node == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = node_connect(node, host, port);
 			if (r < 0)
 			{
 				error_log("Error while connecting to host.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			version_string = malloc(version_sizeof());
 			if (version_string == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = version_new_serialize(version_string);
 			if (r < 0)
 			{
 				error_log("Error while serializing version data.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			version_string_len = r;
 
@@ -108,16 +103,14 @@ int btk_node_main(int argc, char *argv[])
 			if (message == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
 			{
 				error_log("Error while creating message.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			free(version_string);
 
@@ -125,24 +118,21 @@ int btk_node_main(int argc, char *argv[])
 			if (message_raw == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = message_serialize(message_raw, &message_raw_len, message);
 			if (r < 0)
 			{
 				error_log("Error while serializing message message.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = node_write(node, message_raw, message_raw_len);
 			if (r < 0)
 			{
 				error_log("Error while sending message to host.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			free(message);
 			free(message_raw);
@@ -155,8 +145,7 @@ int btk_node_main(int argc, char *argv[])
 				if (r < 0)
 				{
 					error_log("Error while reading message from host.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 
 				if (r > 0)
@@ -178,16 +167,14 @@ int btk_node_main(int argc, char *argv[])
 				if (message == NULL)
 				{
 					error_log("Memory allocation error.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 
 				r = message_deserialize(message, node_data_walk, node_data_len);
 				if (r < 0)
 				{
 					error_log("Error while deserializing message from host.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 				node_data_len -= r;
 				node_data_walk += r;
@@ -196,14 +183,12 @@ int btk_node_main(int argc, char *argv[])
 				if (r < 0)
 				{
 					error_log("Error while validating message from host.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 				if (r == 0)
 				{
 					error_log("The message received from host contains an invalid checksum.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 
 				r = message_cmp_command(message, VERSION_COMMAND);
@@ -221,16 +206,14 @@ int btk_node_main(int argc, char *argv[])
 			if (message == NULL)
 			{
 				error_log("Timeout Error. Did not receive response from host.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			
 			payload = malloc(message_get_payload_len(message));
 			if (payload == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			payload_len = message_get_payload(payload, message);
@@ -239,24 +222,21 @@ int btk_node_main(int argc, char *argv[])
 			if (v == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = version_deserialize(v, payload, payload_len);
 			if (r < 0)
 			{
 				error_log("Error while deserializing host response.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			json = malloc(1000);
 			if (json == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			version_to_json(json, v);
@@ -273,5 +253,5 @@ int btk_node_main(int argc, char *argv[])
 			break;
 	}
 
-	return EXIT_SUCCESS;
+	return 1;
 }
