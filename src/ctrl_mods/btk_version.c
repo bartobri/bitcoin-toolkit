@@ -17,5 +17,5 @@ int btk_version_main(int argc, char *argv[])
 
 	printf("Bitcoin Toolkit Version %d.%d.%d\n", BTK_VERSION_MAJOR, BTK_VERSION_MINOR, BTK_VERSION_REVISION);
 
-	return EXIT_SUCCESS;
+	return 1;
 }
