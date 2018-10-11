@@ -90,7 +90,7 @@ int btk_vanity_main(int argc, char *argv[])
 				{
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
 				}
-				return EXIT_FAILURE;
+				return -1;
 		}
 	}
 
@@ -105,8 +105,7 @@ int btk_vanity_main(int argc, char *argv[])
 	if (input_len > 10)
 	{
 		error_log("Match string is too long. This program only supports 10 characters or less.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 	switch (output_format)
 	{
@@ -116,8 +115,7 @@ int btk_vanity_main(int argc, char *argv[])
 				if ((input_insensitive && !base58_ischar(toupper(input[i])) && !base58_ischar(tolower(input[i]))) || (!input_insensitive && !base58_ischar(input[i])))
 				{
 					error_log("Invalid characters in match string. Must only contain base58 characters");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 			}
 			break;
@@ -140,8 +138,7 @@ int btk_vanity_main(int argc, char *argv[])
 				if (base32_get_raw(input[i]) < 0)
 				{
 					error_log("Invalid characters in match string. Must only contain bech32 characters");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 			}
 			break;
@@ -191,7 +188,6 @@ int btk_vanity_main(int argc, char *argv[])
 			break;
 	}
 
-	// Process testnet option
 	if (output_testnet)
 	{
 		network_set_test();
@@ -201,8 +197,7 @@ int btk_vanity_main(int argc, char *argv[])
 	if (!isatty(STDIN_FILENO) && !freopen ("/dev/tty", "r", stdin))
 	{
 		error_log("Terminal error. Cannot associate STDIN with terminal.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 	btktermio_init_terminal();
 	row = btktermio_get_cursor_row();
@@ -215,8 +210,7 @@ int btk_vanity_main(int argc, char *argv[])
 	if (privkey_str == NULL)
 	{
 		error_log("Memory allocation error");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	while (1)
@@ -240,16 +234,14 @@ int btk_vanity_main(int argc, char *argv[])
 		if (priv == NULL)
 		{
 			error_log("Memory allocation error");
-			error_print();
-			return EXIT_FAILURE;
+			return -1;
 		}
 
 		r = privkey_new(priv);
 		if (r < 0)
 		{
 			error_log("Error while generating a new private key.");
-			error_print();
-			return EXIT_FAILURE;
+			return -1;
 		}
 	
 		switch (output_compression)
@@ -268,16 +260,14 @@ int btk_vanity_main(int argc, char *argv[])
 		if (key == NULL)
 		{
 			error_log("Memory allocation error");
-			error_print();
-			return EXIT_FAILURE;
+			return -1;
 		}
 
 		r = pubkey_get(key, priv);
 		if (r < 0)
 		{
 			error_log("Error while calculating public key.");
-			error_print();
-			return EXIT_FAILURE;
+			return -1;
 		}
 
 		// Get key strings
@@ -288,8 +278,7 @@ int btk_vanity_main(int argc, char *argv[])
 			if (pubkey_str == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_address(pubkey_str, key);
 		}
@@ -298,15 +287,13 @@ int btk_vanity_main(int argc, char *argv[])
 			if(!pubkey_is_compressed(key))
 			{
 				error_log("Bech32 addresses cannot be uncompressed.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			pubkey_str = malloc(43);
 			if (pubkey_str == NULL)
 			{
 				error_log("Memory allocation error");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = pubkey_to_bech32address(pubkey_str, key);
 		}
@@ -335,7 +322,7 @@ int btk_vanity_main(int argc, char *argv[])
 					if (k == input_len)
 					{
 						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
-						return EXIT_SUCCESS;
+						return 1;
 					}
 				}
 				else
@@ -343,7 +330,7 @@ int btk_vanity_main(int argc, char *argv[])
 					if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
 					{
 						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
-						return EXIT_SUCCESS;
+						return 1;
 					}
 				}
 				break;
@@ -351,19 +338,17 @@ int btk_vanity_main(int argc, char *argv[])
 				if(!pubkey_is_compressed(key))
 				{
 					error_log("Bech32 addresses cannot be uncompressed.");
-					error_print();
-					return EXIT_FAILURE;
+					return -1;
 				}
 
 				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
 				{
 					printf("\nVanity address found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
-					return EXIT_SUCCESS;
+					return 1;
 				}
 				break;
 		}
 
-		// Free allocated memory
 		free(priv);
 		free(key);
 		free(pubkey_str);
@@ -371,5 +356,5 @@ int btk_vanity_main(int argc, char *argv[])
 	
 	free(privkey_str);
 
-	return EXIT_SUCCESS;
+	return 1;
 }
