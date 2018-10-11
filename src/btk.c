@@ -14,9 +14,14 @@
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_version.h"
+#include "mods/error.h"
 
 int main(int argc, char *argv[])
 {
+	int r;
+
+	r = 0;
+
 	if (argc <= 1)
 	{
 		btk_help_help();
@@ -25,32 +30,40 @@ int main(int argc, char *argv[])
 	
 	if (strcmp(argv[1], "help") == 0)
 	{
-		return btk_help_main(argc, argv);
+		r = btk_help_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "privkey") == 0)
 	{
-		return btk_privkey_main(argc, argv);
+		r = btk_privkey_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "pubkey") == 0)
 	{
-		return btk_pubkey_main(argc, argv);
+		r = btk_pubkey_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "vanity") == 0)
 	{
-		return btk_vanity_main(argc, argv);
+		r = btk_vanity_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "node") == 0)
 	{
-		return btk_node_main(argc, argv);
+		r = btk_node_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "version") == 0)
 	{
-		return btk_version_main(argc, argv);
+		r = btk_version_main(argc, argv);
 	}
 	else
 	{
-		fprintf(stderr, "Invalid Command: %s\n", argv[1]);
+		error_log("Invalid Command: %s\n", argv[1]);
+		error_print();
 		btk_help_help();
+		return EXIT_FAILURE;
+	}
+
+	if (r < 0)
+	{
+		error_log("Error:");
+		error_print();
 		return EXIT_FAILURE;
 	}
 
