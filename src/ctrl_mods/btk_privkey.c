@@ -122,7 +122,7 @@ int btk_privkey_main(int argc, char *argv[])
 				{
 					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
 				}
-				return EXIT_FAILURE;
+				return -1;
 		}
 	}
 
@@ -136,8 +136,7 @@ int btk_privkey_main(int argc, char *argv[])
 	if (key == NULL)
 	{
 		error_log("Memory allocation error.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	// Process Input
@@ -148,8 +147,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while generating new private key.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_WIF:
@@ -164,8 +162,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			input[input_len] = '\0';
@@ -174,8 +171,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -191,8 +187,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			input[input_len] = '\0';
@@ -201,8 +196,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_RAW:
@@ -210,16 +204,14 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for raw data.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = privkey_from_raw(key, input, input_len);
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_STR:
@@ -234,8 +226,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			input[input_len] = '\0';
@@ -244,8 +235,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -261,8 +251,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			input[input_len] = '\0';
@@ -271,8 +260,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_BLOB:
@@ -280,16 +268,14 @@ int btk_privkey_main(int argc, char *argv[])
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for blob data.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			r = privkey_from_blob(key, input, input_len);
 			if (r < 0)
 			{
 				error_log("Error while handling input.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			break;
 		case INPUT_GUESS:
@@ -299,8 +285,7 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 
 			break;
@@ -310,16 +295,14 @@ int btk_privkey_main(int argc, char *argv[])
 	if (!key)
 	{
 		error_log("Unable to generate key from input.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	// Don't allow private keys with a zero value
 	if (privkey_is_zero(key))
 	{
 		error_log("Invalid private key. Key value cannot be zero.");
-		error_print();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	// Set output compression only if the option is set. Otherwise,
@@ -344,15 +327,13 @@ int btk_privkey_main(int argc, char *argv[])
 			if (output == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = privkey_to_wif(output, key);
 			if (r < 0)
 			{
 				error_log("Error while converting key to WIF format.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			printf("%s", output);
 			free(output);
@@ -362,15 +343,13 @@ int btk_privkey_main(int argc, char *argv[])
 			if (output == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = privkey_to_hex(output, key);
 			if (r < 0)
 			{
 				error_log("Error while converting key to hex format.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			printf("%s", output);
 			free(output);
@@ -380,15 +359,13 @@ int btk_privkey_main(int argc, char *argv[])
 			if (uc_output == NULL)
 			{
 				error_log("Memory allocation error.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			r = privkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
 				error_log("Error while converting key to raw format.");
-				error_print();
-				return EXIT_FAILURE;
+				return -1;
 			}
 			output_len = (size_t)r;
 			for (i = 0; i < output_len; ++i)
@@ -399,7 +376,6 @@ int btk_privkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Process format flags
 	switch (output_newline)
 	{
 		case TRUE:
@@ -407,9 +383,7 @@ int btk_privkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Free key
 	free(key);
 
-	// Return
-	return EXIT_SUCCESS;
+	return 1;
 }
