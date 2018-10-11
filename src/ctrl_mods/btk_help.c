@@ -16,7 +16,7 @@ int btk_help_main(int argc, char *argv[])
 	if (argc <= 1)
 	{
 		btk_help_help();
-		return EXIT_FAILURE;
+		return -1;
 	}
 
 	if (strcmp(argv[1], "help") == 0)
@@ -35,10 +35,10 @@ int btk_help_main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
 		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	
-	return EXIT_SUCCESS;
+	return 1;
 }
 
 void btk_help_help(void)
