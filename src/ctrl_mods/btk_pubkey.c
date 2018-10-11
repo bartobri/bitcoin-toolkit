@@ -121,11 +121,11 @@ int btk_pubkey_main(int argc, char *argv[])
 			case '?':
 				if (isprint(optopt))
 				{
-					fprintf (stderr, "Unknown option '-%c'.\n", optopt);
+					error_log("Unknown option '-%c'.", optopt);
 				}
 				else
 				{
-					fprintf (stderr, "Unknown option character '\\x%x'.\n", optopt);
+					error_log("Unknown option character '\\x%x'.", optopt);
 				}
 				return -1;
 		}
