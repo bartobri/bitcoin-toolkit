@@ -324,26 +324,16 @@ int privkey_from_dec(PrivKey key, char *data)
 int privkey_from_str(PrivKey key, char *data)
 {
 	int r;
-	unsigned char *tmp;
 
 	assert(key);
 	assert(data);
-	
-	tmp = malloc(32);
-	if (tmp == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 
-	r = crypto_get_sha256(tmp, (unsigned char*)data, strlen(data));
+	r = crypto_get_sha256(key->data, (unsigned char*)data, strlen(data));
 	if (r < 0)
 	{
 		error_log("Error generating SHA256 hash from input string.");
 		return -1;
 	}
-	memcpy(key->data, tmp, PRIVKEY_LENGTH);
-	free(tmp);
 
 	privkey_compress(key);
 	
@@ -352,7 +342,6 @@ int privkey_from_str(PrivKey key, char *data)
 
 int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 {
-
 	assert(raw);
 	assert(key);
 	assert(l);
