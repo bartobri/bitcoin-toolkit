@@ -10,6 +10,7 @@
 #include <string.h>
 #include "btk_help.h"
 #include "btk_privkey.h"
+#include "mods/error.h"
 
 int btk_help_main(int argc, char *argv[])
 {
@@ -33,8 +34,8 @@ int btk_help_main(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf(stderr, "Unknown Command: %s\n", argv[1]);
-		fprintf(stderr, "Run 'btk help' for a list of valid commands.\n");
+		error_log("Unknown Command: %s", argv[1]);
+		error_log("Run 'btk help' for a list of valid commands.");
 		return -1;
 	}
 	
