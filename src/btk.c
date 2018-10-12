@@ -16,9 +16,12 @@
 #include "ctrl_mods/btk_version.h"
 #include "mods/error.h"
 
+#define MAX_COMMAND_LEN 100
+
 int main(int argc, char *argv[])
 {
-	int r;
+	int i, r;
+	char command[MAX_COMMAND_LEN];
 
 	r = 0;
 
@@ -26,6 +29,18 @@ int main(int argc, char *argv[])
 	{
 		btk_help_help();
 		return EXIT_FAILURE;
+	}
+
+	// Assembling the original command for logging purposes before we
+	// pass the args to the control modules.
+	memset(command, 0, MAX_COMMAND_LEN);
+	for (i = 0; i < argc; ++i)
+	{
+		if (i > 0)
+		{
+			strncat(command, " ", MAX_COMMAND_LEN - 1 - strlen(command));
+		}
+		strncat(command, argv[i], MAX_COMMAND_LEN - 1 - strlen(command));
 	}
 	
 	if (strcmp(argv[1], "help") == 0)
@@ -62,7 +77,7 @@ int main(int argc, char *argv[])
 
 	if (r < 0)
 	{
-		error_log("Error:");
+		error_log("Error [%s]:", command);
 		error_print();
 		return EXIT_FAILURE;
 	}
