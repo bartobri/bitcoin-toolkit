@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		error_log("Error [%s]:", command);
 		error_log("Invalid Command: %s\n", argv[1]);
 		error_print();
 		btk_help_help();
