@@ -294,7 +294,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv))
 	{
-		error_log("Invalid private key. Key value cannot be zero.");
+		error_log("Key value cannot be zero.");
 		return -1;
 	}
 
@@ -339,7 +339,12 @@ int btk_pubkey_main(int argc, char *argv[])
 					error_log("Memory allocation error");
 					return -1;
 				}
-				privkey_to_hex(output, priv);
+				r = privkey_to_hex(output, priv);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to hex format.");
+					return -1;
+				}
 				printf("%s ", output);
 				free(output);
 				break;
@@ -350,7 +355,13 @@ int btk_pubkey_main(int argc, char *argv[])
 					error_log("Memory allocation error");
 					return -1;
 				}
-				output_len = (size_t)privkey_to_raw(uc_output, priv);
+				r = privkey_to_raw(uc_output, priv);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to raw format.");
+					return -1;
+				}
+				output_len = (size_t)r;
 				for (i = 0; i < output_len; ++i)
 				{
 					putchar(uc_output[i]);
@@ -364,7 +375,12 @@ int btk_pubkey_main(int argc, char *argv[])
 					error_log("Memory allocation error");
 					return -1;
 				}
-				privkey_to_wif(output, priv);
+				r = privkey_to_wif(output, priv);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to WIF format.");
+					return -1;
+				}
 				printf("%s ", output);
 				free(output);
 				break;
