@@ -283,6 +283,11 @@ int btk_vanity_main(int argc, char *argv[])
 				return -1;
 			}
 			r = pubkey_to_address(pubkey_str, key);
+			if (r < 0)
+			{
+				error_log("Could not calculate public key address.");
+				return -1;
+			}
 		}
 		else if (output_format == OUTPUT_BECH32_ADDRESS)
 		{
