@@ -268,7 +268,12 @@ int btk_vanity_main(int argc, char *argv[])
 			return -1;
 		}
 
-		privkey_to_wif(privkey_str, priv);
+		r = privkey_to_wif(privkey_str, priv);
+		if (r < 0)
+		{
+			error_log("Could not convert private key to WIF format.");
+			return -1;
+		}
 		if (output_format == OUTPUT_ADDRESS)
 		{
 			pubkey_str = malloc(35);
