@@ -268,7 +268,7 @@ int pubkey_to_address(char *address, PubKey key)
 	r = crypto_get_sha256(sha, key->data, len);
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash from public key data.");
+		error_log("Could not generate SHA256 hash from public key data.");
 		return -1;
 	}
 	rmd = malloc(20);
@@ -280,7 +280,7 @@ int pubkey_to_address(char *address, PubKey key)
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
-		error_log("Error generating RMD160 hash from public key data.");
+		error_log("Could not generate RMD160 hash from public key data.");
 		return -1;
 	}
 
@@ -312,7 +312,7 @@ int pubkey_to_address(char *address, PubKey key)
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
 	{
-		error_log("Error generating address from public key data.");
+		error_log("Could not generate address from public key data.");
 		return -1;
 	}
 
@@ -347,7 +347,7 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	r = crypto_get_sha256(sha, key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash from public key data.");
+		error_log("Could not generate SHA256 hash from public key data.");
 		return -1;
 	}
 	rmd = malloc(20);
@@ -359,14 +359,14 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	r = crypto_get_rmd160(rmd, sha, 32);
 	if (r < 0)
 	{
-		error_log("Error generating RMD160 hash from public key data.");
+		error_log("Could not generate RMD160 hash from public key data.");
 		return -1;
 	}
 
 	r = bech32_get_address(address, rmd, 20);
 	if (r < 0)
 	{
-		error_log("Error generating bech32 address from public key data.");
+		error_log("Could not generate bech32 address from public key data.");
 		return -1;
 	}
 	

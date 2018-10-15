@@ -37,7 +37,7 @@ int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_
 
 	if (crypto_init() < 0)
 	{
-		error_log("Error initializing the encryption library.");
+		error_log("Could not initialize encryption library.");
 		return -1;
 	}
 	
@@ -62,7 +62,7 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	
 	if (crypto_init() < 0)
 	{
-		error_log("Error initializing the encryption library.");
+		error_log("Could not initialize encryption library.");
 		return -1;
 	}
 
@@ -102,13 +102,13 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 	r = crypto_get_sha256(sha1, data, len);
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash for input.");
+		error_log("Could not generate SHA256 hash for input.");
 		return -1;
 	}
 	r = crypto_get_sha256(sha2, sha1, 32);
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash for input.");
+		error_log("Could not generate SHA256 hash for input.");
 		return -1;
 	}
 

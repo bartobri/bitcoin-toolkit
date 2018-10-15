@@ -52,7 +52,7 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
 		if (r < 0)
 		{
-			error_log("Error computing checksum for message payload.");
+			error_log("Could not generate checksum for message payload.");
 			return -1;
 		}
 	}
@@ -134,7 +134,7 @@ int message_is_valid(Message m)
 	r = crypto_get_checksum(&checksum, m->payload, (size_t)m->length);
 	if (r < 0)
 	{
-		error_log("Error computing checksum for message payload.");
+		error_log("Could not generate checksum for message payload.");
 		return -1;
 	}
 

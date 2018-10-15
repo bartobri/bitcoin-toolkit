@@ -131,7 +131,6 @@ int btk_pubkey_main(int argc, char *argv[])
 		}
 	}
 
-	// Process testnet option
 	if (output_testnet)
 	{
 		network_set_test();
@@ -144,7 +143,6 @@ int btk_pubkey_main(int argc, char *argv[])
 		return -1;
 	}
 	
-	// Process input
 	switch (input_format)
 	{
 		case INPUT_WIF:
@@ -166,7 +164,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_wif(priv, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -190,7 +188,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_hex(priv, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -205,7 +203,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_raw(priv, input, input_len);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -229,7 +227,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_str(priv, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -253,7 +251,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_dec(priv, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -269,7 +267,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_blob(priv, input, input_len);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -279,7 +277,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = privkey_from_guess(priv, input, input_len);
 			if (r < 0)
 			{
-				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -289,7 +287,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	// Make sure we have a key
 	if (!priv)
 	{
-		error_log("Unable to generate private key from input.");
+		error_log("Could not calculate private key from input.");
 		return -1;
 	}
 	
@@ -325,7 +323,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	r = pubkey_get(key, priv);
 	if (r < 0)
 	{
-		error_log("Error while calculating public key.");
+		error_log("Could not calculate public key.");
 		return -1;
 	}
 
@@ -386,7 +384,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = pubkey_to_address(output, key);
 			if (r < 0)
 			{
-				error_log("Error while calculating address for public key.");
+				error_log("Could not calculate public key address.");
 				return -1;
 			}
 			printf("%s", output);
@@ -402,7 +400,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = pubkey_to_bech32address(output, key);
 			if (r < 0)
 			{
-				error_log("Error while calculating bech32 address for public key.");
+				error_log("Could not calculate bech32 public key address.");
 				return -1;
 			}
 			printf("%s", output);
@@ -418,7 +416,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
 			{
-				error_log("Error while calculating bech32 address for public key.");
+				error_log("Could not generate hex data from public key.");
 				return -1;
 			}
 			printf("%s", output);
@@ -434,7 +432,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			r = pubkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
-				error_log("Error while generating raw data for public key.");
+				error_log("Could not generate raw data for public key.");
 				return -1;
 			}
 			for (i = 0; i < (size_t)r; ++i)

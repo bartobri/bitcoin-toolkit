@@ -48,14 +48,12 @@ int btk_privkey_main(int argc, char *argv[])
 	unsigned char *uc_output;
 	size_t output_len;
 	
-	// Default flags
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_WIF;
 	int output_compression = FALSE;
 	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
 	
-	// Process arguments
 	while ((o = getopt(argc, argv, "nwhrsdbWHRCUNT")) != -1)
 	{
 		switch (o)
@@ -126,7 +124,6 @@ int btk_privkey_main(int argc, char *argv[])
 		}
 	}
 
-	// Process testnet option
 	if (output_testnet)
 	{
 		network_set_test();
@@ -139,14 +136,13 @@ int btk_privkey_main(int argc, char *argv[])
 		return -1;
 	}
 
-	// Process Input
 	switch (input_format)
 	{
 		case INPUT_NEW:
 			r = privkey_new(key);
 			if (r < 0)
 			{
-				error_log("Error while generating new private key.");
+				error_log("Could not generate a new private key.");
 				return -1;
 			}
 			break;
@@ -170,7 +166,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_wif(key, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -195,7 +191,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_hex(key, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -210,7 +206,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_raw(key, input, input_len);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -234,7 +230,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_str(key, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -259,7 +255,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_dec(key, (char *)input);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -274,7 +270,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_blob(key, input, input_len);
 			if (r < 0)
 			{
-				error_log("Error while handling input.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 			break;
@@ -284,7 +280,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_from_guess(key, input, input_len);
 			if (r < 0)
 			{
-				error_log("Unable to determine input format automatically. Use a command option to specify input format.");
+				error_log("Could not calculate private key from input.");
 				return -1;
 			}
 
@@ -294,7 +290,7 @@ int btk_privkey_main(int argc, char *argv[])
 	// Make sure we have a key
 	if (!key)
 	{
-		error_log("Unable to generate key from input.");
+		error_log("Could not calculate private key from input.");
 		return -1;
 	}
 
@@ -332,7 +328,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_to_wif(output, key);
 			if (r < 0)
 			{
-				error_log("Error while converting key to WIF format.");
+				error_log("Could not convert private key to WIF format.");
 				return -1;
 			}
 			printf("%s", output);
@@ -348,7 +344,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_to_hex(output, key);
 			if (r < 0)
 			{
-				error_log("Error while converting key to hex format.");
+				error_log("Could not convert private key to hex format.");
 				return -1;
 			}
 			printf("%s", output);
@@ -364,7 +360,7 @@ int btk_privkey_main(int argc, char *argv[])
 			r = privkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
-				error_log("Error while converting key to raw format.");
+				error_log("Could not convert private key to raw format.");
 				return -1;
 			}
 			output_len = (size_t)r;

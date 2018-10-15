@@ -34,7 +34,7 @@ int privkey_new(PrivKey key)
 	r = random_get(key->data, PRIVKEY_LENGTH);
 	if (r < 0)
 	{
-		error_log("Error while getting random data for new private key.");
+		error_log("Could not get random data for new private key.");
 		return -1;
 	}
 	
@@ -68,10 +68,12 @@ int privkey_to_hex(char *str, PrivKey key)
 	assert(key);
 	assert(str);
 	
-	for (i = 0; i < PRIVKEY_LENGTH; ++i) {
+	for (i = 0; i < PRIVKEY_LENGTH; ++i)
+	{
 		sprintf(str + (i * 2), "%02x", key->data[i]);
 	}
-	if (key->cflag == PRIVKEY_COMPRESSED_FLAG) {
+	if (key->cflag == PRIVKEY_COMPRESSED_FLAG)
+	{
 		sprintf(str + (i * 2), "%02x", key->cflag);
 	}
 	str[++i * 2] = '\0';
@@ -88,7 +90,8 @@ int privkey_to_raw(unsigned char *raw, PrivKey key)
 
 	memcpy(raw, key->data, PRIVKEY_LENGTH);
 	
-	if (privkey_is_compressed(key)) {
+	if (privkey_is_compressed(key))
+	{
 		raw[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
 		len += 1;
 	}
@@ -133,7 +136,7 @@ int privkey_to_wif(char *str, PrivKey key)
 	r = base58check_encode(base58check, p, len);
 	if (r < 0)
 	{
-		error_log("Error while encoding private key to WIF format.");
+		error_log("Could not encode private key to WIF format.");
 		return -1;
 	}
 
@@ -164,7 +167,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 	l = base58check_decode(p, wif);
 	if (l < 0)
 	{
-		error_log("Error while decoding private key from WIF format.");
+		error_log("Could not parse input string.");
 		return -1;
 	}
 
@@ -240,7 +243,7 @@ int privkey_from_hex(PrivKey key, char *input)
 		r = hex_to_dec(input[i], input[i+1]);
 		if (r < 0)
 		{
-			error_log("Error while converting hexidecimal characters to decimal.");
+			error_log("Could not convert hexidecimal characters to decimal.");
 			return -1;
 		}
 		key->data[i/2] = r;
@@ -252,7 +255,7 @@ int privkey_from_hex(PrivKey key, char *input)
 		r = hex_to_dec(input[i], input[i+1]);
 		if (r < 0)
 		{
-			error_log("Error while converting hexidecimal characters to decimal.");
+			error_log("Could not convert hexidecimal characters to decimal.");
 			return -1;
 		}
 		if (r == PRIVKEY_COMPRESSED_FLAG)
@@ -307,7 +310,7 @@ int privkey_from_dec(PrivKey key, char *data)
 	r = privkey_from_raw(rawkey, raw, PRIVKEY_LENGTH);
 	if (r < 0)
 	{
-		error_log("Error generating private key from input.");
+		error_log("Could not generate private key from input.");
 		return -1;
 	}
 
@@ -331,7 +334,7 @@ int privkey_from_str(PrivKey key, char *data)
 	r = crypto_get_sha256(key->data, (unsigned char*)data, strlen(data));
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash from input string.");
+		error_log("Could not generate SHA256 hash from input string.");
 		return -1;
 	}
 
@@ -373,7 +376,7 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 	r = crypto_get_sha256(key->data, data, data_len);
 	if (r < 0)
 	{
-		error_log("Error generating SHA256 hash from input.");
+		error_log("Could not generate SHA256 hash from input.");
 		return -1;
 	}
 

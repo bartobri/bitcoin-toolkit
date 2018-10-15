@@ -22,7 +22,7 @@ int base32_encode(char *output, unsigned char *data, size_t data_len)
 		c = base32_get_char((int)output[i]);
 		if (c < 0)
 		{
-			error_log("Error while encoding input.", (int)output[i]);
+			error_log("Could not encode input to base32.", (int)output[i]);
 			return -1;
 		}
 		output[i] = (char)c;

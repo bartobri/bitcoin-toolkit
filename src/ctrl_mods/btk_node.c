@@ -39,15 +39,12 @@ int btk_node_main(int argc, char *argv[])
 	{
 		switch (o)
 		{
-			// Input format
 			case 'h':
 				host = optarg;
 				break;
 			case 'p':
 				port = atoi(optarg);
 				break;
-
-			// Unknown option
 			case '?':
 				if (isprint(optopt))
 				{
@@ -80,7 +77,7 @@ int btk_node_main(int argc, char *argv[])
 			r = node_connect(node, host, port);
 			if (r < 0)
 			{
-				error_log("Error while connecting to host.");
+				error_log("Could not connect to host.");
 				return -1;
 			}
 
@@ -94,7 +91,7 @@ int btk_node_main(int argc, char *argv[])
 			r = version_new_serialize(version_string);
 			if (r < 0)
 			{
-				error_log("Error while serializing version data.");
+				error_log("Could not serialize version data.");
 				return -1;
 			}
 			version_string_len = r;
@@ -109,7 +106,7 @@ int btk_node_main(int argc, char *argv[])
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
 			if (r < 0)
 			{
-				error_log("Error while creating message.");
+				error_log("Could not create a new message.");
 				return -1;
 			}
 			free(version_string);
@@ -124,14 +121,14 @@ int btk_node_main(int argc, char *argv[])
 			r = message_serialize(message_raw, &message_raw_len, message);
 			if (r < 0)
 			{
-				error_log("Error while serializing message message.");
+				error_log("Could not serialize message data.");
 				return -1;
 			}
 
 			r = node_write(node, message_raw, message_raw_len);
 			if (r < 0)
 			{
-				error_log("Error while sending message to host.");
+				error_log("Could not send message to host.");
 				return -1;
 			}
 			free(message);
@@ -144,7 +141,7 @@ int btk_node_main(int argc, char *argv[])
 				r = node_read(node, &node_data);
 				if (r < 0)
 				{
-					error_log("Error while reading message from host.");
+					error_log("Could not read message from host.");
 					return -1;
 				}
 
@@ -173,7 +170,7 @@ int btk_node_main(int argc, char *argv[])
 				r = message_deserialize(message, node_data_walk, node_data_len);
 				if (r < 0)
 				{
-					error_log("Error while deserializing message from host.");
+					error_log("Could not deserialize message from host.");
 					return -1;
 				}
 				node_data_len -= r;
@@ -182,7 +179,7 @@ int btk_node_main(int argc, char *argv[])
 				r = message_is_valid(message);
 				if (r < 0)
 				{
-					error_log("Error while validating message from host.");
+					error_log("Could not validate message from host.");
 					return -1;
 				}
 				if (r == 0)
@@ -205,7 +202,7 @@ int btk_node_main(int argc, char *argv[])
 			
 			if (message == NULL)
 			{
-				error_log("Timeout Error. Did not receive response from host.");
+				error_log("Did not receive response from host before timeout.");
 				return -1;
 			}
 			
@@ -228,7 +225,7 @@ int btk_node_main(int argc, char *argv[])
 			r = version_deserialize(v, payload, payload_len);
 			if (r < 0)
 			{
-				error_log("Error while deserializing host response.");
+				error_log("Could not deserialize host response.");
 				return -1;
 			}
 

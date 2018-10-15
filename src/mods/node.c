@@ -78,7 +78,7 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 
 	if (r < 0)
 	{
-		error_log("Unable to write message to node. Error %i.", errno);
+		error_log("Unable to write message to node. Errno %i.", errno);
 		return -1;
 	}
 

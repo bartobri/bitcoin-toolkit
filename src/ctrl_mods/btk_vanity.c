@@ -42,13 +42,11 @@ int btk_vanity_main(int argc, char *argv[])
 	unsigned char *input;
 	size_t input_len;
 
-	// Default flags
 	int input_insensitive  = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_compression = FALSE;
 	int output_testnet     = FALSE;
 	
-	// Check arguments
 	while ((o = getopt(argc, argv, "iABCUT")) != -1)
 	{
 		switch (o)
@@ -94,10 +92,9 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 	}
 
-	// Get input
 	input_len = input_get(&input);
 
-	// Validate Input
+	// Validate input
 	while (isspace((int)input[input_len - 1]))
 	{
 		--input_len;
@@ -137,7 +134,7 @@ int btk_vanity_main(int argc, char *argv[])
 			{
 				if (base32_get_raw(input[i]) < 0)
 				{
-					error_log("Invalid characters in match string. Must only contain bech32 characters");
+					error_log("Could not calculate bech32 address.");
 					return -1;
 				}
 			}
@@ -213,6 +210,7 @@ int btk_vanity_main(int argc, char *argv[])
 		return -1;
 	}
 
+	// Start searching
 	while (1)
 	{
 		if (row >= 0)
@@ -240,7 +238,7 @@ int btk_vanity_main(int argc, char *argv[])
 		r = privkey_new(priv);
 		if (r < 0)
 		{
-			error_log("Error while generating a new private key.");
+			error_log("Could not generate a new private key.");
 			return -1;
 		}
 	
@@ -266,11 +264,10 @@ int btk_vanity_main(int argc, char *argv[])
 		r = pubkey_get(key, priv);
 		if (r < 0)
 		{
-			error_log("Error while calculating public key.");
+			error_log("Could not calculate new public key.");
 			return -1;
 		}
 
-		// Get key strings
 		privkey_to_wif(privkey_str, priv);
 		if (output_format == OUTPUT_ADDRESS)
 		{

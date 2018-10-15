@@ -29,7 +29,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = crypto_get_checksum(&checksum, input, input_len);
 	if (r < 0)
 	{
-		error_log("Error while generating checksum from input.");
+		error_log("Could not generate checksum from input.");
 		return -1;
 	}
 	
@@ -41,7 +41,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	r = base58_encode(output, input_check, input_len + CHECKSUM_LENGTH);
 	if (r < 0)
 	{
-		error_log("Error while encoding input.");
+		error_log("Could not encode input to base58.");
 		return -1;
 	}
 	
@@ -60,7 +60,7 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = base58_decode(output, input);
 	if (r < 0)
 	{
-		error_log("Error while decoding input.");
+		error_log("Could not decode input from base58.");
 		return -1;
 	}
 
@@ -81,7 +81,7 @@ int base58check_decode(unsigned char *output, char *input) {
 	r = crypto_get_checksum(&checksum2, output, len);
 	if (r < 0)
 	{
-		error_log("Error while validating checksum.");
+		error_log("Could not generate checksum from decoded data.");
 		return -1;
 	}
 	

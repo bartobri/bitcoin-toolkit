@@ -59,7 +59,7 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 	c = base32_get_char(BECH32_VERSION_BYTE);
 	if (c < 0)
 	{
-		error_log("Error while encoding version byte.");
+		error_log("Could not encode version byte to base32.");
 		return -1;
 	}
 	*(output++) = (char)c;
@@ -69,7 +69,7 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 	r = base32_encode(output, data, data_len);
 	if (r < 0)
 	{
-		error_log("Error while encoding input.");
+		error_log("Could not encode input to base32.");
 		return -1;
 	}
 	l = strlen(output);
@@ -78,7 +78,7 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 		r = base32_get_raw(*output);
 		if (r < 0)
 		{
-			error_log("Error determining base32 character value.");
+			error_log("Could not determine base32 character value.");
 			return -1;
 		}
 		chk = bech32_polymod_step(r, chk);
@@ -99,7 +99,7 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 		c = base32_get_char((chk >> (5 * (5 - i))) & 31);
 		if (c < 0)
 		{
-			error_log("Error while encoding bech32 checksum.");
+			error_log("Could not determine bech32 checksum.");
 			return -1;
 		}
 		*(output++) = (char)c;

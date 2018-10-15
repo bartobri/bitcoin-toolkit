@@ -33,7 +33,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	r = compactuint_get_value(&trans->input_count, input, input_len);
 	if (r < 0)
 	{
-		error_log("Error while parsing compact size integer from transaction data.");
+		error_log("Could not parse compact size integer from transaction data.");
 		return -1;
 	}
 	c = r; // quick fix - make prettier later
@@ -57,7 +57,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 		r = txinput_from_raw(trans->inputs[i], input, input_len);
 		if (r < 0)
 		{
-			error_log("Error while parsing transaction inputs.");
+			error_log("Could not parse transaction inputs.");
 			return -1;
 		}
 		c = r; // quick fix - make prettier later
@@ -74,7 +74,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	r = compactuint_get_value(&trans->output_count, input, input_len);
 	if (r < 0)
 	{
-		error_log("Error while parsing compact size integer from transaction data.");
+		error_log("Could not parse compact size integer from transaction data.");
 		return -1;
 	}
 	c = r; // quick fix - make prettier later
@@ -98,7 +98,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 		r = txoutput_from_raw(trans->outputs[i], input, input_len);
 		if (r < 0)
 		{
-			error_log("Error while parsing transaction outputs.");
+			error_log("Could not parse transaction outputs.");
 			return -1;
 		}
 		c = r;

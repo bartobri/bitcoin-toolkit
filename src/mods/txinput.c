@@ -44,7 +44,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
 	r = compactuint_get_value(&txinput->script_size, input, input_len);
 	if (r < 0)
 	{
-		error_log("Error while parsing compact size integer from transaction input data.");
+		error_log("Could not parse compact size integer from transaction input data.");
 		return -1;
 	}
 	j = r; // quick fix - make prettier later

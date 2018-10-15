@@ -32,7 +32,7 @@ int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
 	r = compactuint_get_value(&txoutput->script_size, input, input_len);
 	if (r < 0)
 	{
-		error_log("Error while parsing compact size integer from transaction output data.");
+		error_log("Could not parse compact size integer from transaction output data.");
 		return -1;
 	}
 	j = r; // quick fix - make prettier later

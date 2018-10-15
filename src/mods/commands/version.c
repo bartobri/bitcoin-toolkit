@@ -66,7 +66,7 @@ int version_new(Version v)
 	r = hex_str_to_raw(v->addr_recv_ip_address, IP_ADDRESS);
 	if (r < 0)
 	{
-		error_log("Error while converting hex string to raw data.");
+		error_log("Could not convert hex string to raw data.");
 		return -1;
 	}
 	
@@ -76,7 +76,7 @@ int version_new(Version v)
 	r = hex_str_to_raw(v->addr_trans_ip_address, IP_ADDRESS);
 	if (r < 0)
 	{
-		error_log("Error while converting hex string to raw data.");
+		error_log("Could not convert hex string to raw data.");
 		return -1;
 	}
 	
@@ -146,14 +146,14 @@ int version_new_serialize(unsigned char *output)
 	r = version_new(v);
 	if (r < 0)
 	{
-		error_log("Error while generating new version message.");
+		error_log("Could not generate new version message.");
 		return -1;
 	}
 	
 	r = version_serialize(output, v);
 	if (r < 0)
 	{
-		error_log("Error while serializing new version message.");
+		error_log("Could not serialize new version message.");
 		return -1;
 	}
 	
