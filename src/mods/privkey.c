@@ -390,12 +390,14 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	size_t i;
 	int r;
 	char *data_str;
+	size_t data_str_len;
 
 	assert(key);
 	assert(data);
 	assert(data_len);
 
 	data_str = NULL;
+
 	for (i = 0; i < data_len; ++i)
 	{
 		if (!isascii(data[i]))
@@ -405,18 +407,19 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	}
 	if (i == data_len)
 	{
-		while (isspace(data[data_len - 1]))
+		data_str_len = data_len;
+		while (isspace(data[data_str_len - 1]))
 		{
-			--data_len;
+			--data_str_len;
 		}
-		data_str = malloc(data_len + 1);
+		data_str = malloc(data_str_len + 1);
 		if (data_str == NULL)
 		{
 			error_log("Memory allocation error.");
 			return -1;
 		}
-		memcpy(data_str, data, data_len);
-		data_str[data_len] = '\0';
+		memcpy(data_str, data, data_str_len);
+		data_str[data_str_len] = '\0';
 	}
 
 	if (data_str != NULL)
