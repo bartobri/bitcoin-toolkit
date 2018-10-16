@@ -30,6 +30,8 @@
 #define TRUE                    1
 #define FALSE                   0
 
+#define OUTPUT_BUFFER           150
+
 int btk_vanity_main(int argc, char *argv[])
 {
 	int o, r, row;
@@ -38,9 +40,10 @@ int btk_vanity_main(int argc, char *argv[])
 	long int estimate;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
-	char *pubkey_str, *privkey_str;
 	unsigned char *input;
 	size_t input_len;
+	char pubkey_str[OUTPUT_BUFFER];
+	char privkey_str[OUTPUT_BUFFER];
 
 	int input_insensitive  = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
@@ -203,13 +206,6 @@ int btk_vanity_main(int argc, char *argv[])
 	i = 0;
 	start = time(NULL);
 
-	privkey_str = malloc(PRIVKEY_WIF_LENGTH_MAX + 1);
-	if (privkey_str == NULL)
-	{
-		error_log("Memory allocation error");
-		return -1;
-	}
-
 	// Start searching
 	while (1)
 	{
@@ -276,12 +272,6 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 		if (output_format == OUTPUT_ADDRESS)
 		{
-			pubkey_str = malloc(35);
-			if (pubkey_str == NULL)
-			{
-				error_log("Memory allocation error");
-				return -1;
-			}
 			r = pubkey_to_address(pubkey_str, key);
 			if (r < 0)
 			{
@@ -294,12 +284,6 @@ int btk_vanity_main(int argc, char *argv[])
 			if(!pubkey_is_compressed(key))
 			{
 				error_log("Bech32 addresses cannot be uncompressed.");
-				return -1;
-			}
-			pubkey_str = malloc(43);
-			if (pubkey_str == NULL)
-			{
-				error_log("Memory allocation error");
 				return -1;
 			}
 			r = pubkey_to_bech32address(pubkey_str, key);
@@ -363,10 +347,7 @@ int btk_vanity_main(int argc, char *argv[])
 
 		free(priv);
 		free(key);
-		free(pubkey_str);
 	}
-	
-	free(privkey_str);
 
 	return 1;
 }
