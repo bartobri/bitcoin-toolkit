@@ -38,8 +38,13 @@ size_t input_get_str(unsigned char** dest)
 	{
 		if ((*dest)[input_len - 1] == '\n')
 		{
-			*dest[input_len - 1] = '\0';
+			(*dest)[input_len - 1] = '\0';
 			--input_len;
+			if ((*dest)[input_len - 1] == '\r')
+			{
+				(*dest)[input_len - 1] = '\0';
+				--input_len;
+			}
 		}
 		else
 		{
