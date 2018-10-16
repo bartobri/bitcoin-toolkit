@@ -37,6 +37,8 @@
 #define TRUE                    1
 #define FALSE                   0
 
+#define OUTPUT_BUFFER           150
+
 int btk_pubkey_main(int argc, char *argv[])
 {
 	int o, r;
@@ -45,11 +47,10 @@ int btk_pubkey_main(int argc, char *argv[])
 	size_t i;
 	unsigned char *input;
 	size_t input_len;
-	char *output;
-	unsigned char *uc_output;
 	size_t output_len;
+	char output[OUTPUT_BUFFER];
+	unsigned char uc_output[OUTPUT_BUFFER];
 
-	// Default flags
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_compression = FALSE;
@@ -57,7 +58,6 @@ int btk_pubkey_main(int argc, char *argv[])
 	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
 	
-	// Check arguments
 	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1)
 	{
 		switch (o)
@@ -284,22 +284,18 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Make sure we have a key
 	if (!priv)
 	{
 		error_log("Could not calculate private key from input.");
 		return -1;
 	}
 	
-	// Don't allow the generation of public keys from a zero private key
 	if (privkey_is_zero(priv))
 	{
 		error_log("Key value cannot be zero.");
 		return -1;
 	}
 
-	// Set output compression only if the option is set. Otherwise,
-	// compression is based on input.
 	switch (output_compression)
 	{
 		case FALSE:
@@ -312,7 +308,6 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Get public key from private key
 	key = malloc(pubkey_sizeof());
 	if (key == NULL)
 	{
@@ -327,18 +322,14 @@ int btk_pubkey_main(int argc, char *argv[])
 		return -1;
 	}
 
-	// Print private key here if flag is set
+	memset(output, 0, OUTPUT_BUFFER);
+	memset(uc_output, 0, OUTPUT_BUFFER);
+
 	if (output_privkey)
 	{
 		switch  (output_format)
 		{
 			case OUTPUT_HEX:
-				output = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
-				if (output == NULL)
-				{
-					error_log("Memory allocation error");
-					return -1;
-				}
 				r = privkey_to_hex(output, priv);
 				if (r < 0)
 				{
@@ -346,15 +337,8 @@ int btk_pubkey_main(int argc, char *argv[])
 					return -1;
 				}
 				printf("%s ", output);
-				free(output);
 				break;
 			case OUTPUT_RAW:
-				uc_output = malloc(PRIVKEY_LENGTH + 1);
-				if (uc_output == NULL)
-				{
-					error_log("Memory allocation error");
-					return -1;
-				}
 				r = privkey_to_raw(uc_output, priv);
 				if (r < 0)
 				{
@@ -366,15 +350,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				{
 					putchar(uc_output[i]);
 				}
-				free(uc_output);
 				break;
 			default:
-				output = malloc(PRIVKEY_WIF_LENGTH_MAX + 1);
-				if (output == NULL)
-				{
-					error_log("Memory allocation error");
-					return -1;
-				}
 				r = privkey_to_wif(output, priv);
 				if (r < 0)
 				{
@@ -382,21 +359,16 @@ int btk_pubkey_main(int argc, char *argv[])
 					return -1;
 				}
 				printf("%s ", output);
-				free(output);
 				break;
 		}
 	}
-	
-	// Process output
+
+	memset(output, 0, OUTPUT_BUFFER);
+	memset(uc_output, 0, OUTPUT_BUFFER);
+
 	switch (output_format)
 	{
 		case OUTPUT_ADDRESS:
-			output = malloc(35);
-			if (output == NULL)
-			{
-				error_log("Memory allocation error");
-				return -1;
-			}
 			r = pubkey_to_address(output, key);
 			if (r < 0)
 			{
@@ -404,15 +376,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 			printf("%s", output);
-			free(output);
 			break;
 		case OUTPUT_BECH32_ADDRESS:
-			output = malloc(43);
-			if (output == NULL)
-			{
-				error_log("Memory allocation error");
-				return -1;
-			}
 			r = pubkey_to_bech32address(output, key);
 			if (r < 0)
 			{
@@ -420,15 +385,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 			printf("%s", output);
-			free(output);
 			break;
 		case OUTPUT_HEX:
-			output = malloc(((PUBKEY_UNCOMPRESSED_LENGTH + 1) * 2) + 1);
-			if (output == NULL)
-			{
-				error_log("Memory allocation error");
-				return -1;
-			}
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
 			{
@@ -436,15 +394,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 			printf("%s", output);
-			free(output);
 			break;
 		case OUTPUT_RAW:
-			uc_output = malloc(PUBKEY_UNCOMPRESSED_LENGTH + 1);
-			if (uc_output == NULL)
-			{
-				error_log("Memory allocation error");
-				return -1;
-			}
 			r = pubkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
@@ -455,7 +406,6 @@ int btk_pubkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
-			free(uc_output);
 			break;
 	}
 
