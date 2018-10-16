@@ -146,20 +146,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (input_format)
 	{
 		case INPUT_WIF:
-			input_len = input_get(&input);
-
-			while (isspace(input[input_len - 1]))
-			{
-				--input_len;
-			}
-
-			input = realloc(input, input_len + 1);
-			if (input == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-			input[input_len] = '\0';
+			input_len = input_get_str(&input);
 
 			r = privkey_from_wif(priv, (char *)input);
 			if (r < 0)
@@ -170,20 +157,7 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_HEX:
-			input_len = input_get(&input);
-
-			while (isspace((int)input[input_len - 1]))
-			{
-				--input_len;
-			}
-
-			input = realloc(input, input_len + 1);
-			if (input == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-			input[input_len] = '\0';
+			input_len = input_get_str(&input);
 
 			r = privkey_from_hex(priv, (char *)input);
 			if (r < 0)
@@ -194,6 +168,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 		case INPUT_RAW:
 			input_len = input_get_from_pipe(&input);
+			// TODO - just check input_len value
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for raw data.");
@@ -209,20 +184,7 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_STR:
-			input_len = input_get(&input);
-
-			if((int)input[input_len - 1] == '\n')
-			{
-				--input_len;
-			}
-
-			input = realloc(input, input_len + 1);
-			if (input == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-			input[input_len] = '\0';
+			input_len = input_get_str(&input);
 
 			r = privkey_from_str(priv, (char *)input);
 			if (r < 0)
@@ -233,20 +195,7 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_DEC:
-			input_len = input_get(&input);
-
-			while (isspace((int)input[input_len - 1]))
-			{
-				--input_len;
-			}
-
-			input = realloc(input, input_len + 1);
-			if (input == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-			input[input_len] = '\0';
+			input_len = input_get_str(&input);
 
 			r = privkey_from_dec(priv, (char *)input);
 			if (r < 0)
@@ -258,6 +207,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			break;
 		case INPUT_BLOB:
 			input_len = input_get_from_pipe(&input);
+			// TODO - just check input_len value
 			if (input == NULL)
 			{
 				error_log("Piped or redirected input required for blob data.");
