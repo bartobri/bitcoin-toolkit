@@ -46,7 +46,6 @@ int btk_pubkey_main(int argc, char *argv[])
 	PrivKey priv = NULL;
 	size_t i;
 	unsigned char *input;
-	int input_len;
 	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
@@ -146,7 +145,12 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (input_format)
 	{
 		case INPUT_WIF:
-			input_len = input_get_str(&input);
+			r = input_get_str(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
 
 			r = privkey_from_wif(priv, (char *)input);
 			if (r < 0)
@@ -157,7 +161,12 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_HEX:
-			input_len = input_get_str(&input);
+			r = input_get_str(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
 
 			r = privkey_from_hex(priv, (char *)input);
 			if (r < 0)
@@ -167,15 +176,19 @@ int btk_pubkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_RAW:
-			input_len = input_get_from_pipe(&input);
-			// TODO - just check input_len value
-			if (input == NULL)
+			r = input_get_from_pipe(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
+			if (r == 0)
 			{
 				error_log("Piped or redirected input required for raw data.");
 				return -1;
 			}
 
-			r = privkey_from_raw(priv, input, input_len);
+			r = privkey_from_raw(priv, input, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -184,7 +197,12 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_STR:
-			input_len = input_get_str(&input);
+			r = input_get_str(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
 
 			r = privkey_from_str(priv, (char *)input);
 			if (r < 0)
@@ -195,7 +213,12 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_DEC:
-			input_len = input_get_str(&input);
+			r = input_get_str(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
 
 			r = privkey_from_dec(priv, (char *)input);
 			if (r < 0)
@@ -206,15 +229,19 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_BLOB:
-			input_len = input_get_from_pipe(&input);
-			// TODO - just check input_len value
-			if (input == NULL)
+			r = input_get_from_pipe(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
+			if (r == 0)
 			{
 				error_log("Piped or redirected input required for blob data.");
 				return -1;
 			}
 
-			r = privkey_from_blob(priv, input, input_len);
+			r = privkey_from_blob(priv, input, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -222,9 +249,14 @@ int btk_pubkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_GUESS:
-			input_len = input_get(&input);
+			r = input_get(&input);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
 
-			r = privkey_from_guess(priv, input, input_len);
+			r = privkey_from_guess(priv, input, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
