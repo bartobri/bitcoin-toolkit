@@ -75,7 +75,7 @@ int input_get_from_keyboard(unsigned char** dest)
 		return -1;
 	}
 
-	for (i = 0; (o = getchar()) != '\n'; ++i)
+	for (i = 0; (o = getchar()) != EOF; ++i)
 	{
 		if (i == s)
 		{
@@ -87,7 +87,13 @@ int input_get_from_keyboard(unsigned char** dest)
 				return -1;
 			}
 		}
+		
 		(*dest)[i] = (unsigned char)o;
+
+		if (o == '\n')
+		{
+			break;
+		}
 	}
 
 	return i;
