@@ -37,6 +37,8 @@
 #define TRUE                    1
 #define FALSE                   0
 
+#define OUTPUT_BUFFER           150
+
 int btk_privkey_main(int argc, char *argv[])
 {
 	int o, r;
@@ -44,9 +46,9 @@ int btk_privkey_main(int argc, char *argv[])
 	PrivKey key = NULL;
 	unsigned char *input;
 	size_t input_len;
-	char *output;
-	unsigned char *uc_output;
 	size_t output_len;
+	char output[OUTPUT_BUFFER];
+	unsigned char uc_output[OUTPUT_BUFFER];
 	
 	int input_format       = INPUT_GUESS;
 	int output_format      = OUTPUT_WIF;
@@ -286,23 +288,19 @@ int btk_privkey_main(int argc, char *argv[])
 
 			break;
 	}
-	
-	// Make sure we have a key
+
 	if (!key)
 	{
 		error_log("Could not calculate private key from input.");
 		return -1;
 	}
 
-	// Don't allow private keys with a zero value
 	if (privkey_is_zero(key))
 	{
 		error_log("Invalid private key. Key value cannot be zero.");
 		return -1;
 	}
 
-	// Set output compression only if the option is set. Otherwise,
-	// compression is based on input.
 	switch (output_compression)
 	{
 		case FALSE:
@@ -315,16 +313,12 @@ int btk_privkey_main(int argc, char *argv[])
 			break;
 	}
 
-	// Write output
+	memset(output, 0, OUTPUT_BUFFER);
+	memset(uc_output, 0, OUTPUT_BUFFER);
+
 	switch (output_format)
 	{
 		case OUTPUT_WIF:
-			output = malloc(PRIVKEY_WIF_LENGTH_MAX + 1);
-			if (output == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
 			r = privkey_to_wif(output, key);
 			if (r < 0)
 			{
@@ -332,15 +326,8 @@ int btk_privkey_main(int argc, char *argv[])
 				return -1;
 			}
 			printf("%s", output);
-			free(output);
 			break;
 		case OUTPUT_HEX:
-			output = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
-			if (output == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
 			r = privkey_to_hex(output, key);
 			if (r < 0)
 			{
@@ -348,15 +335,8 @@ int btk_privkey_main(int argc, char *argv[])
 				return -1;
 			}
 			printf("%s", output);
-			free(output);
 			break;
 		case OUTPUT_RAW:
-			uc_output = malloc(PRIVKEY_LENGTH + 1);
-			if (uc_output == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
 			r = privkey_to_raw(uc_output, key);
 			if (r < 0)
 			{
@@ -368,7 +348,6 @@ int btk_privkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
-			free(uc_output);
 			break;
 	}
 
