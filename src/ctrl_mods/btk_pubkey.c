@@ -46,7 +46,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	PrivKey priv = NULL;
 	size_t i;
 	unsigned char *input;
-	size_t input_len;
+	int input_len;
 	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];

@@ -34,14 +34,13 @@
 
 int btk_vanity_main(int argc, char *argv[])
 {
-	int o, r, row;
-	size_t i, k;
+	int i, k, o, r, row;
 	time_t current, start;
 	long int estimate;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
 	unsigned char *input;
-	size_t input_len;
+	int input_len;
 	char pubkey_str[OUTPUT_BUFFER];
 	char privkey_str[OUTPUT_BUFFER];
 

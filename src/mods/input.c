@@ -14,9 +14,9 @@
 
 #define INPUT_INCREMENT 100
 
-size_t input_get(unsigned char** dest)
+int input_get(unsigned char** dest)
 {
-	size_t input_len = 0;
+	int input_len;
 
 	input_len = input_get_from_pipe(dest);
 
@@ -28,9 +28,9 @@ size_t input_get(unsigned char** dest)
 	return input_len;
 }
 
-size_t input_get_str(unsigned char** dest)
+int input_get_str(unsigned char** dest)
 {
-	size_t input_len = 0;
+	int input_len;
 
 	input_len = input_get(dest);
 
@@ -62,10 +62,11 @@ size_t input_get_str(unsigned char** dest)
 	return input_len;
 }
 
-size_t input_get_from_keyboard(unsigned char** dest)
+int input_get_from_keyboard(unsigned char** dest)
 {
-	size_t i, s = INPUT_INCREMENT;
-	int o;
+	int i, o, s;
+
+	s = INPUT_INCREMENT;
 
 	*dest = malloc(s);
 	if (*dest == NULL)
@@ -92,9 +93,9 @@ size_t input_get_from_keyboard(unsigned char** dest)
 	return i;
 }
 
-size_t input_get_from_pipe(unsigned char** dest)
+int input_get_from_pipe(unsigned char** dest)
 {
-	size_t input_len = 0;
+	int input_len = 0;
 
 	if (!isatty(fileno(stdin)))
 	{

@@ -45,7 +45,7 @@ int btk_privkey_main(int argc, char *argv[])
 	size_t i;
 	PrivKey key = NULL;
 	unsigned char *input;
-	size_t input_len;
+	int input_len;
 	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
@@ -171,8 +171,7 @@ int btk_privkey_main(int argc, char *argv[])
 			break;
 		case INPUT_RAW:
 			input_len = input_get_from_pipe(&input);
-			// TODO - Just check the input_len value
-			if (input == NULL)
+			if (input_len == 0)
 			{
 				error_log("Piped or redirected input required for raw data.");
 				return -1;
@@ -208,8 +207,7 @@ int btk_privkey_main(int argc, char *argv[])
 			break;
 		case INPUT_BLOB:
 			input_len = input_get_from_pipe(&input);
-			// TODO - Just check the input_len value
-			if (input == NULL)
+			if (input_len == 0)
 			{
 				error_log("Piped or redirected input required for blob data.");
 				return -1;

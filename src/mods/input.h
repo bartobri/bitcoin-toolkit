@@ -8,9 +8,9 @@
 #ifndef INPUT_H
 #define INPUT_H 1
 
-size_t input_get(unsigned char** dest);
-size_t input_get_str(unsigned char** dest);
-size_t input_get_from_keyboard(unsigned char** dest);
-size_t input_get_from_pipe(unsigned char** dest);
+int input_get(unsigned char** dest);
+int input_get_str(unsigned char** dest);
+int input_get_from_keyboard(unsigned char** dest);
+int input_get_from_pipe(unsigned char** dest);
 
 #endif
