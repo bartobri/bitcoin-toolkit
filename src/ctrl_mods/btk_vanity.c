@@ -94,7 +94,7 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 	}
 
-	r = input_get(&input);
+	r = input_get_str(&input);
 	if (r < 0)
 	{
 		error_log("Could not get input.");
@@ -102,8 +102,10 @@ int btk_vanity_main(int argc, char *argv[])
 	}
 
 	// Validate input
+	input_len = r;
 	while (isspace((int)input[input_len - 1]))
 	{
+		input[input_len - 1] = '\0';
 		--input_len;
 	}
 	if (input_len > 10)
