@@ -36,7 +36,7 @@ size_t input_get_str(unsigned char** dest)
 
 	if (input_len > 0)
 	{
-		if (*dest[input_len - 1] == '\n')
+		if ((*dest)[input_len - 1] == '\n')
 		{
 			*dest[input_len - 1] = '\0';
 			--input_len;
@@ -50,7 +50,7 @@ size_t input_get_str(unsigned char** dest)
 				return -1;
 			}
 
-			*dest[input_len] = '\0';
+			(*dest)[input_len] = '\0';
 		}
 	}
 
