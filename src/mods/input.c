@@ -28,6 +28,35 @@ size_t input_get(unsigned char** dest)
 	return input_len;
 }
 
+size_t input_get_str(unsigned char** dest)
+{
+	size_t input_len = 0;
+
+	input_len = input_get(dest);
+
+	if (input_len > 0)
+	{
+		if (*dest[input_len - 1] == '\n')
+		{
+			*dest[input_len - 1] = '\0';
+			--input_len;
+		}
+		else
+		{
+			*dest = realloc(*dest, input_len + 1);
+			if (*dest == NULL)
+			{
+				error_log("Memory allocation error.");
+				return -1;
+			}
+
+			*dest[input_len] = '\0';
+		}
+	}
+
+	return input_len;
+}
+
 size_t input_get_from_keyboard(unsigned char** dest)
 {
 	size_t i, s = INPUT_INCREMENT;
