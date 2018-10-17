@@ -44,7 +44,8 @@ int btk_privkey_main(int argc, char *argv[])
 	int o, r;
 	size_t i;
 	PrivKey key = NULL;
-	unsigned char *input;
+	unsigned char *input_uc;
+	char *input_sc;
 	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
@@ -148,14 +149,14 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_WIF:
-			r = input_get_str(&input);
+			r = input_get_str(&input_sc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
 				return -1;
 			}
 
-			r = privkey_from_wif(key, (char *)input);
+			r = privkey_from_wif(key, input_sc);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -164,14 +165,14 @@ int btk_privkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_HEX:
-			r = input_get_str(&input);
+			r = input_get_str(&input_sc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
 				return -1;
 			}
 
-			r = privkey_from_hex(key, (char *)input);
+			r = privkey_from_hex(key, input_sc);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -179,7 +180,7 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_RAW:
-			r = input_get_from_pipe(&input);
+			r = input_get_from_pipe(&input_uc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -191,7 +192,7 @@ int btk_privkey_main(int argc, char *argv[])
 				return -1;
 			}
 
-			r = privkey_from_raw(key, input, r);
+			r = privkey_from_raw(key, input_uc, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -199,14 +200,14 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_STR:
-			r = input_get_str(&input);
+			r = input_get_str(&input_sc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
 				return -1;
 			}
 
-			r = privkey_from_str(key, (char *)input);
+			r = privkey_from_str(key, input_sc);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -215,14 +216,14 @@ int btk_privkey_main(int argc, char *argv[])
 
 			break;
 		case INPUT_DEC:
-			r = input_get_str(&input);
+			r = input_get_str(&input_sc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
 				return -1;
 			}
 
-			r = privkey_from_dec(key, (char *)input);
+			r = privkey_from_dec(key, input_sc);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -230,7 +231,7 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_BLOB:
-			r = input_get_from_pipe(&input);
+			r = input_get_from_pipe(&input_uc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -242,7 +243,7 @@ int btk_privkey_main(int argc, char *argv[])
 				return -1;
 			}
 
-			r = privkey_from_blob(key, input, r);
+			r = privkey_from_blob(key, input_uc, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -250,14 +251,14 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 			break;
 		case INPUT_GUESS:
-			r = input_get(&input);
+			r = input_get(&input_uc);
 			if (r < 0)
 			{
 				error_log("Could not get input.");
 				return -1;
 			}
 
-			r = privkey_from_guess(key, input, r);
+			r = privkey_from_guess(key, input_uc, r);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");

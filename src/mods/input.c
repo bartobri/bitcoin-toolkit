@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include "input.h"
@@ -29,36 +31,48 @@ int input_get(unsigned char** dest)
 	return input_len;
 }
 
-int input_get_str(unsigned char** dest)
+int input_get_str(char** dest)
 {
-	int input_len;
+	int i, input_len;
+	unsigned char *input;
 
-	input_len = input_get(dest);
+	input_len = input_get(&input);
 
 	if (input_len > 0)
 	{
-		if ((*dest)[input_len - 1] == '\n')
+		if (input[input_len - 1] == '\n')
 		{
-			(*dest)[input_len - 1] = '\0';
 			--input_len;
-			if ((*dest)[input_len - 1] == '\r')
+			if (input[input_len - 1] == '\r')
 			{
-				(*dest)[input_len - 1] = '\0';
 				--input_len;
 			}
 		}
+	}
+
+	*dest = malloc(input_len + 1);
+	if (*dest == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
+
+	memset(*dest, 0, input_len + 1);
+
+	for (i = 0; i < input_len; ++i)
+	{
+		if (isascii(input[i]))
+		{
+			(*dest)[i] = input[i];
+		}
 		else
 		{
-			*dest = realloc(*dest, input_len + 1);
-			if (*dest == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-
-			(*dest)[input_len] = '\0';
+			error_log("Input contains non-ascii characters.");
+			return -1;
 		}
 	}
+
+	free(input);
 
 	return input_len;
 }

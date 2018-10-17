@@ -39,7 +39,7 @@ int btk_vanity_main(int argc, char *argv[])
 	long int estimate;
 	PubKey key = NULL;
 	PrivKey priv = NULL;
-	unsigned char *input;
+	char *input;
 	int input_len;
 	char pubkey_str[OUTPUT_BUFFER];
 	char privkey_str[OUTPUT_BUFFER];
@@ -101,18 +101,13 @@ int btk_vanity_main(int argc, char *argv[])
 		return -1;
 	}
 
-	// Validate input
 	input_len = r;
-	while (isspace((int)input[input_len - 1]))
-	{
-		input[input_len - 1] = '\0';
-		--input_len;
-	}
 	if (input_len > 10)
 	{
 		error_log("Match string is too long. This program only supports 10 characters or less.");
 		return -1;
 	}
+
 	switch (output_format)
 	{
 		case OUTPUT_ADDRESS:
@@ -316,7 +311,7 @@ int btk_vanity_main(int argc, char *argv[])
 				{
 					for (k = 0; k < input_len; ++k)
 					{
-						if (pubkey_str[k+1] != toupper((int)input[k]) && pubkey_str[k+1] != tolower((int)input[k]))
+						if (pubkey_str[k+1] != toupper(input[k]) && pubkey_str[k+1] != tolower(input[k]))
 						{
 							break;
 						}
@@ -329,7 +324,7 @@ int btk_vanity_main(int argc, char *argv[])
 				}
 				else
 				{
-					if (strncmp((char *)input, pubkey_str + 1, input_len) == 0)
+					if (strncmp(input, pubkey_str + 1, input_len) == 0)
 					{
 						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 						return 1;
@@ -343,7 +338,7 @@ int btk_vanity_main(int argc, char *argv[])
 					return -1;
 				}
 
-				if (strncmp((char *)input, pubkey_str + 4, input_len) == 0)
+				if (strncmp(input, pubkey_str + 4, input_len) == 0)
 				{
 					printf("\nVanity address found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 					return 1;
