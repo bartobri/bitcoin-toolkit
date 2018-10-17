@@ -43,11 +43,17 @@ int input_get_str(char** dest)
 		if (input[input_len - 1] == '\n')
 		{
 			--input_len;
-			if (input[input_len - 1] == '\r')
+			if (input_len > 0 && input[input_len - 1] == '\r')
 			{
 				--input_len;
 			}
 		}
+	}
+
+	if (input_len == 0)
+	{
+		error_log("No input provided.");
+		return -1;
 	}
 
 	*dest = malloc(input_len + 1);
