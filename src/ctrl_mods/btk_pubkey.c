@@ -160,6 +160,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 
+			free(input_sc);
 			break;
 		case INPUT_HEX:
 			r = input_get_str(&input_sc);
@@ -175,6 +176,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				error_log("Could not calculate private key from input.");
 				return -1;
 			}
+
+			free(input_sc);
 			break;
 		case INPUT_RAW:
 			r = input_get_from_pipe(&input_uc);
@@ -196,6 +199,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 
+			free(input_uc);
 			break;
 		case INPUT_STR:
 			r = input_get_str(&input_sc);
@@ -212,6 +216,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 
+			free(input_sc);
 			break;
 		case INPUT_DEC:
 			r = input_get_str(&input_sc);
@@ -228,6 +233,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 
+			free(input_sc);
 			break;
 		case INPUT_BLOB:
 			r = input_get_from_pipe(&input_uc);
@@ -248,6 +254,8 @@ int btk_pubkey_main(int argc, char *argv[])
 				error_log("Could not calculate private key from input.");
 				return -1;
 			}
+
+			free(input_uc);
 			break;
 		case INPUT_GUESS:
 			r = input_get(&input_uc);
@@ -264,6 +272,7 @@ int btk_pubkey_main(int argc, char *argv[])
 				return -1;
 			}
 
+			free(input_uc);
 			break;
 	}
 

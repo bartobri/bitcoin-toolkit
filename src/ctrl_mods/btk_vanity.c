@@ -350,5 +350,7 @@ int btk_vanity_main(int argc, char *argv[])
 		free(key);
 	}
 
+	free(input);
+
 	return 1;
 }
