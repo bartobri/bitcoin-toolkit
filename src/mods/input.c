@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
+#include <time.h>
 #include <errno.h>
 #include "input.h"
 #include "error.h"
@@ -123,17 +125,30 @@ int input_get_from_keyboard(unsigned char** dest)
 int input_get_from_pipe(unsigned char** dest)
 {
 	int r, input_len;
+	fd_set input_stream;
+	struct timeval timeout;
 
+	FD_ZERO(&input_stream);
 	input_len = 0;
 
-	if (!isatty(fileno(stdin)))
+	timeout.tv_sec  = 10;
+	timeout.tv_usec = 0;
+
+	if (!isatty(STDIN_FILENO))
 	{
-		while (1)
+		FD_SET(STDIN_FILENO, &input_stream);
+		r = select(FD_SETSIZE, &input_stream, NULL, NULL, &timeout);
+		if (r < 0)
+		{
+			error_log("Error while waiting for data. Errno: %i", errno);
+			return -1;
+		}
+		if (r > 0)
 		{
 			r = ioctl(STDIN_FILENO, FIONREAD, &input_len);
 			if (r < 0)
 			{
-				error_log("Input read error. Errno: %i", errno);
+				error_log("Could not get input length. Errno: %i", errno);
 				return -1;
 			}
 			if (input_len > 0)
@@ -144,11 +159,17 @@ int input_get_from_pipe(unsigned char** dest)
 					error_log("Memory allocation error.");
 					return -1;
 				}
-				read(STDIN_FILENO, *dest, input_len);
-				break;
+				r = read(STDIN_FILENO, *dest, input_len);
+				if (r < 0)
+				{
+					error_log("Input read error. Errno: %i", errno);
+					return -1;
+				}
 			}
 		}
 	}
+
+	FD_CLR(STDIN_FILENO, &input_stream);
 
 	return input_len;
 }
