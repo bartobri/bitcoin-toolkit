@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <errno.h>
 #include "input.h"
 #include "error.h"
 
@@ -101,13 +102,21 @@ int input_get_from_keyboard(unsigned char** dest)
 
 int input_get_from_pipe(unsigned char** dest)
 {
-	int input_len = 0;
+	int r, input_len;
+
+	input_len = 0;
 
 	if (!isatty(fileno(stdin)))
 	{
 		while (1)
 		{
-			if (ioctl(STDIN_FILENO, FIONREAD, &input_len) >= 0 && input_len > 0)
+			r = ioctl(STDIN_FILENO, FIONREAD, &input_len);
+			if (r < 0)
+			{
+				error_log("Input read error. Errno: %i", errno);
+				return -1;
+			}
+			if (input_len > 0)
 			{
 				*dest = malloc(input_len);
 				if (*dest == NULL)
