@@ -22,6 +22,7 @@ int input_get(unsigned char** dest)
 	int r, input_len;
 	fd_set input_stream;
 	struct timeval timeout;
+	void *timeout_p;
 
 	FD_ZERO(&input_stream);
 	input_len = 0;
@@ -29,8 +30,17 @@ int input_get(unsigned char** dest)
 	timeout.tv_sec  = 10;
 	timeout.tv_usec = 0;
 
+	if (isatty(STDIN_FILENO))
+	{
+		timeout_p = NULL;
+	}
+	else
+	{
+		timeout_p = &timeout;
+	}
+
 	FD_SET(STDIN_FILENO, &input_stream);
-	r = select(FD_SETSIZE, &input_stream, NULL, NULL, &timeout);
+	r = select(FD_SETSIZE, &input_stream, NULL, NULL, timeout_p);
 	if (r < 0)
 	{
 		error_log("Error while waiting for input data. Errno: %i", errno);
