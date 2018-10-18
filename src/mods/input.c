@@ -151,6 +151,11 @@ int input_get_from_pipe(unsigned char** dest)
 		error_log("Could not get input.");
 		return -1;
 	}
+	if (r == 0)
+	{
+		error_log("No input provided.");
+		return -1;
+	}
 
 	return r;
 }

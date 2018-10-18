@@ -189,11 +189,6 @@ int btk_privkey_main(int argc, char *argv[])
 				error_log("Could not get input.");
 				return -1;
 			}
-			if (r == 0)
-			{
-				error_log("Piped or redirected input required for raw data.");
-				return -1;
-			}
 
 			r = privkey_from_raw(key, input_uc, r);
 			if (r < 0)
@@ -243,11 +238,6 @@ int btk_privkey_main(int argc, char *argv[])
 			if (r < 0)
 			{
 				error_log("Could not get input.");
-				return -1;
-			}
-			if (r == 0)
-			{
-				error_log("Piped or redirected input required for blob data.");
 				return -1;
 			}
 
