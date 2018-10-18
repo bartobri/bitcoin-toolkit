@@ -17,7 +17,7 @@
 #include "input.h"
 #include "error.h"
 
-int input_get(unsigned char** dest)
+int input_get(unsigned char** dest, char *prompt)
 {
 	int r, input_len;
 	fd_set input_stream;
@@ -33,6 +33,11 @@ int input_get(unsigned char** dest)
 	if (isatty(STDIN_FILENO))
 	{
 		timeout_p = NULL;
+		if (prompt != NULL)
+		{
+			printf("%s", prompt);
+			fflush(stdout);
+		}
 	}
 	else
 	{
@@ -76,12 +81,12 @@ int input_get(unsigned char** dest)
 	return input_len;
 }
 
-int input_get_str(char** dest)
+int input_get_str(char** dest, char *prompt)
 {
 	int r, i, input_len;
 	unsigned char *input;
 
-	r = input_get(&input);
+	r = input_get(&input, prompt);
 	if (r < 0)
 	{
 		error_log("Could not get input.");
@@ -145,7 +150,7 @@ int input_get_from_pipe(unsigned char** dest)
 		return -1;
 	}
 
-	r = input_get(dest);
+	r = input_get(dest, NULL);
 	if (r < 0)
 	{
 		error_log("Could not get input.");

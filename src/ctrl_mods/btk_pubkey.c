@@ -146,7 +146,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	switch (input_format)
 	{
 		case INPUT_WIF:
-			r = input_get_str(&input_sc);
+			r = input_get_str(&input_sc, "WIF: ");
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -163,7 +163,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			free(input_sc);
 			break;
 		case INPUT_HEX:
-			r = input_get_str(&input_sc);
+			r = input_get_str(&input_sc, "Hex: ");
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -197,7 +197,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			free(input_uc);
 			break;
 		case INPUT_STR:
-			r = input_get_str(&input_sc);
+			r = input_get_str(&input_sc, "String: ");
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -214,7 +214,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			free(input_sc);
 			break;
 		case INPUT_DEC:
-			r = input_get_str(&input_sc);
+			r = input_get_str(&input_sc, "Decimal: ");
 			if (r < 0)
 			{
 				error_log("Could not get input.");
@@ -248,7 +248,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			free(input_uc);
 			break;
 		case INPUT_GUESS:
-			r = input_get(&input_uc);
+			r = input_get(&input_uc, "Input: ");
 			if (r < 0)
 			{
 				error_log("Could not get input.");
