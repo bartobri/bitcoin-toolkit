@@ -17,46 +17,86 @@
 #include "input.h"
 #include "error.h"
 
-#define INPUT_INCREMENT 100
-
 int input_get(unsigned char** dest)
 {
-	int input_len;
+	int r, input_len;
+	fd_set input_stream;
+	struct timeval timeout;
 
-	input_len = input_get_from_pipe(dest);
+	FD_ZERO(&input_stream);
+	input_len = 0;
 
-	if (input_len == 0)
+	timeout.tv_sec  = 10;
+	timeout.tv_usec = 0;
+
+	FD_SET(STDIN_FILENO, &input_stream);
+	r = select(FD_SETSIZE, &input_stream, NULL, NULL, &timeout);
+	if (r < 0)
 	{
-		input_len = input_get_from_keyboard(dest);
+		error_log("Error while waiting for input data. Errno: %i", errno);
+		return -1;
 	}
+	if (r > 0)
+	{
+		r = ioctl(STDIN_FILENO, FIONREAD, &input_len);
+		if (r < 0)
+		{
+			error_log("Could not determine length of input. Errno: %i", errno);
+			return -1;
+		}
+		if (input_len > 0)
+		{
+			*dest = malloc(input_len);
+			if (*dest == NULL)
+			{
+				error_log("Memory allocation error.");
+				return -1;
+			}
+			r = read(STDIN_FILENO, *dest, input_len);
+			if (r < 0)
+			{
+				error_log("Input read error. Errno: %i", errno);
+				return -1;
+			}
+		}
+	}
+
+	FD_CLR(STDIN_FILENO, &input_stream);
 
 	return input_len;
 }
 
 int input_get_str(char** dest)
 {
-	int i, input_len;
+	int r, i, input_len;
 	unsigned char *input;
 
-	input_len = input_get(&input);
-
-	if (input_len > 0)
+	r = input_get(&input);
+	if (r < 0)
 	{
-		if (input[input_len - 1] == '\n')
+		error_log("Could not get input.");
+		return -1;
+	}
+
+	if (r > 0)
+	{
+		if (input[r - 1] == '\n')
 		{
-			--input_len;
-			if (input_len > 0 && input[input_len - 1] == '\r')
+			--r;
+			if (r > 0 && input[r - 1] == '\r')
 			{
-				--input_len;
+				--r;
 			}
 		}
 	}
 
-	if (input_len == 0)
+	if (r == 0)
 	{
 		error_log("No input provided.");
 		return -1;
 	}
+
+	input_len = r;
 
 	*dest = malloc(input_len + 1);
 	if (*dest == NULL)
@@ -85,91 +125,22 @@ int input_get_str(char** dest)
 	return input_len;
 }
 
-int input_get_from_keyboard(unsigned char** dest)
+int input_get_from_pipe(unsigned char** dest)
 {
-	int i, o, s;
+	int r;
 
-	s = INPUT_INCREMENT;
-
-	*dest = malloc(s);
-	if (*dest == NULL)
+	if (isatty(STDIN_FILENO))
 	{
-		error_log("Memory allocation error.");
+		error_log("Input data from a piped or redirected source is required.");
 		return -1;
 	}
 
-	for (i = 0; (o = getchar()) != EOF; ++i)
+	r = input_get(dest);
+	if (r < 0)
 	{
-		if (i == s)
-		{
-			s += INPUT_INCREMENT;
-			*dest = realloc(*dest, s);
-			if (*dest == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-		}
-		
-		(*dest)[i] = (unsigned char)o;
-
-		if (o == '\n')
-		{
-			break;
-		}
+		error_log("Could not get input.");
+		return -1;
 	}
 
-	return i;
-}
-
-int input_get_from_pipe(unsigned char** dest)
-{
-	int r, input_len;
-	fd_set input_stream;
-	struct timeval timeout;
-
-	FD_ZERO(&input_stream);
-	input_len = 0;
-
-	timeout.tv_sec  = 10;
-	timeout.tv_usec = 0;
-
-	if (!isatty(STDIN_FILENO))
-	{
-		FD_SET(STDIN_FILENO, &input_stream);
-		r = select(FD_SETSIZE, &input_stream, NULL, NULL, &timeout);
-		if (r < 0)
-		{
-			error_log("Error while waiting for data. Errno: %i", errno);
-			return -1;
-		}
-		if (r > 0)
-		{
-			r = ioctl(STDIN_FILENO, FIONREAD, &input_len);
-			if (r < 0)
-			{
-				error_log("Could not get input length. Errno: %i", errno);
-				return -1;
-			}
-			if (input_len > 0)
-			{
-				*dest = malloc(input_len);
-				if (*dest == NULL)
-				{
-					error_log("Memory allocation error.");
-					return -1;
-				}
-				r = read(STDIN_FILENO, *dest, input_len);
-				if (r < 0)
-				{
-					error_log("Input read error. Errno: %i", errno);
-					return -1;
-				}
-			}
-		}
-	}
-
-	FD_CLR(STDIN_FILENO, &input_stream);
-
-	return input_len;
+	return r;
 }
