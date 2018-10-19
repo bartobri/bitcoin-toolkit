@@ -36,8 +36,9 @@
 #define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
 #define FALSE                   0
-
 #define OUTPUT_BUFFER           150
+
+#define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Only specify one input flag."); return -1; }
 
 int btk_pubkey_main(int argc, char *argv[])
 {
@@ -51,7 +52,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
 
-	int input_format       = INPUT_GUESS;
+	int input_format       = FALSE;
 	int output_format      = OUTPUT_ADDRESS;
 	int output_compression = FALSE;
 	int output_privkey     = FALSE;
@@ -64,22 +65,22 @@ int btk_pubkey_main(int argc, char *argv[])
 		{
 			// Input format
 			case 'w':
-				input_format = INPUT_WIF;
+				INPUT_SET(INPUT_WIF)
 				break;
 			case 'h':
-				input_format = INPUT_HEX;
+				INPUT_SET(INPUT_HEX);
 				break;
 			case 'r':
-				input_format = INPUT_RAW;
+				INPUT_SET(INPUT_RAW);
 				break;
 			case 's':
-				input_format = INPUT_STR;
+				INPUT_SET(INPUT_STR);
 				break;
 			case 'd':
-				input_format = INPUT_DEC;
+				INPUT_SET(INPUT_DEC);
 				break;
 			case 'b':
-				input_format = INPUT_BLOB;
+				INPUT_SET(INPUT_BLOB);
 				break;
 
 			// Output format
@@ -129,6 +130,11 @@ int btk_pubkey_main(int argc, char *argv[])
 				}
 				return -1;
 		}
+	}
+
+	if (input_format == FALSE)
+	{
+		input_format = INPUT_GUESS;
 	}
 
 	if (output_testnet)
