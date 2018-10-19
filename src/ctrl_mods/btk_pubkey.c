@@ -40,6 +40,7 @@
 
 #define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Only specify one input flag."); return -1; }
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
+#define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
 
 int btk_pubkey_main(int argc, char *argv[])
 {
@@ -100,10 +101,10 @@ int btk_pubkey_main(int argc, char *argv[])
 
 				// Output Compression
 			case 'C':
-				output_compression = OUTPUT_COMPRESS;
+				COMPRESSION_SET(OUTPUT_COMPRESS);
 				break;
 			case 'U':
-				output_compression = OUTPUT_UNCOMPRESS;
+				COMPRESSION_SET(OUTPUT_UNCOMPRESS);
 				break;
 
 			// Other options
