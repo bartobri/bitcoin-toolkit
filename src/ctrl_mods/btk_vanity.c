@@ -29,8 +29,9 @@
 #define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
 #define FALSE                   0
-
 #define OUTPUT_BUFFER           150
+
+#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
 
 int btk_vanity_main(int argc, char *argv[])
 {
@@ -45,7 +46,7 @@ int btk_vanity_main(int argc, char *argv[])
 	char privkey_str[OUTPUT_BUFFER];
 
 	int input_insensitive  = FALSE;
-	int output_format      = OUTPUT_ADDRESS;
+	int output_format      = FALSE;
 	int output_compression = FALSE;
 	int output_testnet     = FALSE;
 	
@@ -61,10 +62,10 @@ int btk_vanity_main(int argc, char *argv[])
 
 			// Output format
 			case 'A':
-				output_format = OUTPUT_ADDRESS;
+				OUTPUT_SET(OUTPUT_ADDRESS);
 				break;
 			case 'B':
-				output_format = OUTPUT_BECH32_ADDRESS;
+				OUTPUT_SET(OUTPUT_BECH32_ADDRESS);
 				break;
 
 				// Output Compression
@@ -92,6 +93,11 @@ int btk_vanity_main(int argc, char *argv[])
 				}
 				return -1;
 		}
+	}
+
+	if (output_format == FALSE)
+	{
+		output_format = OUTPUT_ADDRESS;
 	}
 
 	r = input_get_str(&input, "Enter Vanity String: ");
