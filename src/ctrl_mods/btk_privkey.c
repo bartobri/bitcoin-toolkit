@@ -36,8 +36,9 @@
 #define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
 #define FALSE                   0
-
 #define OUTPUT_BUFFER           150
+
+#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
 
 int btk_privkey_main(int argc, char *argv[])
 {
@@ -51,7 +52,7 @@ int btk_privkey_main(int argc, char *argv[])
 	unsigned char uc_output[OUTPUT_BUFFER];
 	
 	int input_format       = INPUT_GUESS;
-	int output_format      = OUTPUT_WIF;
+	int output_format      = FALSE;
 	int output_compression = FALSE;
 	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
@@ -85,13 +86,13 @@ int btk_privkey_main(int argc, char *argv[])
 
 			// Output format
 			case 'W':
-				output_format = OUTPUT_WIF;
+				OUTPUT_SET(OUTPUT_WIF);
 				break;
 			case 'H':
-				output_format = OUTPUT_HEX;
+				OUTPUT_SET(OUTPUT_HEX);
 				break;
 			case 'R':
-				output_format = OUTPUT_RAW;
+				OUTPUT_SET(OUTPUT_RAW);
 				break;
 			
 			// Output Compression
@@ -124,6 +125,11 @@ int btk_privkey_main(int argc, char *argv[])
 				}
 				return -1;
 		}
+	}
+
+	if (output_format == FALSE)
+	{
+		output_format = OUTPUT_WIF;
 	}
 
 	if (output_testnet)
