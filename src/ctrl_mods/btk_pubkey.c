@@ -39,6 +39,7 @@
 #define OUTPUT_BUFFER           150
 
 #define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Only specify one input flag."); return -1; }
+#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
 
 int btk_pubkey_main(int argc, char *argv[])
 {
@@ -53,7 +54,7 @@ int btk_pubkey_main(int argc, char *argv[])
 	unsigned char uc_output[OUTPUT_BUFFER];
 
 	int input_format       = FALSE;
-	int output_format      = OUTPUT_ADDRESS;
+	int output_format      = FALSE;
 	int output_compression = FALSE;
 	int output_privkey     = FALSE;
 	int output_newline     = TRUE;
@@ -85,16 +86,16 @@ int btk_pubkey_main(int argc, char *argv[])
 
 			// Output format
 			case 'A':
-				output_format = OUTPUT_ADDRESS;
+				OUTPUT_SET(OUTPUT_ADDRESS);
 				break;
 			case 'B':
-				output_format = OUTPUT_BECH32_ADDRESS;
+				OUTPUT_SET(OUTPUT_BECH32_ADDRESS);
 				break;
 			case 'H':
-				output_format = OUTPUT_HEX;
+				OUTPUT_SET(OUTPUT_HEX);
 				break;
 			case 'R':
-				output_format = OUTPUT_RAW;
+				OUTPUT_SET(OUTPUT_RAW);
 				break;
 
 				// Output Compression
@@ -135,6 +136,11 @@ int btk_pubkey_main(int argc, char *argv[])
 	if (input_format == FALSE)
 	{
 		input_format = INPUT_GUESS;
+	}
+
+	if (output_format == FALSE)
+	{
+		output_format = OUTPUT_ADDRESS;
 	}
 
 	if (output_testnet)
