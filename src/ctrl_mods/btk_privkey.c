@@ -99,10 +99,10 @@ int btk_privkey_main(int argc, char *argv[])
 			
 			// Output Compression
 			case 'C':
-				COMPRESSION_SET(OUTPUT_COMPRESS)
+				COMPRESSION_SET(OUTPUT_COMPRESS);
 				break;
 			case 'U':
-				COMPRESSION_SET(OUTPUT_UNCOMPRESS)
+				COMPRESSION_SET(OUTPUT_UNCOMPRESS);
 				break;
 
 			// Other options
