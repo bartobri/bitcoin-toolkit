@@ -94,7 +94,7 @@ int btk_vanity_main(int argc, char *argv[])
 		}
 	}
 
-	r = input_get_str(&input);
+	r = input_get_str(&input, "Enter Vanity String: ");
 	if (r < 0)
 	{
 		error_log("Could not get input.");
