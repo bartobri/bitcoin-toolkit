@@ -29,7 +29,7 @@ int btk_node_main(int argc, char *argv[])
 	unsigned char *payload = NULL;
 	size_t payload_len;
 
-	Version v = NULL;
+	Version version = NULL;
 	unsigned char *version_string;
 	size_t version_string_len;
 	char *json = NULL;
@@ -215,14 +215,14 @@ int btk_node_main(int argc, char *argv[])
 
 			payload_len = message_get_payload(payload, message);
 			
-			v = malloc(version_sizeof());
-			if (v == NULL)
+			version = malloc(version_sizeof());
+			if (version == NULL)
 			{
 				error_log("Memory allocation error.");
 				return -1;
 			}
 
-			r = version_deserialize(v, payload, payload_len);
+			r = version_deserialize(version, payload, payload_len);
 			if (r < 0)
 			{
 				error_log("Could not deserialize host response.");
@@ -236,11 +236,11 @@ int btk_node_main(int argc, char *argv[])
 				return -1;
 			}
 
-			version_to_json(json, v);
+			version_to_json(json, version);
 
 			printf("%s\n", json);
 
-			free(v);
+			free(version);
 			free(message);
 			free(payload);
 			free(json);
