@@ -202,8 +202,8 @@ int btk_node_main(int argc, char *argv[])
 			
 			if (message == NULL)
 			{
-				error_log("Did not receive response from host before timeout.");
-				return -1;
+				printf("Did not receive response from host before timeout.\n");
+				return 1;
 			}
 			
 			payload = malloc(message_get_payload_len(message));
