@@ -24,30 +24,12 @@ COM_OBJS = $(OBJ)/$(MODS)/commands/verack.o $(OBJ)/$(MODS)/commands/version.o
 
 .PHONY: all install uninstall clean
 
-#EXES = test asciiaddress btcaddress
 EXES = btk
 
 all: $(EXES)
 
 btk: $(CTRL_OBJS) $(MOD_OBJS) $(COM_OBJS) $(OBJ)/btk.o | $(BIN)
 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-
-# test: $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/test.o | $(BIN)
-# 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-# nodetest: $(OBJ)/$(MODS)/commands/verack.o $(OBJ)/$(MODS)/commands/version.o $(OBJ)/$(MODS)/message.o $(OBJ)/$(MODS)/serialize.o $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/hex.o  $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/nodetest.o | $(BIN)
-#	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-# asciiaddress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/asciiaddress.o | $(BIN)
-# 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-# btcaddress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/btcaddress.o | $(BIN)
-# 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
-# uladdress: $(OBJ)/$(MODS)/mem.o $(OBJ)/$(MODS)/assert.o $(OBJ)/$(MODS)/except.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/script.o $(OBJ)/uladdress.o | $(BIN)
-# 	$(CC) $(CFLAGS) -o $(BIN)/$@ $^ $(CLIBS)
-
 
 $(OBJ)/$(CTRL)/%.o: $(SRC)/$(CTRL)/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
