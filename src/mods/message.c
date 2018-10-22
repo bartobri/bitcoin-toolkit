@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017 Brian Barto
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GPL License. See LICENSE for more details.
+ */
+
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
