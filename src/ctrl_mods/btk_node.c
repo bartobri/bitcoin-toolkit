@@ -9,13 +9,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "mods/network.h"
 #include "mods/node.h"
 #include "mods/message.h"
 #include "mods/error.h"
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
 
-#define HOST_PORT            8333
+#define HOST_PORT_MAIN       8333
+#define HOST_PORT_TEST       18333
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
@@ -23,7 +25,7 @@ int btk_node_main(int argc, char *argv[])
 {
 	int o, i, r;
 	char* host = NULL;
-	int port = HOST_PORT;
+	int port = HOST_PORT_MAIN;
 	int message_type = MESSAGE_TYPE_VERSION;
 
 	Node node;
@@ -42,7 +44,7 @@ int btk_node_main(int argc, char *argv[])
 	char *json = NULL;
 
 
-	while ((o = getopt(argc, argv, "h:p:")) != -1)
+	while ((o = getopt(argc, argv, "h:p:T")) != -1)
 	{
 		switch (o)
 		{
@@ -51,6 +53,10 @@ int btk_node_main(int argc, char *argv[])
 				break;
 			case 'p':
 				port = atoi(optarg);
+				break;
+			case 'T':
+				port = HOST_PORT_TEST;
+				network_set_test();
 				break;
 			case '?':
 				if (isprint(optopt))

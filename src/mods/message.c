@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include "crypto.h"
+#include "network.h"
 #include "message.h"
 #include "serialize.h"
 #include "error.h"
@@ -50,7 +51,15 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 		return -1;
 	}
 
-	m->magic = MESSAGE_MAINNET;
+	if (network_is_main())
+	{
+		m->magic = MESSAGE_MAINNET;
+	}
+	else
+	{
+		m->magic = MESSAGE_TESTNET;
+	}
+
 	strncpy(m->command, command, MESSAGE_COMMAND_MAXLEN);
 	m->length = payload_len;
 	if (payload_len)

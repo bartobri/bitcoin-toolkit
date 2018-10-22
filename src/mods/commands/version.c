@@ -15,6 +15,7 @@
 #include <assert.h>
 #include "version.h"
 #include "mods/config.h"
+#include "mods/network.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
 #include "mods/error.h"
@@ -28,7 +29,8 @@
 #define VERSION     70015
 #define SERVICES    0x00
 #define IP_ADDRESS  "00000000000000000000ffff7f000001"
-#define PORT        8333
+#define PORT_MAIN   8333
+#define PORT_TEST   18333
 #define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
 
 struct Version
@@ -77,7 +79,15 @@ int version_new(Version v)
 		return -1;
 	}
 	
-	v->addr_recv_port = PORT;
+	if (network_is_main())
+	{
+		v->addr_recv_port = PORT_MAIN;
+	}
+	else
+	{
+		v->addr_recv_port = PORT_TEST;
+	}
+
 	v->addr_trans_services = SERVICES;
 	
 	r = hex_str_to_raw(v->addr_trans_ip_address, IP_ADDRESS);
@@ -87,7 +97,15 @@ int version_new(Version v)
 		return -1;
 	}
 	
-	v->addr_trans_port = PORT;
+	if (network_is_main())
+	{
+		v->addr_trans_port = PORT_MAIN;
+	}
+	else
+	{
+		v->addr_trans_port = PORT_TEST;
+	}
+
 	v->nonce = 0x00;
 	v->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
 	
