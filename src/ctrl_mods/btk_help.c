@@ -14,28 +14,24 @@
 
 int btk_help_main(int argc, char *argv[])
 {
-	if (argc <= 1)
+	if (argc <= 2)
 	{
 		btk_help_help();
 		return -1;
 	}
 
-	if (strcmp(argv[1], "help") == 0)
-	{
-		btk_help_help();
-	}
-	else if (strcmp(argv[1], "privkey") == 0)
+	if (strcmp(argv[2], "privkey") == 0)
 	{
 		fprintf(stderr, "privkey man page here\n");
 	}
-	else if (strcmp(argv[1], "pubkey") == 0)
+	else if (strcmp(argv[2], "pubkey") == 0)
 	{
 		fprintf(stderr, "pubkey man page here\n");
 	}
 	else
 	{
-		error_log("Unknown Command: %s", argv[1]);
-		error_log("Run 'btk help' for a list of valid commands.");
+		error_log("See 'btk help' to read about available commands.");
+		error_log("Invalid command.");
 		return -1;
 	}
 	
