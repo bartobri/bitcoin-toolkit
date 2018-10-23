@@ -34,6 +34,7 @@ struct PubKey
 
 int pubkey_get(PubKey pubkey, PrivKey privkey)
 {
+	int r;
 	size_t i, l;
 	char *privkey_hex;
 	mpz_t bignum;
@@ -57,7 +58,12 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		return -1;
 	}
 	mpz_init(bignum);
-	privkey_to_hex(privkey_hex, privkey);
+	r = privkey_to_hex(privkey_hex, privkey);
+	if (r < 0)
+	{
+		error_log("Could not convert private key to hex string.");
+		return -1;
+	}
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(bignum, privkey_hex, 16);
 	free(privkey_hex);
