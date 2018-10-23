@@ -316,7 +316,9 @@ int pubkey_to_address(char *address, PubKey key)
 int pubkey_to_bech32address(char *address, PubKey key)
 {
 	int r;
-	unsigned char *sha, *rmd;
+	//unsigned char *sha, *rmd;
+	unsigned char sha[32];
+	unsigned char rmd[20];
 
 	assert(address);
 	assert(key);
@@ -328,22 +330,10 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	}
 
 	// RMD(SHA(data))
-	sha = malloc(32);
-	if (sha == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 	r = crypto_get_sha256(sha, key->data, PUBKEY_COMPRESSED_LENGTH + 1);
 	if (r < 0)
 	{
 		error_log("Could not generate SHA256 hash from public key data.");
-		return -1;
-	}
-	rmd = malloc(20);
-	if (rmd == NULL)
-	{
-		error_log("Memory allocation error.");
 		return -1;
 	}
 	r = crypto_get_rmd160(rmd, sha, 32);
@@ -359,10 +349,6 @@ int pubkey_to_bech32address(char *address, PubKey key)
 		error_log("Could not generate bech32 address from public key data.");
 		return -1;
 	}
-	
-	// Free resources
-	free(sha);
-	free(rmd);
 
 	return 1;
 }
