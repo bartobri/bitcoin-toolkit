@@ -36,7 +36,7 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 {
 	int r;
 	size_t i, l;
-	char *privkey_hex;
+	char privkey_hex[((PRIVKEY_LENGTH + 1) * 2) + 1];
 	mpz_t bignum;
 	Point point;
 	Point points[PUBKEY_POINTS];
@@ -50,14 +50,9 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		return -1;
 	}
 
-	// Load private key from hex string, truncating the compression flag.
-	privkey_hex = malloc(((PRIVKEY_LENGTH + 1) * 2) + 1);
-	if (privkey_hex == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 	mpz_init(bignum);
+
+	// Load private key from hex string, truncating the compression flag.
 	r = privkey_to_hex(privkey_hex, privkey);
 	if (r < 0)
 	{
@@ -66,7 +61,6 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	}
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(bignum, privkey_hex, 16);
-	free(privkey_hex);
 	
 	// Initalize the points
 	point = malloc(sizeof(*point));
