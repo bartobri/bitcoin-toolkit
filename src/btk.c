@@ -25,12 +25,6 @@ int main(int argc, char *argv[])
 
 	r = 0;
 
-	if (argc <= 1)
-	{
-		btk_help_help();
-		return EXIT_FAILURE;
-	}
-
 	// Assembling the original command for logging purposes before we
 	// pass the args to the control modules.
 	memset(command, 0, MAX_COMMAND_LEN);
@@ -41,6 +35,15 @@ int main(int argc, char *argv[])
 			strncat(command, " ", MAX_COMMAND_LEN - 1 - strlen(command));
 		}
 		strncat(command, argv[i], MAX_COMMAND_LEN - 1 - strlen(command));
+	}
+
+	if (argc <= 1)
+	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("Missing command.");
+		error_log("Error [%s]:", command);
+		error_print();
+		return EXIT_FAILURE;
 	}
 	
 	if (strcmp(argv[1], "help") == 0)
@@ -69,10 +72,10 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("Invalid command.");
 		error_log("Error [%s]:", command);
-		error_log("Invalid Command: %s\n", argv[1]);
 		error_print();
-		btk_help_help();
 		return EXIT_FAILURE;
 	}
 
