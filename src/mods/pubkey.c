@@ -257,7 +257,8 @@ int pubkey_to_address(char *address, PubKey key)
 {
 	int r;
 	size_t len;
-	unsigned char *sha, *rmd;
+	unsigned char sha[32];
+	unsigned char rmd[20];
 	unsigned char rmd_bit[21];
 	char base58[21 * 2];
 
@@ -274,22 +275,10 @@ int pubkey_to_address(char *address, PubKey key)
 	}
 
 	// RMD(SHA(data))
-	sha = malloc(32);
-	if (sha == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 	r = crypto_get_sha256(sha, key->data, len);
 	if (r < 0)
 	{
 		error_log("Could not generate SHA256 hash from public key data.");
-		return -1;
-	}
-	rmd = malloc(20);
-	if (rmd == NULL)
-	{
-		error_log("Memory allocation error.");
 		return -1;
 	}
 	r = crypto_get_rmd160(rmd, sha, 32);
@@ -311,10 +300,6 @@ int pubkey_to_address(char *address, PubKey key)
 	
 	// Append rmd data
 	memcpy(rmd_bit + 1, rmd, 20);
-	
-	// Free resources
-	free(sha);
-	free(rmd);
 	
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
