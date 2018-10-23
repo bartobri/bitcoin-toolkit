@@ -151,13 +151,21 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 		}
 	}
 
-	// Clear all points
+	// Clear all mpz data
 	mpz_clear(bignum);
+	point_clear(point);
 	for (i = 0; i < PUBKEY_POINTS; ++i)
 	{
 		point_clear(points[i]);
 	}
-	
+
+	// Free all points
+	free(point);
+	for (i = 0; i < PUBKEY_POINTS; ++i)
+	{
+		free(points[i]);
+	}
+
 	return 1;
 }
 
