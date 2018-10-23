@@ -272,12 +272,6 @@ int btk_vanity_main(int argc, char *argv[])
 			return -1;
 		}
 
-		r = privkey_to_wif(privkey_str, priv);
-		if (r < 0)
-		{
-			error_log("Could not convert private key to WIF format.");
-			return -1;
-		}
 		if (output_format == OUTPUT_ADDRESS)
 		{
 			r = pubkey_to_address(pubkey_str, key);
@@ -325,12 +319,24 @@ int btk_vanity_main(int argc, char *argv[])
 					}
 					if (k == input_len)
 					{
+						r = privkey_to_wif(privkey_str, priv);
+						if (r < 0)
+						{
+							error_log("Could not convert private key to WIF format.");
+							return -1;
+						}
 						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 						return 1;
 					}
 				}
 				else
 				{
+					r = privkey_to_wif(privkey_str, priv);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to WIF format.");
+						return -1;
+					}
 					if (strncmp(input, pubkey_str + 1, input_len) == 0)
 					{
 						printf("\nVanity Address Found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
@@ -347,6 +353,12 @@ int btk_vanity_main(int argc, char *argv[])
 
 				if (strncmp(input, pubkey_str + 4, input_len) == 0)
 				{
+					r = privkey_to_wif(privkey_str, priv);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to WIF format.");
+						return -1;
+					}
 					printf("\nVanity address found!\nPrivate Key: %s\nAddress:     %s\n", privkey_str, pubkey_str);
 					return 1;
 				}
