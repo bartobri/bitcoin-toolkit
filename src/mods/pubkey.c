@@ -316,7 +316,6 @@ int pubkey_to_address(char *address, PubKey key)
 int pubkey_to_bech32address(char *address, PubKey key)
 {
 	int r;
-	//unsigned char *sha, *rmd;
 	unsigned char sha[32];
 	unsigned char rmd[20];
 
