@@ -114,6 +114,8 @@ int privkey_to_dec(char *str, PrivKey key)
 
 	mpz_init(d);
 
+	privkey_uncompress(key);
+
 	r = privkey_to_hex(privkey_hex, key);
 	if (r < 0)
 	{
