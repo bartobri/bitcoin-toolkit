@@ -106,6 +106,28 @@ int privkey_to_raw(unsigned char *raw, PrivKey key)
 	return len;
 }
 
+int privkey_to_dec(char *str, PrivKey key)
+{
+	int r;
+	char privkey_hex[(PRIVKEY_LENGTH * 2) + 1];
+	mpz_t d;
+
+	mpz_init(d);
+
+	r = privkey_to_hex(privkey_hex, key);
+	if (r < 0)
+	{
+		error_log("Could not convert private key to hex string.");
+		return -1;
+	}
+	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
+	mpz_set_str(d, privkey_hex, 16);
+
+	gmp_sprintf(str, "%Zd", d);
+
+	return 1;
+}
+
 int privkey_to_wif(char *str, PrivKey key)
 {
 	int r, len;

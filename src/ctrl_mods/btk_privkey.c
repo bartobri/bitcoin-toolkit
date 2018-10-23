@@ -32,6 +32,7 @@
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
+#define OUTPUT_DEC              4
 #define OUTPUT_COMPRESS         1
 #define OUTPUT_UNCOMPRESS       2
 #define TRUE                    1
@@ -59,7 +60,7 @@ int btk_privkey_main(int argc, char *argv[])
 	int output_newline     = TRUE;
 	int output_testnet     = FALSE;
 	
-	while ((o = getopt(argc, argv, "nwhrsdbWHRCUNT")) != -1)
+	while ((o = getopt(argc, argv, "nwhrsdbWHRCUNTD")) != -1)
 	{
 		switch (o)
 		{
@@ -95,6 +96,9 @@ int btk_privkey_main(int argc, char *argv[])
 				break;
 			case 'R':
 				OUTPUT_SET(OUTPUT_RAW);
+				break;
+			case 'D':
+				OUTPUT_SET(OUTPUT_DEC);
 				break;
 			
 			// Output Compression
@@ -341,6 +345,15 @@ int btk_privkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
+			break;
+		case OUTPUT_DEC:
+			r = privkey_to_dec(output, key);
+			if (r < 0)
+			{
+				error_log("Could not convert private key to decimal format.");
+				return -1;
+			}
+			printf("%s", output);
 			break;
 	}
 
