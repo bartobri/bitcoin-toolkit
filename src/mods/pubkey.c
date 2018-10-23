@@ -259,7 +259,7 @@ int pubkey_to_address(char *address, PubKey key)
 	size_t len;
 	unsigned char *sha, *rmd;
 	unsigned char rmd_bit[21];
-	char *base58;
+	char base58[21 * 2];
 
 	assert(address);
 	assert(key);
@@ -316,14 +316,6 @@ int pubkey_to_address(char *address, PubKey key)
 	free(sha);
 	free(rmd);
 	
-	// Assume the base58 string will never be longer
-	// than twice the input string
-	base58 = malloc(21 * 2);
-	if (base58 == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
 	r = base58check_encode(base58, rmd_bit, 21);
 	if (r < 0)
 	{
@@ -332,8 +324,6 @@ int pubkey_to_address(char *address, PubKey key)
 	}
 
 	strcpy(address, base58);
-
-	free(base58);
 
 	return 1;
 }
