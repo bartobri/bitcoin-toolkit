@@ -25,7 +25,7 @@ int btk_help_main(int argc, char *argv[])
 	}
 	else if (strcmp(argv[2], "pubkey") == 0)
 	{
-		printf("pubkey help here\n");
+		btk_help_pubkey();
 	}
 	else if (strcmp(argv[2], "node") == 0)
 	{
@@ -87,6 +87,39 @@ void btk_help_privkey(void)
 	printf("\n");
 	printf("Output Misc Options:\n");
 	printf("   -N   Do NOT print a newline character.\n");
+	printf("\n");
+	printf("Network Options:\n");
+	printf("   -T   Format output for TESTNET\n");
+	printf("\n");
+}
+
+void btk_help_pubkey(void)
+{
+	printf("Usage: btk pubkey [OPTION]\n");
+	printf("\n");
+	printf("Description here.\n");
+	printf("\n");
+	printf("Input Options:\n");
+	printf("   -w   Generate a private key from a WIF formatted string.\n");
+	printf("   -h   Generate a private key from a 64 byte hexidecimal string.\n");
+	printf("   -r   Generate a private key from a 32 byte raw binary string.\n");
+	printf("   -s   Generate a private key from an ASCII string processed through a SHA256 hashing algorithm.\n");
+	printf("   -d   Generate a private key from a decimal string.\n");
+	printf("   -b   Generate a private key from arbitrary binary data processed through a SHA256 hashing algorithm.\n");
+	printf("\n");
+	printf("Output Format Options:\n");
+	printf("   -A   Print public key as a traditional bitcoin address string. (default)\n");
+	printf("   -B   Print public key as a bech32-encoded address string.\n");
+	printf("   -H   Print public key as hexidecimal string.\n");
+	printf("   -R   Print public key as raw binary data.\n");
+	printf("\n");
+	printf("Output Compression Options:\n");
+	printf("   -C   Compressed (default).\n");
+	printf("   -U   Unompressed.\n");
+	printf("\n");
+	printf("Output Misc Options:\n");
+	printf("   -N   Do NOT print a newline character.\n");
+	printf("   -P   Include the private key in the output.\n");
 	printf("\n");
 	printf("Network Options:\n");
 	printf("   -T   Format output for TESTNET\n");
