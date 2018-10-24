@@ -13,5 +13,6 @@ int btk_help_main(int argc, char *argv[]);
 void btk_help_commands(void);
 void btk_help_privkey(void);
 void btk_help_pubkey(void);
+void btk_help_vanity(void);
 
 #endif

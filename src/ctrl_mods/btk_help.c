@@ -33,7 +33,7 @@ int btk_help_main(int argc, char *argv[])
 	}
 	else if (strcmp(argv[2], "vanity") == 0)
 	{
-		printf("vanity help here\n");
+		btk_help_vanity();
 	}
 	else
 	{
@@ -120,6 +120,28 @@ void btk_help_pubkey(void)
 	printf("Output Misc Options:\n");
 	printf("   -N   Do NOT print a newline character.\n");
 	printf("   -P   Include the private key in the output.\n");
+	printf("\n");
+	printf("Network Options:\n");
+	printf("   -T   Format output for TESTNET\n");
+	printf("\n");
+}
+
+void btk_help_vanity(void)
+{
+	printf("Usage: btk vanity [OPTION]\n");
+	printf("\n");
+	printf("Description here.\n");
+	printf("\n");
+	printf("Match Options:\n");
+	printf("   -i   Case insensitive match.\n");
+	printf("\n");
+	printf("Format Options:\n");
+	printf("   -A   Traditional bitcoin address. (default)\n");
+	printf("   -B   Bech32 address string.\n");
+	printf("\n");
+	printf("Compression Options:\n");
+	printf("   -C   Compressed (default).\n");
+	printf("   -U   Unompressed.\n");
 	printf("\n");
 	printf("Network Options:\n");
 	printf("   -T   Format output for TESTNET\n");
