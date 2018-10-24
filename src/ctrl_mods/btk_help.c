@@ -21,7 +21,7 @@ int btk_help_main(int argc, char *argv[])
 
 	if (strcmp(argv[2], "privkey") == 0)
 	{
-		printf("privkey help here\n");
+		btk_help_privkey();
 	}
 	else if (strcmp(argv[2], "pubkey") == 0)
 	{
@@ -47,7 +47,7 @@ int btk_help_main(int argc, char *argv[])
 
 void btk_help_commands(void)
 {
-	printf("usage: btk <command> [<args>]\n");
+	printf("usage: btk <command> [OPTION]\n");
 	printf("\n");
 	printf("Here is a list of btk commands.\n");
 	printf("\n");
@@ -58,4 +58,37 @@ void btk_help_commands(void)
 	printf("   version      Print btk version.\n");
 	printf("\n");
 	printf("See 'btk help <command>' to read more about a specific command.\n");
+}
+
+void btk_help_privkey(void)
+{
+	printf("Usage: btk privkey [OPTION]\n");
+	printf("\n");
+	printf("Description here.\n");
+	printf("\n");
+	printf("Input Options:\n");
+	printf("   -n   Generate a new private key from your local CSPRNG source.\n");
+	printf("   -w   Generate a private key from a WIF formatted string.\n");
+	printf("   -h   Generate a private key from a 64 byte hexidecimal string.\n");
+	printf("   -r   Generate a private key from a 32 byte raw binary string.\n");
+	printf("   -s   Generate a private key from an ASCII string processed through a SHA256 hashing algorithm.\n");
+	printf("   -d   Generate a private key from a decimal string.\n");
+	printf("   -b   Generate a private key from arbitrary binary data processed through a SHA256 hashing algorithm.\n");
+	printf("\n");
+	printf("Output Format Options:\n");
+	printf("   -W   Print private key as a WIF formmated string.\n");
+	printf("   -H   Print private key as a 64-65 byte hexidecimal string.\n");
+	printf("   -R   Print private key as 32 bytes of raw binary data.\n");
+	printf("   -D   Print private key as a (very large) decimal.\n");
+	printf("\n");
+	printf("Output Compression Options:\n");
+	printf("   -C   Compressed (default).\n");
+	printf("   -U   Unompressed.\n");
+	printf("\n");
+	printf("Output Misc Options:\n");
+	printf("   -N   Do NOT print a newline character.\n");
+	printf("\n");
+	printf("Network Options:\n");
+	printf("   -T   Format output for TESTNET\n");
+	printf("\n");
 }

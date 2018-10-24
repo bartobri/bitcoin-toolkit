@@ -11,5 +11,6 @@
 // Function prototypes
 int btk_help_main(int argc, char *argv[]);
 void btk_help_commands(void);
+void btk_help_privkey(void);
 
 #endif
