@@ -15,7 +15,7 @@ int btk_help_main(int argc, char *argv[])
 {
 	if (argc <= 2)
 	{
-		btk_help_help();
+		btk_help_commands();
 		return 1;
 	}
 
@@ -45,7 +45,7 @@ int btk_help_main(int argc, char *argv[])
 	return 1;
 }
 
-void btk_help_help(void)
+void btk_help_commands(void)
 {
 	printf("usage: btk <command> [<args>]\n");
 	printf("\n");
