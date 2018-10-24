@@ -43,7 +43,6 @@ int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_le
 {
 	size_t i, j, k;
 	int r;
-	unsigned char *output_head = output;
 
 	assert(output);
 	assert(data);
@@ -64,7 +63,6 @@ int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_le
 		}
 	}
 	r = ++k / 5;
-	output = output_head;
 
 	return r;
 }
