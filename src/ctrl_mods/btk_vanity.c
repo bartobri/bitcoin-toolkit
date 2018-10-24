@@ -84,13 +84,14 @@ int btk_vanity_main(int argc, char *argv[])
 
 			// Unknown option
 			case '?':
+				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
 				if (isprint(optopt))
 				{
-					error_log("Unknown option '-%c'.\n", optopt);
+					error_log("Invalid command option '-%c'.", optopt);
 				}
 				else
 				{
-					error_log ("Unknown option character '\\x%x'.\n", optopt);
+					error_log ("Invalid command option character '\\x%x'.", optopt);
 				}
 				return -1;
 		}
