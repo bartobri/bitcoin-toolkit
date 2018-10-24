@@ -29,7 +29,7 @@ int btk_help_main(int argc, char *argv[])
 	}
 	else if (strcmp(argv[2], "node") == 0)
 	{
-		printf("node help here\n");
+		btk_help_node();
 	}
 	else if (strcmp(argv[2], "vanity") == 0)
 	{
@@ -145,5 +145,18 @@ void btk_help_vanity(void)
 	printf("\n");
 	printf("Network Options:\n");
 	printf("   -T   Format output for TESTNET\n");
+	printf("\n");
+}
+
+void btk_help_node(void)
+{
+	printf("Usage: btk node [OPTION]\n");
+	printf("\n");
+	printf("Description here.\n");
+	printf("\n");
+	printf("Options:\n");
+	printf("   -h   Hostname\n");
+	printf("   -p   Port\n");
+	printf("   -T   Use TESTNET\n");
 	printf("\n");
 }
