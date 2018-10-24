@@ -59,13 +59,14 @@ int btk_node_main(int argc, char *argv[])
 				network_set_test();
 				break;
 			case '?':
+				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
 				if (isprint(optopt))
 				{
-					error_log("Unknown option '-%c'.", optopt);
+					error_log("Invalid command option '-%c'.", optopt);
 				}
 				else
 				{
-					error_log("Unknown option character '\\x%x'.", optopt);
+					error_log("Invalid command option character '\\x%x'.", optopt);
 				}
 				return -1;
 		}
@@ -73,7 +74,8 @@ int btk_node_main(int argc, char *argv[])
 
 	if (host == NULL)
 	{
-		error_log("Missing argument. Specify a hostname with the -h option.");
+		error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+		error_log("Missing host argument.");
 		return -1;
 	}
 
