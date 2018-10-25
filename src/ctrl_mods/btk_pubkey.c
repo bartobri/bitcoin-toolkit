@@ -145,11 +145,6 @@ int btk_pubkey_main(int argc, char *argv[])
 		output_format = OUTPUT_ADDRESS;
 	}
 
-	if (output_testnet)
-	{
-		network_set_test();
-	}
-
 	priv = malloc(privkey_sizeof());
 	if (priv == NULL)
 	{
@@ -316,6 +311,11 @@ int btk_pubkey_main(int argc, char *argv[])
 	{
 		error_log("Could not calculate public key.");
 		return -1;
+	}
+
+	if (output_testnet)
+	{
+		network_set_test();
 	}
 
 	memset(output, 0, OUTPUT_BUFFER);

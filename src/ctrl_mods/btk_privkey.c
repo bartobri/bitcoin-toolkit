@@ -143,11 +143,6 @@ int btk_privkey_main(int argc, char *argv[])
 	{
 		output_format = OUTPUT_WIF;
 	}
-
-	if (output_testnet)
-	{
-		network_set_test();
-	}
 	
 	key = malloc(privkey_sizeof());
 	if (key == NULL)
@@ -309,6 +304,11 @@ int btk_privkey_main(int argc, char *argv[])
 		case OUTPUT_UNCOMPRESS:
 			privkey_uncompress(key);
 			break;
+	}
+
+	if (output_testnet)
+	{
+		network_set_test();
 	}
 
 	memset(output, 0, OUTPUT_BUFFER);
