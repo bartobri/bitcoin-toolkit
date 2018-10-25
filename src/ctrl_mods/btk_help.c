@@ -113,9 +113,9 @@ void btk_help_privkey(void)
 	printf("   strings contain a compression flag), in which case it will match the input\n");
 	printf("   setting.\n");
 	printf("\n");
-	printf("Output Misc Options:\n");
-	printf("   -N   Do NOT print a newline character.\n");
-	printf("   -T   Format output for TESTNET\n");
+	printf("OTHER OPTIONS\n");
+	printf("   -N         Do NOT print a (N)ewline character at the end of the output.\n");
+	printf("   -T         Format output for (T)ESTNET\n");
 	printf("\n");
 }
 
