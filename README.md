@@ -47,8 +47,3 @@ License
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License. See [LICENSE](LICENSE) for
 more details.
-
-Tips
-----
-
-[Tips are always appreciated!](https://github.com/bartobri/tips)
