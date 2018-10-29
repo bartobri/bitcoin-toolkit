@@ -245,11 +245,24 @@ void btk_help_node(void)
 {
 	printf("Usage: btk node [OPTION]\n");
 	printf("\n");
-	printf("Description here.\n");
+	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("Options:\n");
-	printf("   -h   Hostname\n");
-	printf("   -p   Port\n");
+	printf("   At the moment of this writing the node command performs a single function.\n");
+	printf("   It connects to a remote bitcoin node and dumps the version message\n");
+	printf("   information in a json formatted string. Aside from showing the node's\n");
+	printf("   protocol version, a version message also contains information about\n");
+	printf("   services supported by the node, the current block height of the node,\n");
+	printf("   the user agent string, and more. The node command supports both mainnet\n");
+	printf("   and testnet.\n");
+	printf("\n");
+	printf("OPTIONS\n");
+	printf("\n");
+	printf("   -h   Hostname (required)\n");
+	printf("   -p   Port (optional)\n");
 	printf("   -T   Use TESTNET\n");
+	printf("\n");
+	printf("EXAMPLE\n");
+	printf("\n");
+	printf("   $ btk node -h seed.btc.petertodd.org\n");
 	printf("\n");
 }
