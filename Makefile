@@ -57,11 +57,8 @@ clean:
 	rm -rf $(OBJ)
 
 install:
-#	install -d $(DESTDIR)$(bindir)
-#	cd $(BIN) && install $(EXES) $(DESTDIR)$(bindir)
-#	install -d $(DESTDIR)$(mandir)/man1
-#	install -m644 man/btk-* $(DESTDIR)$(mandir)/man1
+	install -d $(DESTDIR)$(bindir)
+	cd $(BIN) && install $(EXES) $(DESTDIR)$(bindir)
 
 uninstall:
-#	for exe in $(EXES); do rm $(DESTDIR)$(bindir)/$$exe; done
-#	rm -f $(DESTDIR)$(mandir)/man1/btk-*
+	for exe in $(EXES); do rm $(DESTDIR)$(bindir)/$$exe; done
