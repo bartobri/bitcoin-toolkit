@@ -121,7 +121,7 @@ void btk_help_privkey(void)
 	printf("\n");
 	printf("OTHER OPTIONS\n");
 	printf("   -N         Do NOT print a (N)ewline character at the end of the output.\n");
-	printf("   -T         Format output for (T)ESTNET\n");
+	printf("   -T         Set the (T)ESTNET flag.\n");
 	printf("\n");
 }
 
@@ -187,9 +187,9 @@ void btk_help_pubkey(void)
 	printf("   setting.\n");
 	printf("\n");
 	printf("OTHER OPTIONS\n");
-	printf("   -N   Do NOT print a newline character.\n");
-	printf("   -P   Include the private key in the output.\n");
-	printf("   -T   Format output for TESTNET\n");
+	printf("   -N   Do NOT print a (N)ewline character.\n");
+	printf("   -P   Include the (P)rivate key in the output.\n");
+	printf("   -T   Set the (T)ESTNET flag.\n");
 	printf("\n");
 }
 
@@ -197,21 +197,42 @@ void btk_help_vanity(void)
 {
 	printf("Usage: btk vanity [OPTION]\n");
 	printf("\n");
-	printf("Description here.\n");
+	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("Match Options:\n");
-	printf("   -i   Case insensitive match.\n");
+	printf("   The vanity command finds vanity addresses by generating thousands of\n");
+	printf("   addresses until it finds one that matches the input string. As with all\n");
+	printf("   btk commands, input can be provided via pipe or input redirection. In the\n");
+	printf("   absence of input, btk will prompt the user for a string to match. The vanity\n");
+	printf("   command supports both traditional and bech32 bitcoin addresses as well as\n");
+	printf("   compression and mainnet/testnet options.\n");
 	printf("\n");
-	printf("Format Options:\n");
-	printf("   -A   Traditional bitcoin address. (default)\n");
-	printf("   -B   Bech32 address string.\n");
+	printf("   Note that the vanity command attempts to match your input string after any\n");
+	printf("   static character components of the address. Do not include these in your\n");
+	printf("   match string.\n");
 	printf("\n");
-	printf("Compression Options:\n");
-	printf("   -C   Compressed (default).\n");
-	printf("   -U   Unompressed.\n");
+	printf("OPTIONS\n");
 	printf("\n");
-	printf("Network Options:\n");
-	printf("   -T   Format output for TESTNET\n");
+	printf("   Address Type\n");
+	printf("\n");
+	printf("   -A   Match a traditional bitcoin (A)ddress. (default)\n");
+	printf("   -B   Match a (B)ech32 address.\n");
+	printf("\n");
+	printf("   Compression\n");
+	printf("\n");
+	printf("   -C   (C)ompressed (default).\n");
+	printf("   -U   (U)nompressed.\n");
+	printf("\n");
+	printf("   Other\n");
+	printf("\n");
+	printf("   -T   Set the TESTNET flag.\n");
+	printf("   -i   Case (i)nsensitive match.\n");
+	printf("\n");
+	printf("EXAMPLE\n");
+	printf("\n");
+	printf("   $ printf \"btc\" | btk vanity -i\n");
+	printf("\n");
+	printf("   This will attempt to find a traditional compressed bitcoin address that\n");
+	printf("   starts with '1btc', '1BTC', or any variation of letter case.\n");
 	printf("\n");
 }
 
