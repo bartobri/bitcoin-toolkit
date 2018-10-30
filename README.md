@@ -7,7 +7,17 @@ Bitcoin Toolkit is a collection of command line tools that allow you to generate
 
 This initial release is focused mainly around public and private key manipulation, providing tools allowing the user to generate key pairs in a variety of interesting and useful ways. Users can also change the format of existing keys, such as turning on and off compression, printing its hex or decimal value, and more.
 
-Some quick examples
+Table of Contents
+-----------------
+
+1. [Examples](#examples)
+2. [Download and Install](#download-and-install)
+3. [Usage](#usage)
+4. [License](#license)
+5. [Tips](#tips)
+
+Examples
+--------
 
 The simplest way to create a new private is to use the 'btk privkey' command with the -n option:
 
@@ -37,7 +47,7 @@ $ btk privkey -n | btk pubkey -PB
 L3NAhbgi9mN7cCWXfPkNB9JvA12FwijxhnVyZGaobM2sRcb8nxPu bc1qx7ps2qjvclzupyry7pmg04fgpg9vlegqxdpe2e
 ```
 
-In the above examples the ‘privkey' command creates the private key, and pubkey' calculates the public key from the private key. The '-n' option tells the 'privkey' command to use your local CSPRNG as a source of input when created the private key. But there are many other ways to create a private key.
+In the above examples the ‘privkey' command creates the private key, and 'pubkey' calculates the public key from the private key. The '-n' option tells the 'privkey' command to use your local CSPRNG as a source of input when created the private key. But there are many other ways to create a private key.
 
 Here are some more examples.
  
@@ -96,14 +106,6 @@ L5Q16dLLLvYVuVAwEmKkGvc1B946tpnkdGwPK9M6fiLJUKEdfFZo
 $ cat my_daughter.jpg | btk privkey -b
 L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy 
 ```
-
-Table of Contents
------------------
-
-1. [Download and Install](#download-and-install)
-2. [Usage](#usage)
-3. [License](#license)
-4. [Tips](#tips)
 
 Download and Install
 --------------------
