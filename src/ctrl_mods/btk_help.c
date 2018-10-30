@@ -51,8 +51,8 @@ void btk_help_commands(void)
 	printf("\n");
 	printf("Here is a list of btk commands.\n");
 	printf("\n");
-	printf("   privkey      Create and/or manipulate private keys.\n");
-	printf("   pubkey       Create and/or manipulate public keys and addresses.\n");
+	printf("   privkey      Create and modify private keys.\n");
+	printf("   pubkey       Calculate the public key of a given private key.\n");
 	printf("   vanity       Generate a vanity address.\n");
 	printf("   node         Interface with bitcoin nodes.\n");
 	printf("   version      Print btk version.\n");
