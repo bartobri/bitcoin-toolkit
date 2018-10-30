@@ -37,8 +37,8 @@ int btk_help_main(int argc, char *argv[])
 	}
 	else
 	{
-		error_log("See 'btk help' to read about available commands.");
-		error_log("Invalid command.");
+		error_log("See 'btk help' to read about available subcommands.");
+		error_log("Invalid subcommand.");
 		return -1;
 	}
 	
@@ -47,9 +47,9 @@ int btk_help_main(int argc, char *argv[])
 
 void btk_help_commands(void)
 {
-	printf("usage: btk <command> [OPTION]\n");
+	printf("Usage: btk <subcommand> [OPTIONS]\n");
 	printf("\n");
-	printf("Here is a list of btk commands.\n");
+	printf("Here is a list of btk subcommands.\n");
 	printf("\n");
 	printf("   privkey      Create and modify private keys.\n");
 	printf("   pubkey       Calculate the public key of a given private key.\n");
@@ -57,7 +57,7 @@ void btk_help_commands(void)
 	printf("   node         Interface with bitcoin nodes.\n");
 	printf("   version      Print btk version.\n");
 	printf("\n");
-	printf("See 'btk help <command>' to read more about a specific command.\n");
+	printf("See 'btk help <subcommand>' to read more about a specific subcommand.\n");
 }
 
 void btk_help_privkey(void)
@@ -66,7 +66,7 @@ void btk_help_privkey(void)
 	printf("\n");
 	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("   The privkey command can create and manipulate private keys in a variety of\n");
+	printf("   The privkey subcommand can create and manipulate private keys in a variety of\n");
 	printf("   fun and interesting ways. It supports compressed and uncompressed keys,\n");
 	printf("   mainnet and testnet, and all sorts of input and output formats. See each\n");
 	printf("   option description for more info.\n");
@@ -127,11 +127,11 @@ void btk_help_privkey(void)
 
 void btk_help_pubkey(void)
 {
-	printf("Usage: btk pubkey [OPTION]\n");
+	printf("Usage: btk pubkey [OPTIONS]\n");
 	printf("\n");
 	printf("DESCRIPTION");
 	printf("\n");
-	printf("   The pubkey command generates a corresponding public key any given private\n");
+	printf("   The pubkey subcommand generates a corresponding public key any given private\n");
 	printf("   key when the private key is provided as input, or when data is provided as\n");
 	printf("   input from which a private key can be generated. The number of input\n");
 	printf("   options for private keys allows for the creation of their corresponding\n");
@@ -194,23 +194,23 @@ void btk_help_pubkey(void)
 
 void btk_help_vanity(void)
 {
-	printf("Usage: btk vanity [OPTION]\n");
+	printf("Usage: btk vanity [OPTIONS]\n");
 	printf("\n");
 	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("   The vanity command finds vanity addresses by generating thousands of\n");
+	printf("   The vanity subcommand finds vanity addresses by generating thousands of\n");
 	printf("   addresses until it finds one whose initial characters match the input\n");
 	printf("   string. Input should be provided via pipe or input redirection. Do not\n");
 	printf("   provide input as a command line argument. In the absence of input via\n");
 	printf("   redirection, btk will prompt the user to enter an input string. The vanity\n");
-	printf("   command supports both traditional and bech32 bitcoin addresses as well as\n");
+	printf("   subcommand supports both traditional and bech32 bitcoin addresses as well as\n");
 	printf("   compression and testnet options.\n");
 	printf("\n");
-	printf("   Note that the vanity command attempts to match your input string after any\n");
+	printf("   Note that the vanity subcommand attempts to match your input string after any\n");
 	printf("   static character components of the address. Do not include these static\n");
 	printf("   characters in your input string.\n");
 	printf("\n");
-	printf("   About speed - As of the time of this writing, the vanity command only\n");
+	printf("   About speed - As of the time of this writing, the vanity subcommand only\n");
 	printf("   supports CPU operations. Until GPU support is added, it does not make much\n");
 	printf("   sense to use this tool for matching strings longer than 4 or 5 characters.\n");
 	printf("\n");
@@ -242,16 +242,16 @@ void btk_help_vanity(void)
 
 void btk_help_node(void)
 {
-	printf("Usage: btk node [OPTION]\n");
+	printf("Usage: btk node [OPTIONS]\n");
 	printf("\n");
 	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("   At the moment of this writing the node command performs a single function.\n");
+	printf("   At the moment of this writing the node subcommand performs a single function.\n");
 	printf("   It connects to a remote bitcoin node and dumps the version message\n");
 	printf("   information in a json formatted string. Aside from showing the node's\n");
 	printf("   protocol version, a version message also contains information about\n");
 	printf("   services supported by the node, the current block height of the node,\n");
-	printf("   the user agent string, and more. The node command supports both mainnet\n");
+	printf("   the user agent string, and more. The node subcommand supports both mainnet\n");
 	printf("   and testnet.\n");
 	printf("\n");
 	printf("OPTIONS\n");
