@@ -209,13 +209,13 @@ $ sudo make uninstall
 Usage
 -----
 
-Usage: btk <subcommand> [OPTIONS]
+Usage: `btk &lt;subcommand&gt; [OPTIONS]`
 
-Bitcoin Toolkit install an executable named 'btk'. It handles commands and options much like git. The first argument is a subcommand and all following arguments are subcommand options.
+Bitcoin Toolkit install an executable named **btk**. It handles commands and options much like git. The first argument is a subcommand and all following arguments are subcommand options.
 
-See 'btk help' for a list of available subcommands.
+See `btk help` for a list of available subcommands.
 
-See 'btk help <subcommand>' for a list of options and more info about a subcommand.
+See `btk help &lt;subcommand&gt;` for a list of options and more info about a subcommand.
 
 License
 -------
