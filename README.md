@@ -211,7 +211,7 @@ Usage
 
 Usage: `btk <subcommand> [OPTIONS]`
 
-Bitcoin Toolkit install an executable named **btk**. It handles commands and options much like git. The first argument is a subcommand and all following arguments are subcommand options.
+Bitcoin Toolkit installs an executable named **btk**. It handles commands and options much like git. The first argument is a subcommand, and all following arguments are subcommand options.
 
 See `btk help` for a list of available subcommands.
 
