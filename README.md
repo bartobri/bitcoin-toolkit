@@ -69,20 +69,20 @@ $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
 
 Create a private key from the SHA256 hash value of an ASCII string:
 ```
-$ echo "this is my string" | btk privkey -s
+$ echo "this is my secret string" | btk privkey -s
 L4Cp75ZzpF5AAKwN64VBTxhMfHa8bpTw6mt6uq5T5buaEEuVU1Sz
+```
+
+Create a private key from the SHA256 hash value of arbitrary binary data:
+```
+$ cat secret.dat | btk privkey -b
+L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy
 ```
 
 Create a private key with a specific decimal value given as an ASCII string:
 ```
 $ echo "1" | btk privkey -d
 KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
-```
-
-Create a private key from the SHA256 hash value of arbitrary binary data:
-```
-$ cat my_daughter.jpg | btk privkey -b
-L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy
 ```
 
 Create a new random private key for testnet:
@@ -95,13 +95,13 @@ cPz6uKLTGD9y55GxsZcD57k7Pt2WGwHD5dePb6RsM9BkunzWcGaA
 
 Public keys can only be derived from a private key. Input for the pubkey subcommand should be in the form of a private key or data from which a private key can be derived.
 
-Print the public key in address format:
+Print the public key in standard address format:
 ```
 $ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey
 12UNVuALofDnkCB1rznUY7iCP3T5xeyJur
 ```
 
-Print the public key in uncompressed address format:
+Print the public key in uncompressed standard address format:
 ```
 $ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -U
 1Ecpnmz2no5MuKp6hpkgcPSbA71bRij46y
@@ -119,7 +119,7 @@ $ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -H
 03d15c40b508c6b2d13778b16af87ca2c76275ae4f1adb5db65b842fad7fe660cc
 ```
 
-Print the public key in address format, and include the private key in the output:
+Print the public key in standard address format, and include the private key in the output:
 ```
 $ btk privkey -n | btk pubkey -P
 L5U7RpRwu3r9xkn5ko91vgf331EVD2C3Q3k67fTvC6qs1Vp2Ftmk 1EiuECymwtzup6fPURHqKzF1uPQXcrdaKP
@@ -133,7 +133,7 @@ cVpTXJ1eYEySGcRB1NXgq5CDRGjgWcJAKVXav5TAeLG3YjGG5hFK msZKBKEHNPVgj45bziw7UqjsBhu
 
 #### Vanity Addresses
 
-Create a vanity address starting with the string "btc", case insensitive:
+Create a standard vanity address matching the string "btc", case insensitive:
 ```
 $ echo "btc" | btk vanity -i
 1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw            Estimated Seconds: 149 of 422
@@ -142,7 +142,7 @@ Private Key: KyY3GXxNQa4Ufi7N75tuCpNS9nTMym323isZCUyw1TLQZPXzDUNk
 Address:     1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw
 ```
 
-Create a vanity bech32 address starting with the string "pry":
+Create a bech32 vanity address matching the string "pry":
 ```
 $ echo "pry" | btk vanity -B
 bc1qpry94dn0zz805c4rd4fjprc9rzp7cnd5chrmys    Estimated Seconds: 336 of 368
