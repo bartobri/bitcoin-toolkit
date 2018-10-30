@@ -319,6 +319,12 @@ int privkey_from_dec(PrivKey key, char *data)
 		}
 	}
 
+	if (data[0] == '0')
+	{
+		error_log("Decimal input can not contain a leading zero.");
+		return -1;
+	}
+
 	mpz_init(d);
 	mpz_set_str(d, data, 10);
 	i = (mpz_sizeinbase(d, 2) + 7) / 8;
