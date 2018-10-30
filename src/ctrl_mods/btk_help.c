@@ -147,7 +147,6 @@ void btk_help_pubkey(void)
 	printf("   redirection, btk will prompt the user for input if the input option\n");
 	printf("   requires ASCII-only data.\n");
 	printf("\n");
-	printf("   -n         Create a (n)ew random private key from your local CSPRNG.\n");
 	printf("   -w         Input is a (w)if formatted string.\n");
 	printf("   -h         Input is a (h)exadecimal formatted string. Must be at least 64\n");
 	printf("                 bytes long.\n");
