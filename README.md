@@ -22,9 +22,9 @@ Quick Intro
 #### Basic Usage
 ```
 $ btk help
-usage: btk <subcommand> [OPTIONS]
+Usage: btk <subcommand> [OPTIONS]
 
-Here is a list of btk commands.
+Here is a list of btk subcommands.
 
    privkey      Create and/or manipulate private keys.
    pubkey       Create and/or manipulate public keys and addresses.
@@ -209,7 +209,13 @@ $ sudo make uninstall
 Usage
 -----
 
-Usage Coming Soon...
+Usage: btk <subcommand> [OPTIONS]
+
+Bitcoin Toolkit install an executable named 'btk'. It handles commands and options much like git. The first argument is a subcommand and all following arguments are subcommand options.
+
+See 'btk help' for a list of available subcommands.
+
+See 'btk help <subcommand>' for a list of options and more info about a subcommand.
 
 License
 -------
