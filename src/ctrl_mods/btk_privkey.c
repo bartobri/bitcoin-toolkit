@@ -346,6 +346,7 @@ int btk_privkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
+			output_newline = FALSE;
 			break;
 		case OUTPUT_DEC:
 			r = privkey_to_dec(output, key);

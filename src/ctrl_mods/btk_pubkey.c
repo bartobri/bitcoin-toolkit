@@ -402,6 +402,7 @@ int btk_pubkey_main(int argc, char *argv[])
 			{
 				putchar(uc_output[i]);
 			}
+			output_newline = FALSE;
 			break;
 	}
 
