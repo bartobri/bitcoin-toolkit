@@ -96,11 +96,8 @@ int privkey_to_raw(unsigned char *raw, PrivKey key)
 
 	memcpy(raw, key->data, PRIVKEY_LENGTH);
 	
-	if (privkey_is_compressed(key))
-	{
-		raw[PRIVKEY_LENGTH] = PRIVKEY_COMPRESSED_FLAG;
-		len += 1;
-	}
+	raw[PRIVKEY_LENGTH] = key->cflag;
+	len += 1;
 
 	return len;
 }
