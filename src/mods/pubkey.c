@@ -52,8 +52,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 
 	mpz_init(bignum);
 
-	// Load private key from hex string, truncating the compression flag.
-	r = privkey_to_hex(privkey_hex, privkey);
+	// Load private key from hex string.
+	r = privkey_to_hex(privkey_hex, privkey, 0);
 	if (r < 0)
 	{
 		error_log("Could not convert private key to hex string.");

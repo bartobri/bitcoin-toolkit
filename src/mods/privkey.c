@@ -68,7 +68,7 @@ int privkey_uncompress(PrivKey key)
 	return 1;
 }
 
-int privkey_to_hex(char *str, PrivKey key)
+int privkey_to_hex(char *str, PrivKey key, int cflag)
 {
 	int i;
 	
@@ -80,9 +80,13 @@ int privkey_to_hex(char *str, PrivKey key)
 		sprintf(str + (i * 2), "%02x", key->data[i]);
 	}
 
-	sprintf(str + (i * 2), "%02x", key->cflag);
+	if (cflag)
+	{
+		sprintf(str + (i * 2), "%02x", key->cflag);
+		++i;
+	}
 
-	str[++i * 2] = '\0';
+	str[i * 2] = '\0';
 	
 	return 1;
 }
@@ -112,12 +116,13 @@ int privkey_to_dec(char *str, PrivKey key)
 
 	privkey_uncompress(key);
 
-	r = privkey_to_hex(privkey_hex, key);
+	r = privkey_to_hex(privkey_hex, key, 0);
 	if (r < 0)
 	{
 		error_log("Could not convert private key to hex string.");
 		return -1;
 	}
+
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(d, privkey_hex, 16);
 

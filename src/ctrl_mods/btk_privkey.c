@@ -326,7 +326,7 @@ int btk_privkey_main(int argc, char *argv[])
 			printf("%s", output);
 			break;
 		case OUTPUT_HEX:
-			r = privkey_to_hex(output, key);
+			r = privkey_to_hex(output, key, output_compression);
 			if (r < 0)
 			{
 				error_log("Could not convert private key to hex format.");

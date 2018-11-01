@@ -326,7 +326,7 @@ int btk_pubkey_main(int argc, char *argv[])
 		switch  (output_format)
 		{
 			case OUTPUT_HEX:
-				r = privkey_to_hex(output, priv);
+				r = privkey_to_hex(output, priv, output_compression);
 				if (r < 0)
 				{
 					error_log("Could not convert private key to hex format.");
