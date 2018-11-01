@@ -49,24 +49,6 @@ $ btk privkey -nU
 5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff
 ```
 
-Change an uncompressed private key to compressed:
-```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -C
-Kzj7EZDcEYdjNP9dM22RN9tRZ73xNzVVfqbthPgwVmsKipnfSosK
-```
-
-Print a private key in hexadecimal format:
-```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -H
-68a2a526c074274d49c951273b043d1aae02055dd4dde7dd577a5304d27d9dce
-```
-
-Print a private key in decimal format:
-```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
-47327905310046739235222537463578511200578158695347137990773448104177492139470
-```
-
 Create a private key from the SHA256 hash value of an ASCII string:
 ```
 $ echo "this is my secret string" | btk privkey -s
@@ -89,6 +71,24 @@ Create a new random private key for testnet:
 ```
 $ btk privkey -nT
 cPz6uKLTGD9y55GxsZcD57k7Pt2WGwHD5dePb6RsM9BkunzWcGaA
+```
+
+Convert an uncompressed private key to compressed:
+```
+$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -C
+Kzj7EZDcEYdjNP9dM22RN9tRZ73xNzVVfqbthPgwVmsKipnfSosK
+```
+
+Convert a private key in hexadecimal format:
+```
+$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -H
+68a2a526c074274d49c951273b043d1aae02055dd4dde7dd577a5304d27d9dce
+```
+
+Convert a private key in decimal format:
+```
+$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
+47327905310046739235222537463578511200578158695347137990773448104177492139470
 ```
 
 #### Public Keys
