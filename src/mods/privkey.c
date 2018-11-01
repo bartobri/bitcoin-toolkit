@@ -393,14 +393,25 @@ int privkey_from_raw(PrivKey key, unsigned char *raw, size_t l)
 	}
 
 	memcpy(key->data, raw, PRIVKEY_LENGTH);
-	
-	if (l >= PRIVKEY_LENGTH + 1 && raw[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG)
+
+	if (l >= PRIVKEY_LENGTH + 1)
 	{
-		key->cflag = PRIVKEY_COMPRESSED_FLAG;
+		if (raw[PRIVKEY_LENGTH] == PRIVKEY_COMPRESSED_FLAG)
+		{
+			key->cflag = PRIVKEY_COMPRESSED_FLAG;
+		}
+		else if (raw[PRIVKEY_LENGTH] == PRIVKEY_UNCOMPRESSED_FLAG)
+		{
+			key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+		}
+		else
+		{
+			key->cflag = PRIVKEY_COMPRESSED_FLAG;
+		}
 	}
 	else
 	{
-		key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+		key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	}
 	
 	return 1;
