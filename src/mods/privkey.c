@@ -280,7 +280,6 @@ int privkey_from_hex(PrivKey key, char *input)
 		key->data[i/2] = r;
 	}
 
-	key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
 	if (input[i] && input[i+1])
 	{
 		r = hex_to_dec(input[i], input[i+1]);
@@ -289,10 +288,23 @@ int privkey_from_hex(PrivKey key, char *input)
 			error_log("Could not convert hexidecimal characters to decimal.");
 			return -1;
 		}
+
 		if (r == PRIVKEY_COMPRESSED_FLAG)
 		{
 			key->cflag = PRIVKEY_COMPRESSED_FLAG;
 		}
+		else if (r == PRIVKEY_UNCOMPRESSED_FLAG)
+		{
+			key->cflag = PRIVKEY_UNCOMPRESSED_FLAG;
+		}
+		else
+		{
+			key->cflag = PRIVKEY_COMPRESSED_FLAG;
+		}
+	}
+	else
+	{
+		key->cflag = PRIVKEY_COMPRESSED_FLAG;
 	}
 
 	return 1;
