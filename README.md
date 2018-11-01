@@ -119,7 +119,7 @@ $ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -H
 03d15c40b508c6b2d13778b16af87ca2c76275ae4f1adb5db65b842fad7fe660cc
 ```
 
-Print the public key in standard address format, and include the private key in the output:
+Print a new public key in standard address format, and include the private key in the output:
 ```
 $ btk privkey -n | btk pubkey -P
 L5U7RpRwu3r9xkn5ko91vgf331EVD2C3Q3k67fTvC6qs1Vp2Ftmk 1EiuECymwtzup6fPURHqKzF1uPQXcrdaKP
