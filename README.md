@@ -93,7 +93,7 @@ $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
 
 #### Public Keys
 
-Public keys can only be derived from a private key. Input for the pubkey subcommand should be in the form of a private key or data from which a private key can be derived.
+Public keys can only be derived from a private key. Input for the pubkey command should be in the form of a private key or data from which a private key can be derived.
 
 Print the public key in standard address format:
 ```
@@ -209,13 +209,13 @@ $ sudo make uninstall
 Usage
 -----
 
-Usage: `btk <subcommand> [OPTIONS]`
+Usage: `btk <command> [OPTIONS]`
 
-Bitcoin Toolkit installs an executable named **btk**. It handles commands and options much like git. The first argument is a subcommand, and all following arguments are subcommand options.
+Bitcoin Toolkit installs an executable named **btk**. It handles commands and options much like git. The first argument is a command, and all following arguments are command options.
 
-See `btk help` for a list of available subcommands.
+See `btk help` for a list of available commands.
 
-See `btk help <subcommand>` for a list of options and more info about a subcommand.
+See `btk help <command>` for a list of options and more info about a command.
 
 License
 -------
