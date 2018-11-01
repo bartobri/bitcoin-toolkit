@@ -335,7 +335,7 @@ int btk_privkey_main(int argc, char *argv[])
 			printf("%s", output);
 			break;
 		case OUTPUT_RAW:
-			r = privkey_to_raw(uc_output, key);
+			r = privkey_to_raw(uc_output, key, output_compression);
 			if (r < 0)
 			{
 				error_log("Could not convert private key to raw format.");

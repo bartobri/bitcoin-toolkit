@@ -91,7 +91,7 @@ int privkey_to_hex(char *str, PrivKey key, int cflag)
 	return 1;
 }
 
-int privkey_to_raw(unsigned char *raw, PrivKey key)
+int privkey_to_raw(unsigned char *raw, PrivKey key, int cflag)
 {
 	int len = PRIVKEY_LENGTH;
 
@@ -100,8 +100,11 @@ int privkey_to_raw(unsigned char *raw, PrivKey key)
 
 	memcpy(raw, key->data, PRIVKEY_LENGTH);
 	
-	raw[PRIVKEY_LENGTH] = key->cflag;
-	len += 1;
+	if (cflag)
+	{
+		raw[PRIVKEY_LENGTH] = key->cflag;
+		len += 1;
+	}
 
 	return len;
 }

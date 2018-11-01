@@ -18,7 +18,7 @@ int privkey_new(PrivKey);
 int privkey_compress(PrivKey);
 int privkey_uncompress(PrivKey);
 int privkey_to_hex(char *, PrivKey, int);
-int privkey_to_raw(unsigned char *, PrivKey);
+int privkey_to_raw(unsigned char *, PrivKey, int);
 int privkey_to_wif(char *, PrivKey);
 int privkey_to_dec(char *, PrivKey);
 int privkey_from_wif(PrivKey, char *);
