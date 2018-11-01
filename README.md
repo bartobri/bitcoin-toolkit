@@ -133,7 +133,7 @@ cVpTXJ1eYEySGcRB1NXgq5CDRGjgWcJAKVXav5TAeLG3YjGG5hFK msZKBKEHNPVgj45bziw7UqjsBhu
 
 #### Vanity Addresses
 
-Create a standard vanity address matching the string "btc", case insensitive:
+Create a vanity address, in standard address format, matching the string "btc", using -i for a case insensitive match:
 ```
 $ echo "btc" | btk vanity -i
 1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw            Estimated Seconds: 149 of 422
@@ -142,7 +142,7 @@ Private Key: KyY3GXxNQa4Ufi7N75tuCpNS9nTMym323isZCUyw1TLQZPXzDUNk
 Address:     1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw
 ```
 
-Create a bech32 vanity address matching the string "pry":
+Create a vanity address, in bech32 address format, matching the string "pry":
 ```
 $ echo "pry" | btk vanity -B
 bc1qpry94dn0zz805c4rd4fjprc9rzp7cnd5chrmys    Estimated Seconds: 336 of 368
