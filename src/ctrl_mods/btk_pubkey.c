@@ -38,8 +38,8 @@
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
 
-#define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Only specify one input flag."); return -1; }
-#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
+#define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
+#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
 
 int btk_pubkey_main(int argc, char *argv[])
