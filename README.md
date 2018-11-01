@@ -22,9 +22,9 @@ Quick Intro
 #### Basic Usage
 ```
 $ btk help
-Usage: btk <subcommand> [OPTIONS]
+Usage: btk <command> [OPTIONS]
 
-Here is a list of btk subcommands.
+Here is a list of btk commands.
 
    privkey      Create and/or manipulate private keys.
    pubkey       Create and/or manipulate public keys and addresses.
@@ -32,7 +32,7 @@ Here is a list of btk subcommands.
    node         Interface with bitcoin nodes.
    version      Print btk version.
 
-See 'btk help <subcommand>' to read more about a specific subcommand.
+See 'btk help <command>' to read more about a specific command.
 ```
 
 #### Private Keys
