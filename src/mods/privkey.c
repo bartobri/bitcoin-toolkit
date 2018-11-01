@@ -79,10 +79,9 @@ int privkey_to_hex(char *str, PrivKey key)
 	{
 		sprintf(str + (i * 2), "%02x", key->data[i]);
 	}
-	if (key->cflag == PRIVKEY_COMPRESSED_FLAG)
-	{
-		sprintf(str + (i * 2), "%02x", key->cflag);
-	}
+
+	sprintf(str + (i * 2), "%02x", key->cflag);
+
 	str[++i * 2] = '\0';
 	
 	return 1;
