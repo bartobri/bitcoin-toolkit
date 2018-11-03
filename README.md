@@ -61,7 +61,7 @@ $ cat secret.dat | btk privkey -b
 L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy
 ```
 
-Create a private key with a specific decimal value given as an ASCII string:
+Create a private key with a specific decimal value:
 ```
 $ echo "1" | btk privkey -d
 KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
@@ -79,13 +79,13 @@ $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -C
 Kzj7EZDcEYdjNP9dM22RN9tRZ73xNzVVfqbthPgwVmsKipnfSosK
 ```
 
-Convert a private key in hexadecimal format:
+Convert a private key to hexadecimal format:
 ```
 $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -H
 68a2a526c074274d49c951273b043d1aae02055dd4dde7dd577a5304d27d9dce
 ```
 
-Convert a private key in decimal format:
+Convert a private key to decimal format:
 ```
 $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
 47327905310046739235222537463578511200578158695347137990773448104177492139470
