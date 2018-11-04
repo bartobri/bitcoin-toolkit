@@ -178,9 +178,20 @@ Download and Install
 The following instructions are for unix and linux systems. Windows 10
 users can install this project from within the linux subsystem.
 
-To install this project from source, you will need to have the tools `git`,
-`gcc`, and `make` to download and build it. Install them from your package
-manager if they are not already installed.
+Be sure that the following dependencies are installed on your system.
+If not you can install them from your package manager.
+
+libgmp
+libgcrypt
+
+To install them on debian systems:
+``
+sudo apt-get install libgmp-dev
+sudo apt-get install libgcrypt20-dev
+``
+
+You will also need `git` along with basic build tools like `make` and
+`gcc`. Be sure these are also installed on your system.
 
 Next, follow these instructions:
 
