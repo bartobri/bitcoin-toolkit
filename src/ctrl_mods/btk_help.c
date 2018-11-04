@@ -35,6 +35,10 @@ int btk_help_main(int argc, char *argv[])
 	{
 		btk_help_vanity();
 	}
+	else if (strcmp(argv[2], "version") == 0)
+	{
+		btk_help_version();
+	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
@@ -55,7 +59,7 @@ void btk_help_commands(void)
 	printf("   pubkey       calculate and format public keys from private keys.\n");
 	printf("   vanity       Generate a vanity address.\n");
 	printf("   node         Interface with bitcoin nodes.\n");
-	printf("   version      Print btk version.\n");
+	printf("   version      print btk version info.\n");
 	printf("\n");
 	printf("See 'btk help <command>' to read more about a specific command.\n");
 }
@@ -345,5 +349,25 @@ void btk_help_node(void)
 	printf("EXAMPLE\n");
 	printf("\n");
 	printf("   $ btk node -h seed.btc.petertodd.org\n");
+	printf("\n");
+}
+
+void btk_help_version(void)
+{
+	printf("COMMAND\n");
+	printf("\n");
+	printf("   version - print btk version info.\n");
+	printf("\n");
+	printf("SYNOPSIS\n");
+	printf("\n");
+	printf("   btk version\n");
+	printf("\n");
+	printf("DESCRIPTION\n");
+	printf("\n");
+	printf("   Prints btk version information.\n");
+	printf("\n");
+	printf("OPTIONS\n");
+	printf("\n");
+	printf("   None\n");
 	printf("\n");
 }

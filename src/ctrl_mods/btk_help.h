@@ -15,5 +15,6 @@ void btk_help_privkey(void);
 void btk_help_pubkey(void);
 void btk_help_vanity(void);
 void btk_help_node(void);
+void btk_help_version(void);
 
 #endif
