@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	if (argc <= 1)
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("Missing command.");
+		error_log("Missing command parameter.");
 		error_log("Error [%s]:", command);
 		error_print();
 		return EXIT_FAILURE;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("Invalid command.");
+		error_log("'%s' is not a valid command.", argv[1]);
 		error_log("Error [%s]:", command);
 		error_print();
 		return EXIT_FAILURE;

@@ -38,7 +38,7 @@ int btk_help_main(int argc, char *argv[])
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("Invalid command.");
+		error_log("'%s' is not a valid command.", argv[2]);
 		return -1;
 	}
 	
