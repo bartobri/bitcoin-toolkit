@@ -7,6 +7,8 @@ Bitcoin Toolkit is a collection of command line tools that allow you to generate
 
 This initial release is focused mainly around public and private key manipulation, providing tools allowing the user to generate key pairs in a variety of interesting and useful ways. Users can also change the format of existing keys, such as turning on and off compression, printing its hex or decimal value, and more.
 
+This release also contains a node tool that dumps version information from any bitcoin node in JSON format. This is good for getting a node's status, last block, user agent, and a handfull of other things. More node tools are planned for future releases.
+
 Table of Contents
 -----------------
 
