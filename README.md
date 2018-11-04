@@ -21,22 +21,6 @@ Table of Contents
 Quick Intro
 -----------
 
-#### Basic Usage
-```
-$ btk help
-Usage: btk <command> [OPTIONS]
-
-Here is a list of btk commands.
-
-   privkey      Create and/or manipulate private keys.
-   pubkey       Create and/or manipulate public keys and addresses.
-   vanity       Generate a vanity address.
-   node         Interface with bitcoin nodes.
-   version      Print btk version.
-
-See 'btk help <command>' to read more about a specific command.
-```
-
 #### Private Keys
 
 Create a new random private key:
@@ -65,8 +49,14 @@ L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy
 
 Create a private key with a specific decimal value:
 ```
-$ echo "1" | btk privkey -d
-KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
+$ echo "101" | btk privkey -d
+KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU7ufmjaJwj
+```
+
+Convert the previous command output to hexadecimal format:
+```
+$ echo "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU7ufmjaJwj" | btk privkey -H
+0000000000000000000000000000000000000000000000000000000000000065
 ```
 
 Create a new random private key for testnet:
@@ -79,12 +69,6 @@ Convert an uncompressed private key to compressed:
 ```
 $ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -C
 Kzj7EZDcEYdjNP9dM22RN9tRZ73xNzVVfqbthPgwVmsKipnfSosK
-```
-
-Convert a private key to hexadecimal format:
-```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -H
-68a2a526c074274d49c951273b043d1aae02055dd4dde7dd577a5304d27d9dce
 ```
 
 Convert a private key to decimal format:
