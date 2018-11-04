@@ -58,7 +58,7 @@ void btk_help_commands(void)
 	printf("   privkey      create, modify, and format private keys.\n");
 	printf("   pubkey       calculate and format public keys from private keys.\n");
 	printf("   vanity       generate a vanity address.\n");
-	printf("   node         Interface with bitcoin nodes.\n");
+	printf("   node         interface with a bitcoin node.\n");
 	printf("   version      print btk version info.\n");
 	printf("\n");
 	printf("See 'btk help <command>' to read more about a specific command.\n");
@@ -332,27 +332,41 @@ void btk_help_vanity(void)
 
 void btk_help_node(void)
 {
-	printf("Usage: btk node [OPTIONS]\n");
+	printf("COMMAND\n");
+	printf("\n");
+	printf("   node - interface with a bitcoin node.\n");
+	printf("\n");
+	printf("SYNOPSIS\n");
+	printf("\n");
+	printf("   btk node [-h <hostname>] [OPTIONS]\n");
 	printf("\n");
 	printf("DESCRIPTION\n");
 	printf("\n");
-	printf("   At the moment of this writing the node command performs a single function.\n");
-	printf("   It connects to a remote bitcoin node and dumps the version message\n");
-	printf("   information in a json formatted string. Aside from showing the node's\n");
-	printf("   protocol version, a version message also contains information about\n");
-	printf("   services supported by the node, the current block height of the node,\n");
-	printf("   the user agent string, and more. The node command supports both mainnet\n");
-	printf("   and testnet.\n");
+	printf("   The node command connects to and sends a bitcoin 'version' command to a\n");
+	printf("   remote bitcoin node. It then dumps the response data to standard output in\n");
+	printf("   JSON format. Bitcoin's version information contains the bitcoin protocol\n");
+	printf("   version, available services, current block height, user agent string, and\n");
+	printf("   more.\n");
+	printf("\n");
+	printf("   The node command will connect on the standard bitcoin port of 8333. If the\n");
+	printf("   -T option is specified it will attempt to connect on port 18333 for TESTNET\n");
+	printf("   nodes. If the -p option is specified, the port number that is specified as\n");
+	printf("   its argument will override both of these defaults.\n");
+	printf("\n");
+	printf("   See OPTIONS for more info.\n");
 	printf("\n");
 	printf("OPTIONS\n");
 	printf("\n");
-	printf("   -h   Hostname (required)\n");
-	printf("   -p   Port (optional)\n");
-	printf("   -T   Use TESTNET\n");
+	printf("   -h <hostname>\n");
+	printf("      Specify the remote host to connect to. This is a required option.\n");
 	printf("\n");
-	printf("EXAMPLE\n");
+	printf("   -p <port number>\n");
+	printf("      Specify the port number to connect to.\n");
 	printf("\n");
-	printf("   $ btk node -h seed.btc.petertodd.org\n");
+	printf("   -T\n");
+	printf("      This option is required if the remote host is a TESTNET node.\n");
+	printf("\n");
+	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
 }
 
