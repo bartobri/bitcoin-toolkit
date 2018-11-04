@@ -175,6 +175,8 @@ $ btk node -h seed.bitcoin.sipa.be
 
 Download and Install
 --------------------
+The following instructions are for unix and linux systems. Windows 10
+users can install this project from within the linux subsystem.
 
 To install this project from source, you will need to have the tools `git`,
 `gcc`, and `make` to download and build it. Install them from your package
