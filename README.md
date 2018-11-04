@@ -13,6 +13,10 @@ Table of Contents
 -----------------
 
 1. [Quick Intro](#quick-intro)
+   * [Private Keys](#private-keys)
+   * [Public Keys](#public-keys)
+   * [Vanity Addresses](#vanity-addresses)
+   * [Bitcoin Nodes](#bitcoin-nodes)
 2. [Download and Install](#download-and-install)
 3. [Usage](#usage)
 4. [License](#license)
