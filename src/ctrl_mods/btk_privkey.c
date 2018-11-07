@@ -10,14 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <gmp.h>
-#include <sys/ioctl.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
-#include "mods/base58.h"
-#include "mods/crypto.h"
-#include "mods/hex.h"
-#include "mods/base58check.h"
 #include "mods/input.h"
 #include "mods/error.h"
 
