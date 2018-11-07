@@ -167,6 +167,7 @@ void btk_help_privkey(void)
 	printf("      Do NOT include a (N)ewline character in the output. This may be desirable\n");
 	printf("      if the output is being parsed by a wrapper program.\n");
 	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
 }
@@ -274,6 +275,7 @@ void btk_help_pubkey(void)
 	printf("      network. If the -P option is also specified, the private key will be\n");
 	printf("      formatted for TESTNET network.\n");
 	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
 }
@@ -326,6 +328,7 @@ void btk_help_vanity(void)
 	printf("      Perform a case (i)nsensitive match. Note that this option is not useful\n");
 	printf("      for bech32 addresses as all characters are lowercase.\n");
 	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
 }
@@ -366,6 +369,7 @@ void btk_help_node(void)
 	printf("   -T\n");
 	printf("      This option is required if the remote host is a TESTNET node.\n");
 	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
 }
