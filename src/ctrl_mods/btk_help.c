@@ -392,4 +392,7 @@ void btk_help_version(void)
 	printf("\n");
 	printf("   None\n");
 	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
+	printf("See 'btk help' to read about other commands.\n");
+	printf("\n");
 }
