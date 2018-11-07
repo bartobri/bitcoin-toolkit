@@ -29,6 +29,8 @@
 #define OUTPUT_RAW              4
 #define OUTPUT_COMPRESS         1
 #define OUTPUT_UNCOMPRESS       2
+#define OUTPUT_MAINNET          1
+#define OUTPUT_TESTNET          2
 #define TRUE                    1
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
@@ -54,9 +56,9 @@ int btk_pubkey_main(int argc, char *argv[])
 	int output_compression = FALSE;
 	int output_privkey     = FALSE;
 	int output_newline     = TRUE;
-	int output_testnet     = FALSE;
+	int output_network     = FALSE;
 	
-	while ((o = getopt(argc, argv, "whrsdbABHRCUPNT")) != -1)
+	while ((o = getopt(argc, argv, "whrsdbABHRCUPNTM")) != -1)
 	{
 		switch (o)
 		{
@@ -111,9 +113,12 @@ int btk_pubkey_main(int argc, char *argv[])
 				output_newline = FALSE;
 				break;
 
-			// Testnet Option
+			// Network Option
 			case 'T':
-				output_testnet = TRUE;
+				output_network = OUTPUT_TESTNET;
+				break;
+			case 'M':
+				output_network = OUTPUT_MAINNET;
 				break;
 
 			// Unknown option
@@ -309,9 +314,16 @@ int btk_pubkey_main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (output_testnet)
+	switch (output_network)
 	{
-		network_set_test();
+		case FALSE:
+			break;
+		case OUTPUT_MAINNET:
+			network_set_main();
+			break;
+		case OUTPUT_TESTNET:
+			network_set_test();
+			break;
 	}
 
 	memset(output, 0, OUTPUT_BUFFER);
