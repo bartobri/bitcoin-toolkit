@@ -8,12 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
-#include <gmp.h>
-#include <sys/ioctl.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/network.h"
