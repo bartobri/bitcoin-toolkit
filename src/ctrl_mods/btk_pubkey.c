@@ -10,14 +10,9 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <errno.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
 #include "mods/pubkey.h"
-#include "mods/base58.h"
-#include "mods/base58check.h"
-#include "mods/hex.h"
 #include "mods/input.h"
 #include "mods/error.h"
 
