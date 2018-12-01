@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+use lib './test/lib';
+use Btk::TestData qw($networks $compression $iotypes $privkey $ntests);
+
 my $btk_location = "bin/btk";
 
 if (!-e "test")
@@ -13,22 +16,37 @@ if (!-e "$btk_location")
 	exit 1;
 }
 
-use lib './test/lib';
-use Btk::TestData qw($networks $compression $iotypes $privkey $ntests);
-
-my $input = undef;
-my $output = undef;
-
+## Begin Tests
 for (my $i = 0; $i < $ntests; $i++)
 {
-	foreach my $network (@{$networks})
+	foreach my $i_network (@{$networks})
 	{
-		foreach my $comp (@{$compression})
+		foreach my $i_comp (@{$compression})
 		{
-			foreach my $type (@{$iotypes})
+			foreach my $i_type (@{$iotypes})
 			{
-				$input = $privkey->[$i]->{$network}->{$comp}->{$type};
-				print "$network $comp $type => $input\n";
+				my $input = $privkey->[$i]->{$i_network}->{$i_comp}->{$i_type};
+
+				foreach my $o_network (@{$networks})
+				{
+					foreach my $o_comp (@{$compression})
+					{
+						foreach my $o_type (@{$iotypes})
+						{
+							my $expected = $privkey->[$i]->{$o_network}->{$o_comp}->{$o_type};
+							my $output = btk_privkey_get({'from' => $i_type, 'to' => $o_type, 'network' => $o_network, 'compression' => $o_comp}, $input);
+							print "$input => $output : ";
+							if ($output eq $expected)
+							{
+								print "PASSED\n";
+							}
+							else
+							{
+								print "FAILED\n";
+							}
+						}
+					}
+				}
 			}
 		}
 	}
