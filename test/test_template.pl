@@ -18,9 +18,28 @@ use Btk::TestData '$privkey';
 
 my $result = undef;
 
-print $privkey->[0]->[0], "\n";
-$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compressed' => 1 }, $privkey->[0]->[0]);
-print $result, "\n";
+for (my $i = 0; $i < 2; $i++)
+{
+	my $expected;
+	my $result;
+	
+	print "Testing WIF conversions: ";
+
+	$expected = $privkey->[$i]->{"wif_c"};
+	$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compressed' => 1 }, $privkey->[$i]->{"wif_c"});
+	if ($expected eq $result)
+	{
+		print "Passed Test " , $i + 1, "\n";
+	}
+	else
+	{
+		print "Failed Test " , $i + 1, "\n";
+	}
+}
+
+##print $privkey->[0]->[0], " -> ";
+##$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compressed' => 1 }, $privkey->[0]->[0]);
+##print $result, "\n";
 
 sub btk_privkey_get
 {
@@ -44,6 +63,8 @@ sub btk_privkey_get
 	if ($params->{'compressed'} == 0) { $options .= "U"; }
 	elsif ($params->{'compressed'} == 1) { $options .= "C"; }
 
+	$options .= "N";
+
 	$result = btk_get("privkey", $options, $input);
 
 	return $result;
@@ -56,10 +77,11 @@ sub btk_get
 	my $input = shift;
 	my $result = undef;
 
-	open (BTK, "| $btk_location $command $options") or die "Could not open a pipe to $btk_location\n";
-	print BTK $input;
-	$result = <BTK>;
-	close (BTK);
+	$result = `printf \"$input\" | $btk_location $command $options`;
+	##open (BTK, "| $btk_location $command $options") or die "Could not open a pipe to $btk_location\n";
+	##print BTK $input;
+	##$result = <BTK>;
+	##close (BTK);
 
 	return $result;
 }
