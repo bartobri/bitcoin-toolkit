@@ -14,32 +14,28 @@ if (!-e "$btk_location")
 }
 
 use lib './test/lib';
-use Btk::TestData '$privkey';
+use Btk::TestData qw($networks $compression $iotypes $privkey $ntests);
 
-my $result = undef;
+my $input = undef;
+my $output = undef;
 
-for (my $i = 0; $i < 2; $i++)
+for (my $i = 0; $i < $ntests; $i++)
 {
-	my $expected;
-	my $result;
-	
-	print "Testing WIF conversions: ";
-
-	$expected = $privkey->[$i]->{"wif_c"};
-	$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compressed' => 1 }, $privkey->[$i]->{"wif_c"});
-	if ($expected eq $result)
+	foreach my $network (@{$networks})
 	{
-		print "Passed Test " , $i + 1, "\n";
-	}
-	else
-	{
-		print "Failed Test " , $i + 1, "\n";
+		foreach my $comp (@{$compression})
+		{
+			foreach my $type (@{$iotypes})
+			{
+				$input = $privkey->[$i]->{$network}->{$comp}->{$type};
+				print "$network $comp $type => $input\n";
+			}
+		}
 	}
 }
 
-##print $privkey->[0]->[0], " -> ";
-##$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compressed' => 1 }, $privkey->[0]->[0]);
-##print $result, "\n";
+##$result =  btk_privkey_get({'from' => 'wif', 'to' => 'wif', 'network' => 'main', 'compression' => 1 }, $privkey->[$i]->{"wif_c"});
+
 
 sub btk_privkey_get
 {
@@ -57,11 +53,11 @@ sub btk_privkey_get
 	elsif ($params->{'to'} eq "hex") { $options .= "H"; }
 	elsif ($params->{'to'} eq "dec") { $options .= "D"; }
 
-	if ($params->{'network'} eq "main") { $options .= "M"; }
-	elsif ($params->{'network'} eq "test") { $options .= "T"; }
+	if ($params->{'network'} eq "mainnet") { $options .= "M"; }
+	elsif ($params->{'network'} eq "testnet") { $options .= "T"; }
 
-	if ($params->{'compressed'} == 0) { $options .= "U"; }
-	elsif ($params->{'compressed'} == 1) { $options .= "C"; }
+	if ($params->{'compression'} eq "uncompressed") { $options .= "U"; }
+	elsif ($params->{'compression'} eq "compressed") { $options .= "C"; }
 
 	$options .= "N";
 

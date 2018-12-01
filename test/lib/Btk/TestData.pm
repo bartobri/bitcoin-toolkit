@@ -4,15 +4,14 @@ BEGIN
 {
 	use Exporter();
 	@ISA = qw(Exporter);
-	@EXPORT_OK = qw($privkey);
+	@EXPORT_OK = qw($privkey $networks $compression $iotypes $ntests);
 }
 
-## Compressed WIF
-## Uncompressed WIF
-## Hex
-## Decimal
-## Test Compressed
-## Test Uncompressed
+$iotypes = ["wif", "hex", "dec"];
+$networks = ["mainnet", "testnet", "na"];
+$compression = ["compressed", "uncompressed", "na"];
+$ntests = 1;
+
 $privkey = [
 	{
 		"mainnet" => {
