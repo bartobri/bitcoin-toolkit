@@ -333,8 +333,8 @@ void btk_help_vanity(void)
 	printf("      Match a (C)ompressed address. (default)\n");
 	printf("\n");
 	printf("   -U\n");
-	printf("      Match an (U)nompressed. Note that this option is not allowed for bech32\n");
-	printf("      addresses.\n");
+	printf("      Match an (U)ncompressed address. Note that this option is not allowed for\n");
+	printf("      bech32 addresses.\n");
 	printf("\n");
 	printf("   -T\n");
 	printf("      Generate a TESTNET address.\n");
