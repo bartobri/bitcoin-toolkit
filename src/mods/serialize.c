@@ -189,6 +189,31 @@ unsigned char *serialize_compuint(unsigned char *dest, uint64_t src, int endian)
 	return dest;
 }
 
+unsigned char *serialize_varint(unsigned char *dest, uint64_t src)
+{
+	int i = 0;
+	unsigned char tmp[10];
+
+	assert(dest);
+
+	while (1)
+	{
+		tmp[i] = (src & 0x7F) | (i ? 0x80 : 0x00);
+		if (src <= 0x7F)
+		{
+			break;
+		}
+		src = (src >> 7) - 1;
+		i++;
+	}
+
+	do {
+		*dest++ = tmp[i];
+	} while (i--);
+
+	return dest;
+}
+
 unsigned char *deserialize_uint8(uint8_t *dest, unsigned char *src, int endian)
 {
 	assert(dest);
@@ -381,5 +406,31 @@ unsigned char *deserialize_compuint(uint64_t *dest, unsigned char *src, int endi
 		}
 	}
 	
+	return src;
+}
+
+unsigned char *deserialize_varint(uint64_t *dest, unsigned char *src)
+{
+	assert(dest);
+	assert(src);
+
+	*dest = 0;
+
+	while (1)
+	{
+		*dest = (*dest << 7) | (uint64_t)(*src & 0x7F);
+		if (*src >= 0x80)
+		{
+			*dest += 1;
+		}
+		else
+		{
+			break;
+		}
+		src++;
+	}
+
+	src++;
+
 	return src;
 }

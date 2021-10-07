@@ -13,6 +13,7 @@
 #include "ctrl_mods/btk_pubkey.h"
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
+#include "ctrl_mods/btk_utxo.h"
 #include "ctrl_mods/btk_version.h"
 #include "mods/error.h"
 
@@ -65,6 +66,10 @@ int main(int argc, char *argv[])
 	else if (strcmp(argv[1], "node") == 0)
 	{
 		r = btk_node_main(argc, argv);
+	}
+	else if (strcmp(argv[1], "utxo") == 0)
+	{
+		r = btk_utxo_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "version") == 0)
 	{
