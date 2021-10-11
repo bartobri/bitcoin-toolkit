@@ -76,6 +76,7 @@ int utxo_get(UTXOValue value, UTXOKey key)
     size_t i;
     size_t serialized_key_len = 0;
     size_t output_len = 0;
+    size_t script_len = 0;
     unsigned char serialized_key[UTXO_KEY_MAX_LENGTH];
     unsigned char *output = NULL;
     unsigned char *head;
@@ -117,16 +118,17 @@ int utxo_get(UTXOValue value, UTXOKey key)
     output = deserialize_varint(&(value->height), output);
     output = deserialize_varint(&(value->amount), output);
     output = deserialize_varint(&(value->n_size), output);
-    // Getting number of bytes used so far.
+    // Getting number of bytes left for script.
     for (i = 0; head + i != output; i++)
         ;
-    value->script = malloc(output_len - i);
+    script_len = output_len - i;
+    value->script = malloc(script_len);
     if (value->script == NULL)
     {
         error_log("Unable to allocate memory for output script value.");
         return -1;
     }
-    output = deserialize_uchar(value->script, output, output_len - i);
+    output = deserialize_uchar(value->script, output, script_len);
 
     // pop off the coinbase flag from height.
     value->height = value->height >> 1;
@@ -134,22 +136,30 @@ int utxo_get(UTXOValue value, UTXOKey key)
     // Decompress amount
     camount_decompress(&(value->amount), value->amount);
 
+    // If n_size is greater than 6, subtract 6 to get actual size.
+    if (value->n_size >= 6)
+    {
+        value->n_size = value->n_size - 6;
+    }
 
 
 
 
 
+
+    /*
     printf("Obfuscation Key (%zu): ", obfuscate_key_len);
     for (i = 0; i < obfuscate_key_len; i++)
     {
         printf("%.2x", obfuscate_key[i]);
     }
+    */
     printf("\n");
     printf("Height: %lu\n", value->height);
     printf("Amount: %lu\n", value->amount);
     printf("nSize: %lu\n", value->n_size);
-    printf("Script (%lu): ", output_len - i);
-    for (i = 0; i < output_len - i; i++)
+    printf("Script (%lu): ", script_len);
+    for (i = 0; i < script_len; i++)
     {
         printf("%.2x", value->script[i]);
     }
