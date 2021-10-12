@@ -54,6 +54,38 @@ int btk_utxo_main(int argc, char *argv[])
     {
         key = malloc(utxo_sizeof_key());
         value = malloc(utxo_sizeof_value());
+        if (key == NULL || value == NULL)
+        {
+            error_log("Memory Allocation Error.");
+            return -1;
+        }
+
+        r = utxo_open_database(UTXO_DATABASE);
+        if (r < 0)
+        {
+            error_log("Database open error.");
+            return -1;
+        }
+
+        r = utxo_database_iter_seek_start();
+        if (r < 0)
+        {
+            error_log("Can not seek database iterator to start.");
+            return -1;
+        }
+
+        r = utxo_database_iter_get_next(key, value);
+        if (r < 0)
+        {
+            error_log("Can not get next utxo record.");
+            return -1;
+        }
+
+        utxo_close_database();
+
+        free(key);
+        utxo_value_free(value);
+        free(value);
     }
     else
     {

@@ -11,6 +11,7 @@
 #include "error.h"
 
 static leveldb_t *db;
+static leveldb_iterator_t *iter;
 
 int database_open(char *location)
 {
@@ -34,6 +35,31 @@ int database_is_open(void)
     {
         return 0;
     }
+
+    return 1;
+}
+
+int database_iter_seek_start(void)
+{
+    leveldb_readoptions_t *roptions;
+
+    roptions = leveldb_readoptions_create();
+    iter = leveldb_create_iterator(db, roptions);
+    leveldb_iter_seek_to_first(iter);
+
+    // Skip the first entry because it is th eobfuscation key
+    leveldb_iter_next(iter);
+    leveldb_iter_next(iter);
+
+    return 1;
+}
+
+int database_iter_get_next(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len)
+{
+    *key = (unsigned char*) leveldb_iter_key(iter, key_len);
+    *value = (unsigned char*) leveldb_iter_value(iter, value_len);
+
+    leveldb_iter_next(iter);
 
     return 1;
 }

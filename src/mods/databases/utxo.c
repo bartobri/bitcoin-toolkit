@@ -24,6 +24,7 @@
 #define OFUSCATE_KEY_KEY          "\016\000obfuscate_key"
 #define OFUSCATE_KEY_KEY_LENGTH   15
 #define TX_HASH_LENGTH            32
+#define UTXO_KEY_MIN_LENGTH       34
 #define UTXO_KEY_MAX_LENGTH       38
 
 unsigned char *obfuscate_key;
@@ -35,7 +36,7 @@ struct UTXOKey
 {
     uint8_t        type;
     unsigned char  tx_hash[TX_HASH_LENGTH];
-    uint32_t       vout;
+    uint64_t       vout;
 };
 
 struct UTXOValue
@@ -61,7 +62,6 @@ int utxo_open_database(char *location)
     int r;
 
     r = database_open(location);
-
     if (r < 0)
     {
         error_log("Error while opening UTXO database.");
@@ -71,16 +71,102 @@ int utxo_open_database(char *location)
     return 1;
 }
 
+int utxo_database_iter_seek_start(void)
+{
+    int r;
+
+    r = database_iter_seek_start();
+    if (r < 0)
+    {
+        error_log("Error while opening UTXO database.");
+        return -1;
+    }
+
+    return 1;
+}
+
+int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
+{
+    int r;
+    unsigned char *raw_key;
+    unsigned char *raw_value;
+    unsigned char *raw_value_writable;
+    size_t key_len;
+    size_t value_len;
+    size_t i;
+
+    r = database_iter_get_next(&raw_key, &key_len, &raw_value, &value_len);
+    if (r < 0)
+    {
+        error_log("Could not get next database iteration.");
+        return -1;
+    }
+
+    if (raw_key[0] == UTXO_KEY_TYPE)
+    {
+        r = utxo_set_key_from_raw(key, raw_key, key_len);
+        if (r < 0)
+        {
+            error_log("Could not deserialize raw key.");
+            return -1;
+        }
+
+        raw_value_writable = malloc(value_len);
+        if (r < 0)
+        {
+            error_log("Unable to allocate memory for value string.");
+            return -1;
+        }
+        memcpy(raw_value_writable, raw_value, value_len);
+
+        r = utxo_set_value_from_raw(value, raw_value_writable, value_len);
+        if (r < 0)
+        {
+            error_log("Could not deserialize raw value.");
+            return -1;
+        }
+
+        free(raw_value_writable);
+    }
+    else if (key_len > 0 && raw_key[0] != UTXO_KEY_TYPE)
+    {
+        key->type = (uint8_t)raw_key[0];
+    }
+    else
+    {
+        key->type = 0x00;
+    }
+
+
+    printf("Key type: %.2x\n", key->type);
+    printf("Key tx_hash: ");
+    for (i = 0; i < TX_HASH_LENGTH; i++)
+    {
+        printf("%.2x", key->tx_hash[i]);
+    }
+    printf("\n");
+    printf("Key vout: %lu\n", key->vout);
+
+    printf("Value Height: %lu\n", value->height);
+    printf("Value Amount: %lu\n", value->amount);
+    printf("Value nSize: %lu\n", value->n_size);
+    //printf("Value Script (%lu): ", script_len);
+    //for (i = 0; i < script_len; i++)
+    //{
+    //    printf("%.2x", value->script[i]);
+    //}
+    //printf("\n");
+
+    return 1;
+}
+
 int utxo_get(UTXOValue value, UTXOKey key)
 {
     int r;
-    size_t i;
     size_t serialized_key_len = 0;
     size_t output_len = 0;
-    size_t script_len = 0;
     unsigned char serialized_key[UTXO_KEY_MAX_LENGTH];
     unsigned char *output = NULL;
-    unsigned char *head;
 
     assert(value);
     assert(key);
@@ -102,86 +188,12 @@ int utxo_get(UTXOValue value, UTXOKey key)
         return -1;
     }
 
-    // De-obfuscate the value
-    for (i = 0; i < output_len; i++)
+    r = utxo_set_value_from_raw(value, output, output_len);
+    if (r < 0)
     {
-        output[i] ^= obfuscate_key[i % obfuscate_key_len];
-    }
-
-    /*
-    printf("Raw Value: ");
-    for (i = 0; i < output_len; i++)
-    {
-        printf("%.2x", output[i]);
-    }
-    printf("\n");
-    */
-
-    head = output;
-    output = deserialize_varint(&(value->height), output);
-    output = deserialize_varint(&(value->amount), output);
-    output = deserialize_varint(&(value->n_size), output);
-    // Getting number of bytes left for script.
-    for (i = 0; head + i != output; i++)
-        ;
-    script_len = output_len - i;
-    value->script = malloc(script_len);
-    if (value->script == NULL)
-    {
-        error_log("Unable to allocate memory for output script value.");
+        error_log("Could not deserialize raw value.");
         return -1;
     }
-    output = deserialize_uchar(value->script, output, script_len);
-
-    // pop off the coinbase flag from height.
-    value->height = value->height >> 1;
-
-    // Decompress amount
-    camount_decompress(&(value->amount), value->amount);
-
-    // If n_size is greater than 6, subtract 6 to get actual size.
-    if (value->n_size >= 6)
-    {
-        value->n_size = value->n_size - 6;
-    }
-
-    
-
-    /*
-    printf("Obfuscation Key (%zu): ", obfuscate_key_len);
-    for (i = 0; i < obfuscate_key_len; i++)
-    {
-        printf("%.2x", obfuscate_key[i]);
-    }
-    printf("\n");
-    printf("Height: %lu\n", value->height);
-    printf("Amount: %lu\n", value->amount);
-    printf("nSize: %lu\n", value->n_size);
-    printf("Script (%lu): ", script_len);
-    for (i = 0; i < script_len; i++)
-    {
-        printf("%.2x", value->script[i]);
-    }
-    printf("\n");
-    // getting address
-    unsigned char rmd_bit[21];
-    char base58[21 * 2];
-    memset(rmd_bit, 0, 21);
-    memset(base58, 0, 21 * 2);
-    if (value->n_size <= 5 && script_len == 20)
-    {
-        rmd_bit[0] = 0x00;
-        memcpy(rmd_bit + 1, value->script, 20);
-        r = base58check_encode(base58, rmd_bit, 21);
-        if (r < 0)
-        {
-            error_log("Could not generate address from public key data.");
-            return -1;
-        }
-        printf("Address: %s\n", base58);
-    }
-    */
-
 
     return 1;
 }
@@ -302,6 +314,98 @@ int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
     return 1;
 }
 
+int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t value_len)
+{
+    size_t i;
+    size_t script_len;
+    unsigned char *head;
+
+    assert(value);
+    assert(raw_value);
+    assert(value_len);
+
+    if (utxo_get_obfuscate_key() < 0)
+    {
+        error_log("Can not get obfuscate key.");
+        return -1;
+    }
+
+    // De-obfuscate the value
+    for (i = 0; i < value_len; i++)
+    {
+        raw_value[i] ^= obfuscate_key[i % obfuscate_key_len];
+    }
+
+    head = raw_value;
+
+    raw_value = deserialize_varint(&(value->height), raw_value);
+    raw_value = deserialize_varint(&(value->amount), raw_value);
+    raw_value = deserialize_varint(&(value->n_size), raw_value);
+    // Getting number of bytes left for script.
+    for (i = 0; head + i != raw_value; i++)
+        ;
+    script_len = value_len - i;
+    value->script = malloc(script_len);
+    if (value->script == NULL)
+    {
+        error_log("Unable to allocate memory for output script value.");
+        return -1;
+    }
+    raw_value = deserialize_uchar(value->script, raw_value, script_len);
+
+    // pop off the coinbase flag from height.
+    value->height = value->height >> 1;
+
+    // Decompress amount
+    camount_decompress(&(value->amount), value->amount);
+
+    // If n_size is greater than 6, subtract 6 to get actual size.
+    if (value->n_size >= 6)
+    {
+        value->n_size = value->n_size - 6;
+    }
+
+    return 1;
+}
+
+int utxo_set_key_from_raw(UTXOKey key, unsigned char *raw_key, size_t key_len)
+{
+    int i;
+    unsigned char tmp[TX_HASH_LENGTH];
+
+    assert(key);
+    assert(raw_key);
+    assert(key_len);
+
+    if (raw_key[0] != UTXO_KEY_TYPE)
+    {
+        error_log("Key type not recognized: %.2x", raw_key[0]);
+        return -1;
+    }
+
+    if (key_len < UTXO_KEY_MIN_LENGTH || key_len > UTXO_KEY_MAX_LENGTH)
+    {
+        error_log("Key length unexpected. Length is %zu. Expected between %d and %d.", key_len, UTXO_KEY_MIN_LENGTH, UTXO_KEY_MAX_LENGTH);
+        return -1;
+    }
+
+    raw_key = deserialize_uint8(&(key->type), raw_key, SERIALIZE_ENDIAN_BIG);
+    raw_key = deserialize_uchar(key->tx_hash, raw_key, TX_HASH_LENGTH);
+    raw_key = deserialize_varint(&(key->vout), raw_key);
+
+    // Reverse byte order of tx_hash
+    for (i = 0; i < TX_HASH_LENGTH; i++)
+    {
+        tmp[i] = key->tx_hash[TX_HASH_LENGTH - 1 - i];
+    }
+    for (i = 0; i < TX_HASH_LENGTH; i++)
+    {
+        key->tx_hash[i] = tmp[i];
+    }
+
+    return 1;
+}
+
 int utxo_set_key_from_hex(UTXOKey key, char *tx_hash_hex, int vout)
 {
     int r;
@@ -398,3 +502,4 @@ int utxo_set_key_vout(UTXOKey key, int value)
 
     return 1;
 }
+
