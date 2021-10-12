@@ -18,6 +18,7 @@
 #include "mods/hex.h"
 #include "mods/serialize.h"
 #include "mods/camount.h"
+#include "mods/base58check.h"
 #include "mods/error.h"
 
 #define OFUSCATE_KEY_KEY          "\016\000obfuscate_key"
@@ -107,12 +108,14 @@ int utxo_get(UTXOValue value, UTXOKey key)
         output[i] ^= obfuscate_key[i % obfuscate_key_len];
     }
 
+    /*
     printf("Raw Value: ");
     for (i = 0; i < output_len; i++)
     {
         printf("%.2x", output[i]);
     }
     printf("\n");
+    */
 
     head = output;
     output = deserialize_varint(&(value->height), output);
@@ -142,10 +145,7 @@ int utxo_get(UTXOValue value, UTXOKey key)
         value->n_size = value->n_size - 6;
     }
 
-
-
-
-
+    
 
     /*
     printf("Obfuscation Key (%zu): ", obfuscate_key_len);
@@ -153,7 +153,6 @@ int utxo_get(UTXOValue value, UTXOKey key)
     {
         printf("%.2x", obfuscate_key[i]);
     }
-    */
     printf("\n");
     printf("Height: %lu\n", value->height);
     printf("Amount: %lu\n", value->amount);
@@ -164,9 +163,82 @@ int utxo_get(UTXOValue value, UTXOKey key)
         printf("%.2x", value->script[i]);
     }
     printf("\n");
+    // getting address
+    unsigned char rmd_bit[21];
+    char base58[21 * 2];
+    memset(rmd_bit, 0, 21);
+    memset(base58, 0, 21 * 2);
+    if (value->n_size <= 5 && script_len == 20)
+    {
+        rmd_bit[0] = 0x00;
+        memcpy(rmd_bit + 1, value->script, 20);
+        r = base58check_encode(base58, rmd_bit, 21);
+        if (r < 0)
+        {
+            error_log("Could not generate address from public key data.");
+            return -1;
+        }
+        printf("Address: %s\n", base58);
+    }
+    */
 
 
     return 1;
+}
+
+int utxo_value_has_address(UTXOValue value)
+{
+    assert(value);
+
+    if (value->n_size == 0)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+int utxo_value_get_address(char *address, UTXOValue value)
+{
+    int r;
+    unsigned char rmd[21];
+
+    assert(address);
+    assert(value);
+
+    if (!utxo_value_has_address(value))
+    {
+        error_log("Value does not have an address.");
+        return -1;
+    }
+
+    rmd[0] = 0x00;
+    memcpy(rmd + 1, value->script, 20);
+    r = base58check_encode(address, rmd, 21);
+    if (r < 0)
+    {
+        error_log("Could not generate address from value data.");
+        return -1;
+    }
+
+    return 1;
+}
+
+int utxo_value_get_amount(uint64_t *amount, UTXOValue value)
+{
+    assert(amount);
+    assert(value);
+
+    *amount = value->amount;
+
+    return 1;
+}
+
+void utxo_value_free(UTXOValue value)
+{
+    assert(value);
+
+    free(value->script);
 }
 
 void utxo_close_database(void)
