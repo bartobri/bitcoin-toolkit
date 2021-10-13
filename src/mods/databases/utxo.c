@@ -93,7 +93,6 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     unsigned char *raw_value_writable;
     size_t key_len;
     size_t value_len;
-    size_t i;
 
     r = database_iter_get_next(&raw_key, &key_len, &raw_value, &value_len);
     if (r < 0)
@@ -138,6 +137,8 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     }
 
 
+    /*
+    size_t i;
     printf("Key type: %.2x\n", key->type);
     printf("Key tx_hash: ");
     for (i = 0; i < TX_HASH_LENGTH; i++)
@@ -150,6 +151,7 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     printf("Value Height: %lu\n", value->height);
     printf("Value Amount: %lu\n", value->amount);
     printf("Value nSize: %lu\n", value->n_size);
+    */
     //printf("Value Script (%lu): ", script_len);
     //for (i = 0; i < script_len; i++)
     //{
@@ -250,7 +252,11 @@ void utxo_value_free(UTXOValue value)
 {
     assert(value);
 
-    free(value->script);
+    if (value->script != NULL)
+    {
+        free(value->script);
+        value->script = NULL;
+    }
 }
 
 void utxo_close_database(void)
