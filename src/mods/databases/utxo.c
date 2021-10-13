@@ -202,7 +202,7 @@ int utxo_value_has_address(UTXOValue value)
 {
     assert(value);
 
-    if (value->n_size == 0)
+    if (value->n_size == 0 && value->script != NULL)
     {
         return 1;
     }
