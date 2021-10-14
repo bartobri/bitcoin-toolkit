@@ -44,6 +44,7 @@ struct UTXOValue
     uint64_t       height;
     uint64_t       amount;
     uint64_t       n_size;
+    size_t         script_len;
     unsigned char *script;
 };
 
@@ -90,9 +91,11 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     int r;
     unsigned char *raw_key;
     unsigned char *raw_value;
-    unsigned char *raw_value_writable;
     size_t key_len;
     size_t value_len;
+
+    raw_key = NULL;
+    raw_value = NULL;
 
     r = database_iter_get_next(&raw_key, &key_len, &raw_value, &value_len);
     if (r < 0)
@@ -110,22 +113,12 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
             return -1;
         }
 
-        raw_value_writable = malloc(value_len);
-        if (r < 0)
-        {
-            error_log("Unable to allocate memory for value string.");
-            return -1;
-        }
-        memcpy(raw_value_writable, raw_value, value_len);
-
-        r = utxo_set_value_from_raw(value, raw_value_writable, value_len);
+        r = utxo_set_value_from_raw(value, raw_value, value_len);
         if (r < 0)
         {
             error_log("Could not deserialize raw value.");
             return -1;
         }
-
-        free(raw_value_writable);
     }
     else if (key_len > 0 && raw_key[0] != UTXO_KEY_TYPE)
     {
@@ -139,6 +132,29 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
 
     /*
     size_t i;
+    if (value->n_size == 1)
+    {
+        printf("Raw Key: ");
+        for (i = 0; i < key_len; i++)
+        {
+            printf("%.2x", raw_key[i]);
+        }
+        printf("\n");
+        printf("Raw Value (deobfuscated): ");
+        for (i = 0; i < value_len; i++)
+        {
+            printf("%.2x", raw_value[i]);
+        }
+        printf("\n");
+        printf("TX (%lu): ", key->vout);
+        for (i = 0; i < TX_HASH_LENGTH; i++)
+        {
+            printf("%.2x", key->tx_hash[i]);
+        }
+        printf("\n");
+    }
+    */
+    /*
     printf("Key type: %.2x\n", key->type);
     printf("Key tx_hash: ");
     for (i = 0; i < TX_HASH_LENGTH; i++)
@@ -158,6 +174,10 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     //    printf("%.2x", value->script[i]);
     //}
     //printf("\n");
+
+
+    free(raw_key);
+    free(raw_value);
 
     return 1;
 }
@@ -204,9 +224,20 @@ int utxo_value_has_address(UTXOValue value)
 {
     assert(value);
 
-    if (value->n_size == 0 && value->script != NULL)
+    if (value->script != NULL)
     {
-        return 1;
+        // P2PKH (Public Key Hash)
+        if (value->n_size == 0)
+        {
+            return 1;
+        }
+
+        // P2SH (Script Hash)
+        if (value->n_size == 1)
+        {
+            printf("Script Hash: ");
+            return 1;
+        }
     }
 
     return 0;
@@ -215,7 +246,7 @@ int utxo_value_has_address(UTXOValue value)
 int utxo_value_get_address(char *address, UTXOValue value)
 {
     int r;
-    unsigned char rmd[21];
+    unsigned char *rmd;
 
     assert(address);
     assert(value);
@@ -226,14 +257,31 @@ int utxo_value_get_address(char *address, UTXOValue value)
         return -1;
     }
 
-    rmd[0] = 0x00;
-    memcpy(rmd + 1, value->script, 20);
-    r = base58check_encode(address, rmd, 21);
+    rmd = malloc(value->script_len + 1);
+    if (rmd == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+
+    if (value->n_size == 1)
+    {
+        rmd[0] = 0x05;
+    }
+    else
+    {
+        rmd[0] = 0x00;
+    }
+    
+    memcpy(rmd + 1, value->script, value->script_len);
+    r = base58check_encode(address, rmd, value->script_len + 1);
     if (r < 0)
     {
         error_log("Could not generate address from value data.");
         return -1;
     }
+
+    free(rmd);
 
     return 1;
 }
@@ -323,7 +371,6 @@ int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
 int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t value_len)
 {
     size_t i;
-    size_t script_len;
     unsigned char *head;
 
     assert(value);
@@ -347,17 +394,23 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
     raw_value = deserialize_varint(&(value->height), raw_value);
     raw_value = deserialize_varint(&(value->amount), raw_value);
     raw_value = deserialize_varint(&(value->n_size), raw_value);
-    // Getting number of bytes left for script.
-    for (i = 0; head + i != raw_value; i++)
-        ;
-    script_len = value_len - i;
-    value->script = malloc(script_len);
+    if (value->n_size == 0 || value->n_size == 1)
+    {
+        value->script_len = 20;
+    }
+    else
+    {
+        for (i = 0; head + i != raw_value; i++)
+            ;
+        value->script_len = value_len - i;
+    }
+    value->script = malloc(value->script_len);
     if (value->script == NULL)
     {
         error_log("Unable to allocate memory for output script value.");
         return -1;
     }
-    raw_value = deserialize_uchar(value->script, raw_value, script_len);
+    raw_value = deserialize_uchar(value->script, raw_value, value->script_len);
 
     // pop off the coinbase flag from height.
     value->height = value->height >> 1;
@@ -365,7 +418,7 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
     // Decompress amount
     camount_decompress(&(value->amount), value->amount);
 
-    // If n_size is greater than 6, subtract 6 to get actual size.
+    // If n_size is greater/equal to 6, subtract 6 to get actual size.
     if (value->n_size >= 6)
     {
         value->n_size = value->n_size - 6;

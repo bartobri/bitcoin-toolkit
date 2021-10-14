@@ -6,6 +6,8 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <leveldb/c.h>
 #include "database.h"
 #include "error.h"
@@ -47,19 +49,32 @@ int database_iter_seek_start(void)
     iter = leveldb_create_iterator(db, roptions);
     leveldb_iter_seek_to_first(iter);
 
-    // Skip the first entry because it is th eobfuscation key
-    leveldb_iter_next(iter);
-    leveldb_iter_next(iter);
-
     return 1;
 }
 
 int database_iter_get_next(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len)
 {
-    *key = (unsigned char*) leveldb_iter_key(iter, key_len);
-    *value = (unsigned char*) leveldb_iter_value(iter, value_len);
+    const char *output;
 
     leveldb_iter_next(iter);
+
+    output = leveldb_iter_key(iter, key_len);
+    *key = malloc(*key_len);
+    if (*key == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+    memcpy(*key, output, *key_len);
+
+    output = leveldb_iter_value(iter, value_len);
+    *value = malloc(*value_len);
+    if (*value == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+    memcpy(*value, output, *value_len);
 
     return 1;
 }
