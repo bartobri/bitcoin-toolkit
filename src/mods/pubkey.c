@@ -169,6 +169,35 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	return 1;
 }
 
+int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
+{
+	assert(key);
+	assert(input);
+	assert(input_len);
+
+	if (input[0] != PUBKEY_COMPRESSED_FLAG_EVEN && input[0] != PUBKEY_COMPRESSED_FLAG_ODD && input[0] != PUBKEY_UNCOMPRESSED_FLAG)
+	{
+		error_log("Unknown compression flag: %.2x", input[0]);
+		return -1;
+	}
+
+	if ((input[0] == PUBKEY_COMPRESSED_FLAG_EVEN || input[0] == PUBKEY_COMPRESSED_FLAG_ODD) && input_len != PUBKEY_COMPRESSED_LENGTH + 1)
+	{
+		error_log("Incorrect data length for compressed private key.");
+		return -1;
+	}
+
+	if (input[0] == PUBKEY_UNCOMPRESSED_FLAG && input_len != PUBKEY_UNCOMPRESSED_LENGTH + 1)
+	{
+		error_log("Incorrect data length for uncompressed private key: %zu", input_len);
+		return -1;
+	}
+
+	memcpy(key->data, input, input_len);
+
+	return 1;
+}
+
 int pubkey_compress(PubKey key)
 {
 	mpz_t y;
@@ -196,6 +225,56 @@ int pubkey_compress(PubKey key)
 
 	mpz_clear(y);
 	
+	return 1;
+}
+
+int pubkey_decompress(PubKey key)
+{
+	size_t i, l;
+	Point point;
+
+	if (key->data[0] == PUBKEY_UNCOMPRESSED_FLAG)
+	{
+		return 1;
+	}
+
+	if (key->data[0] != PUBKEY_COMPRESSED_FLAG_EVEN && key->data[0] != PUBKEY_COMPRESSED_FLAG_ODD)
+	{
+		error_log("Unknown compression flag: %.2x", key->data[0]);
+		return -1;
+	}
+
+	point = malloc(sizeof(*point));
+	if (point == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
+	point_init(point);
+
+	mpz_import(point->x, PUBKEY_COMPRESSED_LENGTH, 1, 1, 1, 0, key->data + 1);
+
+	point_solve_y(point, key->data[0]);
+
+	if (!point_verify(point))
+	{
+		error_log("Invalid point values.");
+		return -1;
+	}
+
+	l = (mpz_sizeinbase(point->y, 2) + 7) / 8;
+	mpz_export(key->data + 33 + (32 - l), &i, 1, 1, 1, 0, point->y);
+	if (l != i)
+	{
+		error_log("Length of public key y-value export (%zu) does not match expected length (%zu).", i, l);
+		return -1;
+	}
+
+	key->data[0] = PUBKEY_UNCOMPRESSED_FLAG;
+
+	point_clear(point);
+	free(point);
+
 	return 1;
 }
 

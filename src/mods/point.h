@@ -22,6 +22,7 @@ void point_set(Point, Point);
 void point_set_generator(Point);
 void point_double(Point, Point);
 void point_add(Point, Point, Point);
+void point_solve_y(Point, unsigned char);
 int  point_verify(Point);
 void point_clear(Point);
 

@@ -16,7 +16,9 @@
 typedef struct PubKey *PubKey;
 
 int pubkey_get(PubKey, PrivKey);
+int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len);
 int pubkey_compress(PubKey);
+int pubkey_decompress(PubKey);
 int pubkey_is_compressed(PubKey);
 int pubkey_to_hex(char *, PubKey);
 int pubkey_to_raw(unsigned char *, PubKey);

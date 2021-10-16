@@ -130,9 +130,10 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     }
 
 
+    
     /*
     size_t i;
-    if (value->n_size == 1)
+    if (value->n_size >= 2 && value->n_size <= 5)
     {
         printf("Raw Key: ");
         for (i = 0; i < key_len; i++)
@@ -153,8 +154,8 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
         }
         printf("\n");
     }
-    */
-    /*
+    
+    
     printf("Key type: %.2x\n", key->type);
     printf("Key tx_hash: ");
     for (i = 0; i < TX_HASH_LENGTH; i++)
@@ -235,7 +236,50 @@ int utxo_value_has_address(UTXOValue value)
         // P2SH (Script Hash)
         if (value->n_size == 1)
         {
-            printf("Script Hash: ");
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int utxo_value_has_compressed_pubkey(UTXOValue value)
+{
+    assert(value);
+
+    if (value->script != NULL)
+    {
+        // Compressed Public Key (even)
+        if (value->n_size == 2)
+        {
+            return 1;
+        }
+
+        // Compressed Public Key (odd)
+        if (value->n_size == 3)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int utxo_value_has_uncompressed_pubkey(UTXOValue value)
+{
+    assert(value);
+
+    if (value->script != NULL)
+    {
+        // Uncompressed Public Key (even)
+        if (value->n_size == 4)
+        {
+            return 1;
+        }
+
+        // Uncompressed Public Key (odd)
+        if (value->n_size == 5)
+        {
             return 1;
         }
     }
@@ -562,3 +606,32 @@ int utxo_set_key_vout(UTXOKey key, int value)
     return 1;
 }
 
+size_t utxo_value_get_script_len(UTXOValue value)
+{
+    assert(value);
+
+    return value->script_len;
+}
+
+uint64_t utxo_value_get_n_size(UTXOValue value)
+{
+    assert(value);
+
+    return value->n_size;
+}
+
+int utxo_value_get_script(unsigned char *script, UTXOValue value)
+{
+    assert(script);
+    assert(value);
+
+    if (value->script == NULL || value->script_len == 0)
+    {
+        error_log("Value object does not contain a script.");
+        return -1;
+    }
+
+    memcpy(script, value->script, value->script_len);
+
+    return 1;
+}
