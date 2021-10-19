@@ -153,28 +153,28 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
             printf("%.2x", key->tx_hash[i]);
         }
         printf("\n");
-    }
     
-    
-    printf("Key type: %.2x\n", key->type);
-    printf("Key tx_hash: ");
-    for (i = 0; i < TX_HASH_LENGTH; i++)
-    {
-        printf("%.2x", key->tx_hash[i]);
-    }
-    printf("\n");
-    printf("Key vout: %lu\n", key->vout);
+        printf("Key type: %.2x\n", key->type);
+        printf("Key tx_hash: ");
+        for (i = 0; i < TX_HASH_LENGTH; i++)
+        {
+            printf("%.2x", key->tx_hash[i]);
+        }
+        printf("\n");
+        printf("Key vout: %lu\n", key->vout);
 
-    printf("Value Height: %lu\n", value->height);
-    printf("Value Amount: %lu\n", value->amount);
-    printf("Value nSize: %lu\n", value->n_size);
+        printf("Value Height: %lu\n", value->height);
+        printf("Value Amount: %lu\n", value->amount);
+        printf("Value nSize: %lu\n", value->n_size);
+    
+        printf("Value Script (%lu): ", value->script_len);
+        for (i = 0; i < value->script_len; i++)
+        {
+            printf("%.2x", value->script[i]);
+        }
+        printf("\n");
+    }
     */
-    //printf("Value Script (%lu): ", script_len);
-    //for (i = 0; i < script_len; i++)
-    //{
-    //    printf("%.2x", value->script[i]);
-    //}
-    //printf("\n");
 
 
     free(raw_key);
@@ -461,12 +461,6 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
 
     // Decompress amount
     camount_decompress(&(value->amount), value->amount);
-
-    // If n_size is greater/equal to 6, subtract 6 to get actual size.
-    if (value->n_size >= 6)
-    {
-        value->n_size = value->n_size - 6;
-    }
 
     return 1;
 }
