@@ -45,18 +45,84 @@ int database_iter_seek_start(void)
 {
     leveldb_readoptions_t *roptions;
 
-    roptions = leveldb_readoptions_create();
-    iter = leveldb_create_iterator(db, roptions);
+    if (!database_is_open())
+    {
+        error_log("Database is not open.");
+        return -1;
+    }
+
+    if (iter == NULL)
+    {
+        roptions = leveldb_readoptions_create();
+        iter = leveldb_create_iterator(db, roptions);
+    }
+
     leveldb_iter_seek_to_first(iter);
 
     return 1;
 }
 
-int database_iter_get_next(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len)
+int database_iter_seek_key(unsigned char *key, size_t key_len)
+{
+    leveldb_readoptions_t *roptions;
+
+    if (!database_is_open())
+    {
+        error_log("Database is not open.");
+        return -1;
+    }
+
+    if (iter == NULL)
+    {
+        roptions = leveldb_readoptions_create();
+        iter = leveldb_create_iterator(db, roptions);
+    }
+
+    leveldb_iter_seek(iter, (char *)key, key_len);
+
+    if (!leveldb_iter_valid(iter))
+    {
+        // Key not found. Return zero.
+        return 0;
+    }
+
+    return 1;
+}
+
+int database_iter_next()
+{
+    if (!leveldb_iter_valid(iter))
+    {
+        error_log("Invalid database iterator.");
+        return -1;
+    }
+
+    leveldb_iter_next(iter);
+
+    if (!leveldb_iter_valid(iter))
+    {
+        // Reached end of database. Return zero.
+        return 0;
+    }
+
+    return 1;
+}
+
+int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len)
 {
     const char *output;
 
-    leveldb_iter_next(iter);
+    if (iter == NULL)
+    {
+        error_log("Must seek database iterator before getting next value.");
+        return -1;
+    }
+
+    if (!leveldb_iter_valid(iter))
+    {
+        error_log("Invalid database iterator.");
+        return -1;
+    }
 
     output = leveldb_iter_key(iter, key_len);
     *key = malloc(*key_len);
@@ -79,7 +145,7 @@ int database_iter_get_next(unsigned char **key, size_t *key_len, unsigned char *
     return 1;
 }
 
-int database_get(unsigned char **output, size_t *output_len, char *key, size_t key_len)
+int database_get(unsigned char **output, size_t *output_len, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
     leveldb_readoptions_t *roptions;
@@ -89,16 +155,10 @@ int database_get(unsigned char **output, size_t *output_len, char *key, size_t k
     if (database_is_open())
     {
         roptions = leveldb_readoptions_create();
-        *output = (unsigned char *)leveldb_get(db, roptions, key, key_len, output_len, &err);
+        *output = (unsigned char *)leveldb_get(db, roptions, (char *)key, key_len, output_len, &err);
 
         if (err != NULL) {
-            error_log("Unable to get key value: %s.", err);
-            return -1;
-        }
-
-        if (*output_len == 0)
-        {
-            error_log("Key does not exist.");
+            error_log("The database reported the following error: %s.", err);
             return -1;
         }
     }

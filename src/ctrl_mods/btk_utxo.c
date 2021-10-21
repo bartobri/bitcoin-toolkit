@@ -12,17 +12,22 @@
 #include <stdint.h>
 #include <string.h>
 #include "mods/databases/utxo.h"
+#include "mods/pubkey.h"
 #include "mods/hex.h"
 #include "mods/input.h"
 #include "mods/error.h"
 
 int btk_utxo_main(int argc, char *argv[])
 {
-    int o, r;
+    int i, o, r;
     char *input_tx = NULL;
     int vout = 0;
     UTXOKey key = NULL;
     UTXOValue value = NULL;
+
+    // For testing
+    char address[21 * 2];
+    uint64_t amount = 0;
 
     char *build_location = NULL;
 
@@ -74,17 +79,105 @@ int btk_utxo_main(int argc, char *argv[])
             return -1;
         }
 
-        r = utxo_database_iter_get_next(key, value);
-        if (r < 0)
+        for (i = 0; i < 1000000; i++)
         {
-            error_log("Can not get next utxo record.");
-            return -1;
+            r = utxo_database_iter_get_next(key, value);
+            if (r < 0)
+            {
+                error_log("Can not get next utxo record.");
+                return -1;
+            }
+
+            if (utxo_value_has_address(value))
+            {
+                r = utxo_value_get_address(address, value);
+                if (r < 0) {
+                    error_log("Can not get address from value.");
+                    return -1;
+                }
+
+                amount = utxo_value_get_amount(value);
+
+                printf("%i Address %s has %lu satoshis\n\n", i, address, amount);
+            }
+            else if (utxo_value_has_compressed_pubkey(value) || utxo_value_has_uncompressed_pubkey(value))
+            {
+                PubKey pubkey;
+                unsigned char* script;
+                size_t script_len;
+
+                script = NULL;
+                pubkey = NULL;
+
+                pubkey = malloc(pubkey_sizeof());
+                if (pubkey == NULL)
+                {
+                    error_log("Memory allocation error.");
+                    return -1;
+                }
+
+                script_len = utxo_value_get_script_len(value);
+
+                script = malloc(script_len + 1);
+                if (script == NULL)
+                {
+                    error_log("Memory allocation error.");
+                    return -1;
+                }
+
+                script[0] = (unsigned char)utxo_value_get_n_size(value);
+
+                if (utxo_value_has_uncompressed_pubkey(value))
+                {
+                    script[0] -= 2;
+                }
+
+                r = utxo_value_get_script(script + 1, value);
+                if (r < 0)
+                {
+                    error_log("Can not get script from value.");
+                    return -1;
+                }
+
+                r = pubkey_from_raw(pubkey, script, script_len + 1);
+                if (r < 0)
+                {
+                    error_log("Can not get pubkey object from script.");
+                    return -1;
+                }
+
+                if (utxo_value_has_uncompressed_pubkey(value))
+                {
+                    r = pubkey_decompress(pubkey);
+                    if (r < 0)
+                    {
+                        error_log("Can not decompress pubkey.");
+                        return -1;
+                    }
+
+                }
+
+                r = pubkey_to_address(address, pubkey);
+                if (r < 0)
+                {
+                    error_log("Can not get address from pubkey.");
+                    return -1;
+                }
+
+                amount = utxo_value_get_amount(value);
+
+                printf("%i Address %s has %lu satoshis\n\n", i, address, amount);
+
+                free(script);
+                free(pubkey);
+            }
+
+            utxo_value_free(value);
         }
 
         utxo_close_database();
 
         free(key);
-        utxo_value_free(value);
         free(value);
     }
     else
@@ -148,11 +241,7 @@ int btk_utxo_main(int argc, char *argv[])
                 return -1;
             }
 
-            r = utxo_value_get_amount(&amount, value);
-            if (r < 0) {
-                error_log("Can not get address from value.");
-                return -1;
-            }
+            amount = utxo_value_get_amount(value);
 
             printf("Address %s has %lu satoshis\n", address, amount);
         }

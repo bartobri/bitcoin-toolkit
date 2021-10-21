@@ -12,25 +12,15 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
-#include <leveldb/c.h>
-#include "mods/database.h"
 #include "mods/databases/utxo.h"
+#include "mods/database.h"
 #include "mods/hex.h"
 #include "mods/serialize.h"
 #include "mods/camount.h"
 #include "mods/base58check.h"
 #include "mods/error.h"
 
-#define OFUSCATE_KEY_KEY          "\016\000obfuscate_key"
-#define OFUSCATE_KEY_KEY_LENGTH   15
 #define TX_HASH_LENGTH            32
-#define UTXO_KEY_MIN_LENGTH       34
-#define UTXO_KEY_MAX_LENGTH       38
-
-unsigned char *obfuscate_key;
-size_t obfuscate_key_len;
-
-int utxo_get_obfuscate_key(void);
 
 struct UTXOKey
 {
@@ -58,34 +48,6 @@ size_t utxo_sizeof_value(void)
     return sizeof(struct UTXOValue);
 }
 
-int utxo_open_database(char *location)
-{
-    int r;
-
-    r = database_open(location);
-    if (r < 0)
-    {
-        error_log("Error while opening UTXO database.");
-        return -1;
-    }
-
-    return 1;
-}
-
-int utxo_database_iter_seek_start(void)
-{
-    int r;
-
-    r = database_iter_seek_start();
-    if (r < 0)
-    {
-        error_log("Error while opening UTXO database.");
-        return -1;
-    }
-
-    return 1;
-}
-
 int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
 {
     int r;
@@ -97,7 +59,14 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     raw_key = NULL;
     raw_value = NULL;
 
-    r = database_iter_get_next(&raw_key, &key_len, &raw_value, &value_len);
+    r = database_iter_next();
+    if (r < 0)
+    {
+        error_log("Could not advance database iterator.");
+        return -1;
+    }
+
+    r = database_iter_get(&raw_key, &key_len, &raw_value, &value_len);
     if (r < 0)
     {
         error_log("Could not get next database iteration.");
@@ -179,44 +148,6 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
 
     free(raw_key);
     free(raw_value);
-
-    return 1;
-}
-
-int utxo_get(UTXOValue value, UTXOKey key)
-{
-    int r;
-    size_t serialized_key_len = 0;
-    size_t output_len = 0;
-    unsigned char serialized_key[UTXO_KEY_MAX_LENGTH];
-    unsigned char *output = NULL;
-
-    assert(value);
-    assert(key);
-
-    if (utxo_get_obfuscate_key() < 0) {
-        error_log("Can not get obfuscate key.");
-        return -1;
-    }
-
-    r = utxo_serialize_key(serialized_key, &serialized_key_len, key);
-    if (r < 0 || serialized_key_len == 0) {
-        error_log("Unable to serialize UTXO key.");
-        return -1;
-    }
-
-    r = database_get(&output, &output_len, (char *)serialized_key, serialized_key_len);
-    if (r < 0 || output_len == 0) {
-        error_log("Unable to get value from database.");
-        return -1;
-    }
-
-    r = utxo_set_value_from_raw(value, output, output_len);
-    if (r < 0)
-    {
-        error_log("Could not deserialize raw value.");
-        return -1;
-    }
 
     return 1;
 }
@@ -330,16 +261,6 @@ int utxo_value_get_address(char *address, UTXOValue value)
     return 1;
 }
 
-int utxo_value_get_amount(uint64_t *amount, UTXOValue value)
-{
-    assert(amount);
-    assert(value);
-
-    *amount = value->amount;
-
-    return 1;
-}
-
 void utxo_value_free(UTXOValue value)
 {
     assert(value);
@@ -349,36 +270,6 @@ void utxo_value_free(UTXOValue value)
         free(value->script);
         value->script = NULL;
     }
-}
-
-void utxo_close_database(void)
-{
-    database_close();
-}
-
-int utxo_get_obfuscate_key(void)
-{
-    int r;
-
-    if (obfuscate_key == NULL)
-    {
-        r = database_get(&obfuscate_key, &obfuscate_key_len, OFUSCATE_KEY_KEY, OFUSCATE_KEY_KEY_LENGTH);
-        if (r < 0) {
-            error_log("Can not get obfuscate key.");
-            return -1;
-        }
-        if (obfuscate_key == NULL || obfuscate_key_len == 0)
-        {
-            error_log("Can not get obfuscate key. No matching record found in database");
-            return -1;
-        }
-
-        // Drop first char
-        obfuscate_key++;
-        obfuscate_key_len -= 1;
-    }
-
-    return 1;
 }
 
 int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
@@ -420,18 +311,6 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
     assert(value);
     assert(raw_value);
     assert(value_len);
-
-    if (utxo_get_obfuscate_key() < 0)
-    {
-        error_log("Can not get obfuscate key.");
-        return -1;
-    }
-
-    // De-obfuscate the value
-    for (i = 0; i < value_len; i++)
-    {
-        raw_value[i] ^= obfuscate_key[i % obfuscate_key_len];
-    }
 
     head = raw_value;
 
@@ -605,6 +484,20 @@ size_t utxo_value_get_script_len(UTXOValue value)
     assert(value);
 
     return value->script_len;
+}
+
+uint64_t utxo_value_get_height(UTXOValue value)
+{
+    assert(value);
+
+    return value->height;
+}
+
+uint64_t utxo_value_get_amount(UTXOValue value)
+{
+    assert(value);
+
+    return value->amount;
 }
 
 uint64_t utxo_value_get_n_size(UTXOValue value)
