@@ -20,12 +20,10 @@
 #include "mods/base58check.h"
 #include "mods/error.h"
 
-#define TX_HASH_LENGTH            32
-
 struct UTXOKey
 {
     uint8_t        type;
-    unsigned char  tx_hash[TX_HASH_LENGTH];
+    unsigned char  tx_hash[UTXO_TX_HASH_LENGTH];
     uint64_t       vout;
 };
 
@@ -117,7 +115,7 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
         }
         printf("\n");
         printf("TX (%lu): ", key->vout);
-        for (i = 0; i < TX_HASH_LENGTH; i++)
+        for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
         {
             printf("%.2x", key->tx_hash[i]);
         }
@@ -125,7 +123,7 @@ int utxo_database_iter_get_next(UTXOKey key, UTXOValue value)
     
         printf("Key type: %.2x\n", key->type);
         printf("Key tx_hash: ");
-        for (i = 0; i < TX_HASH_LENGTH; i++)
+        for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
         {
             printf("%.2x", key->tx_hash[i]);
         }
@@ -276,22 +274,22 @@ int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
 {
     int i;
     unsigned char *head;
-    unsigned char tmp[TX_HASH_LENGTH];
+    unsigned char tmp[UTXO_TX_HASH_LENGTH];
 
     assert(output);
     assert(output_len);
     assert(key);
 
     // Reverse byte order of tx_hash for serialization
-    for (i = 0; i < TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
     {
-        tmp[i] = key->tx_hash[TX_HASH_LENGTH - 1 - i];
+        tmp[i] = key->tx_hash[UTXO_TX_HASH_LENGTH - 1 - i];
     }
 
     head = output;
 
     output = serialize_uint8(output, key->type, SERIALIZE_ENDIAN_BIG);
-    output = serialize_uchar(output, tmp, TX_HASH_LENGTH);
+    output = serialize_uchar(output, tmp, UTXO_TX_HASH_LENGTH);
     output = serialize_varint(output, key->vout);
 
     *output_len = 0;
@@ -347,7 +345,7 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
 int utxo_set_key_from_raw(UTXOKey key, unsigned char *raw_key, size_t key_len)
 {
     int i;
-    unsigned char tmp[TX_HASH_LENGTH];
+    unsigned char tmp[UTXO_TX_HASH_LENGTH];
 
     assert(key);
     assert(raw_key);
@@ -366,48 +364,17 @@ int utxo_set_key_from_raw(UTXOKey key, unsigned char *raw_key, size_t key_len)
     }
 
     raw_key = deserialize_uint8(&(key->type), raw_key, SERIALIZE_ENDIAN_BIG);
-    raw_key = deserialize_uchar(key->tx_hash, raw_key, TX_HASH_LENGTH);
+    raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXO_TX_HASH_LENGTH);
     raw_key = deserialize_varint(&(key->vout), raw_key);
 
     // Reverse byte order of tx_hash
-    for (i = 0; i < TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
     {
-        tmp[i] = key->tx_hash[TX_HASH_LENGTH - 1 - i];
+        tmp[i] = key->tx_hash[UTXO_TX_HASH_LENGTH - 1 - i];
     }
-    for (i = 0; i < TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
     {
         key->tx_hash[i] = tmp[i];
-    }
-
-    return 1;
-}
-
-int utxo_set_key_from_hex(UTXOKey key, char *tx_hash_hex, int vout)
-{
-    int r;
-    unsigned char tx_hash[TX_HASH_LENGTH];
-
-    assert(key);
-    assert(tx_hash_hex);
-
-    if (strlen(tx_hash_hex) != 64)
-    {
-        error_log("UTXO tx hash in hex must be exactly 64 characters long.");
-        return -1;
-    }
-
-    r = hex_str_to_raw(tx_hash, tx_hash_hex);
-    if (r < 0)
-    {
-        error_log("Can not convert tx hex string to raw.");
-        return -1;
-    }
-
-    r = utxo_set_key(key, tx_hash, vout);
-    if (r < 0)
-    {
-        error_log("Can not set UTXO key values.");
-        return -1;
     }
 
     return 1;
@@ -465,7 +432,7 @@ int utxo_set_key_tx_hash(UTXOKey key, unsigned char *value)
     assert(key);
     assert(value);
 
-    memcpy(key->tx_hash, value, TX_HASH_LENGTH);
+    memcpy(key->tx_hash, value, UTXO_TX_HASH_LENGTH);
 
     return 1;
 }
@@ -519,6 +486,23 @@ int utxo_value_get_script(unsigned char *script, UTXOValue value)
     }
 
     memcpy(script, value->script, value->script_len);
+
+    return 1;
+}
+
+uint64_t utxo_key_get_vout(UTXOKey key)
+{
+    assert(key);
+
+    return key->vout;
+}
+
+int utxo_key_get_tx_hash(unsigned char *tx_hash, UTXOKey key)
+{
+    assert(tx_hash);
+    assert(key);
+
+    memcpy(tx_hash, key->tx_hash, UTXO_TX_HASH_LENGTH);
 
     return 1;
 }

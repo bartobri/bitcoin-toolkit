@@ -16,6 +16,7 @@
 #define UTXO_KEY_MAX_LENGTH           38
 #define UTXO_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
 #define UTXO_OFUSCATE_KEY_KEY_LENGTH  15
+#define UTXO_TX_HASH_LENGTH           32
 
 typedef struct UTXOKey *UTXOKey;
 typedef struct UTXOValue *UTXOValue;
@@ -30,7 +31,6 @@ void utxo_value_free(UTXOValue);
 int utxo_serialize_key(unsigned char *, size_t *, UTXOKey);
 int utxo_set_value_from_raw(UTXOValue, unsigned char *, size_t);
 int utxo_set_key_from_raw(UTXOKey, unsigned char *, size_t);
-int utxo_set_key_from_hex(UTXOKey, char *, int);
 int utxo_set_key(UTXOKey, unsigned char *, int);
 int utxo_set_key_type(UTXOKey, char);
 int utxo_set_key_tx_hash(UTXOKey, unsigned char *);
@@ -40,5 +40,7 @@ uint64_t utxo_value_get_height(UTXOValue);
 uint64_t utxo_value_get_amount(UTXOValue);
 uint64_t utxo_value_get_n_size(UTXOValue);
 int utxo_value_get_script(unsigned char *, UTXOValue);
+uint64_t utxo_key_get_vout(UTXOKey);
+int utxo_key_get_tx_hash(unsigned char *, UTXOKey);
 
 #endif

@@ -82,14 +82,14 @@ int database_iter_seek_key(unsigned char *key, size_t key_len)
 
     if (!leveldb_iter_valid(iter))
     {
-        // Key not found. Return zero.
+        // End of database. Return zero.
         return 0;
     }
 
     return 1;
 }
 
-int database_iter_next()
+int database_iter_next(void)
 {
     if (!leveldb_iter_valid(iter))
     {
@@ -132,6 +132,34 @@ int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **valu
         return -1;
     }
     memcpy(*key, output, *key_len);
+
+    output = leveldb_iter_value(iter, value_len);
+    *value = malloc(*value_len);
+    if (*value == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+    memcpy(*value, output, *value_len);
+
+    return 1;
+}
+
+int database_iter_get_value(unsigned char **value, size_t *value_len)
+{
+    const char *output;
+
+    if (iter == NULL)
+    {
+        error_log("Must seek database iterator before getting next value.");
+        return -1;
+    }
+
+    if (!leveldb_iter_valid(iter))
+    {
+        error_log("Invalid database iterator.");
+        return -1;
+    }
 
     output = leveldb_iter_value(iter, value_len);
     *value = malloc(*value_len);
