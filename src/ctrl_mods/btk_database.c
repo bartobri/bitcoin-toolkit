@@ -22,6 +22,7 @@
 int btk_database_main(int argc, char *argv[])
 {
     int o, r;
+    int found = 0;
     size_t i;
     size_t input_raw_len = 0;
     size_t serialized_key_len = 0;
@@ -205,6 +206,8 @@ int btk_database_main(int argc, char *argv[])
                     break;
                 }
 
+                found = 1;
+
                 printf("%-10"PRIu64" | ", utxo_value_get_height(value));
                 printf("%-10"PRIu64" | ", utxo_key_get_vout(key));
                 printf("%-10"PRIu64" | ", utxo_value_get_amount(value));
@@ -328,7 +331,14 @@ int btk_database_main(int argc, char *argv[])
             }
             while (1);
 
-            printf("-----------|------------|------------|------------\n");
+            if (found == 0)
+            {
+                printf("No results found.\n");
+            }
+            else
+            {
+                printf("-----------|------------|------------|------------\n");
+            }
             
         }
 
