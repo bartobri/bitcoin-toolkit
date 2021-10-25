@@ -16,6 +16,7 @@
 #include "mods/error.h"
 #include "mods/database.h"
 #include "mods/databases/utxo.h"
+#include "mods/pubkey.h"
 #include "mods/hex.h"
 
 int btk_database_main(int argc, char *argv[])
@@ -26,6 +27,8 @@ int btk_database_main(int argc, char *argv[])
     size_t serialized_key_len = 0;
     size_t serialized_value_len = 0;
     size_t obfuscate_key_len = 0;
+    size_t script_len = 0;
+    char address[42];
     char *db_type = NULL;
     char *input = NULL;
     unsigned char *input_raw = NULL;
@@ -34,6 +37,7 @@ int btk_database_main(int argc, char *argv[])
     unsigned char *obfuscate_key = NULL;
     unsigned char *tmp = NULL;
 
+    PubKey pubkey = NULL;
     UTXOKey key = NULL;
     UTXOValue value = NULL;
 
@@ -150,6 +154,9 @@ int btk_database_main(int argc, char *argv[])
         }
         else
         {
+            printf("-----------|------------|------------|------------\n");
+            printf("%-10s | %-10s | %-10s | %-10s\n", "Height", "Output", "Amount", "Script");
+            printf("-----------|------------|------------|------------\n");
             do
             {
                 r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len);
@@ -198,9 +205,111 @@ int btk_database_main(int argc, char *argv[])
                     break;
                 }
 
-                printf("Vout: %"PRIu64", ", utxo_key_get_vout(key));
-                printf("Height: %"PRIu64", ", utxo_value_get_height(value));
-                printf("Amount: %"PRIu64"\n", utxo_value_get_amount(value));
+                printf("%-10"PRIu64" | ", utxo_value_get_height(value));
+                printf("%-10"PRIu64" | ", utxo_key_get_vout(key));
+                printf("%-10"PRIu64" | ", utxo_value_get_amount(value));
+
+                if (utxo_value_has_address(value))
+                {
+                    //TODO - 42 should be a defined var
+                    memset(address, 0, 42);
+
+                    r = utxo_value_get_address(address, value);
+                    if (r < 0) {
+                        error_log("Can not get address from value.");
+                        return -1;
+                    }
+
+                    printf("Paid To: %s", address);
+                }
+                else if (utxo_value_has_compressed_pubkey(value) || utxo_value_has_uncompressed_pubkey(value))
+                {
+                    pubkey = malloc(pubkey_sizeof());
+                    if (pubkey == NULL)
+                    {
+                        error_log("Memory allocation error.");
+                        return -1;
+                    }
+
+                    free(tmp);
+
+                    script_len = utxo_value_get_script_len(value);
+                    tmp = malloc(script_len + 1);
+                    if (tmp == NULL)
+                    {
+                        error_log("Memory allocation error.");
+                        return -1;
+                    }
+
+                    tmp[0] = (unsigned char)utxo_value_get_n_size(value);
+
+                    if (utxo_value_has_uncompressed_pubkey(value))
+                    {
+                        tmp[0] -= 2;
+                    }
+
+                    r = utxo_value_get_script(tmp + 1, value);
+                    if (r < 0)
+                    {
+                        error_log("Can not get script from value.");
+                        return -1;
+                    }
+
+                    r = pubkey_from_raw(pubkey, tmp, script_len + 1);
+                    if (r < 0)
+                    {
+                        error_log("Can not get pubkey object from script.");
+                        return -1;
+                    }
+
+                    if (utxo_value_has_uncompressed_pubkey(value))
+                    {
+                        r = pubkey_decompress(pubkey);
+                        if (r < 0)
+                        {
+                            error_log("Can not decompress pubkey.");
+                            return -1;
+                        }
+
+                    }
+
+                    r = pubkey_to_address(address, pubkey);
+                    if (r < 0)
+                    {
+                        error_log("Can not get address from pubkey.");
+                        return -1;
+                    }
+
+                    printf("Paid To: %s", address);
+
+                    free(pubkey);
+                }
+                else
+                {
+                    free(tmp);
+
+                    script_len = utxo_value_get_script_len(value);
+                    tmp = malloc(script_len);
+                    if (tmp == NULL)
+                    {
+                        error_log("Memory Allocation Error.");
+                        return -1;
+                    }
+
+                    r = utxo_value_get_script(tmp, value);
+                    if (r < 0)
+                    {
+                        error_log("Unable to get script from database value.");
+                        return -1;
+                    }
+
+                    for (i = 0; i < script_len; i++)
+                    {
+                        printf("%.2x", tmp[i]);
+                    }
+                }
+
+                printf("\n");
 
                 r = database_iter_next();
                 if (r < 0)
@@ -218,6 +327,8 @@ int btk_database_main(int argc, char *argv[])
                 free(serialized_value);
             }
             while (1);
+
+            printf("-----------|------------|------------|------------\n");
             
         }
 

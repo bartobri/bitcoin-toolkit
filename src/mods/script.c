@@ -21,7 +21,7 @@ typedef struct
 } Words;
 
 Words words[256] = {
-	[0x00].word = "OP_FALSE",
+	[0x00].word = "OP_0",
 	[0x01].word = "NA",
 	[0x02].word = "NA",
 	[0x03].word = "NA",
