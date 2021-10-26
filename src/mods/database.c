@@ -21,6 +21,11 @@ int database_open(char *location)
     leveldb_options_t *options;
 
     options = leveldb_options_create();
+
+    // Turn off snappy compression. If left on, reading from the db with this
+    // will corrupt the database for bitcoin core.
+    leveldb_options_set_compression(options, leveldb_no_compression);
+
     db = leveldb_open(options, location, &err);
 
     if (err != NULL) {
