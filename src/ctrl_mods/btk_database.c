@@ -19,9 +19,12 @@
 #include "mods/pubkey.h"
 #include "mods/hex.h"
 
+#define DATABASE_UTXO 1
+
 int btk_database_main(int argc, char *argv[])
 {
     int o, r;
+    int db_type = 0;
     int found = 0;
     size_t i;
     size_t input_raw_len = 0;
@@ -30,7 +33,6 @@ int btk_database_main(int argc, char *argv[])
     size_t obfuscate_key_len = 0;
     size_t script_len = 0;
     char address[42];
-    char *db_type = NULL;
     char *input = NULL;
     unsigned char *input_raw = NULL;
     unsigned char *serialized_key = NULL;
@@ -42,12 +44,12 @@ int btk_database_main(int argc, char *argv[])
     UTXOKey key = NULL;
     UTXOValue value = NULL;
 
-    while ((o = getopt(argc, argv, "t:")) != -1)
+    while ((o = getopt(argc, argv, "u")) != -1)
     {
         switch (o)
         {
-            case 't':
-                db_type = optarg;
+            case 'u':
+                db_type = DATABASE_UTXO;
                 break;
             case '?':
                 error_log("See 'btk help %s' to read about available argument options.", argv[1]);
@@ -63,13 +65,13 @@ int btk_database_main(int argc, char *argv[])
         }
     }
 
-    if (db_type == NULL)
+    if (db_type == 0)
     {
-        error_log("Missing required argument: -t <database type>.");
+        error_log("Missing database type argument.");
         return -1;
     }
 
-    if (strcmp(db_type, "utxo") == 0)
+    if (db_type == DATABASE_UTXO)
     {
         r = input_get_str(&input, "Enter TX Hash: ");
         if (r < 0)
@@ -78,7 +80,7 @@ int btk_database_main(int argc, char *argv[])
             return -1;
         }
 
-        r = database_open(UTXO_DATABASE);
+        r = database_open(UTXO_PATH);
         if (r < 0)
         {
             error_log("Error while opening UTXO database.");
