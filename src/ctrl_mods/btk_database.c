@@ -46,12 +46,15 @@ int btk_database_main(int argc, char *argv[])
     UTXOKey key = NULL;
     UTXOValue value = NULL;
 
-    while ((o = getopt(argc, argv, "u")) != -1)
+    while ((o = getopt(argc, argv, "up:")) != -1)
     {
         switch (o)
         {
             case 'u':
                 db_type = DATABASE_UTXO;
+                break;
+            case 'p':
+                db_path = optarg;
                 break;
             case '?':
                 error_log("See 'btk help %s' to read about available argument options.", argv[1]);
@@ -73,21 +76,24 @@ int btk_database_main(int argc, char *argv[])
         return -1;
     }
 
-    home_path = getenv("HOME");
-    if (home_path == NULL)
-    {
-        error_log("Unable to determine home directory.");
-        return -1;
-    }
-    db_path = malloc(strlen(home_path) + strlen(UTXO_PATH) + 2);
     if (db_path == NULL)
     {
-        error_log("Memory Allocation Error.");
-        return -1;
+        home_path = getenv("HOME");
+        if (home_path == NULL)
+        {
+            error_log("Unable to determine home directory.");
+            return -1;
+        }
+        db_path = malloc(strlen(home_path) + strlen(UTXO_PATH) + 2);
+        if (db_path == NULL)
+        {
+            error_log("Memory Allocation Error.");
+            return -1;
+        }
+        strcpy(db_path, home_path);
+        strcat(db_path, "/");
+        strcat(db_path, UTXO_PATH);
     }
-    strcpy(db_path, home_path);
-    strcat(db_path, "/");
-    strcat(db_path, UTXO_PATH);
 
     if (db_type == DATABASE_UTXO)
     {
@@ -367,7 +373,9 @@ int btk_database_main(int argc, char *argv[])
         free(value);
         free(serialized_key);
         free(input);
-        free(db_path);
+        // TODO - Do not free db_path when assigned from optarg.
+        // Commenting out for now.
+        //free(db_path);
 
         database_close();
     }
