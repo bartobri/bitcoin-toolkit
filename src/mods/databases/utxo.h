@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#define UTXO_PATH                     "/home/brian/tmp/leveldb_c/chainstate"
+#define UTXO_PATH                     ".bitcoin/chainstate"
 #define UTXO_KEY_TYPE                 0x43
 #define UTXO_KEY_MIN_LENGTH           34
 #define UTXO_KEY_MAX_LENGTH           38

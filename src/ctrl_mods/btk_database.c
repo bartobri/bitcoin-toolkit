@@ -34,6 +34,8 @@ int btk_database_main(int argc, char *argv[])
     size_t script_len = 0;
     char address[42];
     char *input = NULL;
+    char *home_path = NULL;
+    char *db_path = NULL;
     unsigned char *input_raw = NULL;
     unsigned char *serialized_key = NULL;
     unsigned char *serialized_value = NULL;
@@ -71,6 +73,22 @@ int btk_database_main(int argc, char *argv[])
         return -1;
     }
 
+    home_path = getenv("HOME");
+    if (home_path == NULL)
+    {
+        error_log("Unable to determine home directory.");
+        return -1;
+    }
+    db_path = malloc(strlen(home_path) + strlen(UTXO_PATH) + 2);
+    if (db_path == NULL)
+    {
+        error_log("Memory Allocation Error.");
+        return -1;
+    }
+    strcpy(db_path, home_path);
+    strcat(db_path, "/");
+    strcat(db_path, UTXO_PATH);
+
     if (db_type == DATABASE_UTXO)
     {
         r = input_get_str(&input, "Enter TX Hash: ");
@@ -80,7 +98,7 @@ int btk_database_main(int argc, char *argv[])
             return -1;
         }
 
-        r = database_open(UTXO_PATH);
+        r = database_open(db_path);
         if (r < 0)
         {
             error_log("Error while opening UTXO database.");
@@ -349,6 +367,7 @@ int btk_database_main(int argc, char *argv[])
         free(value);
         free(serialized_key);
         free(input);
+        free(db_path);
 
         database_close();
     }
