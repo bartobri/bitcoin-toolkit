@@ -19,7 +19,8 @@
 #include "mods/pubkey.h"
 #include "mods/hex.h"
 
-#define DATABASE_UTXO 1
+#define BTK_DATABASE_UTXO     1
+#define BTK_DATABASE_ADDRESS  2
 
 int btk_database_main(int argc, char *argv[])
 {
@@ -42,16 +43,20 @@ int btk_database_main(int argc, char *argv[])
     unsigned char *obfuscate_key = NULL;
     unsigned char *tmp = NULL;
 
+    DBRef utxo_ref;
     PubKey pubkey = NULL;
     UTXOKey key = NULL;
     UTXOValue value = NULL;
 
-    while ((o = getopt(argc, argv, "up:")) != -1)
+    while ((o = getopt(argc, argv, "aup:")) != -1)
     {
         switch (o)
         {
+            case 'a':
+                db_type = BTK_DATABASE_ADDRESS;
+                break;
             case 'u':
-                db_type = DATABASE_UTXO;
+                db_type = BTK_DATABASE_UTXO;
                 break;
             case 'p':
                 db_path = optarg;
@@ -95,7 +100,7 @@ int btk_database_main(int argc, char *argv[])
         strcat(db_path, UTXO_PATH);
     }
 
-    if (db_type == DATABASE_UTXO)
+    if (db_type == BTK_DATABASE_UTXO)
     {
         r = input_get_str(&input, "Enter TX Hash: ");
         if (r < 0)
@@ -104,14 +109,14 @@ int btk_database_main(int argc, char *argv[])
             return -1;
         }
 
-        r = database_open(db_path);
+        r = database_open(&utxo_ref, db_path);
         if (r < 0)
         {
             error_log("Error while opening UTXO database.");
             return -1;
         }
 
-        r = database_get(&obfuscate_key, &obfuscate_key_len, (unsigned char *)UTXO_OFUSCATE_KEY_KEY, UTXO_OFUSCATE_KEY_KEY_LENGTH);
+        r = database_get(&obfuscate_key, &obfuscate_key_len, utxo_ref, (unsigned char *)UTXO_OFUSCATE_KEY_KEY, UTXO_OFUSCATE_KEY_KEY_LENGTH);
         if (r < 0 || obfuscate_key == NULL || obfuscate_key_len == 0) {
             error_log("Can not get obfuscate key.");
             return -1;
@@ -170,7 +175,7 @@ int btk_database_main(int argc, char *argv[])
             return -1;
         }
 
-        r = database_iter_seek_key(serialized_key, serialized_key_len);
+        r = database_iter_seek_key(utxo_ref, serialized_key, serialized_key_len);
         if (r < 0) {
             error_log("Could not seek database iterator.");
             return -1;
@@ -186,7 +191,7 @@ int btk_database_main(int argc, char *argv[])
             printf("-----------|------------|------------|------------\n");
             do
             {
-                r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len);
+                r = database_iter_get(&serialized_key, &serialized_key_len, utxo_ref, &serialized_value, &serialized_value_len);
                 if (r < 0)
                 {
                     error_log("Could not get data from database.");
@@ -340,7 +345,7 @@ int btk_database_main(int argc, char *argv[])
 
                 printf("\n");
 
-                r = database_iter_next();
+                r = database_iter_next(utxo_ref);
                 if (r < 0)
                 {
                     error_log("Unable to set database iterator to next key.");
@@ -377,12 +382,11 @@ int btk_database_main(int argc, char *argv[])
         // Commenting out for now.
         //free(db_path);
 
-        database_close();
+        database_close(utxo_ref);
     }
-    else
+    else if (db_type == BTK_DATABASE_ADDRESS)
     {
-        error_log("Unknown database type specified: %s.", db_type);
-        return -1;
+        printf("Operating on address database\n");
     }
 
     return EXIT_SUCCESS;

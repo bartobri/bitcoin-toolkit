@@ -8,14 +8,16 @@
 #ifndef DATABASE_H
 #define DATABASE_H 1
 
-int database_open(char *);
-int database_is_open(void);
-int database_get(unsigned char **, size_t *, unsigned char *, size_t);
-int database_iter_seek_start(void);
-int database_iter_seek_key(unsigned char *, size_t);
-int database_iter_next(void);
-int database_iter_get(unsigned char **, size_t *, unsigned char **, size_t *);
-int database_iter_get_value(unsigned char **, size_t *);
-void database_close(void);
+typedef int DBRef;
+
+int database_open(DBRef *, char *);
+int database_is_open(DBRef);
+int database_iter_seek_start(DBRef);
+int database_iter_seek_key(DBRef, unsigned char *, size_t);
+int database_iter_next(DBRef);
+int database_iter_get(unsigned char **, size_t *, DBRef, unsigned char **, size_t *);
+int database_iter_get_value(unsigned char **, DBRef, size_t *);
+int database_get(unsigned char **, size_t *, DBRef, unsigned char *, size_t);
+void database_close(DBRef);
 
 #endif
