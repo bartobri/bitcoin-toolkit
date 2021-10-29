@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <leveldb/c.h>
 #include "database.h"
 #include "error.h"
@@ -17,7 +18,7 @@
 static leveldb_t *(db[DATABASE_MAX_DB_OBJS]);
 static leveldb_iterator_t *(iter[DATABASE_MAX_DB_OBJS]);
 
-int database_open(DBRef *ref, char *location)
+int database_open(DBRef *ref, char *location, bool create)
 {
     int i;
     char *err = NULL;
@@ -33,6 +34,9 @@ int database_open(DBRef *ref, char *location)
     // Turn off snappy compression. If left on, reading from the db with this
     // will corrupt the database for bitcoin core.
     leveldb_options_set_compression(options, leveldb_no_compression);
+
+    // Set create if missing option
+    leveldb_options_set_create_if_missing(options, create);
 
     db[i] = leveldb_open(options, location, &err);
 
@@ -110,7 +114,7 @@ int database_iter_next(DBRef ref)
     return 1;
 }
 
-int database_iter_get(unsigned char **key, size_t *key_len, DBRef ref, unsigned char **value, size_t *value_len)
+int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len, DBRef ref)
 {
     const char *output;
 
@@ -147,7 +151,7 @@ int database_iter_get(unsigned char **key, size_t *key_len, DBRef ref, unsigned 
     return 1;
 }
 
-int database_iter_get_value(unsigned char **value, DBRef ref, size_t *value_len)
+int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 {
     const char *output;
 

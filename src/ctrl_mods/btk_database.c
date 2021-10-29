@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include "mods/input.h"
 #include "mods/error.h"
 #include "mods/database.h"
@@ -27,8 +28,9 @@ int btk_database_main(int argc, char *argv[])
 {
     int o, r;
     int db_type = 0;
+    int db_create = 0;
     int found = 0;
-    size_t i;
+    size_t i, j;
     size_t input_raw_len = 0;
     size_t serialized_key_len = 0;
     size_t serialized_value_len = 0;
@@ -46,11 +48,12 @@ int btk_database_main(int argc, char *argv[])
     unsigned char *tmp = NULL;
 
     DBRef utxo_ref;
+    DBRef address_ref;
     PubKey pubkey = NULL;
     UTXOKey key = NULL;
     UTXOValue value = NULL;
 
-    while ((o = getopt(argc, argv, "aup:")) != -1)
+    while ((o = getopt(argc, argv, "aucp:")) != -1)
     {
         switch (o)
         {
@@ -59,6 +62,9 @@ int btk_database_main(int argc, char *argv[])
                 break;
             case 'u':
                 db_type = BTK_DATABASE_UTXO;
+                break;
+            case 'c':
+                db_create = 1;
                 break;
             case 'p':
                 db_path = optarg;
@@ -83,27 +89,27 @@ int btk_database_main(int argc, char *argv[])
         return -1;
     }
 
-    if (db_path == NULL)
-    {
-        home_path = getenv("HOME");
-        if (home_path == NULL)
-        {
-            error_log("Unable to determine home directory.");
-            return -1;
-        }
-        db_path = malloc(strlen(home_path) + strlen(UTXO_PATH) + 2);
-        if (db_path == NULL)
-        {
-            error_log("Memory Allocation Error.");
-            return -1;
-        }
-        strcpy(db_path, home_path);
-        strcat(db_path, "/");
-        strcat(db_path, UTXO_PATH);
-    }
-
     if (db_type == BTK_DATABASE_UTXO)
     {
+        if (db_path == NULL)
+        {
+            home_path = getenv("HOME");
+            if (home_path == NULL)
+            {
+                error_log("Unable to determine home directory.");
+                return -1;
+            }
+            db_path = malloc(strlen(home_path) + strlen(UTXO_PATH) + 2);
+            if (db_path == NULL)
+            {
+                error_log("Memory Allocation Error.");
+                return -1;
+            }
+            strcpy(db_path, home_path);
+            strcat(db_path, "/");
+            strcat(db_path, UTXO_PATH);
+        }
+
         r = input_get_str(&input, "Enter TX Hash: ");
         if (r < 0)
         {
@@ -111,7 +117,7 @@ int btk_database_main(int argc, char *argv[])
             return -1;
         }
 
-        r = database_open(&utxo_ref, db_path);
+        r = database_open(&utxo_ref, db_path, true);
         if (r < 0)
         {
             error_log("Error while opening UTXO database.");
@@ -190,7 +196,7 @@ int btk_database_main(int argc, char *argv[])
         {
             do
             {
-                r = database_iter_get(&serialized_key, &serialized_key_len, utxo_ref, &serialized_value, &serialized_value_len);
+                r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len, utxo_ref);
                 if (r < 0)
                 {
                     error_log("Could not get data from database.");
@@ -383,6 +389,162 @@ int btk_database_main(int argc, char *argv[])
     else if (db_type == BTK_DATABASE_ADDRESS)
     {
         printf("Operating on address database\n");
+
+        if (db_create)
+        {
+            value = malloc(utxo_sizeof_value());
+            if (value == NULL)
+            {
+                error_log("Memory Allocation Error.");
+                return -1;
+            }
+
+            r = database_open(&utxo_ref, "/home/brian/tmp/leveldb_c/chainstate", false);
+            if (r < 0)
+            {
+                error_log("Error while opening UTXO database.");
+                return -1;
+            }
+
+            r = database_open(&address_ref, "/home/brian/tmp/leveldb_c/address", true);
+            if (r < 0)
+            {
+                error_log("Error while opening address database.");
+                return -1;
+            }
+
+            r = database_get(&obfuscate_key, &obfuscate_key_len, utxo_ref, (unsigned char *)UTXO_OFUSCATE_KEY_KEY, UTXO_OFUSCATE_KEY_KEY_LENGTH);
+            if (r < 0 || obfuscate_key == NULL || obfuscate_key_len == 0)
+            {
+                error_log("Can not get UTXO obfuscate key.");
+                return -1;
+            }
+
+            // Drop first char
+            obfuscate_key++;
+            obfuscate_key_len -= 1;
+
+            r = database_iter_seek_start(utxo_ref);
+            if (r < 0)
+            {
+                error_log("Unable to seek to first record in UTXO database.");
+                return -1;
+            }
+
+            j = 0;
+            while ((r = database_iter_next(utxo_ref)) == 1)
+            {
+                r = database_iter_get_value(&serialized_value, &serialized_value_len, utxo_ref);
+                if (r < 0)
+                {
+                    error_log("Could not get data from database.");
+                    return -1;
+                }
+
+                // De-obfuscate the value
+                for (i = 0; i < serialized_value_len; i++)
+                {
+                    serialized_value[i] ^= obfuscate_key[i % obfuscate_key_len];
+                }
+
+                r = utxo_set_value_from_raw(value, serialized_value, serialized_value_len);
+                if (r < 0)
+                {
+                    error_log("Could not deserialize raw value.");
+                    return -1;
+                }
+
+                //TODO - 42 should be a defined var
+                memset(address, 0, 42);
+
+                if (utxo_value_has_address(value))
+                {
+                    r = utxo_value_get_address(address, value);
+                    if (r < 0) {
+                        error_log("Can not get address from value.");
+                        return -1;
+                    }
+                }
+                else if (utxo_value_has_compressed_pubkey(value) || utxo_value_has_uncompressed_pubkey(value))
+                {
+                    pubkey = malloc(pubkey_sizeof());
+                    if (pubkey == NULL)
+                    {
+                        error_log("Memory allocation error.");
+                        return -1;
+                    }
+
+                    script_len = utxo_value_get_script_len(value);
+                    tmp = malloc(script_len + 1);
+                    if (tmp == NULL)
+                    {
+                        error_log("Memory allocation error.");
+                        return -1;
+                    }
+
+                    tmp[0] = (unsigned char)utxo_value_get_n_size(value);
+
+                    if (utxo_value_has_uncompressed_pubkey(value))
+                    {
+                        tmp[0] -= 2;
+                    }
+
+                    r = utxo_value_get_script(tmp + 1, value);
+                    if (r < 0)
+                    {
+                        error_log("Can not get script from value.");
+                        return -1;
+                    }
+
+                    r = pubkey_from_raw(pubkey, tmp, script_len + 1);
+                    if (r < 0)
+                    {
+                        error_log("Can not get pubkey object from script.");
+                        return -1;
+                    }
+
+                    if (utxo_value_has_uncompressed_pubkey(value))
+                    {
+                        r = pubkey_decompress(pubkey);
+                        if (r < 0)
+                        {
+                            error_log("Can not decompress pubkey.");
+                            return -1;
+                        }
+
+                    }
+
+                    r = pubkey_to_address(address, pubkey);
+                    if (r < 0)
+                    {
+                        error_log("Can not get address from pubkey.");
+                        return -1;
+                    }
+
+                    free(pubkey);
+                    free(tmp);
+                }
+
+                if (address[0] != 0)
+                {
+                    printf("Address %s has %"PRIu64"\n", address, utxo_value_get_amount(value));
+                    if (j++ > 100)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (r < 0)
+            {
+                error_log("Error while interating to the next UTXO record.");
+                return -1;
+            }
+
+            database_close(utxo_ref);
+            database_close(address_ref);
+
+            free(value);
+        }
     }
 
     return EXIT_SUCCESS;
