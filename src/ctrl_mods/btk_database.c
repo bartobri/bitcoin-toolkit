@@ -18,6 +18,7 @@
 #include "mods/databases/utxo.h"
 #include "mods/pubkey.h"
 #include "mods/hex.h"
+#include "mods/script.h"
 
 #define BTK_DATABASE_UTXO     1
 #define BTK_DATABASE_ADDRESS  2
@@ -37,6 +38,7 @@ int btk_database_main(int argc, char *argv[])
     char *input = NULL;
     char *home_path = NULL;
     char *db_path = NULL;
+    char *script = NULL;
     unsigned char *input_raw = NULL;
     unsigned char *serialized_key = NULL;
     unsigned char *serialized_value = NULL;
@@ -186,9 +188,6 @@ int btk_database_main(int argc, char *argv[])
         }
         else
         {
-            printf("-----------|------------|------------|------------\n");
-            printf("%-10s | %-10s | %-10s | %-10s\n", "Height", "Output", "Amount", "Script");
-            printf("-----------|------------|------------|------------\n");
             do
             {
                 r = database_iter_get(&serialized_key, &serialized_key_len, utxo_ref, &serialized_value, &serialized_value_len);
@@ -239,9 +238,9 @@ int btk_database_main(int argc, char *argv[])
 
                 found = 1;
 
-                printf("%-10"PRIu64" | ", utxo_value_get_height(value));
-                printf("%-10"PRIu64" | ", utxo_key_get_vout(key));
-                printf("%-10"PRIu64" | ", utxo_value_get_amount(value));
+                printf("%-10"PRIu64" ", utxo_value_get_height(value));
+                printf("%-10"PRIu64" ", utxo_key_get_vout(key));
+                printf("%-10"PRIu64" ", utxo_value_get_amount(value));
 
                 if (utxo_value_has_address(value))
                 {
@@ -337,10 +336,11 @@ int btk_database_main(int argc, char *argv[])
                         return -1;
                     }
 
-                    for (i = 0; i < script_len; i++)
-                    {
-                        printf("%.2x", tmp[i]);
-                    }
+                    script = script_from_raw(tmp, script_len);
+
+                    printf("%s", script);
+
+                    free(script);
                 }
 
                 printf("\n");
@@ -365,10 +365,6 @@ int btk_database_main(int argc, char *argv[])
             if (found == 0)
             {
                 printf("No results found.\n");
-            }
-            else
-            {
-                printf("-----------|------------|------------|------------\n");
             }
             
         }
