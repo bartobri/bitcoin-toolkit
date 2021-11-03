@@ -17,9 +17,11 @@
 #include "mods/error.h"
 #include "mods/database.h"
 #include "mods/databases/utxo.h"
+#include "mods/databases/address.h"
 #include "mods/pubkey.h"
 #include "mods/hex.h"
 #include "mods/script.h"
+#include "mods/serialize.h"
 
 #define BTK_DATABASE_UTXO     1
 #define BTK_DATABASE_ADDRESS  2
@@ -30,12 +32,13 @@ int btk_database_main(int argc, char *argv[])
     int db_type = 0;
     int db_create = 0;
     int found = 0;
-    size_t i, j;
+    size_t i;
     size_t input_raw_len = 0;
     size_t serialized_key_len = 0;
     size_t serialized_value_len = 0;
     size_t obfuscate_key_len = 0;
     size_t script_len = 0;
+    uint64_t sats = 0;
     char address[42];
     char *input = NULL;
     char *home_path = NULL;
@@ -431,7 +434,6 @@ int btk_database_main(int argc, char *argv[])
                 return -1;
             }
 
-            j = 0;
             while ((r = database_iter_next(utxo_ref)) == 1)
             {
                 r = database_iter_get_value(&serialized_value, &serialized_value_len, utxo_ref);
@@ -525,13 +527,47 @@ int btk_database_main(int argc, char *argv[])
                     free(tmp);
                 }
 
+                free(serialized_value);
+                serialized_value = NULL;
+
                 if (address[0] != 0)
                 {
-                    printf("Address %s has %"PRIu64"\n", address, utxo_value_get_amount(value));
-                    if (j++ > 100)
+                    sats = 0;
+
+                    // check if entry for address exists
+                    r = database_get(&serialized_value, &serialized_value_len, address_ref, (unsigned char *)address, strlen(address));
+                    if (r < 0)
                     {
-                        break;
+                        error_log("Can not get key from address database.");
+                        return -1;
                     }
+
+                    if (serialized_value != NULL)
+                    {
+                        deserialize_uint64(&sats, serialized_value, SERIALIZE_ENDIAN_BIG);
+                        free(serialized_value);
+                    }
+
+                    serialized_value = malloc(sizeof(uint64_t));
+                    if (serialized_value == NULL)
+                    {
+                        error_log("Memory Allocation Error");
+                        return -1;
+                    }
+
+                    sats += utxo_value_get_amount(value);
+                    printf("Address %s has value: %"PRIu64".\n", address, sats);
+
+                    serialize_uint64(serialized_value, sats, SERIALIZE_ENDIAN_BIG);
+
+                    r = database_put(address_ref, (unsigned char *)address, strlen(address), serialized_value, sizeof(uint64_t));
+                    if (r < 0)
+                    {
+                        error_log("Can not put new value in the address database.");
+                        return -1;
+                    }
+
+                    free(serialized_value);
                 }
             }
             if (r < 0)
@@ -544,6 +580,47 @@ int btk_database_main(int argc, char *argv[])
             database_close(address_ref);
 
             free(value);
+        }
+        else
+        {
+            if (db_path == NULL)
+            {
+                home_path = getenv("HOME");
+                if (home_path == NULL)
+                {
+                    error_log("Unable to determine home directory.");
+                    return -1;
+                }
+                db_path = malloc(strlen(home_path) + strlen(ADDRESS_PATH) + 2);
+                if (db_path == NULL)
+                {
+                    error_log("Memory Allocation Error.");
+                    return -1;
+                }
+                strcpy(db_path, home_path);
+                strcat(db_path, "/");
+                strcat(db_path, ADDRESS_PATH);
+            }
+
+            r = input_get_str(&input, "Enter Address: ");
+            if (r < 0)
+            {
+                error_log("Could not get input.");
+                return -1;
+            }
+
+            r = database_open(&address_ref, db_path, true);
+            if (r < 0)
+            {
+                error_log("Error while opening Address database.");
+                return -1;
+            }
+
+            printf("Opened Address Database\n");
+
+            database_close(address_ref);
+
+            free(input);
         }
     }
 

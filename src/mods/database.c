@@ -48,6 +48,8 @@ int database_open(DBRef *ref, char *location, bool create)
     roptions = leveldb_readoptions_create();
     iter[i] = leveldb_create_iterator(db[i], roptions);
 
+    leveldb_readoptions_destroy(roptions);
+
     *ref = i;
 
     return 1;
@@ -195,10 +197,38 @@ int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned
             error_log("The database reported the following error: %s.", err);
             return -1;
         }
+
+        leveldb_readoptions_destroy(roptions);
     }
     else
     {
         error_log("Unable to get key value. Database has not been opened.");
+        return -1;
+    }
+
+    return 1;
+}
+
+int database_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *value, size_t value_len)
+{
+    char *err = NULL;
+    leveldb_writeoptions_t *woptions;
+
+    if (database_is_open(ref))
+    {
+        woptions = leveldb_writeoptions_create();
+        leveldb_put(db[ref], woptions, (char *)key, key_len, (char *)value, value_len, &err);
+
+        if (err != NULL) {
+            error_log("The database reported the following error: %s.", err);
+            return -1;
+        }
+
+        leveldb_writeoptions_destroy(woptions);
+    }
+    else
+    {
+        error_log("Unable to put key/value. Database has not been opened.");
         return -1;
     }
 
