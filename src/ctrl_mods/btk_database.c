@@ -616,7 +616,20 @@ int btk_database_main(int argc, char *argv[])
                 return -1;
             }
 
-            printf("Opened Address Database\n");
+            r = database_get(&serialized_value, &serialized_value_len, address_ref, (unsigned char *)input, strlen(input));
+            if (r < 0)
+            {
+                error_log("Can not get key from address database.");
+                return -1;
+            }
+
+            if (serialized_value != NULL)
+            {
+                deserialize_uint64(&sats, serialized_value, SERIALIZE_ENDIAN_BIG);
+                free(serialized_value);
+            }
+
+            printf("Address Balance: %"PRIu64"\n", sats);
 
             database_close(address_ref);
 
