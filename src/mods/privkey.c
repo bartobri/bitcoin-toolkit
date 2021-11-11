@@ -379,11 +379,8 @@ int privkey_from_dec(PrivKey key, char *data)
 
 int privkey_from_sbd(PrivKey key, char *data)
 {
-	int r;
 	size_t i;
 	size_t data_len;
-	unsigned char raw[PRIVKEY_LENGTH];
-	PrivKey privkey;
 
 	assert(key);
 	assert(data);
@@ -396,29 +393,11 @@ int privkey_from_sbd(PrivKey key, char *data)
 		return -1;
 	}
 
-	privkey = malloc(sizeof(*privkey));
-	if (privkey == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
-
-	memset(raw, 0, PRIVKEY_LENGTH);
+	memset(key->data, 0, PRIVKEY_LENGTH);
 	for (i = 0; i < data_len; ++i)
 	{
-		raw[PRIVKEY_LENGTH - data_len + i] = data[i];
+		key->data[PRIVKEY_LENGTH - data_len + i] = data[i];
 	}
-
-	r = privkey_from_raw(privkey, raw, PRIVKEY_LENGTH);
-	if (r < 0)
-	{
-		error_log("Could not generate private key from input.");
-		return -1;
-	}
-
-	memcpy(key->data, privkey->data, PRIVKEY_LENGTH);
-	
-	free(privkey);
 
 	privkey_compress(key);
 
