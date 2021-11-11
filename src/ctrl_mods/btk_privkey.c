@@ -23,6 +23,7 @@
 #define INPUT_DEC               6
 #define INPUT_BLOB              7
 #define INPUT_GUESS             8
+#define INPUT_SBD               9
 #define OUTPUT_WIF              1
 #define OUTPUT_HEX              2
 #define OUTPUT_RAW              3
@@ -56,7 +57,7 @@ int btk_privkey_main(int argc, char *argv[])
 	int output_newline     = TRUE;
 	int output_network     = FALSE;
 	
-	while ((o = getopt(argc, argv, "nwhrsdbWHRCUNTDM")) != -1)
+	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUNTDM")) != -1)
 	{
 		switch (o)
 		{
@@ -81,6 +82,9 @@ int btk_privkey_main(int argc, char *argv[])
 				break;
 			case 'b':
 				INPUT_SET(INPUT_BLOB);
+				break;
+			case 'x':
+				INPUT_SET(INPUT_SBD);
 				break;
 
 			// Output format
@@ -262,6 +266,23 @@ int btk_privkey_main(int argc, char *argv[])
 			}
 
 			free(input_uc);
+			break;
+		case INPUT_SBD:
+			r = input_get_str(&input_sc, NULL);
+			if (r < 0)
+			{
+				error_log("Could not get input.");
+				return -1;
+			}
+
+			r = privkey_from_sbd(key, input_sc);
+			if (r < 0)
+			{
+				error_log("Could not calculate private key from input.");
+				return -1;
+			}
+
+			free(input_sc);
 			break;
 		case INPUT_GUESS:
 			r = input_get(&input_uc, NULL);

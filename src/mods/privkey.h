@@ -24,6 +24,7 @@ int privkey_to_dec(char *, PrivKey);
 int privkey_from_wif(PrivKey, char *);
 int privkey_from_hex(PrivKey, char *);
 int privkey_from_dec(PrivKey, char *);
+int privkey_from_sbd(PrivKey, char *);
 int privkey_from_str(PrivKey, char *);
 int privkey_from_raw(PrivKey, unsigned char *, size_t);
 int privkey_from_blob(PrivKey, unsigned char *, size_t);
@@ -31,5 +32,6 @@ int privkey_from_guess(PrivKey, unsigned char *, size_t);
 int privkey_is_compressed(PrivKey);
 int privkey_is_zero(PrivKey);
 size_t privkey_sizeof(void);
+int privkey_rehash(PrivKey);
 
 #endif
