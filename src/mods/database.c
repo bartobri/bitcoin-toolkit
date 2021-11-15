@@ -17,13 +17,13 @@
 
 static leveldb_t *(db[DATABASE_MAX_DB_OBJS]);
 static leveldb_iterator_t *(iter[DATABASE_MAX_DB_OBJS]);
+static leveldb_readoptions_t *roptions;
 
 int database_open(DBRef *ref, char *location, bool create)
 {
     int i;
     char *err = NULL;
     leveldb_options_t *options;
-    leveldb_readoptions_t *roptions;
 
     // Next available database reference slot
     for (i = 0; i < DATABASE_MAX_DB_OBJS && database_is_open(i); i++)
@@ -47,8 +47,6 @@ int database_open(DBRef *ref, char *location, bool create)
 
     roptions = leveldb_readoptions_create();
     iter[i] = leveldb_create_iterator(db[i], roptions);
-
-    leveldb_readoptions_destroy(roptions);
 
     *ref = i;
 
@@ -184,21 +182,17 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
-    leveldb_readoptions_t *roptions;
 
     *output_len = 0;
 
     if (database_is_open(ref))
     {
-        roptions = leveldb_readoptions_create();
         *output = (unsigned char *)leveldb_get(db[ref], roptions, (char *)key, key_len, output_len, &err);
 
         if (err != NULL) {
             error_log("The database reported the following error: %s.", err);
             return -1;
         }
-
-        leveldb_readoptions_destroy(roptions);
     }
     else
     {
@@ -239,6 +233,7 @@ void database_close(DBRef ref)
 {
     if (database_is_open(ref))
     {
+        leveldb_readoptions_destroy(roptions);
         leveldb_iter_destroy(iter[ref]);
         leveldb_close(db[ref]);
 
