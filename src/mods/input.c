@@ -84,14 +84,24 @@ int input_get(unsigned char** dest, char *prompt)
 int input_get_str(char** dest, char *prompt)
 {
 	int r, i, input_len;
-	unsigned char *input;
+	char input[BUFSIZ];
 
-	r = input_get(&input, prompt);
-	if (r < 0)
+	memset(input, 0, BUFSIZ);
+
+	if (isatty(STDIN_FILENO) && prompt != NULL)
 	{
-		error_log("Could not get input.");
-		return -1;
+		printf("%s", prompt);
+		fflush(stdout);
 	}
+
+	fgets(input, sizeof(input) - 1, stdin);
+	if (input == NULL)
+	{
+		// EOF
+		return 0;
+	}
+
+	r = strlen(input);
 
 	if (r > 0)
 	{
@@ -134,8 +144,6 @@ int input_get_str(char** dest, char *prompt)
 			return -1;
 		}
 	}
-
-	free(input);
 
 	return input_len;
 }
