@@ -5,9 +5,9 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-#ifndef BTK_UTXO_H
-#define BTK_UTXO_H 1
+#include <stdio.h>
 
-int btk_utxo_main(int argc, char *argv[]);
-
-#endif
+int btk_utxodb_main(int argc, char *argv[])
+{
+    printf("Hello from utxodb\n");
+}
