@@ -41,7 +41,7 @@ int database_open(DBRef *ref, char *location, bool create)
     db[i] = leveldb_open(options, location, &err);
 
     if (err != NULL) {
-        error_log("Unable to open the database: %s.", err);
+        error_log("Error: %s.", err);
         return -1;
     }
 
