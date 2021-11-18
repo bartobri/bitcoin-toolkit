@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include "mods/databases/utxo.h"
 #include "mods/database.h"
 #include "mods/hex.h"
@@ -19,6 +20,12 @@
 #include "mods/camount.h"
 #include "mods/base58check.h"
 #include "mods/error.h"
+
+#define UTXO_PATH_SIZE                1000
+#define UTXO_DEFAULT_PATH             ".bitcoin/chainstate"
+#define UTXO_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
+#define UTXO_OFUSCATE_KEY_KEY_LENGTH  15
+#define UTXO_KEY_MAX_LENGTH           38
 
 struct UTXOKey
 {
@@ -35,6 +42,203 @@ struct UTXOValue
     size_t         script_len;
     unsigned char *script;
 };
+
+static DBRef dbref = -1;
+static unsigned char *obfuscate_key = NULL;
+static size_t obfuscate_key_len = 0;
+
+
+
+int utxo_open(char *p)
+{
+    int r;
+    char path[UTXO_PATH_SIZE];
+
+    memset(path, 0, UTXO_PATH_SIZE);
+
+    if (p == NULL)
+    {
+        strcpy(path, getenv("HOME"));
+        if (*path == 0)
+        {
+            error_log("Unable to determine home directory.");
+            return -1;
+        }
+        strcat(path, "/");
+        strcat(path, UTXO_DEFAULT_PATH);
+    }
+    else
+    {
+        strcpy(path, p);
+    }
+
+    r = database_open(&dbref, path, false);
+    if (r < 0)
+    {
+        error_log("Error while opening UTXO database.");
+        return -1;
+    }
+
+    if (obfuscate_key == NULL)
+    {
+        r = utxo_obfuscate_key_get();
+        if (r < 0)
+        {
+            error_log("Could not get obfuscate key from database.");
+            return -1;
+        }
+    }
+
+    return 1;
+}
+
+void utxo_close(void)
+{
+    if (dbref)
+    {
+        database_close(dbref);
+    }
+}
+
+int utxo_obfuscate_key_get(void)
+{
+    int r;
+
+    assert(dbref >= 0);
+
+    r = database_get(&obfuscate_key, &obfuscate_key_len, dbref, (unsigned char *)UTXO_OFUSCATE_KEY_KEY, UTXO_OFUSCATE_KEY_KEY_LENGTH);
+    if (r < 0 || obfuscate_key == NULL || obfuscate_key_len == 0)
+    {
+        error_log("Database returned no data for obfuscate_key key.");
+        return -1;
+    }
+
+    // Drop first char
+    obfuscate_key++;
+    obfuscate_key_len -= 1;
+
+    return 1;
+}
+
+int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
+{
+    static bool init_seek = false;
+    int r;
+    size_t i;
+    size_t serialized_key_len = 0;
+    size_t serialized_value_len = 0;
+    unsigned char *serialized_key = NULL;
+    unsigned char *serialized_value = NULL;
+    unsigned char tmp[UTXO_TX_HASH_LENGTH];
+
+    assert(key);
+    assert(value);
+    assert(input);
+    assert(dbref >= 0);
+
+    if (init_seek == false)
+    {
+        serialized_key = malloc(UTXO_KEY_MAX_LENGTH);
+        if (serialized_key == NULL)
+        {
+            error_log("Memory Allocation Error.");
+            return -1;
+        }
+
+        r = utxo_set_key(key, input, 0);
+        if (r < 0)
+        {
+            error_log("Can not set UTXO key values.");
+            return -1;
+        }
+
+        r = utxo_serialize_key(serialized_key, &serialized_key_len, key);
+        if (r < 0 || serialized_key_len == 0) {
+            error_log("Unable to serialize UTXO key.");
+            return -1;
+        }
+
+        r = database_iter_seek_key(dbref, serialized_key, serialized_key_len);
+        if (r < 0) {
+            error_log("Could not seek database iterator.");
+            return -1;
+        }
+        else if (r == 0)
+        {
+            // End of database. Just return silently for now.
+            return 0;
+        }
+
+        free(serialized_key);
+        serialized_key = NULL;
+
+        init_seek = true;
+    }
+
+    
+    r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len, dbref);
+    if (r < 0)
+    {
+        error_log("Could not get data from database.");
+        return -1;
+    }
+
+    // De-obfuscate the value
+    for (i = 0; i < serialized_value_len; i++)
+    {
+        serialized_value[i] ^= obfuscate_key[i % obfuscate_key_len];
+    }
+
+    r = utxo_set_key_from_raw(key, serialized_key, serialized_key_len);
+    if (r < 0)
+    {
+        error_log("Could not deserialize raw key.");
+        return -1;
+    }
+
+    r = utxo_set_value_from_raw(value, serialized_value, serialized_value_len);
+    if (r < 0)
+    {
+        error_log("Could not deserialize raw value.");
+        return -1;
+    }
+
+    free(serialized_key);
+    free(serialized_value);
+    serialized_key = NULL;
+    serialized_value = NULL;
+
+    memset(tmp, 0, UTXO_TX_HASH_LENGTH);
+
+    r = utxo_key_get_tx_hash(tmp, key);
+    if (r < 0)
+    {
+        error_log("Unable to get TX hash from key.");
+        return -1;
+    }
+
+    if (memcmp(input, tmp, UTXO_TX_HASH_LENGTH) != 0)
+    {
+        memset(key, 0, utxo_sizeof_key());
+        memset(value, 0, utxo_sizeof_value());
+        return 0;
+    }
+
+    r = database_iter_next(dbref);
+    if (r < 0)
+    {
+        error_log("Unable to set database iterator to next key.");
+        return -1;
+    }
+    else if (r == 0)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+
 
 size_t utxo_sizeof_key(void)
 {

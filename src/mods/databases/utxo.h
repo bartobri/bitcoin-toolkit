@@ -10,16 +10,18 @@
 
 #include <stdint.h>
 
-#define UTXO_PATH                     ".bitcoin/chainstate"
 #define UTXO_KEY_TYPE                 0x43
 #define UTXO_KEY_MIN_LENGTH           34
-#define UTXO_KEY_MAX_LENGTH           38
-#define UTXO_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
-#define UTXO_OFUSCATE_KEY_KEY_LENGTH  15
+
 #define UTXO_TX_HASH_LENGTH           32
 
 typedef struct UTXOKey *UTXOKey;
 typedef struct UTXOValue *UTXOValue;
+
+int utxo_open(char *);
+void utxo_close(void);
+int utxo_obfuscate_key_get(void);
+int utxo_get(UTXOKey, UTXOValue, unsigned char *);
 
 size_t utxo_sizeof_key(void);
 size_t utxo_sizeof_value(void);

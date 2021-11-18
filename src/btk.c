@@ -13,7 +13,7 @@
 #include "ctrl_mods/btk_pubkey.h"
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
-#include "ctrl_mods/btk_database.h"
+//#include "ctrl_mods/btk_database.h"
 #include "ctrl_mods/btk_utxodb.h"
 #include "ctrl_mods/btk_version.h"
 #include "mods/error.h"
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(argv[1], "database") == 0)
 	{
-		r = btk_database_main(argc, argv);
+		//r = btk_database_main(argc, argv);
 	}
 	else if (strcmp(argv[1], "utxodb") == 0)
 	{
