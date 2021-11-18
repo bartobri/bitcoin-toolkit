@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "mods/databases/utxo.h"
+#include "mods/utxodb.h"
 #include "mods/database.h"
 #include "mods/hex.h"
 #include "mods/serialize.h"
@@ -21,20 +21,19 @@
 #include "mods/base58check.h"
 #include "mods/error.h"
 
-#define UTXO_PATH_SIZE                1000
-#define UTXO_DEFAULT_PATH             ".bitcoin/chainstate"
-#define UTXO_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
-#define UTXO_OFUSCATE_KEY_KEY_LENGTH  15
-#define UTXO_KEY_MAX_LENGTH           38
+#define UTXODB_PATH_SIZE                1000
+#define UTXODB_DEFAULT_PATH             ".bitcoin/chainstate"
+#define UTXODB_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
+#define UTXODB_OFUSCATE_KEY_KEY_LENGTH  15
 
-struct UTXOKey
+struct UTXODBKey
 {
     uint8_t        type;
-    unsigned char  tx_hash[UTXO_TX_HASH_LENGTH];
+    unsigned char  tx_hash[UTXODB_TX_HASH_LENGTH];
     uint64_t       vout;
 };
 
-struct UTXOValue
+struct UTXODBValue
 {
     uint64_t       height;
     uint64_t       amount;
@@ -49,12 +48,12 @@ static size_t obfuscate_key_len = 0;
 
 
 
-int utxo_open(char *p)
+int utxodb_open(char *p)
 {
     int r;
-    char path[UTXO_PATH_SIZE];
+    char path[UTXODB_PATH_SIZE];
 
-    memset(path, 0, UTXO_PATH_SIZE);
+    memset(path, 0, UTXODB_PATH_SIZE);
 
     if (p == NULL)
     {
@@ -65,7 +64,7 @@ int utxo_open(char *p)
             return -1;
         }
         strcat(path, "/");
-        strcat(path, UTXO_DEFAULT_PATH);
+        strcat(path, UTXODB_DEFAULT_PATH);
     }
     else
     {
@@ -81,7 +80,7 @@ int utxo_open(char *p)
 
     if (obfuscate_key == NULL)
     {
-        r = utxo_obfuscate_key_get();
+        r = utxodb_obfuscate_key_get();
         if (r < 0)
         {
             error_log("Could not get obfuscate key from database.");
@@ -92,7 +91,7 @@ int utxo_open(char *p)
     return 1;
 }
 
-void utxo_close(void)
+void utxodb_close(void)
 {
     if (dbref)
     {
@@ -100,13 +99,13 @@ void utxo_close(void)
     }
 }
 
-int utxo_obfuscate_key_get(void)
+int utxodb_obfuscate_key_get(void)
 {
     int r;
 
     assert(dbref >= 0);
 
-    r = database_get(&obfuscate_key, &obfuscate_key_len, dbref, (unsigned char *)UTXO_OFUSCATE_KEY_KEY, UTXO_OFUSCATE_KEY_KEY_LENGTH);
+    r = database_get(&obfuscate_key, &obfuscate_key_len, dbref, (unsigned char *)UTXODB_OFUSCATE_KEY_KEY, UTXODB_OFUSCATE_KEY_KEY_LENGTH);
     if (r < 0 || obfuscate_key == NULL || obfuscate_key_len == 0)
     {
         error_log("Database returned no data for obfuscate_key key.");
@@ -120,7 +119,7 @@ int utxo_obfuscate_key_get(void)
     return 1;
 }
 
-int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
+int utxodb_get(UTXODBKey key, UTXODBValue value, unsigned char *input)
 {
     static bool init_seek = false;
     int r;
@@ -129,7 +128,7 @@ int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
     size_t serialized_value_len = 0;
     unsigned char *serialized_key = NULL;
     unsigned char *serialized_value = NULL;
-    unsigned char tmp[UTXO_TX_HASH_LENGTH];
+    unsigned char tmp[UTXODB_TX_HASH_LENGTH];
 
     assert(key);
     assert(value);
@@ -138,23 +137,23 @@ int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
 
     if (init_seek == false)
     {
-        serialized_key = malloc(UTXO_KEY_MAX_LENGTH);
+        serialized_key = malloc(UTXODB_KEY_MAX_LENGTH);
         if (serialized_key == NULL)
         {
             error_log("Memory Allocation Error.");
             return -1;
         }
 
-        r = utxo_set_key(key, input, 0);
+        r = utxodb_set_key(key, input, 0);
         if (r < 0)
         {
-            error_log("Can not set UTXO key values.");
+            error_log("Can not set UTXO database key values.");
             return -1;
         }
 
-        r = utxo_serialize_key(serialized_key, &serialized_key_len, key);
+        r = utxodb_serialize_key(serialized_key, &serialized_key_len, key);
         if (r < 0 || serialized_key_len == 0) {
-            error_log("Unable to serialize UTXO key.");
+            error_log("Unable to serialize UTXO database key.");
             return -1;
         }
 
@@ -189,14 +188,14 @@ int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
         serialized_value[i] ^= obfuscate_key[i % obfuscate_key_len];
     }
 
-    r = utxo_set_key_from_raw(key, serialized_key, serialized_key_len);
+    r = utxodb_set_key_from_raw(key, serialized_key, serialized_key_len);
     if (r < 0)
     {
         error_log("Could not deserialize raw key.");
         return -1;
     }
 
-    r = utxo_set_value_from_raw(value, serialized_value, serialized_value_len);
+    r = utxodb_set_value_from_raw(value, serialized_value, serialized_value_len);
     if (r < 0)
     {
         error_log("Could not deserialize raw value.");
@@ -208,19 +207,19 @@ int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
     serialized_key = NULL;
     serialized_value = NULL;
 
-    memset(tmp, 0, UTXO_TX_HASH_LENGTH);
+    memset(tmp, 0, UTXODB_TX_HASH_LENGTH);
 
-    r = utxo_key_get_tx_hash(tmp, key);
+    r = utxodb_key_get_tx_hash(tmp, key);
     if (r < 0)
     {
         error_log("Unable to get TX hash from key.");
         return -1;
     }
 
-    if (memcmp(input, tmp, UTXO_TX_HASH_LENGTH) != 0)
+    if (memcmp(input, tmp, UTXODB_TX_HASH_LENGTH) != 0)
     {
-        memset(key, 0, utxo_sizeof_key());
-        memset(value, 0, utxo_sizeof_value());
+        memset(key, 0, utxodb_sizeof_key());
+        memset(value, 0, utxodb_sizeof_value());
         return 0;
     }
 
@@ -240,17 +239,17 @@ int utxo_get(UTXOKey key, UTXOValue value, unsigned char *input)
 
 
 
-size_t utxo_sizeof_key(void)
+size_t utxodb_sizeof_key(void)
 {
-    return sizeof(struct UTXOKey);
+    return sizeof(struct UTXODBKey);
 }
 
-size_t utxo_sizeof_value(void)
+size_t utxodb_sizeof_value(void)
 {
-    return sizeof(struct UTXOValue);
+    return sizeof(struct UTXODBValue);
 }
 
-int utxo_value_has_address(UTXOValue value)
+int utxodb_value_has_address(UTXODBValue value)
 {
     assert(value);
 
@@ -272,7 +271,7 @@ int utxo_value_has_address(UTXOValue value)
     return 0;
 }
 
-int utxo_value_has_compressed_pubkey(UTXOValue value)
+int utxodb_value_has_compressed_pubkey(UTXODBValue value)
 {
     assert(value);
 
@@ -294,7 +293,7 @@ int utxo_value_has_compressed_pubkey(UTXOValue value)
     return 0;
 }
 
-int utxo_value_has_uncompressed_pubkey(UTXOValue value)
+int utxodb_value_has_uncompressed_pubkey(UTXODBValue value)
 {
     assert(value);
 
@@ -316,7 +315,7 @@ int utxo_value_has_uncompressed_pubkey(UTXOValue value)
     return 0;
 }
 
-int utxo_value_get_address(char *address, UTXOValue value)
+int utxodb_value_get_address(char *address, UTXODBValue value)
 {
     int r;
     unsigned char *rmd;
@@ -324,7 +323,7 @@ int utxo_value_get_address(char *address, UTXOValue value)
     assert(address);
     assert(value);
 
-    if (!utxo_value_has_address(value))
+    if (!utxodb_value_has_address(value))
     {
         error_log("Value does not have an address.");
         return -1;
@@ -359,7 +358,7 @@ int utxo_value_get_address(char *address, UTXOValue value)
     return 1;
 }
 
-void utxo_value_free(UTXOValue value)
+void utxodb_value_free(UTXODBValue value)
 {
     assert(value);
 
@@ -370,26 +369,26 @@ void utxo_value_free(UTXOValue value)
     }
 }
 
-int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
+int utxodb_serialize_key(unsigned char *output, size_t *output_len, UTXODBKey key)
 {
     int i;
     unsigned char *head;
-    unsigned char tmp[UTXO_TX_HASH_LENGTH];
+    unsigned char tmp[UTXODB_TX_HASH_LENGTH];
 
     assert(output);
     assert(output_len);
     assert(key);
 
     // Reverse byte order of tx_hash for serialization
-    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXODB_TX_HASH_LENGTH; i++)
     {
-        tmp[i] = key->tx_hash[UTXO_TX_HASH_LENGTH - 1 - i];
+        tmp[i] = key->tx_hash[UTXODB_TX_HASH_LENGTH - 1 - i];
     }
 
     head = output;
 
     output = serialize_uint8(output, key->type, SERIALIZE_ENDIAN_BIG);
-    output = serialize_uchar(output, tmp, UTXO_TX_HASH_LENGTH);
+    output = serialize_uchar(output, tmp, UTXODB_TX_HASH_LENGTH);
     output = serialize_varint(output, key->vout);
 
     *output_len = 0;
@@ -401,7 +400,7 @@ int utxo_serialize_key(unsigned char *output, size_t *output_len, UTXOKey key)
     return 1;
 }
 
-int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t value_len)
+int utxodb_set_value_from_raw(UTXODBValue value, unsigned char *raw_value, size_t value_len)
 {
     size_t i;
     unsigned char *head;
@@ -442,37 +441,37 @@ int utxo_set_value_from_raw(UTXOValue value, unsigned char *raw_value, size_t va
     return 1;
 }
 
-int utxo_set_key_from_raw(UTXOKey key, unsigned char *raw_key, size_t key_len)
+int utxodb_set_key_from_raw(UTXODBKey key, unsigned char *raw_key, size_t key_len)
 {
     int i;
-    unsigned char tmp[UTXO_TX_HASH_LENGTH];
+    unsigned char tmp[UTXODB_TX_HASH_LENGTH];
 
     assert(key);
     assert(raw_key);
     assert(key_len);
 
-    if (raw_key[0] != UTXO_KEY_TYPE)
+    if (raw_key[0] != UTXODB_KEY_TYPE)
     {
         error_log("Key type not recognized: %.2x", raw_key[0]);
         return -1;
     }
 
-    if (key_len < UTXO_KEY_MIN_LENGTH || key_len > UTXO_KEY_MAX_LENGTH)
+    if (key_len < UTXODB_KEY_MIN_LENGTH || key_len > UTXODB_KEY_MAX_LENGTH)
     {
-        error_log("Key length unexpected. Length is %zu. Expected between %d and %d.", key_len, UTXO_KEY_MIN_LENGTH, UTXO_KEY_MAX_LENGTH);
+        error_log("Key length unexpected. Length is %zu. Expected between %d and %d.", key_len, UTXODB_KEY_MIN_LENGTH, UTXODB_KEY_MAX_LENGTH);
         return -1;
     }
 
     raw_key = deserialize_uint8(&(key->type), raw_key, SERIALIZE_ENDIAN_BIG);
-    raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXO_TX_HASH_LENGTH);
+    raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXODB_TX_HASH_LENGTH);
     raw_key = deserialize_varint(&(key->vout), raw_key);
 
     // Reverse byte order of tx_hash
-    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXODB_TX_HASH_LENGTH; i++)
     {
-        tmp[i] = key->tx_hash[UTXO_TX_HASH_LENGTH - 1 - i];
+        tmp[i] = key->tx_hash[UTXODB_TX_HASH_LENGTH - 1 - i];
     }
-    for (i = 0; i < UTXO_TX_HASH_LENGTH; i++)
+    for (i = 0; i < UTXODB_TX_HASH_LENGTH; i++)
     {
         key->tx_hash[i] = tmp[i];
     }
@@ -480,43 +479,43 @@ int utxo_set_key_from_raw(UTXOKey key, unsigned char *raw_key, size_t key_len)
     return 1;
 }
 
-int utxo_set_key(UTXOKey key, unsigned char *tx_hash, int vout)
+int utxodb_set_key(UTXODBKey key, unsigned char *tx_hash, int vout)
 {
     int r;
 
     assert(key);
     assert(tx_hash);
 
-    r = utxo_set_key_type(key, UTXO_KEY_TYPE);
+    r = utxodb_set_key_type(key, UTXODB_KEY_TYPE);
     if (r < 0)
     {
-        error_log("Error while setting UTXO key type.");
+        error_log("Error while setting UTXO database key type.");
         return -1;
     }
 
-    r = utxo_set_key_tx_hash(key, tx_hash);
+    r = utxodb_set_key_tx_hash(key, tx_hash);
     if (r < 0)
     {
-        error_log("Error while setting UTXO key tx_hash.");
+        error_log("Error while setting UTXO database ey tx_hash.");
         return -1;
     }
 
-    r = utxo_set_key_vout(key, vout);
+    r = utxodb_set_key_vout(key, vout);
     if (r < 0)
     {
-        error_log("Error while setting UTXO key vout.");
+        error_log("Error while setting UTXO database key vout.");
         return -1;
     }
 
     return 1;
 }
 
-int utxo_set_key_type(UTXOKey key, char value)
+int utxodb_set_key_type(UTXODBKey key, char value)
 {
     assert(key);
     assert(value);
 
-    if (value != UTXO_KEY_TYPE)
+    if (value != UTXODB_KEY_TYPE)
     {
         error_log("Unknown key type: %.2x.", value);
         return -1;
@@ -527,17 +526,17 @@ int utxo_set_key_type(UTXOKey key, char value)
     return 1;
 }
 
-int utxo_set_key_tx_hash(UTXOKey key, unsigned char *value)
+int utxodb_set_key_tx_hash(UTXODBKey key, unsigned char *value)
 {
     assert(key);
     assert(value);
 
-    memcpy(key->tx_hash, value, UTXO_TX_HASH_LENGTH);
+    memcpy(key->tx_hash, value, UTXODB_TX_HASH_LENGTH);
 
     return 1;
 }
 
-int utxo_set_key_vout(UTXOKey key, int value)
+int utxodb_set_key_vout(UTXODBKey key, int value)
 {
     assert(key);
 
@@ -546,35 +545,35 @@ int utxo_set_key_vout(UTXOKey key, int value)
     return 1;
 }
 
-size_t utxo_value_get_script_len(UTXOValue value)
+size_t utxodb_value_get_script_len(UTXODBValue value)
 {
     assert(value);
 
     return value->script_len;
 }
 
-uint64_t utxo_value_get_height(UTXOValue value)
+uint64_t utxodb_value_get_height(UTXODBValue value)
 {
     assert(value);
 
     return value->height;
 }
 
-uint64_t utxo_value_get_amount(UTXOValue value)
+uint64_t utxodb_value_get_amount(UTXODBValue value)
 {
     assert(value);
 
     return value->amount;
 }
 
-uint64_t utxo_value_get_n_size(UTXOValue value)
+uint64_t utxodb_value_get_n_size(UTXODBValue value)
 {
     assert(value);
 
     return value->n_size;
 }
 
-int utxo_value_get_script(unsigned char *script, UTXOValue value)
+int utxodb_value_get_script(unsigned char *script, UTXODBValue value)
 {
     assert(script);
     assert(value);
@@ -590,19 +589,19 @@ int utxo_value_get_script(unsigned char *script, UTXOValue value)
     return 1;
 }
 
-uint64_t utxo_key_get_vout(UTXOKey key)
+uint64_t utxodb_key_get_vout(UTXODBKey key)
 {
     assert(key);
 
     return key->vout;
 }
 
-int utxo_key_get_tx_hash(unsigned char *tx_hash, UTXOKey key)
+int utxodb_key_get_tx_hash(unsigned char *tx_hash, UTXODBKey key)
 {
     assert(tx_hash);
     assert(key);
 
-    memcpy(tx_hash, key->tx_hash, UTXO_TX_HASH_LENGTH);
+    memcpy(tx_hash, key->tx_hash, UTXODB_TX_HASH_LENGTH);
 
     return 1;
 }

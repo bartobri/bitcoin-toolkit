@@ -17,24 +17,24 @@
 #include "mods/hex.h"
 #include "mods/pubkey.h"
 #include "mods/script.h"
-#include "mods/databases/utxo.h"
+#include "mods/utxodb.h"
 
-#define UTXO_TX_LENGTH          32
-#define UTXO_MAX_ADDRESS_LENGTH 42
-#define UTXO_MAX_SCRIPT_LENGTH  1000
+#define BTK_UTXODB_TX_LENGTH          32
+#define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
+#define BTK_UTXODB_MAX_SCRIPT_LENGTH  1000
 
 int btk_utxodb_main(int argc, char *argv[])
 {
     int o, r;
     size_t script_len;
-    char script_readable[UTXO_MAX_SCRIPT_LENGTH * 4];
+    char script_readable[BTK_UTXODB_MAX_SCRIPT_LENGTH * 4];
     char *input = NULL;
     char *db_path = NULL;
     char *tmp = NULL;
-    unsigned char input_raw[UTXO_TX_LENGTH];
-    unsigned char script[UTXO_MAX_SCRIPT_LENGTH];
-    UTXOKey key = NULL;
-    UTXOValue value = NULL;
+    unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
+    unsigned char script[BTK_UTXODB_MAX_SCRIPT_LENGTH];
+    UTXODBKey key = NULL;
+    UTXODBValue value = NULL;
     PubKey pubkey = NULL;
 
     while ((o = getopt(argc, argv, "p:")) != -1)
@@ -65,9 +65,9 @@ int btk_utxodb_main(int argc, char *argv[])
         return -1;
     }
 
-    if (strlen(input) != (UTXO_TX_HASH_LENGTH * 2))
+    if (strlen(input) != (UTXODB_TX_HASH_LENGTH * 2))
     {
-        error_log("Input must be a %i byte hexidecimal string.", (UTXO_TX_HASH_LENGTH * 2));
+        error_log("Input must be a %i byte hexidecimal string.", (UTXODB_TX_HASH_LENGTH * 2));
         return -1;
     }
 
@@ -78,8 +78,8 @@ int btk_utxodb_main(int argc, char *argv[])
         return -1;
     }
 
-    key = malloc(utxo_sizeof_key());
-    value = malloc(utxo_sizeof_value());
+    key = malloc(utxodb_sizeof_key());
+    value = malloc(utxodb_sizeof_value());
     pubkey = malloc(pubkey_sizeof());
     if (key == NULL || value == NULL || pubkey == NULL)
     {
@@ -87,42 +87,42 @@ int btk_utxodb_main(int argc, char *argv[])
         return -1;
     }
 
-    r = utxo_open(db_path);
+    r = utxodb_open(db_path);
     if (r < 0)
     {
         error_log("Could not open utxo database.");
         return -1;
     }
 
-    while ((r = utxo_get(key, value, input_raw)) == 1)
+    while ((r = utxodb_get(key, value, input_raw)) == 1)
     {
-        printf("%"PRIu64",", utxo_value_get_height(value));
-        printf("%"PRIu64",", utxo_key_get_vout(key));
-        printf("%"PRIu64",", utxo_value_get_amount(value));
+        printf("%"PRIu64",", utxodb_value_get_height(value));
+        printf("%"PRIu64",", utxodb_key_get_vout(key));
+        printf("%"PRIu64",", utxodb_value_get_amount(value));
 
-        memset(script, 0, UTXO_MAX_SCRIPT_LENGTH);
-        memset(script_readable, 0, UTXO_MAX_SCRIPT_LENGTH * 4);
+        memset(script, 0, BTK_UTXODB_MAX_SCRIPT_LENGTH);
+        memset(script_readable, 0, BTK_UTXODB_MAX_SCRIPT_LENGTH * 4);
 
-        script_len = utxo_value_get_script_len(value);
+        script_len = utxodb_value_get_script_len(value);
 
-        if (utxo_value_has_address(value))
+        if (utxodb_value_has_address(value))
         {
-            r = utxo_value_get_address(script_readable, value);
+            r = utxodb_value_get_address(script_readable, value);
             if (r < 0)
             {
                 error_log("Can not get address from value.");
                 return -1;
             }
         }
-        else if (utxo_value_has_compressed_pubkey(value) || utxo_value_has_uncompressed_pubkey(value))
+        else if (utxodb_value_has_compressed_pubkey(value) || utxodb_value_has_uncompressed_pubkey(value))
         {
-            script[0] = (unsigned char)utxo_value_get_n_size(value);
-            if (utxo_value_has_uncompressed_pubkey(value))
+            script[0] = (unsigned char)utxodb_value_get_n_size(value);
+            if (utxodb_value_has_uncompressed_pubkey(value))
             {
                 script[0] -= 2;
             }
 
-            r = utxo_value_get_script(script + 1, value);
+            r = utxodb_value_get_script(script + 1, value);
             if (r < 0)
             {
                 error_log("Can not get script from value.");
@@ -136,7 +136,7 @@ int btk_utxodb_main(int argc, char *argv[])
                 return -1;
             }
 
-            if (utxo_value_has_uncompressed_pubkey(value))
+            if (utxodb_value_has_uncompressed_pubkey(value))
             {
                 pubkey_decompress(pubkey);
                 if (r < 0)
@@ -156,7 +156,7 @@ int btk_utxodb_main(int argc, char *argv[])
         }
         else
         {
-            r = utxo_value_get_script(script, value);
+            r = utxodb_value_get_script(script, value);
             if (r < 0)
             {
                 error_log("Unable to get script from database value.");
@@ -186,8 +186,9 @@ int btk_utxodb_main(int argc, char *argv[])
         return -1;
     }
 
-    utxo_close();
+    utxodb_close();
 
+    utxodb_value_free(value);
     free(key);
     free(value);
     free(pubkey);
