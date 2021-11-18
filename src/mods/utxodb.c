@@ -5,8 +5,6 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-// TODO - Add me to Makefile
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -93,7 +91,7 @@ int utxodb_open(char *p)
 
 void utxodb_close(void)
 {
-    if (dbref)
+    if (dbref > -1)
     {
         database_close(dbref);
     }
