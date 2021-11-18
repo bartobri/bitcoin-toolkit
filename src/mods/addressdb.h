@@ -5,9 +5,11 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-#ifndef ADDRESS_H
-#define ADDRESS_H 1
+#ifndef ADDRESSDB_H
+#define ADDRESSDB_H 1
 
-#define ADDRESS_PATH "tmp/leveldb_c/address"
+int addressdb_open(char *);
+void addressdb_close(void);
+int addressdb_get(uint64_t *, char *);
 
 #endif
