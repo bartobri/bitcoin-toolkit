@@ -26,6 +26,7 @@ int utxodb_get(UTXODBKey, UTXODBValue, unsigned char *);
 size_t utxodb_sizeof_key(void);
 size_t utxodb_sizeof_value(void);
 int utxodb_value_has_address(UTXODBValue);
+int utxodb_value_has_literal_address(UTXODBValue);
 int utxodb_value_has_compressed_pubkey(UTXODBValue);
 int utxodb_value_has_uncompressed_pubkey(UTXODBValue);
 int utxodb_value_get_address(char *, UTXODBValue);

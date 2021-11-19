@@ -18,6 +18,7 @@
 #include "mods/camount.h"
 #include "mods/base58check.h"
 #include "mods/error.h"
+#include "mods/pubkey.h"
 
 #define UTXODB_PATH_SIZE                1000
 #define UTXODB_DEFAULT_PATH             ".bitcoin/chainstate"
@@ -251,6 +252,26 @@ int utxodb_value_has_address(UTXODBValue value)
 {
     assert(value);
 
+    if (utxodb_value_has_literal_address(value))
+    {
+        return 1;
+    }
+    else if (utxodb_value_has_compressed_pubkey(value))
+    {
+        return 1;
+    }
+    else if (utxodb_value_has_uncompressed_pubkey(value))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+int utxodb_value_has_literal_address(UTXODBValue value)
+{
+    assert(value);
+
     if (value->script != NULL)
     {
         // P2PKH (Public Key Hash)
@@ -317,41 +338,90 @@ int utxodb_value_get_address(char *address, UTXODBValue value)
 {
     int r;
     unsigned char *rmd;
+    unsigned char *script;
+    PubKey pubkey = NULL;
 
     assert(address);
     assert(value);
 
-    if (!utxodb_value_has_address(value))
+    if (utxodb_value_has_literal_address(value))
     {
-        error_log("Value does not have an address.");
-        return -1;
-    }
+        rmd = malloc(value->script_len + 1);
+        if (rmd == NULL)
+        {
+            error_log("Memory allocation error.");
+            return -1;
+        }
 
-    rmd = malloc(value->script_len + 1);
-    if (rmd == NULL)
-    {
-        error_log("Memory allocation error.");
-        return -1;
-    }
+        if (value->n_size == 1)
+        {
+            rmd[0] = 0x05;
+        }
+        else
+        {
+            rmd[0] = 0x00;
+        }
+        
+        memcpy(rmd + 1, value->script, value->script_len);
+        r = base58check_encode(address, rmd, value->script_len + 1);
+        if (r < 0)
+        {
+            error_log("Could not generate address from value data.");
+            return -1;
+        }
 
-    if (value->n_size == 1)
+        free(rmd);
+    }
+    else if (utxodb_value_has_compressed_pubkey(value) || utxodb_value_has_uncompressed_pubkey(value))
     {
-        rmd[0] = 0x05;
+        pubkey = malloc(pubkey_sizeof());
+        script = malloc(value->script_len + 1);
+        if (pubkey == NULL || script == NULL)
+        {
+            error_log("Memory allocation error.");
+            return -1;
+        }
+
+        script[0] = (unsigned char)value->n_size;
+        if (utxodb_value_has_uncompressed_pubkey(value))
+        {
+            script[0] -= 2;
+        }
+
+        memcpy(script + 1, value->script, value->script_len);
+
+        r = pubkey_from_raw(pubkey, script, value->script_len + 1);
+        if (r < 0)
+        {
+            error_log("Can not get pubkey object from script.");
+            return -1;
+        }
+
+        if (utxodb_value_has_uncompressed_pubkey(value))
+        {
+            r = pubkey_decompress(pubkey);
+            if (r < 0)
+            {
+                error_log("Can not decompress pubkey.");
+                return -1;
+            }
+        }
+
+        r = pubkey_to_address(address, pubkey);
+        if (r < 0)
+        {
+            error_log("Can not get address from pubkey.");
+            return -1;
+        }
+
+        free(script);
+        free(pubkey);
     }
     else
     {
-        rmd[0] = 0x00;
-    }
-    
-    memcpy(rmd + 1, value->script, value->script_len);
-    r = base58check_encode(address, rmd, value->script_len + 1);
-    if (r < 0)
-    {
-        error_log("Could not generate address from value data.");
+        error_log("Database value does not contain an address.");
         return -1;
     }
-
-    free(rmd);
 
     return 1;
 }

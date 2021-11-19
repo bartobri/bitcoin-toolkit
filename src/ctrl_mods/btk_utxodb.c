@@ -21,21 +21,17 @@
 
 #define BTK_UTXODB_TX_LENGTH          32
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
-#define BTK_UTXODB_MAX_SCRIPT_LENGTH  1000
+#define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
 int btk_utxodb_main(int argc, char *argv[])
 {
     int o, r;
-    size_t script_len;
-    char script_readable[BTK_UTXODB_MAX_SCRIPT_LENGTH * 4];
+    char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
     char *input = NULL;
     char *db_path = NULL;
-    char *tmp = NULL;
     unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
-    unsigned char script[BTK_UTXODB_MAX_SCRIPT_LENGTH];
     UTXODBKey key = NULL;
     UTXODBValue value = NULL;
-    PubKey pubkey = NULL;
 
     while ((o = getopt(argc, argv, "p:")) != -1)
     {
@@ -80,8 +76,7 @@ int btk_utxodb_main(int argc, char *argv[])
 
     key = malloc(utxodb_sizeof_key());
     value = malloc(utxodb_sizeof_value());
-    pubkey = malloc(pubkey_sizeof());
-    if (key == NULL || value == NULL || pubkey == NULL)
+    if (key == NULL || value == NULL)
     {
         error_log("Memory Allocation Error.");
         return -1;
@@ -100,84 +95,20 @@ int btk_utxodb_main(int argc, char *argv[])
         printf("%"PRIu64",", utxodb_key_get_vout(key));
         printf("%"PRIu64",", utxodb_value_get_amount(value));
 
-        memset(script, 0, BTK_UTXODB_MAX_SCRIPT_LENGTH);
-        memset(script_readable, 0, BTK_UTXODB_MAX_SCRIPT_LENGTH * 4);
-
-        script_len = utxodb_value_get_script_len(value);
-
         if (utxodb_value_has_address(value))
         {
-            r = utxodb_value_get_address(script_readable, value);
+            r = utxodb_value_get_address(address, value);
             if (r < 0)
             {
                 error_log("Can not get address from value.");
                 return -1;
             }
-        }
-        else if (utxodb_value_has_compressed_pubkey(value) || utxodb_value_has_uncompressed_pubkey(value))
-        {
-            script[0] = (unsigned char)utxodb_value_get_n_size(value);
-            if (utxodb_value_has_uncompressed_pubkey(value))
+            else if (r > 0)
             {
-                script[0] -= 2;
+                printf("%s", address);
             }
-
-            r = utxodb_value_get_script(script + 1, value);
-            if (r < 0)
-            {
-                error_log("Can not get script from value.");
-                return -1;
-            }
-
-            r = pubkey_from_raw(pubkey, script, script_len + 1);
-            if (r < 0)
-            {
-                error_log("Can not get pubkey object from script.");
-                return -1;
-            }
-
-            if (utxodb_value_has_uncompressed_pubkey(value))
-            {
-                pubkey_decompress(pubkey);
-                if (r < 0)
-                {
-                    error_log("Can not decompress pubkey.");
-                    return -1;
-                }
-            }
-
-            r = pubkey_to_address(script_readable, pubkey);
-            if (r < 0)
-            {
-                error_log("Can not get address from pubkey.");
-                return -1;
-            }
-
-        }
-        else
-        {
-            r = utxodb_value_get_script(script, value);
-            if (r < 0)
-            {
-                error_log("Unable to get script from database value.");
-                return -1;
-            }
-
-            // TODO - Modify this to return int and take output as param
-            tmp = script_from_raw(script, script_len);
-            if (tmp == NULL)
-            {
-                error_log("Could not translate script from raw data.");
-                return -1;
-            }
-
-            strcpy(script_readable, tmp);
-
-            free(tmp);
-            tmp = NULL;
         }
 
-        printf("%s", script_readable);
         printf("\n");
     }
     if (r < 0)
@@ -191,7 +122,6 @@ int btk_utxodb_main(int argc, char *argv[])
     utxodb_value_free(value);
     free(key);
     free(value);
-    free(pubkey);
 
     return EXIT_SUCCESS;
 }
