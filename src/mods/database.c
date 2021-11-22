@@ -38,6 +38,12 @@ int database_open(DBRef *ref, char *location, bool create)
     // Set create if missing option
     leveldb_options_set_create_if_missing(options, create);
 
+    // If create is true, error if exists.
+    if (create == true)
+    {
+        leveldb_options_set_error_if_exists(options, true);
+    }
+
     db[i] = leveldb_open(options, location, &err);
 
     if (err != NULL) {
