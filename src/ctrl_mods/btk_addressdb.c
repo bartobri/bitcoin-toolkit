@@ -27,17 +27,21 @@ int btk_addressdb_main(int argc, char *argv[])
     uint64_t sats = 0;
     char *input = NULL;
     char *db_path = NULL;
+    char *utxodb_path = NULL;
     char address[BTK_ADDRESSDB_MAX_ADDRESS_LENGTH];
 
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
 
-    while ((o = getopt(argc, argv, "p:c")) != -1)
+    while ((o = getopt(argc, argv, "p:u:c")) != -1)
     {
         switch (o)
         {
             case 'p':
                 db_path = optarg;
+                break;
+            case 'u':
+                utxodb_path = optarg;
                 break;
             case 'c':
                 create = true;
@@ -58,8 +62,6 @@ int btk_addressdb_main(int argc, char *argv[])
 
     if (create == true)
     {
-        // TODO - Distinguish db path for utxo and address databases
-
         utxodb_key = malloc(utxodb_sizeof_key());
         utxodb_value = malloc(utxodb_sizeof_value());
         if (utxodb_key == NULL || utxodb_value == NULL)
@@ -68,7 +70,7 @@ int btk_addressdb_main(int argc, char *argv[])
             return -1;
         }
 
-        r = utxodb_open(db_path);
+        r = utxodb_open(utxodb_path);
         if (r < 0)
         {
             error_log("Could not open utxo database.");
