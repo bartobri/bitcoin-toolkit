@@ -8,8 +8,12 @@
 #ifndef ADDRESSDB_H
 #define ADDRESSDB_H 1
 
-int addressdb_open(char *);
+#include <stdint.h>
+#include <stdbool.h>
+
+int addressdb_open(char *, bool);
 void addressdb_close(void);
 int addressdb_get(uint64_t *, char *);
+int addressdb_put(char *, uint64_t);
 
 #endif

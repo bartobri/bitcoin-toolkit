@@ -131,44 +131,60 @@ int utxodb_get(UTXODBKey key, UTXODBValue value, unsigned char *input)
 
     assert(key);
     assert(value);
-    assert(input);
+    //assert(input);
     assert(dbref >= 0);
 
     if (init_seek == false)
     {
-        serialized_key = malloc(UTXODB_KEY_MAX_LENGTH);
-        if (serialized_key == NULL)
+        if (input != NULL)
         {
-            error_log("Memory Allocation Error.");
-            return -1;
-        }
+            serialized_key = malloc(UTXODB_KEY_MAX_LENGTH);
+            if (serialized_key == NULL)
+            {
+                error_log("Memory Allocation Error.");
+                return -1;
+            }
 
-        r = utxodb_set_key(key, input, 0);
-        if (r < 0)
+            r = utxodb_set_key(key, input, 0);
+            if (r < 0)
+            {
+                error_log("Can not set UTXO database key values.");
+                return -1;
+            }
+
+            r = utxodb_serialize_key(serialized_key, &serialized_key_len, key);
+            if (r < 0 || serialized_key_len == 0) {
+                error_log("Unable to serialize UTXO database key.");
+                return -1;
+            }
+
+            r = database_iter_seek_key(dbref, serialized_key, serialized_key_len);
+            if (r < 0) {
+                error_log("Could not seek database iterator.");
+                return -1;
+            }
+            else if (r == 0)
+            {
+                // End of database. Just return silently for now.
+                return 0;
+            }
+
+            free(serialized_key);
+            serialized_key = NULL;
+        }
+        else
         {
-            error_log("Can not set UTXO database key values.");
-            return -1;
-        }
+            r = database_iter_seek_start(dbref);
+            if (r < 0)
+            {
+                error_log("Unable to seek to first record in UTXO database.");
+                return -1;
+            }
 
-        r = utxodb_serialize_key(serialized_key, &serialized_key_len, key);
-        if (r < 0 || serialized_key_len == 0) {
-            error_log("Unable to serialize UTXO database key.");
-            return -1;
+            // Skip past first two records because they have specific uses.
+            database_iter_next(dbref);
+            database_iter_next(dbref);
         }
-
-        r = database_iter_seek_key(dbref, serialized_key, serialized_key_len);
-        if (r < 0) {
-            error_log("Could not seek database iterator.");
-            return -1;
-        }
-        else if (r == 0)
-        {
-            // End of database. Just return silently for now.
-            return 0;
-        }
-
-        free(serialized_key);
-        serialized_key = NULL;
 
         init_seek = true;
     }
@@ -206,20 +222,23 @@ int utxodb_get(UTXODBKey key, UTXODBValue value, unsigned char *input)
     serialized_key = NULL;
     serialized_value = NULL;
 
-    memset(tmp, 0, UTXODB_TX_HASH_LENGTH);
-
-    r = utxodb_key_get_tx_hash(tmp, key);
-    if (r < 0)
+    if (input)
     {
-        error_log("Unable to get TX hash from key.");
-        return -1;
-    }
+        memset(tmp, 0, UTXODB_TX_HASH_LENGTH);
 
-    if (memcmp(input, tmp, UTXODB_TX_HASH_LENGTH) != 0)
-    {
-        memset(key, 0, utxodb_sizeof_key());
-        memset(value, 0, utxodb_sizeof_value());
-        return 0;
+        r = utxodb_key_get_tx_hash(tmp, key);
+        if (r < 0)
+        {
+            error_log("Unable to get TX hash from key.");
+            return -1;
+        }
+
+        if (memcmp(input, tmp, UTXODB_TX_HASH_LENGTH) != 0)
+        {
+            memset(key, 0, utxodb_sizeof_key());
+            memset(value, 0, utxodb_sizeof_value());
+            return 0;
+        }
     }
 
     r = database_iter_next(dbref);

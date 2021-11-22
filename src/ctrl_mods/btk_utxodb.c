@@ -41,7 +41,7 @@ int btk_utxodb_main(int argc, char *argv[])
                 db_path = optarg;
                 break;
             case '?':
-                error_log("See 'btk help database' to read about available argument options.");
+                error_log("See 'btk help utxodb' to read about available argument options.");
                 if (isprint(optopt))
                 {
                     error_log("Invalid command option '-%c'.", optopt);
@@ -113,7 +113,7 @@ int btk_utxodb_main(int argc, char *argv[])
     }
     if (r < 0)
     {
-        error_log("Could not open utxo database.");
+        error_log("Could not get record from utxo database.");
         return -1;
     }
 

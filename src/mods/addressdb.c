@@ -20,7 +20,7 @@
 
 static DBRef dbref = -1;
 
-int addressdb_open(char *p)
+int addressdb_open(char *p, bool create)
 {
     int r;
     char path[ADDRESSDB_PATH_SIZE];
@@ -43,7 +43,7 @@ int addressdb_open(char *p)
         strcpy(path, p);
     }
 
-    r = database_open(&dbref, path, false);
+    r = database_open(&dbref, path, create);
     if (r < 0)
     {
         error_log("Error while opening UTXO database.");
@@ -78,6 +78,26 @@ int addressdb_get(uint64_t *sats, char *address)
     {
         deserialize_uint64(sats, serialized_value, SERIALIZE_ENDIAN_BIG);
         free(serialized_value);
+    }
+
+    return 1;
+}
+
+int addressdb_put(char *address, uint64_t sats)
+{
+    int r;
+    unsigned char serialized[sizeof(uint64_t)];
+
+    assert(address);
+    assert(sats > 0);
+
+    serialize_uint64(serialized, sats, SERIALIZE_ENDIAN_BIG);
+
+    r = database_put(dbref, (unsigned char *)address, strlen(address), serialized, sizeof(uint64_t));
+    if (r < 0)
+    {
+        error_log("Can not put new value in the address database.");
+        return -1;
     }
 
     return 1;
