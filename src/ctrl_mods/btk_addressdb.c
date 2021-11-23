@@ -23,6 +23,7 @@
 #define BTK_ADDRESSDB_MAX_ADDRESS_LENGTH   42
 #define BTK_ADDRESSDB_INPUT_ADDRESS        1
 #define BTK_ADDRESSDB_INPUT_PRIVKEY_WIF    2
+#define BTK_ADDRESSDB_INPUT_PRIVKEY_STR    3
 
 int btk_addressdb_main(int argc, char *argv[])
 {
@@ -39,7 +40,7 @@ int btk_addressdb_main(int argc, char *argv[])
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
 
-    while ((o = getopt(argc, argv, "p:u:cr")) != -1)
+    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
     {
         switch (o)
         {
@@ -52,8 +53,11 @@ int btk_addressdb_main(int argc, char *argv[])
             case 'c':
                 create = true;
                 break;
-            case 'r':
+            case 'w':
                 input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
+                break;
+            case 's':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
                 break;
             case '?':
                 error_log("See 'btk help addressdb' to read about available argument options.");
@@ -152,6 +156,26 @@ int btk_addressdb_main(int argc, char *argv[])
             memset(address, 0, BTK_ADDRESSDB_MAX_ADDRESS_LENGTH);
 
             r = pubkey_address_from_wif(address, input);
+            if (r < 0)
+            {
+                error_log("Could not calculate address from private key.");
+                return -1;
+            }
+
+            input = realloc(input, strlen(address) + 1);
+            if (input == NULL)
+            {
+                error_log("Could not allocate memory.");
+                return -1;
+            }
+
+            strcpy(input, address);
+        }
+        else if (input_mode == BTK_ADDRESSDB_INPUT_PRIVKEY_STR)
+        {
+            memset(address, 0, BTK_ADDRESSDB_MAX_ADDRESS_LENGTH);
+
+            r = pubkey_address_from_str(address, input);
             if (r < 0)
             {
                 error_log("Could not calculate address from private key.");
