@@ -24,6 +24,7 @@ int pubkey_to_hex(char *, PubKey);
 int pubkey_to_raw(unsigned char *, PubKey);
 int pubkey_to_address(char *, PubKey);
 int pubkey_to_bech32address(char *, PubKey);
+int pubkey_address_from_wif(char *, char *);
 size_t pubkey_sizeof(void);
 
 #endif

@@ -18,13 +18,17 @@
 #include "mods/addressdb.h"
 #include "mods/utxodb.h"
 #include "mods/base58check.h"
+#include "mods/pubkey.h"
 
-#define BTK_ADDRESSDB_MAX_ADDRESS_LENGTH 42
+#define BTK_ADDRESSDB_MAX_ADDRESS_LENGTH   42
+#define BTK_ADDRESSDB_INPUT_ADDRESS        1
+#define BTK_ADDRESSDB_INPUT_PRIVKEY_WIF    2
 
 int btk_addressdb_main(int argc, char *argv[])
 {
     int o, r;
     int create = false;
+    int input_mode = BTK_ADDRESSDB_INPUT_ADDRESS;
     uint64_t sats = 0;
     char *input = NULL;
     char *db_path = NULL;
@@ -35,7 +39,7 @@ int btk_addressdb_main(int argc, char *argv[])
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
 
-    while ((o = getopt(argc, argv, "p:u:c")) != -1)
+    while ((o = getopt(argc, argv, "p:u:cr")) != -1)
     {
         switch (o)
         {
@@ -47,6 +51,9 @@ int btk_addressdb_main(int argc, char *argv[])
                 break;
             case 'c':
                 create = true;
+                break;
+            case 'r':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
                 break;
             case '?':
                 error_log("See 'btk help addressdb' to read about available argument options.");
@@ -133,11 +140,32 @@ int btk_addressdb_main(int argc, char *argv[])
     }
     else
     {
-        r = input_get_str(&input, "Enter Bitcoin Address: ");
+        r = input_get_str(&input, "Enter Input: ");
         if (r < 0)
         {
             error_log("Could not get input.");
             return -1;
+        }
+
+        if (input_mode == BTK_ADDRESSDB_INPUT_PRIVKEY_WIF)
+        {
+            memset(address, 0, BTK_ADDRESSDB_MAX_ADDRESS_LENGTH);
+
+            r = pubkey_address_from_wif(address, input);
+            if (r < 0)
+            {
+                error_log("Could not calculate address from private key.");
+                return -1;
+            }
+
+            input = realloc(input, strlen(address) + 1);
+            if (r < 0)
+            {
+                error_log("Could not allocate memory.");
+                return -1;
+            }
+
+            strcpy(input, address);
         }
 
         r = base58check_decode(tmp, input, BASE58CHECK_TYPE_ADDRESS_MAINNET);

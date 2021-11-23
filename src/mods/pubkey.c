@@ -431,6 +431,53 @@ int pubkey_to_bech32address(char *address, PubKey key)
 	return 1;
 }
 
+int pubkey_address_from_wif(char *address, char *wif)
+{
+	int r;
+	PubKey pubkey = NULL;
+    PrivKey privkey = NULL;
+
+	assert(address);
+	assert(wif);
+
+	privkey = malloc(privkey_sizeof());
+    if (privkey == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+
+    pubkey = malloc(pubkey_sizeof());
+    if (pubkey == NULL)
+    {
+        error_log("Memory allocation error.");
+        return -1;
+    }
+
+    r = privkey_from_wif(privkey, wif);
+    if (r < 0)
+    {
+        error_log("Could not calculate private key from input.");
+        return -1;
+    }
+
+    r = pubkey_get(pubkey, privkey);
+    if (r < 0)
+    {
+        error_log("Could not calculate public key.");
+        return -1;
+    }
+
+    r = pubkey_to_address(address, pubkey);
+    if (r < 0)
+    {
+        error_log("Could not calculate public key address.");
+        return -1;
+    }
+
+	return 1;
+}
+
 size_t pubkey_sizeof(void)
 {
 	return sizeof(struct PubKey);
