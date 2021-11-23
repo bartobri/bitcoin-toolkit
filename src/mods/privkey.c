@@ -199,7 +199,7 @@ int privkey_from_wif(PrivKey key, char *wif)
 		return -1;
 	}
 
-	l = base58check_decode(p, wif);
+	l = base58check_decode(p, wif, BASE58CHECK_TYPE_NA);
 	if (l < 0)
 	{
 		error_log("Could not parse input string.");

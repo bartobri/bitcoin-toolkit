@@ -12,6 +12,7 @@
 #include "base58.h"
 #include "crypto.h"
 #include "error.h"
+#include "base58check.h"
 
 #define CHECKSUM_LENGTH 4
 
@@ -57,7 +58,7 @@ int base58check_encode(char *output, unsigned char *input, size_t input_len) {
 	return 1;
 }
 
-int base58check_decode(unsigned char *output, char *input) {
+int base58check_decode(unsigned char *output, char *input, int type) {
 	int i, r, len;
 	uint32_t checksum1 = 0, checksum2 = 0;
 	
@@ -69,6 +70,24 @@ int base58check_decode(unsigned char *output, char *input) {
 	{
 		error_log("Could not decode input from base58.");
 		return -1;
+	}
+
+	if (type == BASE58CHECK_TYPE_ADDRESS_MAINNET)
+	{
+		// With mainnet addresses we have to pad the output
+		// with leading zeros so that we have 25 bytes in total.
+		// Leading zeros are lost in the decoding algorithm and
+		// only mainnet addresses have this requirement because
+		// the mainnet flag itself is a zero.
+		while (r < 25)
+		{
+			for (i = 0; i < 24; i++)
+			{
+				output[24 - i] = output[24 - 1 - i];
+				output[24 - 1 - i] = 0x00;
+			}
+			r++;
+		}
 	}
 
 	len = r;

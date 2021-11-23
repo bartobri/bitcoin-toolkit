@@ -17,6 +17,7 @@
 #include "mods/input.h"
 #include "mods/addressdb.h"
 #include "mods/utxodb.h"
+#include "mods/base58check.h"
 
 #define BTK_ADDRESSDB_MAX_ADDRESS_LENGTH 42
 
@@ -29,6 +30,7 @@ int btk_addressdb_main(int argc, char *argv[])
     char *db_path = NULL;
     char *utxodb_path = NULL;
     char address[BTK_ADDRESSDB_MAX_ADDRESS_LENGTH];
+    unsigned char tmp[BUFSIZ];
 
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
@@ -135,6 +137,13 @@ int btk_addressdb_main(int argc, char *argv[])
         if (r < 0)
         {
             error_log("Could not get input.");
+            return -1;
+        }
+
+        r = base58check_decode(tmp, input, BASE58CHECK_TYPE_ADDRESS_MAINNET);
+        if (r < 0)
+        {
+            error_log("Error while decoding input.");
             return -1;
         }
 
