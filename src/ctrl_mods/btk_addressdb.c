@@ -159,7 +159,7 @@ int btk_addressdb_main(int argc, char *argv[])
             }
 
             input = realloc(input, strlen(address) + 1);
-            if (r < 0)
+            if (input == NULL)
             {
                 error_log("Could not allocate memory.");
                 return -1;
