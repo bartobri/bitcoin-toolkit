@@ -285,7 +285,7 @@ int btk_privkey_main(int argc, char *argv[])
 			free(input_sc);
 			break;
 		case INPUT_GUESS:
-			r = input_get(&input_uc, NULL);
+			r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
 			if (r < 0)
 			{
 				error_log("Could not get input.");

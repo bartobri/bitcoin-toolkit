@@ -17,12 +17,59 @@
 #include "input.h"
 #include "error.h"
 
-int input_get(unsigned char** dest, char *prompt)
+int input_available(void)
 {
 	int r, input_len;
 	fd_set input_stream;
 	struct timeval timeout;
 	void *timeout_p;
+
+	FD_ZERO(&input_stream);
+	input_len = 0;
+
+	if (isatty(STDIN_FILENO))
+	{
+		return 0;
+	}
+
+	timeout.tv_sec  = 10;
+	timeout.tv_usec = 0;
+	timeout_p = &timeout;
+
+	FD_SET(STDIN_FILENO, &input_stream);
+	r = select(FD_SETSIZE, &input_stream, NULL, NULL, timeout_p);
+	if (r < 0)
+	{
+		error_log("Error while waiting for input data. Errno: %i", errno);
+		return -1;
+	}
+	if (r > 0)
+	{	
+		r = ioctl(STDIN_FILENO, FIONREAD, &input_len);
+		if (r < 0)
+		{
+			error_log("Could not determine length of input. Errno: %i", errno);
+			return -1;
+		}
+
+		if (input_len > 0)
+		{
+			return 1;
+		}
+	}
+
+	FD_CLR(STDIN_FILENO, &input_stream);
+
+	return 0;
+}
+
+int input_get(unsigned char** dest, char *prompt, int mode)
+{
+	int i, r, input_len;
+	fd_set input_stream;
+	struct timeval timeout;
+	void *timeout_p;
+	char c;
 
 	FD_ZERO(&input_stream);
 	input_len = 0;
@@ -61,17 +108,57 @@ int input_get(unsigned char** dest, char *prompt)
 		}
 		if (input_len > 0)
 		{
-			*dest = malloc(input_len);
-			if (*dest == NULL)
+			if (mode == INPUT_GET_MODE_LINE)
 			{
-				error_log("Memory allocation error.");
-				return -1;
+				input_len = 0;
+
+				*dest = malloc(BUFSIZ);
+				if (*dest == NULL)
+				{
+					error_log("Memory allocation error.");
+					return -1;
+				}
+
+				memset(*dest, 0, BUFSIZ);
+
+				for (i = 0; i < BUFSIZ - 1; i++)
+				{
+					r = read(STDIN_FILENO, &c, 1);
+					if (r < 0)
+					{
+						error_log("Input read error. Errno: %i", errno);
+						return -1;
+					}
+					else if (r == 0)
+					{
+						// EOF
+						break;
+					}
+
+					(*dest)[i] = c;
+
+					input_len++;
+
+					if (c == '\n')
+					{
+						break;
+					}
+				}
 			}
-			r = read(STDIN_FILENO, *dest, input_len);
-			if (r < 0)
+			else
 			{
-				error_log("Input read error. Errno: %i", errno);
-				return -1;
+				*dest = malloc(input_len);
+				if (*dest == NULL)
+				{
+					error_log("Memory allocation error.");
+					return -1;
+				}
+				r = read(STDIN_FILENO, *dest, input_len);
+				if (r < 0)
+				{
+					error_log("Input read error. Errno: %i", errno);
+					return -1;
+				}
 			}
 		}
 	}
@@ -84,24 +171,14 @@ int input_get(unsigned char** dest, char *prompt)
 int input_get_str(char** dest, char *prompt)
 {
 	int r, i, input_len;
-	char input[BUFSIZ];
+	unsigned char *input;
 
-	memset(input, 0, BUFSIZ);
-
-	if (isatty(STDIN_FILENO) && prompt != NULL)
+	r = input_get(&input, prompt, INPUT_GET_MODE_LINE);
+	if (r < 0)
 	{
-		printf("%s", prompt);
-		fflush(stdout);
+		error_log("Could not get input.");
+		return -1;
 	}
-
-	fgets(input, sizeof(input) - 1, stdin);
-	if (input == NULL)
-	{
-		// EOF
-		return 0;
-	}
-
-	r = strlen(input);
 
 	if (r > 0)
 	{
@@ -145,6 +222,8 @@ int input_get_str(char** dest, char *prompt)
 		}
 	}
 
+	free(input);
+
 	return input_len;
 }
 
@@ -158,7 +237,7 @@ int input_get_from_pipe(unsigned char** dest)
 		return -1;
 	}
 
-	r = input_get(dest, NULL);
+	r = input_get(dest, NULL, INPUT_GET_MODE_ALL);
 	if (r < 0)
 	{
 		error_log("Could not get input.");
