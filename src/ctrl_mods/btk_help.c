@@ -11,41 +11,60 @@
 #include "btk_help.h"
 #include "mods/error.h"
 
-int btk_help_main(int argc, char *argv[])
+static char *command = NULL;
+
+int btk_help_init(int argc, char *argv[])
 {
 	if (argc <= 2)
+	{
+		return 1;
+	}
+
+	command = argv[2];
+
+	return 1;
+}
+
+int btk_help_main(void)
+{
+	if (command == NULL)
 	{
 		btk_help_commands();
 		return 1;
 	}
 
-	if (strcmp(argv[2], "privkey") == 0)
+	if (strcmp(command, "privkey") == 0)
 	{
 		btk_help_privkey();
 	}
-	else if (strcmp(argv[2], "pubkey") == 0)
+	else if (strcmp(command, "pubkey") == 0)
 	{
 		btk_help_pubkey();
 	}
-	else if (strcmp(argv[2], "node") == 0)
+	else if (strcmp(command, "node") == 0)
 	{
 		btk_help_node();
 	}
-	else if (strcmp(argv[2], "vanity") == 0)
+	else if (strcmp(command, "vanity") == 0)
 	{
 		btk_help_vanity();
 	}
-	else if (strcmp(argv[2], "version") == 0)
+	else if (strcmp(command, "version") == 0)
 	{
 		btk_help_version();
 	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("'%s' is not a valid command.", argv[2]);
+		error_log("'%s' is not a valid command.", command);
 		return -1;
 	}
 	
+	return 1;
+}
+
+int btk_help_cleanup(void)
+{
 	return 1;
 }
 

@@ -22,11 +22,14 @@
 
 #define BTK_COMMAND_MAX_OPT 100
 
+int btk_init(int argc, char *argv[]);
+int btk_cleanup(char *);
+
 int main(int argc, char *argv[])
 {
 	int i, r;
+	char *command = NULL;
 	char command_str[BUFSIZ];
-	char *argv_copy[BTK_COMMAND_MAX_OPT];
 
 	r = 0;
 
@@ -51,61 +54,61 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	// Save command for later referece.
+	command = argv[1];
+
 	// Turn off getopt errors for all control mods. I print my own 
 	// error message.
 	opterr = 0;
 
+	// Run init function
+	r = btk_init(argc, argv);
+	if (r < 0)
+	{
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
+
+	// This loop provides support for list processing
 	do
 	{
-		optind = 0;
-
-		// Get a fresh copy of argv for each pass through the loop. 
-		// This is necessary for list processing because getopt()
-		// alters it when processing.
-		for (i = 0; i < argc; i++)
+		if (strcmp(command, "help") == 0)
 		{
-			argv_copy[i] = malloc(strlen(argv[i]) + 1);
-			ERROR_CHECK_NULL(argv_copy[i], "Unable to allocate memory.");
-			strcpy(argv_copy[i], argv[i]);
+			r = btk_help_main();
 		}
-
-		// Execute the apropriate command module
-		if (strcmp(argv_copy[1], "help") == 0)
+		else if (strcmp(command, "privkey") == 0)
 		{
-			r = btk_help_main(argc, argv_copy);
+			r = btk_privkey_main();
 		}
-		else if (strcmp(argv_copy[1], "privkey") == 0)
+		else if (strcmp(command, "pubkey") == 0)
 		{
-			r = btk_privkey_main(argc, argv_copy);
+			r = btk_pubkey_main();
 		}
-		else if (strcmp(argv_copy[1], "pubkey") == 0)
+		else if (strcmp(command, "vanity") == 0)
 		{
-			r = btk_pubkey_main(argc, argv_copy);
+			r = btk_vanity_main();
 		}
-		else if (strcmp(argv_copy[1], "vanity") == 0)
+		else if (strcmp(command, "node") == 0)
 		{
-			r = btk_vanity_main(argc, argv_copy);
+			r = btk_node_main();
 		}
-		else if (strcmp(argv_copy[1], "node") == 0)
+		else if (strcmp(command, "utxodb") == 0)
 		{
-			r = btk_node_main(argc, argv_copy);
+			r = btk_utxodb_main();
 		}
-		else if (strcmp(argv_copy[1], "utxodb") == 0)
+		else if (strcmp(command, "addressdb") == 0)
 		{
-			r = btk_utxodb_main(argc, argv_copy);
+			r = btk_addressdb_main();
 		}
-		else if (strcmp(argv_copy[1], "addressdb") == 0)
+		else if (strcmp(command, "version") == 0)
 		{
-			r = btk_addressdb_main(argc, argv_copy);
-		}
-		else if (strcmp(argv_copy[1], "version") == 0)
-		{
-			r = btk_version_main(argc, argv_copy);
+			r = btk_version_main();
 		}
 		else
 		{
 			error_log("See 'btk help' to read about available commands.");
-			error_log("'%s' is not a valid command.", argv_copy[1]);
+			error_log("'%s' is not a valid command.", command);
 			error_log("Error [%s]:", command_str);
 			error_print();
 			return EXIT_FAILURE;
@@ -117,15 +120,109 @@ int main(int argc, char *argv[])
 			error_print();
 			return EXIT_FAILURE;
 		}
-
-		// Free the argv copy so it can be used again on next pass.
-		for (i = 0; i < argc; i++)
-		{
-			free(argv_copy[i]);
-			argv_copy[i] = NULL;
-		}
 	}
 	while (input_available());
 
+	// Run cleanup function
+	r = btk_cleanup(command);
+	if (r < 0)
+	{
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
+
 	return EXIT_SUCCESS;
+}
+
+int btk_init(int argc, char *argv[])
+{
+	int r = 0;
+
+	if (strcmp(argv[1], "help") == 0)
+	{
+		r = btk_help_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "privkey") == 0)
+	{
+		r = btk_privkey_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "pubkey") == 0)
+	{
+		r = btk_pubkey_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "vanity") == 0)
+	{
+		r = btk_vanity_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "node") == 0)
+	{
+		r = btk_node_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "utxodb") == 0)
+	{
+		r = btk_utxodb_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "addressdb") == 0)
+	{
+		r = btk_addressdb_init(argc, argv);
+	}
+	else if (strcmp(argv[1], "version") == 0)
+	{
+		r = btk_version_init(argc, argv);
+	}
+
+	if (r < 0)
+	{
+		error_log("Can not run initialization for command %s.", argv[1]);
+		return -1;
+	}
+
+	return 1;
+}
+
+int btk_cleanup(char *command)
+{
+	int r = 0;
+
+	if (strcmp(command, "help") == 0)
+	{
+		r = btk_help_cleanup();
+	}
+	else if (strcmp(command, "privkey") == 0)
+	{
+		r = btk_privkey_cleanup();
+	}
+	else if (strcmp(command, "pubkey") == 0)
+	{
+		r = btk_pubkey_cleanup();
+	}
+	else if (strcmp(command, "vanity") == 0)
+	{
+		r = btk_vanity_cleanup();
+	}
+	else if (strcmp(command, "node") == 0)
+	{
+		r = btk_node_cleanup();
+	}
+	else if (strcmp(command, "utxodb") == 0)
+	{
+		r = btk_utxodb_cleanup();
+	}
+	else if (strcmp(command, "addressdb") == 0)
+	{
+		r = btk_addressdb_cleanup();
+	}
+	else if (strcmp(command, "version") == 0)
+	{
+		r = btk_version_cleanup();
+	}
+
+	if (r < 0)
+	{
+		error_log("Can not run cleanup for command %s.", command);
+		return -1;
+	}
+
+	return 1;
 }

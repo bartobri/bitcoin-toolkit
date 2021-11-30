@@ -40,25 +40,17 @@
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
 
-int btk_pubkey_main(int argc, char *argv[])
-{
-	int o, r;
-	PubKey key = NULL;
-	PrivKey priv = NULL;
-	size_t i;
-	unsigned char *input_uc;
-	char *input_sc;
-	size_t output_len;
-	char output[OUTPUT_BUFFER];
-	unsigned char uc_output[OUTPUT_BUFFER];
+static int input_format         = FALSE;
+static int output_format        = FALSE;
+static int output_compression   = FALSE;
+static int output_privkey       = FALSE;
+static int output_newline       = TRUE;
+static int output_network       = FALSE;
 
-	int input_format       = FALSE;
-	int output_format      = FALSE;
-	int output_compression = FALSE;
-	int output_privkey     = FALSE;
-	int output_newline     = TRUE;
-	int output_network     = FALSE;
-	
+int btk_pubkey_init(int argc, char *argv[])
+{
+	int o;
+
 	while ((o = getopt(argc, argv, "whrsdbxABHRCUPNTM")) != -1)
 	{
 		switch (o)
@@ -149,6 +141,21 @@ int btk_pubkey_main(int argc, char *argv[])
 	{
 		output_format = OUTPUT_ADDRESS;
 	}
+
+	return 1;
+}
+
+int btk_pubkey_main(void)
+{
+	int r;
+	PubKey key = NULL;
+	PrivKey priv = NULL;
+	size_t i;
+	unsigned char *input_uc;
+	char *input_sc;
+	size_t output_len;
+	char output[OUTPUT_BUFFER];
+	unsigned char uc_output[OUTPUT_BUFFER];
 
 	priv = malloc(privkey_sizeof());
 	if (priv == NULL)
@@ -444,5 +451,10 @@ int btk_pubkey_main(int argc, char *argv[])
 	free(priv);
 	free(key);
 
+	return 1;
+}
+
+int btk_pubkey_cleanup(void)
+{
 	return 1;
 }

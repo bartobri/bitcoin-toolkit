@@ -23,15 +23,11 @@
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
 #define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
-int btk_utxodb_main(int argc, char *argv[])
+static char *db_path = NULL;
+
+int btk_utxodb_init(int argc, char *argv[])
 {
-    int o, r;
-    char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
-    char *input = NULL;
-    char *db_path = NULL;
-    unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
-    UTXODBKey key = NULL;
-    UTXODBValue value = NULL;
+    int o;
 
     while ((o = getopt(argc, argv, "p:")) != -1)
     {
@@ -53,6 +49,18 @@ int btk_utxodb_main(int argc, char *argv[])
                 return -1;
         }
     }
+
+    return 1;
+}
+
+int btk_utxodb_main(void)
+{
+    int r;
+    char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
+    char *input = NULL;
+    unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
+    UTXODBKey key = NULL;
+    UTXODBValue value = NULL;
 
     r = input_get_str(&input, "Enter TX Hash: ");
     if (r < 0)
@@ -124,4 +132,9 @@ int btk_utxodb_main(int argc, char *argv[])
     free(value);
 
     return EXIT_SUCCESS;
+}
+
+int btk_utxodb_cleanup(void)
+{
+    return 1;
 }

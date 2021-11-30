@@ -31,23 +31,15 @@
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Only specify one output flag."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
 
-int btk_vanity_main(int argc, char *argv[])
-{
-	int i, k, o, r, row;
-	time_t current, start;
-	long int estimate;
-	PubKey key = NULL;
-	PrivKey priv = NULL;
-	char *input;
-	int input_len;
-	char pubkey_str[OUTPUT_BUFFER];
-	char privkey_str[OUTPUT_BUFFER];
+static int input_insensitive    = FALSE;
+static int output_format        = FALSE;
+static int output_compression   = FALSE;
+static int output_testnet       = FALSE;
 
-	int input_insensitive  = FALSE;
-	int output_format      = FALSE;
-	int output_compression = FALSE;
-	int output_testnet     = FALSE;
-	
+int btk_vanity_init(int argc, char *argv[])
+{
+	int o;
+
 	while ((o = getopt(argc, argv, "iABCUT")) != -1)
 	{
 		switch (o)
@@ -98,6 +90,21 @@ int btk_vanity_main(int argc, char *argv[])
 	{
 		output_format = OUTPUT_ADDRESS;
 	}
+
+	return 1;
+}
+
+int btk_vanity_main(void)
+{
+	int i, k, r, row;
+	time_t current, start;
+	long int estimate;
+	PubKey key = NULL;
+	PrivKey priv = NULL;
+	char *input;
+	int input_len;
+	char pubkey_str[OUTPUT_BUFFER];
+	char privkey_str[OUTPUT_BUFFER];
 
 	r = input_get_str(&input, NULL);
 	if (r < 0)
@@ -369,5 +376,10 @@ int btk_vanity_main(int argc, char *argv[])
 
 	free(input);
 
+	return 1;
+}
+
+int btk_vanity_cleanup(void)
+{
 	return 1;
 }

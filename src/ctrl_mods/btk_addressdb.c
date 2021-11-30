@@ -25,53 +25,21 @@
 #define BTK_ADDRESSDB_INPUT_PRIVKEY_WIF    2
 #define BTK_ADDRESSDB_INPUT_PRIVKEY_STR    3
 
-int btk_addressdb_main(int argc, char *argv[])
+static char *db_path = NULL;
+static char *utxodb_path = NULL;
+static int create = false;
+static int input_mode = BTK_ADDRESSDB_INPUT_ADDRESS;
+
+int btk_addressdb_main(void)
 {
-    int o, r;
-    int create = false;
-    int input_mode = BTK_ADDRESSDB_INPUT_ADDRESS;
+    int r;
     uint64_t sats = 0;
     char *input = NULL;
-    char *db_path = NULL;
-    char *utxodb_path = NULL;
     char address[BTK_ADDRESSDB_MAX_ADDRESS_LENGTH];
     unsigned char tmp[BUFSIZ];
 
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
-
-    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
-    {
-        switch (o)
-        {
-            case 'p':
-                db_path = optarg;
-                break;
-            case 'u':
-                utxodb_path = optarg;
-                break;
-            case 'c':
-                create = true;
-                break;
-            case 'w':
-                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
-                break;
-            case 's':
-                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
-                break;
-            case '?':
-                error_log("See 'btk help addressdb' to read about available argument options.");
-                if (isprint(optopt))
-                {
-                    error_log("Invalid command option '-%c'.", optopt);
-                }
-                else
-                {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
-                }
-                return -1;
-        }
-    }
 
     if (create == true)
     {
@@ -87,13 +55,6 @@ int btk_addressdb_main(int argc, char *argv[])
         if (r < 0)
         {
             error_log("Could not open utxo database.");
-            return -1;
-        }
-
-        r = addressdb_open(db_path, create);
-        if (r < 0)
-        {
-            error_log("Could not open address database.");
             return -1;
         }
 
@@ -139,7 +100,6 @@ int btk_addressdb_main(int argc, char *argv[])
             return -1;
         }
 
-        addressdb_close();
         utxodb_close();
     }
     else
@@ -199,13 +159,6 @@ int btk_addressdb_main(int argc, char *argv[])
             return -1;
         }
 
-        r = addressdb_open(db_path, false);
-        if (r < 0)
-        {
-            error_log("Could not open address database.");
-            return -1;
-        }
-
         r = addressdb_get(&sats, input);
         if (r < 0)
         {
@@ -215,10 +168,64 @@ int btk_addressdb_main(int argc, char *argv[])
 
         printf("Address %s has balance: %"PRIu64"\n", input, sats);
 
-        addressdb_close();
-
         free(input);
     }
 
     return EXIT_SUCCESS;
+}
+
+int btk_addressdb_init(int argc, char *argv[])
+{
+    int r, o;
+
+    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
+    {
+        switch (o)
+        {
+            case 'p':
+                db_path = optarg;
+                break;
+            case 'u':
+                utxodb_path = optarg;
+                break;
+            case 'c':
+                create = true;
+                break;
+            case 'w':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
+                break;
+            case 's':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
+                break;
+            case '?':
+                error_log("See 'btk help addressdb' to read about available argument options.");
+                if (isprint(optopt))
+                {
+                    error_log("Invalid command option '-%c'.", optopt);
+                }
+                else
+                {
+                    error_log("Invalid command option character '\\x%x'.", optopt);
+                }
+                return -1;
+        }
+    }
+
+    r = addressdb_open(db_path, create);
+    if (r < 0)
+    {
+        error_log("Could not open address database.");
+        return -1;
+    }
+
+    return 1;
+}
+
+int btk_addressdb_cleanup(void)
+{
+    //int r;
+
+    addressdb_close();
+
+    return 1;
 }

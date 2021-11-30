@@ -21,28 +21,12 @@
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-int btk_node_main(int argc, char *argv[])
+static char* host = NULL;
+static int port   = HOST_PORT_MAIN;
+
+int btk_node_init(int argc, char *argv[])
 {
-	int o, i, r;
-	char* host = NULL;
-	int port = HOST_PORT_MAIN;
-	int message_type = MESSAGE_TYPE_VERSION;
-
-	Node node;
-	unsigned char *node_data, *node_data_walk;
-	size_t node_data_len;
-
-	Message message;
-	unsigned char *message_raw;
-	size_t message_raw_len;
-	unsigned char *payload = NULL;
-	size_t payload_len;
-
-	Version version = NULL;
-	unsigned char *version_string;
-	size_t version_string_len;
-	char *json = NULL;
-
+	int o;
 
 	while ((o = getopt(argc, argv, "h:p:T")) != -1)
 	{
@@ -78,6 +62,29 @@ int btk_node_main(int argc, char *argv[])
 		error_log("Missing host argument.");
 		return -1;
 	}
+
+	return 1;
+}
+
+int btk_node_main(void)
+{
+	int i, r;
+	int message_type = MESSAGE_TYPE_VERSION;
+
+	Node node;
+	unsigned char *node_data, *node_data_walk;
+	size_t node_data_len;
+
+	Message message;
+	unsigned char *message_raw;
+	size_t message_raw_len;
+	unsigned char *payload = NULL;
+	size_t payload_len;
+
+	Version version = NULL;
+	unsigned char *version_string;
+	size_t version_string_len;
+	char *json = NULL;
 
 	switch (message_type)
 	{
@@ -265,5 +272,10 @@ int btk_node_main(int argc, char *argv[])
 			break;
 	}
 
+	return 1;
+}
+
+int btk_node_cleanup(void)
+{
 	return 1;
 }

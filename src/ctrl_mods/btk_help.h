@@ -8,8 +8,9 @@
 #ifndef BTK_HELP_H
 #define BTK_HELP_H 1
 
-// Function prototypes
-int btk_help_main(int argc, char *argv[]);
+int btk_help_init(int argc, char *argv[]);
+int btk_help_main(void);
+int btk_help_cleanup(void);
 void btk_help_commands(void);
 void btk_help_privkey(void);
 void btk_help_pubkey(void);
