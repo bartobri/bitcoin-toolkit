@@ -50,6 +50,9 @@ static int output_network       = FALSE;
 int btk_pubkey_init(int argc, char *argv[])
 {
 	int o;
+	char *command = NULL;
+
+	command = argv[1];
 
 	while ((o = getopt(argc, argv, "whrsdbxABHRCUPNTM")) != -1)
 	{
@@ -119,10 +122,10 @@ int btk_pubkey_init(int argc, char *argv[])
 
 			// Unknown option
 			case '?':
-				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+				error_log("See 'btk help %s' to read about available argument options.", command);
 				if (isprint(optopt))
 				{
-					error_log("Invalid command option '-%c'.", optopt);
+					error_log("Invalid command option or argument required: '-%c'.", optopt);
 				}
 				else
 				{

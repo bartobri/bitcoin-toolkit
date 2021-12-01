@@ -27,6 +27,9 @@ static int port   = HOST_PORT_MAIN;
 int btk_node_init(int argc, char *argv[])
 {
 	int o;
+	char *command = NULL;
+
+	command = argv[1];
 
 	while ((o = getopt(argc, argv, "h:p:T")) != -1)
 	{
@@ -43,10 +46,10 @@ int btk_node_init(int argc, char *argv[])
 				network_set_test();
 				break;
 			case '?':
-				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+				error_log("See 'btk help %s' to read about available argument options.", command);
 				if (isprint(optopt))
 				{
-					error_log("Invalid command option '-%c'.", optopt);
+					error_log("Invalid command option or argument required: '-%c'.", optopt);
 				}
 				else
 				{
@@ -58,7 +61,7 @@ int btk_node_init(int argc, char *argv[])
 
 	if (host == NULL)
 	{
-		error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+		error_log("See 'btk help %s' to read about available argument options.", command);
 		error_log("Missing host argument.");
 		return -1;
 	}

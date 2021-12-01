@@ -39,6 +39,9 @@ static int output_testnet       = FALSE;
 int btk_vanity_init(int argc, char *argv[])
 {
 	int o;
+	char *command = NULL;
+
+	command = argv[1];
 
 	while ((o = getopt(argc, argv, "iABCUT")) != -1)
 	{
@@ -73,10 +76,10 @@ int btk_vanity_init(int argc, char *argv[])
 
 			// Unknown option
 			case '?':
-				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+				error_log("See 'btk help %s' to read about available argument options.", command);
 				if (isprint(optopt))
 				{
-					error_log("Invalid command option '-%c'.", optopt);
+					error_log("Invalid command option or argument required: '-%c'.", optopt);
 				}
 				else
 				{

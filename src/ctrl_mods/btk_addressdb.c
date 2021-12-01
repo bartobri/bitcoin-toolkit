@@ -30,6 +30,56 @@ static char *utxodb_path = NULL;
 static int create = false;
 static int input_mode = BTK_ADDRESSDB_INPUT_ADDRESS;
 
+int btk_addressdb_init(int argc, char *argv[])
+{
+    int r, o;
+    char *command = NULL;
+
+    command = argv[1];
+
+    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
+    {
+        switch (o)
+        {
+            case 'p':
+                db_path = optarg;
+                break;
+            case 'u':
+                utxodb_path = optarg;
+                break;
+            case 'c':
+                create = true;
+                break;
+            case 'w':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
+                break;
+            case 's':
+                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
+                break;
+            case '?':
+                error_log("See 'btk help %s' to read about available argument options.", command);
+                if (isprint(optopt))
+                {
+                    error_log("Invalid command option or argument required: '-%c'.", optopt);
+                }
+                else
+                {
+                    error_log("Invalid command option character '\\x%x'.", optopt);
+                }
+                return -1;
+        }
+    }
+
+    r = addressdb_open(db_path, create);
+    if (r < 0)
+    {
+        error_log("Could not open address database.");
+        return -1;
+    }
+
+    return 1;
+}
+
 int btk_addressdb_main(void)
 {
     int r;
@@ -172,53 +222,6 @@ int btk_addressdb_main(void)
     }
 
     return EXIT_SUCCESS;
-}
-
-int btk_addressdb_init(int argc, char *argv[])
-{
-    int r, o;
-
-    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
-    {
-        switch (o)
-        {
-            case 'p':
-                db_path = optarg;
-                break;
-            case 'u':
-                utxodb_path = optarg;
-                break;
-            case 'c':
-                create = true;
-                break;
-            case 'w':
-                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_WIF;
-                break;
-            case 's':
-                input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
-                break;
-            case '?':
-                error_log("See 'btk help addressdb' to read about available argument options.");
-                if (isprint(optopt))
-                {
-                    error_log("Invalid command option '-%c'.", optopt);
-                }
-                else
-                {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
-                }
-                return -1;
-        }
-    }
-
-    r = addressdb_open(db_path, create);
-    if (r < 0)
-    {
-        error_log("Could not open address database.");
-        return -1;
-    }
-
-    return 1;
 }
 
 int btk_addressdb_cleanup(void)

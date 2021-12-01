@@ -28,6 +28,9 @@ static char *db_path = NULL;
 int btk_utxodb_init(int argc, char *argv[])
 {
     int o;
+    char *command = NULL;
+
+    command = argv[1];
 
     while ((o = getopt(argc, argv, "p:")) != -1)
     {
@@ -37,10 +40,10 @@ int btk_utxodb_init(int argc, char *argv[])
                 db_path = optarg;
                 break;
             case '?':
-                error_log("See 'btk help utxodb' to read about available argument options.");
+                error_log("See 'btk help %s' to read about available argument options.", command);
                 if (isprint(optopt))
                 {
-                    error_log("Invalid command option '-%c'.", optopt);
+                    error_log("Invalid command option or argument required: '-%c'.", optopt);
                 }
                 else
                 {
