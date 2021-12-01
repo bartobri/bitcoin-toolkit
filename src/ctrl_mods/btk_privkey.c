@@ -45,12 +45,16 @@ static int output_format      = FALSE;
 static int output_compression = FALSE;
 static int output_newline     = TRUE;
 static int output_network     = FALSE;
+static int output_hashes      = FALSE;
 
 int btk_privkey_init(int argc, char *argv[])
 {
 	int o;
+	char *command = NULL;
 
-	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUNTDM")) != -1)
+	command = argv[1];
+
+	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUNTDMS:")) != -1)
 	{
 		switch (o)
 		{
@@ -107,6 +111,14 @@ int btk_privkey_init(int argc, char *argv[])
 			case 'N':
 				output_newline = FALSE;
 				break;
+			case 'S':
+				output_hashes = atoi(optarg);
+				if (output_hashes <= 0)
+				{
+					error_log("The -S option requires a positive integer argument.");
+					return -1;
+				}
+				break;
 
 			// Network Options
 			case 'T':
@@ -118,10 +130,10 @@ int btk_privkey_init(int argc, char *argv[])
 
 			// Unknown option
 			case '?':
-				error_log("See 'btk help %s' to read about available argument options.", argv[1]);
+				error_log("See 'btk help %s' to read about available argument options.", command);
 				if (isprint(optopt))
 				{
-					error_log("Invalid command option '-%c'.", optopt);
+					error_log("Invalid command option or argument required: '-%c'.", optopt);
 				}
 				else
 				{
@@ -146,12 +158,11 @@ int btk_privkey_init(int argc, char *argv[])
 
 int btk_privkey_main(void)
 {
-	int r;
-	size_t i;
+	int r, i;
+	int output_len;
 	PrivKey key = NULL;
 	unsigned char *input_uc;
 	char *input_sc;
-	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
 	
@@ -322,6 +333,23 @@ int btk_privkey_main(void)
 		return -1;
 	}
 
+	if (input_format == INPUT_STR || input_format == INPUT_BLOB)
+	{
+		output_hashes--;
+	}
+	if (output_hashes > 0)
+	{
+		for (i = 0; i < output_hashes; i++)
+		{
+			r = privkey_rehash(key);
+			if (r < 0)
+			{
+				error_log("Unable to hash private key.");
+				return -1;
+			}
+		}
+	}
+
 	switch (output_compression)
 	{
 		case FALSE:
@@ -376,7 +404,7 @@ int btk_privkey_main(void)
 				error_log("Could not convert private key to raw format.");
 				return -1;
 			}
-			output_len = (size_t)r;
+			output_len = r;
 			for (i = 0; i < output_len; ++i)
 			{
 				putchar(uc_output[i]);
