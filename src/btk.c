@@ -138,43 +138,52 @@ int main(int argc, char *argv[])
 int btk_init(int argc, char *argv[])
 {
 	int r = 0;
+	char *command = NULL;
 
-	if (strcmp(argv[1], "help") == 0)
+	command = argv[1];
+
+	if (strcmp(command, "help") == 0)
 	{
 		r = btk_help_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "privkey") == 0)
+	else if (strcmp(command, "privkey") == 0)
 	{
 		r = btk_privkey_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "pubkey") == 0)
+	else if (strcmp(command, "pubkey") == 0)
 	{
 		r = btk_pubkey_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "vanity") == 0)
+	else if (strcmp(command, "vanity") == 0)
 	{
 		r = btk_vanity_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "node") == 0)
+	else if (strcmp(command, "node") == 0)
 	{
 		r = btk_node_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "utxodb") == 0)
+	else if (strcmp(command, "utxodb") == 0)
 	{
 		r = btk_utxodb_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "addressdb") == 0)
+	else if (strcmp(command, "addressdb") == 0)
 	{
 		r = btk_addressdb_init(argc, argv);
 	}
-	else if (strcmp(argv[1], "version") == 0)
+	else if (strcmp(command, "version") == 0)
 	{
 		r = btk_version_init(argc, argv);
+	}
+	else
+	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("Invalid command: '%s'", command);
+		return -1;
 	}
 
 	if (r < 0)
 	{
-		error_log("Can not run initialization for command %s.", argv[1]);
+		error_log("Can not run initialization for command '%s'.", command);
 		return -1;
 	}
 
@@ -216,6 +225,12 @@ int btk_cleanup(char *command)
 	else if (strcmp(command, "version") == 0)
 	{
 		r = btk_version_cleanup();
+	}
+	else
+	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("Invalid command: '%s'", command);
+		return -1;
 	}
 
 	if (r < 0)
