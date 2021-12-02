@@ -30,6 +30,7 @@
 #define OUTPUT_DEC              4
 #define OUTPUT_COMPRESS         1
 #define OUTPUT_UNCOMPRESS       2
+#define OUTPUT_COMPRESSION_BOTH 3
 #define OUTPUT_MAINNET          1
 #define OUTPUT_TESTNET          2
 #define TRUE                    1
@@ -38,7 +39,7 @@
 
 #define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
-#define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
+#define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { output_compression = OUTPUT_COMPRESSION_BOTH; }
 
 static int input_format       = FALSE;
 static int output_format      = FALSE;
@@ -333,13 +334,14 @@ int btk_privkey_main(void)
 		return -1;
 	}
 
-	if (input_format == INPUT_STR || input_format == INPUT_BLOB)
-	{
-		output_hashes--;
-	}
 	if (output_hashes > 0)
 	{
-		for (i = 0; i < output_hashes; i++)
+		i = 0;
+		if (input_format == INPUT_STR || input_format == INPUT_BLOB)
+		{
+			i = 1;
+		}
+		while (i < output_hashes)
 		{
 			r = privkey_rehash(key);
 			if (r < 0)
@@ -347,6 +349,8 @@ int btk_privkey_main(void)
 				error_log("Unable to hash private key.");
 				return -1;
 			}
+
+			i++;
 		}
 	}
 
@@ -358,6 +362,9 @@ int btk_privkey_main(void)
 			privkey_compress(key);
 			break;
 		case OUTPUT_UNCOMPRESS:
+			privkey_uncompress(key);
+			break;
+		case OUTPUT_COMPRESSION_BOTH:
 			privkey_uncompress(key);
 			break;
 	}
@@ -374,59 +381,75 @@ int btk_privkey_main(void)
 			break;
 	}
 
-	memset(output, 0, OUTPUT_BUFFER);
-	memset(uc_output, 0, OUTPUT_BUFFER);
-
-	switch (output_format)
+	do
 	{
-		case OUTPUT_WIF:
-			r = privkey_to_wif(output, key);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to WIF format.");
-				return -1;
-			}
-			printf("%s", output);
-			break;
-		case OUTPUT_HEX:
-			r = privkey_to_hex(output, key, output_compression);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to hex format.");
-				return -1;
-			}
-			printf("%s", output);
-			break;
-		case OUTPUT_RAW:
-			r = privkey_to_raw(uc_output, key, output_compression);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to raw format.");
-				return -1;
-			}
-			output_len = r;
-			for (i = 0; i < output_len; ++i)
-			{
-				putchar(uc_output[i]);
-			}
-			break;
-		case OUTPUT_DEC:
-			r = privkey_to_dec(output, key);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to decimal format.");
-				return -1;
-			}
-			printf("%s", output);
-			break;
-	}
+		memset(output, 0, OUTPUT_BUFFER);
+		memset(uc_output, 0, OUTPUT_BUFFER);
 
-	switch (output_newline)
-	{
-		case TRUE:
-			printf("\n");
-			break;
+		switch (output_format)
+		{
+			case OUTPUT_WIF:
+				r = privkey_to_wif(output, key);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to WIF format.");
+					return -1;
+				}
+				printf("%s", output);
+				break;
+			case OUTPUT_HEX:
+				r = privkey_to_hex(output, key, output_compression);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to hex format.");
+					return -1;
+				}
+				printf("%s", output);
+				break;
+			case OUTPUT_RAW:
+				r = privkey_to_raw(uc_output, key, output_compression);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to raw format.");
+					return -1;
+				}
+				output_len = r;
+				for (i = 0; i < output_len; ++i)
+				{
+					putchar(uc_output[i]);
+				}
+				break;
+			case OUTPUT_DEC:
+				r = privkey_to_dec(output, key);
+				if (r < 0)
+				{
+					error_log("Could not convert private key to decimal format.");
+					return -1;
+				}
+				printf("%s", output);
+				break;
+		}
+
+		switch (output_newline)
+		{
+			case TRUE:
+				printf("\n");
+				break;
+		}
+
+		if (output_compression == OUTPUT_COMPRESSION_BOTH)
+		{
+			if (privkey_is_compressed(key))
+			{
+				break;
+			}
+			else
+			{
+				privkey_compress(key);
+			}
+		}
 	}
+	while (output_compression == OUTPUT_COMPRESSION_BOTH);
 
 	free(key);
 
