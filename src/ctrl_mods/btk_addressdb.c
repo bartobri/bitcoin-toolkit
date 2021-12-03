@@ -29,6 +29,7 @@ static char *db_path = NULL;
 static char *utxodb_path = NULL;
 static int create = false;
 static int input_mode = BTK_ADDRESSDB_INPUT_ADDRESS;
+static unsigned long int line_count = 0;
 
 int btk_addressdb_init(int argc, char *argv[])
 {
@@ -37,7 +38,7 @@ int btk_addressdb_init(int argc, char *argv[])
 
     command = argv[1];
 
-    while ((o = getopt(argc, argv, "p:u:cws")) != -1)
+    while ((o = getopt(argc, argv, "p:u:cwsL")) != -1)
     {
         switch (o)
         {
@@ -55,6 +56,9 @@ int btk_addressdb_init(int argc, char *argv[])
                 break;
             case 's':
                 input_mode = BTK_ADDRESSDB_INPUT_PRIVKEY_STR;
+                break;
+            case 'L':
+                line_count = 1;
                 break;
             case '?':
                 error_log("See 'btk help %s' to read about available argument options.", command);
@@ -214,6 +218,12 @@ int btk_addressdb_main(void)
         {
             error_log("Could not open address database.");
             return -1;
+        }
+
+        if (line_count > 0)
+        {
+            printf("%lu ", line_count);
+            line_count++;
         }
 
         printf("Address %s has balance: %"PRIu64"\n", input, sats);
