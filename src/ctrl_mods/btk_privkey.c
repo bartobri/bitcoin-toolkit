@@ -51,13 +51,13 @@ static int output_format      = FALSE;
 static int output_compression = FALSE;
 static int output_newline     = TRUE;
 static int output_network     = FALSE;
-static long int output_hashes_arr[OUTPUT_HASH_MAX];
+static char *output_hashes[OUTPUT_HASH_MAX];
 
 int btk_privkey_init(int argc, char *argv[])
 {
 	int r, o;
 	char *command = NULL;
-	char *output_hashes = NULL;
+	char *output_hashes_arg = NULL;
 
 	command = argv[1];
 
@@ -119,7 +119,7 @@ int btk_privkey_init(int argc, char *argv[])
 				output_newline = FALSE;
 				break;
 			case 'S':
-				output_hashes = optarg;
+				output_hashes_arg = optarg;
 				break;
 
 			// Network Options
@@ -155,7 +155,7 @@ int btk_privkey_init(int argc, char *argv[])
 		output_format = OUTPUT_WIF;
 	}
 
-	r = btk_privkey_output_hashes_process(output_hashes);
+	r = btk_privkey_output_hashes_process(output_hashes_arg);
 	if (r < 0)
 	{
 		error_log("Error while processing hash argument [-S].");
@@ -170,8 +170,8 @@ int btk_privkey_main(void)
 	int r, i;
 	int N = 0;
 	int output_len;
-	long int hash_count = 0;
-	long int hash_count_total = 0;
+	int hash_count = 0;
+	int hash_count_total = 0;
 	PrivKey key = NULL;
 	unsigned char *input_uc;
 	char *input_sc;
@@ -379,7 +379,7 @@ int btk_privkey_main(void)
 
 	do
 	{
-		hash_count = output_hashes_arr[N] - hash_count_total;
+		hash_count = atoi(output_hashes[N++]) - hash_count_total;
 		for (i = 0; i < hash_count; i++)
 		{
 			r = privkey_rehash(key);
@@ -390,7 +390,6 @@ int btk_privkey_main(void)
 			}
 		}
 		hash_count_total += hash_count;
-		N++;
 
 		do
 		{
@@ -463,7 +462,7 @@ int btk_privkey_main(void)
 		}
 		while (output_compression == OUTPUT_COMPRESSION_BOTH);
 	}
-	while (output_hashes_arr[N] > 0);
+	while (output_hashes[N] != NULL);
 
 	free(key);
 
@@ -475,79 +474,67 @@ int btk_privkey_cleanup(void)
 	return 1;
 }
 
-int btk_privkey_output_hashes_process(char *hash_arg)
+int btk_privkey_output_hashes_process(char *hash_str)
 {
-	int i;
-	int N = 0;
-	long int tmp = 0;
+	size_t i, j, N, len;
 
 	for (i = 0; i < OUTPUT_HASH_MAX; i++)
 	{
-		output_hashes_arr[i] = 0;
+		output_hashes[i] = NULL;
 	}
 
-	if (hash_arg != NULL)
+	if (hash_str != NULL)
 	{
-		while (*hash_arg != '\0' && isdigit(*hash_arg))
+		// Parsing string
+		N = 0;
+		output_hashes[N] = strtok(hash_str, ",");
+		while (output_hashes[N] != NULL)
 		{
-			if (N < OUTPUT_HASH_MAX)
-			{
-				output_hashes_arr[N] = strtol(hash_arg, &hash_arg, 10);
+			N++;
+			output_hashes[N] = strtok(NULL, ",");
+		}
 
-				// Check for dups
-				for (i = 0; i < N - 1; i++)
-				{
-					if (output_hashes_arr[i] == output_hashes_arr[N])
-					{
-						error_log("Argument cannot contain duplicate numbers: %lu", output_hashes_arr[i]);
-						return -1;
-					}
-				}
-
-				N++;
-			}
-			else
+		// Valid token check
+		for (i = 0; i < N; i++)
+		{
+			if (output_hashes[i][0] == '-')
 			{
-				error_log("Argument exceeds max CSV of %i", OUTPUT_HASH_MAX);
+				error_log("Argument cannot contain a negative number: %s", output_hashes[i]);
 				return -1;
 			}
 
-			if (*hash_arg == ',')
+			len = strlen(output_hashes[i]);
+			for (j = 0; j < len; j++)
 			{
-				hash_arg++;
+				if (!isdigit(output_hashes[i][j]))
+				{
+					error_log("Argument contains unexpected character: %c", output_hashes[i][j]);
+					return -1;
+				}
 			}
 		}
 
-		if (*hash_arg != '\0')
+		// Duplicate check
+		for (i = 0; i < N; i++)
 		{
-			if (*hash_arg == '-')
+			for (j = i + 1; j < N; j++)
 			{
-				tmp = strtol(hash_arg, &hash_arg, 10);
-				if (tmp != 0)
+				if (strcmp(output_hashes[i], output_hashes[j]) == 0)
 				{
-					error_log("Argument cannot contain a negative number: %li", tmp);
+					error_log("Argument cannot contain duplicate numbers: %s", output_hashes[i]);
 					return -1;
 				}
-				else
-				{
-					error_log("Argument contains unexpected character: -");
-					return -1;
-				}
-			}
-			else
-			{
-				error_log("Argument contains unexpected character: %c", *hash_arg);
-				return -1;
 			}
 		}
 
-		qsort(output_hashes_arr, N, sizeof(long int), btk_privkey_output_hashes_comp);
+		// Sort
+		qsort(output_hashes, N, sizeof(char *), btk_privkey_output_hashes_comp);
 	}
 
 	return 1;
 }
 
 int btk_privkey_output_hashes_comp(const void *i, const void *j) {
-	return (*(long int *)i - *(long int *)j);
+	return (atoi(*(char **)i) - atoi(*(char **)j));
 }
 
