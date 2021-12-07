@@ -476,7 +476,7 @@ int btk_privkey_cleanup(void)
 
 int btk_privkey_output_hashes_process(char *hash_str)
 {
-	size_t i, j, N, len;
+	size_t i, j, len, N = 0;
 
 	for (i = 0; i < OUTPUT_HASH_MAX; i++)
 	{
@@ -486,12 +486,10 @@ int btk_privkey_output_hashes_process(char *hash_str)
 	if (hash_str != NULL)
 	{
 		// Parsing string
-		N = 0;
 		output_hashes[N] = strtok(hash_str, ",");
 		while (output_hashes[N] != NULL)
 		{
-			N++;
-			output_hashes[N] = strtok(NULL, ",");
+			output_hashes[++N] = strtok(NULL, ",");
 		}
 
 		// Valid token check
