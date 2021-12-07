@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include "mods/privkey.h"
 #include "mods/network.h"
@@ -36,22 +37,27 @@
 #define TRUE                    1
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
+#define OUTPUT_HASH_MAX         100
 
 #define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { output_compression = OUTPUT_COMPRESSION_BOTH; }
+
+int btk_privkey_output_hashes_process(char *);
+int btk_privkey_output_hashes_comp(const void *, const void *);
 
 static int input_format       = FALSE;
 static int output_format      = FALSE;
 static int output_compression = FALSE;
 static int output_newline     = TRUE;
 static int output_network     = FALSE;
-static int output_hashes      = FALSE;
+static long int output_hashes_arr[OUTPUT_HASH_MAX];
 
 int btk_privkey_init(int argc, char *argv[])
 {
-	int o;
+	int r, o;
 	char *command = NULL;
+	char *output_hashes = NULL;
 
 	command = argv[1];
 
@@ -113,12 +119,7 @@ int btk_privkey_init(int argc, char *argv[])
 				output_newline = FALSE;
 				break;
 			case 'S':
-				output_hashes = atoi(optarg);
-				if (output_hashes <= 0)
-				{
-					error_log("The -S option requires a positive integer argument.");
-					return -1;
-				}
+				output_hashes = optarg;
 				break;
 
 			// Network Options
@@ -154,13 +155,23 @@ int btk_privkey_init(int argc, char *argv[])
 		output_format = OUTPUT_WIF;
 	}
 
+	r = btk_privkey_output_hashes_process(output_hashes);
+	if (r < 0)
+	{
+		error_log("Error while processing hash argument [-S].");
+		return -1;
+	}
+
 	return 1;
 }
 
 int btk_privkey_main(void)
 {
 	int r, i;
+	int N = 0;
 	int output_len;
+	long int hash_count = 0;
+	long int hash_count_total = 0;
 	PrivKey key = NULL;
 	unsigned char *input_uc;
 	char *input_sc;
@@ -334,26 +345,6 @@ int btk_privkey_main(void)
 		return -1;
 	}
 
-	if (output_hashes > 0)
-	{
-		i = 0;
-		if (input_format == INPUT_STR || input_format == INPUT_BLOB)
-		{
-			i = 1;
-		}
-		while (i < output_hashes)
-		{
-			r = privkey_rehash(key);
-			if (r < 0)
-			{
-				error_log("Unable to hash private key.");
-				return -1;
-			}
-
-			i++;
-		}
-	}
-
 	switch (output_compression)
 	{
 		case FALSE:
@@ -381,75 +372,98 @@ int btk_privkey_main(void)
 			break;
 	}
 
+	if (input_format == INPUT_STR || input_format == INPUT_BLOB)
+	{
+		hash_count_total = 1;
+	}
+
 	do
 	{
-		memset(output, 0, OUTPUT_BUFFER);
-		memset(uc_output, 0, OUTPUT_BUFFER);
-
-		switch (output_format)
+		hash_count = output_hashes_arr[N] - hash_count_total;
+		for (i = 0; i < hash_count; i++)
 		{
-			case OUTPUT_WIF:
-				r = privkey_to_wif(output, key);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to WIF format.");
-					return -1;
-				}
-				printf("%s", output);
-				break;
-			case OUTPUT_HEX:
-				r = privkey_to_hex(output, key, output_compression);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to hex format.");
-					return -1;
-				}
-				printf("%s", output);
-				break;
-			case OUTPUT_RAW:
-				r = privkey_to_raw(uc_output, key, output_compression);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to raw format.");
-					return -1;
-				}
-				output_len = r;
-				for (i = 0; i < output_len; ++i)
-				{
-					putchar(uc_output[i]);
-				}
-				break;
-			case OUTPUT_DEC:
-				r = privkey_to_dec(output, key);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to decimal format.");
-					return -1;
-				}
-				printf("%s", output);
-				break;
-		}
-
-		switch (output_newline)
-		{
-			case TRUE:
-				printf("\n");
-				break;
-		}
-
-		if (output_compression == OUTPUT_COMPRESSION_BOTH)
-		{
-			if (privkey_is_compressed(key))
+			r = privkey_rehash(key);
+			if (r < 0)
 			{
-				break;
-			}
-			else
-			{
-				privkey_compress(key);
+				error_log("Unable to hash private key.");
+				return -1;
 			}
 		}
+		hash_count_total += hash_count;
+		N++;
+
+		do
+		{
+			memset(output, 0, OUTPUT_BUFFER);
+			memset(uc_output, 0, OUTPUT_BUFFER);
+
+			switch (output_format)
+			{
+				case OUTPUT_WIF:
+					r = privkey_to_wif(output, key);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to WIF format.");
+						return -1;
+					}
+					printf("%s", output);
+					break;
+				case OUTPUT_HEX:
+					r = privkey_to_hex(output, key, output_compression);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to hex format.");
+						return -1;
+					}
+					printf("%s", output);
+					break;
+				case OUTPUT_RAW:
+					r = privkey_to_raw(uc_output, key, output_compression);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to raw format.");
+						return -1;
+					}
+					output_len = r;
+					for (i = 0; i < output_len; ++i)
+					{
+						putchar(uc_output[i]);
+					}
+					break;
+				case OUTPUT_DEC:
+					r = privkey_to_dec(output, key);
+					if (r < 0)
+					{
+						error_log("Could not convert private key to decimal format.");
+						return -1;
+					}
+					printf("%s", output);
+					break;
+			}
+
+			switch (output_newline)
+			{
+				case TRUE:
+					printf("\n");
+					break;
+			}
+
+			if (output_compression == OUTPUT_COMPRESSION_BOTH)
+			{
+				if (privkey_is_compressed(key))
+				{
+					privkey_uncompress(key);
+					break;
+				}
+				else
+				{
+					privkey_compress(key);
+				}
+			}
+		}
+		while (output_compression == OUTPUT_COMPRESSION_BOTH);
 	}
-	while (output_compression == OUTPUT_COMPRESSION_BOTH);
+	while (output_hashes_arr[N] > 0);
 
 	free(key);
 
@@ -460,3 +474,80 @@ int btk_privkey_cleanup(void)
 {
 	return 1;
 }
+
+int btk_privkey_output_hashes_process(char *hash_arg)
+{
+	int i;
+	int N = 0;
+	long int tmp = 0;
+
+	for (i = 0; i < OUTPUT_HASH_MAX; i++)
+	{
+		output_hashes_arr[i] = 0;
+	}
+
+	if (hash_arg != NULL)
+	{
+		while (*hash_arg != '\0' && isdigit(*hash_arg))
+		{
+			if (N < OUTPUT_HASH_MAX)
+			{
+				output_hashes_arr[N] = strtol(hash_arg, &hash_arg, 10);
+
+				// Check for dups
+				for (i = 0; i < N - 1; i++)
+				{
+					if (output_hashes_arr[i] == output_hashes_arr[N])
+					{
+						error_log("Argument cannot contain duplicate numbers: %lu", output_hashes_arr[i]);
+						return -1;
+					}
+				}
+
+				N++;
+			}
+			else
+			{
+				error_log("Argument exceeds max CSV of %i", OUTPUT_HASH_MAX);
+				return -1;
+			}
+
+			if (*hash_arg == ',')
+			{
+				hash_arg++;
+			}
+		}
+
+		if (*hash_arg != '\0')
+		{
+			if (*hash_arg == '-')
+			{
+				tmp = strtol(hash_arg, &hash_arg, 10);
+				if (tmp != 0)
+				{
+					error_log("Argument cannot contain a negative number: %li", tmp);
+					return -1;
+				}
+				else
+				{
+					error_log("Argument contains unexpected character: -");
+					return -1;
+				}
+			}
+			else
+			{
+				error_log("Argument contains unexpected character: %c", *hash_arg);
+				return -1;
+			}
+		}
+
+		qsort(output_hashes_arr, N, sizeof(long int), btk_privkey_output_hashes_comp);
+	}
+
+	return 1;
+}
+
+int btk_privkey_output_hashes_comp(const void *i, const void *j) {
+	return (*(long int *)i - *(long int *)j);
+}
+
