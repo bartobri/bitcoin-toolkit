@@ -51,13 +51,13 @@ static int output_format      = FALSE;
 static int output_compression = FALSE;
 static int output_newline     = TRUE;
 static int output_network     = FALSE;
-static char *output_hashes[OUTPUT_HASH_MAX];
+static char *output_hashes    = NULL;
+static char *output_hashes_arr[OUTPUT_HASH_MAX];
 
 int btk_privkey_init(int argc, char *argv[])
 {
-	int r, o;
+	int o, i;
 	char *command = NULL;
-	char *output_hashes_arg = NULL;
 
 	command = argv[1];
 
@@ -119,7 +119,7 @@ int btk_privkey_init(int argc, char *argv[])
 				output_newline = FALSE;
 				break;
 			case 'S':
-				output_hashes_arg = optarg;
+				output_hashes = optarg;
 				break;
 
 			// Network Options
@@ -155,11 +155,9 @@ int btk_privkey_init(int argc, char *argv[])
 		output_format = OUTPUT_WIF;
 	}
 
-	r = btk_privkey_output_hashes_process(output_hashes_arg);
-	if (r < 0)
+	for (i = 0; i < OUTPUT_HASH_MAX; i++)
 	{
-		error_log("Error while processing hash argument [-S].");
-		return -1;
+		output_hashes_arr[i] = NULL;
 	}
 
 	return 1;
@@ -173,8 +171,8 @@ int btk_privkey_main(void)
 	int hash_count = 0;
 	int hash_count_total = 0;
 	PrivKey key = NULL;
-	unsigned char *input_uc;
-	char *input_sc;
+	unsigned char *input_uc = NULL;
+	char *input_sc = NULL;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
 	
@@ -210,7 +208,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_sc);
 			break;
 		case INPUT_HEX:
 			r = input_get_str(&input_sc, NULL);
@@ -227,7 +224,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_sc);
 			break;
 		case INPUT_RAW:
 			r = input_get_from_pipe(&input_uc);
@@ -244,7 +240,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_uc);
 			break;
 		case INPUT_STR:
 			r = input_get_str(&input_sc, NULL);
@@ -261,7 +256,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_sc);
 			break;
 		case INPUT_DEC:
 			r = input_get_str(&input_sc, NULL);
@@ -278,7 +272,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_sc);
 			break;
 		case INPUT_BLOB:
 			r = input_get_from_pipe(&input_uc);
@@ -295,7 +288,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_uc);
 			break;
 		case INPUT_SBD:
 			r = input_get_str(&input_sc, NULL);
@@ -312,7 +304,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_sc);
 			break;
 		case INPUT_GUESS:
 			r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
@@ -329,7 +320,6 @@ int btk_privkey_main(void)
 				return -1;
 			}
 
-			free(input_uc);
 			break;
 	}
 
@@ -372,24 +362,39 @@ int btk_privkey_main(void)
 			break;
 	}
 
-	if (input_format == INPUT_STR || input_format == INPUT_BLOB)
+	if (output_hashes != NULL)
 	{
-		hash_count_total = 1;
+		r = btk_privkey_output_hashes_process(input_sc);
+		if (r < 0)
+		{
+			error_log("Error while processing hash argument [-S].");
+			return -1;
+		}
+
+		if (input_format == INPUT_STR || input_format == INPUT_BLOB)
+		{
+			hash_count_total = 1;
+		}
 	}
 
 	do
 	{
-		hash_count = atoi(output_hashes[N++]) - hash_count_total;
-		for (i = 0; i < hash_count; i++)
+		if (output_hashes_arr[N] != NULL)
 		{
-			r = privkey_rehash(key);
-			if (r < 0)
+			
+			hash_count = atoi(output_hashes_arr[N]) - hash_count_total;
+			for (i = 0; i < hash_count; i++)
 			{
-				error_log("Unable to hash private key.");
-				return -1;
+				r = privkey_rehash(key);
+				if (r < 0)
+				{
+					error_log("Unable to hash private key.");
+					return -1;
+				}
 			}
+			hash_count_total += hash_count;
+			N++;
 		}
-		hash_count_total += hash_count;
 
 		do
 		{
@@ -462,8 +467,16 @@ int btk_privkey_main(void)
 		}
 		while (output_compression == OUTPUT_COMPRESSION_BOTH);
 	}
-	while (output_hashes[N] != NULL);
+	while (output_hashes_arr[N] != NULL);
 
+	if (input_sc != NULL)
+	{
+		free(input_sc);
+	}
+	if (input_uc != NULL)
+	{
+		free(input_uc);
+	}
 	free(key);
 
 	return 1;
@@ -474,40 +487,58 @@ int btk_privkey_cleanup(void)
 	return 1;
 }
 
-int btk_privkey_output_hashes_process(char *hash_str)
+int btk_privkey_output_hashes_process(char *input_str)
 {
 	size_t i, j, len, N = 0;
+	char *wild = NULL;
 
-	for (i = 0; i < OUTPUT_HASH_MAX; i++)
-	{
-		output_hashes[i] = NULL;
-	}
-
-	if (hash_str != NULL)
+	if (output_hashes != NULL)
 	{
 		// Parsing string
-		output_hashes[N] = strtok(hash_str, ",");
-		while (output_hashes[N] != NULL)
+		output_hashes_arr[N] = strtok(output_hashes, ",");
+		while (output_hashes_arr[N] != NULL)
 		{
-			output_hashes[++N] = strtok(NULL, ",");
+			output_hashes_arr[++N] = strtok(NULL, ",");
 		}
 
 		// Valid token check
 		for (i = 0; i < N; i++)
 		{
-			if (output_hashes[i][0] == '-')
+			if (output_hashes_arr[i][0] == '-')
 			{
-				error_log("Argument cannot contain a negative number: %s", output_hashes[i]);
+				error_log("Argument cannot contain a negative number: %s", output_hashes_arr[i]);
 				return -1;
 			}
-
-			len = strlen(output_hashes[i]);
-			for (j = 0; j < len; j++)
+			else if (strcmp(output_hashes_arr[i], "$") == 0)
 			{
-				if (!isdigit(output_hashes[i][j]))
+				if (input_format != INPUT_STR)
 				{
-					error_log("Argument contains unexpected character: %c", output_hashes[i][j]);
+					error_log("Can not use wildcard '%s' unless a string is provided as input.", output_hashes_arr[i]);
 					return -1;
+				}
+
+				for (j = strlen(input_str); isdigit(input_str[j-1]); j--)
+				{
+					if (j == 0)
+					{
+						break;
+					}
+				}
+				if (strlen(input_str + j) > 0)
+				{
+					wild = input_str + j;
+				}
+			}
+			else
+			{
+				len = strlen(output_hashes_arr[i]);
+				for (j = 0; j < len; j++)
+				{
+					if (!isdigit(output_hashes_arr[i][j]))
+					{
+						error_log("Argument contains unexpected character: %c", output_hashes_arr[i][j]);
+						return -1;
+					}
 				}
 			}
 		}
@@ -517,22 +548,48 @@ int btk_privkey_output_hashes_process(char *hash_str)
 		{
 			for (j = i + 1; j < N; j++)
 			{
-				if (strcmp(output_hashes[i], output_hashes[j]) == 0)
+				if (strcmp(output_hashes_arr[i], output_hashes_arr[j]) == 0)
 				{
-					error_log("Argument cannot contain duplicate numbers: %s", output_hashes[i]);
+					error_log("Argument cannot contain duplicate numbers: %s", output_hashes_arr[i]);
 					return -1;
 				}
+			}
+			if (wild != NULL && strcmp(output_hashes_arr[i], wild) == 0)
+			{
+				wild = NULL;
 			}
 		}
 
 		// Sort
-		qsort(output_hashes, N, sizeof(char *), btk_privkey_output_hashes_comp);
+		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
+
+		// Wildcard substitute
+		if (strcmp(output_hashes_arr[N-1], "$") == 0)
+		{
+			if (wild != NULL)
+			{
+				output_hashes_arr[N-1] = wild;
+			}
+			else
+			{
+				output_hashes_arr[N-1] = NULL;
+			}
+		}
 	}
 
 	return 1;
 }
 
-int btk_privkey_output_hashes_comp(const void *i, const void *j) {
+int btk_privkey_output_hashes_comp(const void *i, const void *j)
+{
+	if (strcmp(*(char **)i, "$") == 0)
+	{
+		return 1;
+	}
+	if (strcmp(*(char **)j, "$") == 0)
+	{
+		return -1;
+	}
 	return (atoi(*(char **)i) - atoi(*(char **)j));
 }
 
