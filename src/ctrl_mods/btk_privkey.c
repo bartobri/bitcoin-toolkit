@@ -38,6 +38,7 @@
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
 #define OUTPUT_HASH_MAX         100
+#define HASH_WILDCARD           "w"
 
 #define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
 #define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
@@ -381,7 +382,6 @@ int btk_privkey_main(void)
 	{
 		if (output_hashes_arr[N] != NULL)
 		{
-			
 			hash_count = atoi(output_hashes_arr[N]) - hash_count_total;
 			for (i = 0; i < hash_count; i++)
 			{
@@ -509,7 +509,7 @@ int btk_privkey_output_hashes_process(char *input_str)
 				error_log("Argument cannot contain a negative number: %s", output_hashes_arr[i]);
 				return -1;
 			}
-			else if (strcmp(output_hashes_arr[i], "$") == 0)
+			else if (strcmp(output_hashes_arr[i], HASH_WILDCARD) == 0)
 			{
 				if (input_format != INPUT_STR)
 				{
@@ -564,7 +564,7 @@ int btk_privkey_output_hashes_process(char *input_str)
 		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
 
 		// Wildcard substitute
-		if (strcmp(output_hashes_arr[N-1], "$") == 0)
+		if (strcmp(output_hashes_arr[N-1], HASH_WILDCARD) == 0)
 		{
 			if (wild != NULL)
 			{
@@ -582,11 +582,11 @@ int btk_privkey_output_hashes_process(char *input_str)
 
 int btk_privkey_output_hashes_comp(const void *i, const void *j)
 {
-	if (strcmp(*(char **)i, "$") == 0)
+	if (strcmp(*(char **)i, HASH_WILDCARD) == 0)
 	{
 		return 1;
 	}
-	if (strcmp(*(char **)j, "$") == 0)
+	if (strcmp(*(char **)j, HASH_WILDCARD) == 0)
 	{
 		return -1;
 	}
