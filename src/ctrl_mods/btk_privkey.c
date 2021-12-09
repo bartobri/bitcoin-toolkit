@@ -371,6 +371,10 @@ int btk_privkey_main(void)
 			error_log("Error while processing hash argument [-S].");
 			return -1;
 		}
+		else if (r == 0)
+		{
+			return 1;
+		}
 
 		if (input_format == INPUT_STR || input_format == INPUT_BLOB)
 		{
@@ -562,6 +566,13 @@ int btk_privkey_output_hashes_process(char *input_str)
 
 		// Sort
 		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
+
+		// If all we have is a wildcard and no wildcard value,
+		// return zero which tells the caller not to print any output.
+		if (strcmp(output_hashes_arr[0], HASH_WILDCARD) == 0 && wild == NULL)
+		{
+			return 0;
+		}
 
 		// Wildcard substitute
 		if (strcmp(output_hashes_arr[N-1], HASH_WILDCARD) == 0)
