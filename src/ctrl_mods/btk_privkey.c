@@ -515,9 +515,9 @@ int btk_privkey_output_hashes_process(char *input_str)
 			}
 			else if (strcmp(output_hashes_arr[i], HASH_WILDCARD) == 0)
 			{
-				if (input_format != INPUT_STR)
+				if (input_format != INPUT_STR && input_format != INPUT_DEC)
 				{
-					error_log("Can not use wildcard '%s' unless a string is provided as input.", output_hashes_arr[i]);
+					error_log("Can not use wildcard '%s' with current input mode.", output_hashes_arr[i]);
 					return -1;
 				}
 
@@ -545,6 +545,12 @@ int btk_privkey_output_hashes_process(char *input_str)
 					}
 				}
 			}
+		}
+
+		// Max number for wildcard is 1000000. Ignore anything greater.
+		if (wild != NULL && atoi(wild) > 1000000)
+		{
+			wild = NULL;
 		}
 
 		// Duplicate check
