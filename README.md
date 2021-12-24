@@ -183,11 +183,13 @@ If not you can install them from your package manager.
 
 1. libgmp
 2. libgcrypt
+3. libleveldb
 
 To install them on debian systems:
 ```
 sudo apt-get install libgmp-dev
 sudo apt-get install libgcrypt20-dev
+sudo apt-get install libleveldb-dev
 ```
 
 You will also need `git` along with basic build tools like `make` and
