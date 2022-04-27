@@ -61,13 +61,11 @@ $ sudo make uninstall
 Usage
 -----
 
-Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument for btk is always a command, and all following arguments are options for the specified command.
-
 #### Basic Usage
 
-`btk <command> [<args>]`
+SYNOPSIS: `btk <command> [<args>]`
 
-For example, this will create a new compressed private key in Wallet Import format:
+Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument for btk is always a command, and all following arguments are options for the specified command. For example, this will create a new compressed private key in Wallet Import format:
 
 ```
 $ btk privkey -n -C -W
