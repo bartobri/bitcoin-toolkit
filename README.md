@@ -67,29 +67,53 @@ Bitcoin Toolkit installs an command line tool named `btk` that handles commands 
 
 `btk <command> [<args>]`
 
-For example, this will create a new private key, compressed, and print it in hex format:
+For example, this will create a new compressed private key in Wallet Import format:
 
 ```
-$ btk privkey -n -C -H
-434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601
+$ btk privkey -n -C -W
+L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP
 ```
 
-#### Input
+#### Redirecting Input
 
 If input is required, `btk` works best when the input is redirected with a pipe or other input redirection methods. For example, this will convert the previously generated key from hex format to wallet import format:
 
 ```
-$ echo "434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601" | btk privkey -h -W
-KyUWxDQYYz8fN6jSJRQNdH8bY6eARj3rmhzQNrtSUXSw6EG8watx
+$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U
+5JyRvApPpkAtJisBNG2gRteMz3baHoYPRcefov7nDwXuvxBWvVR
 ```
 
 #### Chaining Commands
 
-Using the pipe input redirection method makes it possible to chain together multiple commands which increases the utility and power of btk. Here is the previous example with an extra pipe to the 'pubkey' command which ultimately prints the public key address for the hexidecimal private key that we started with.
+Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of btk. Here is the previous example with an extra pipe to the 'pubkey' command which ultimately prints the public key address for the private key that we started with.
 
 ```
-echo "434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601" | btk privkey -h -W | btk pubkey
-18kJEhWiPP32J4PGjyNhEFuztP2u4PTWya
+$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U | btk pubkey
+1FEEedNDX5qqCEeL8FFsrjGRYU7akdVMLF
+```
+
+#### List Processing
+
+Bitcoin Toolkit can process lists as input. Each list item must be separated by a newline character in order to be processed correctly. For example, if I can a file that contains a list of 5 uncompressed private keys:
+
+```
+$ cat keys.dat
+5JShUaXdV5fuWMynP9e4hBkMMtWUBTaZs3YyitxQBffWLdSdZvt
+5KfFysvDfYeMbNnnqjGxmnXnoVQe4yzr8sDTKMXPNHR49hYcChm
+5JKy2J7uBDF4J2s3tnvb26ykPcz8K5jNAHqFDS7uQK2PSy5WDzt
+5JUhFW78y82hQ2iGaMKdPogJxVpuwDvB3FViqaFfNqz539wccbW
+5JHKyY76B9ZkWofh22pXUnCzaTNqbtNhxLwEZUQpFTxsUbXQT1Y
+```
+
+... I can pipe that list to `btk privkey` to convert all of them to compressed private keys, like so:
+
+```
+$ cat keys.dat | btk privkey -w -C
+KyzReizC2wcikbbdJm8bJNSLsCM4yAKA3tG9MvKXL5exVGEUfFXE
+L5Ms83jtu8fstjB7L5bTAfxuACPLcaaKsidyA1b7iwTAu3WfrsKk
+KyUiGiZTJ533YBDumbhX9sPUWqq9GoszQ1HwjssUHtZ85VtsYvg4
+Kz9Ef1U6Ai2VJeZ9kChDdf2WFxEUeL1hJvymfPmiPRCtpKoum7qe
+KyH4kYHsqnoZ4YymdZ2mXcXw8fRPWykomGzNrKz7Yr1bnLaB4yUo
 ```
 
 #### Using Help
