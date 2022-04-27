@@ -5,18 +5,18 @@ Bitcoin Toolkit
 
 Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin-related tasks. Some of these tasks include creating and manipulating public or private keys, generating addresses (including vanity addresses) with support for various address formats, querying data on remote bitcoin nodes, and mining data from the bitcoin core database.
 
-See the [Quick Intro](#quick-intro) section for more detailed information about what you can do with this application. Once installed, you can also access a very detailed help menu by executing `btk help`.
+See the [Usage](#usage) for a quick introduction on the basics of Bitcoin Toolkit.
+
+See the [Command Examples](#command-examples) section for more detailed information about what you can do with this application.
+
+Once installed, run `btk help` for a detailed help menu.
 
 Table of Contents
 -----------------
 
 1. [Download and Install](#download-and-install)
 2. [Usage](#usage)
-3. [Quick Intro](#quick-intro)
-   * [Private Keys](#private-keys)
-   * [Public Keys](#public-keys)
-   * [Vanity Addresses](#vanity-addresses)
-   * [Bitcoin Nodes](#bitcoin-nodes)
+3. [Command Examples](#command-examples)
 4. [License](#license)
 5. [Tips](#tips)
 
@@ -63,14 +63,18 @@ Usage
 
 #### Basic Usage
 
-SYNOPSIS: `btk <command> [<args>]`
+SYNOPSIS:
 
-Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument for btk is always a command, and all following arguments are options for the specified command. For example, this will create a new compressed private key in Wallet Import format:
+`btk <command> [<args>]`
+
+Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument is a command and is required. All following arguments are options that relate to the specified command. For example, this will create a new compressed private key in Wallet Import format:
 
 ```
 $ btk privkey -n -C -W
 L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP
 ```
+
+See `btk help` for a full list of commands. See `btk help <command>` for a full list of options for that command.
 
 #### Redirecting Input
 
@@ -120,8 +124,10 @@ See `btk help` for a list of available commands.
 
 See `btk help <command>` for a list of options and more info about a command.
 
-Quick Intro
------------
+Command Examples
+----------------
+
+Below are a few interesting examples of what Bitcoin Toolkit can do. See `btk help` for a full list of commands and a detailed help menu.
 
 #### Private Keys
 
