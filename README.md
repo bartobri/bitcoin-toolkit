@@ -3,29 +3,107 @@
 Bitcoin Toolkit
 ===============
 
-Bitcoin Toolkit is a collection of command line tools that allow you to generate and manipulate public and private keys, create bitcoin addresses, create vanity addresses, and interact with bitcoin nodes.
+Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin-related tasks. Some of these tasks include creating and manipulating public or private keys, generating addresses (including vanity addresses) with support for various address formats, querying data on remote bitcoin nodes, and mining data from the bitcoin core database.
 
-This initial release is focused mainly around public and private key manipulation, providing tools allowing the user to generate key pairs in a variety of interesting and useful ways. Users can also change the format of existing keys, such as turning on and off compression, printing its hex or decimal value, and more.
-
-This release also contains a node tool that dumps version information from any bitcoin node in JSON format. This is good for getting a node's status, last block, user agent, and a handfull of other things. More node tools are planned for future releases.
+See the [Quick Intro](#quick-intro) section for more detailed information about what you can do with this application. Once installed, you can also access a very detailed help menu by executing `btk help`.
 
 Table of Contents
 -----------------
 
-1. [Quick Intro](#quick-intro)
+1. [Download and Install](#download-and-install)
+2. [Usage](#usage)
+3. [Quick Intro](#quick-intro)
    * [Private Keys](#private-keys)
    * [Public Keys](#public-keys)
    * [Vanity Addresses](#vanity-addresses)
    * [Bitcoin Nodes](#bitcoin-nodes)
-2. [Download and Install](#download-and-install)
-3. [Usage](#usage)
 4. [License](#license)
 5. [Tips](#tips)
+
+Download and Install
+--------------------
+The following instructions are for unix and linux systems. Windows 10
+users can install this project from within the linux subsystem.
+
+Be sure that the following dependencies are installed on your system.
+If not you can install them from your package manager.
+
+1. libgmp
+2. libgcrypt
+3. libleveldb
+
+To install them on debian systems:
+```
+sudo apt-get install libgmp-dev
+sudo apt-get install libgcrypt20-dev
+sudo apt-get install libleveldb-dev
+```
+
+You will also need `git` along with basic build tools like `make` and
+`gcc`. Be sure these are also installed on your system.
+
+Next, follow these instructions:
+
+#### Install:
+```
+$ git clone https://github.com/bartobri/bitcoin-toolkit.git
+$ cd ./bitcoin-toolkit
+$ make
+$ sudo make install
+```
+
+#### Uninstall:
+
+```
+$ sudo make uninstall
+```
+
+Usage
+-----
+
+Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument for btk is always a command, and all following arguments are options for the specified command.
+
+#### Basic Usage
+
+`btk <command> [<args>]`
+
+For example, this will create a new private key, compressed, and print it in hex format:
+
+```
+$ btk privkey -n -C -H
+434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601
+```
+
+#### Input
+
+If input is required, `btk` works best when the input is redirected with a pipe or other input redirection methods. For example, this will convert the previously generated key from hex format to wallet import format:
+
+```
+$ echo "434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601" | btk privkey -h -W
+KyUWxDQYYz8fN6jSJRQNdH8bY6eARj3rmhzQNrtSUXSw6EG8watx
+```
+
+#### Chaining Commands
+
+Using the pipe input redirection method makes it possible to chain together multiple commands which increases the utility and power of btk. Here is the previous example with an extra pipe to the 'pubkey' command which ultimately prints the public key address for the hexidecimal private key that we started with.
+
+```
+echo "434aaf7312a13612ab02f31db6cd0fa39b27b2cbb23135792d39792c3b0ba8f601" | btk privkey -h -W | btk pubkey
+18kJEhWiPP32J4PGjyNhEFuztP2u4PTWya
+```
+
+#### Using Help
+
+See `btk help` for a list of available commands.
+
+See `btk help <command>` for a list of options and more info about a command.
 
 Quick Intro
 -----------
 
 #### Private Keys
+
+Use the 'privkey' command to generate and manipulate private keys.
 
 Create a new random private key:
 ```
@@ -171,56 +249,6 @@ $ btk node -h seed.bitcoin.sipa.be
   "relay": true
 }
 ```
-
-
-Download and Install
---------------------
-The following instructions are for unix and linux systems. Windows 10
-users can install this project from within the linux subsystem.
-
-Be sure that the following dependencies are installed on your system.
-If not you can install them from your package manager.
-
-1. libgmp
-2. libgcrypt
-3. libleveldb
-
-To install them on debian systems:
-```
-sudo apt-get install libgmp-dev
-sudo apt-get install libgcrypt20-dev
-sudo apt-get install libleveldb-dev
-```
-
-You will also need `git` along with basic build tools like `make` and
-`gcc`. Be sure these are also installed on your system.
-
-Next, follow these instructions:
-
-#### Install:
-```
-$ git clone https://github.com/bartobri/bitcoin-toolkit.git
-$ cd ./bitcoin-toolkit
-$ make
-$ sudo make install
-```
-
-#### Uninstall:
-
-```
-$ sudo make uninstall
-```
-
-Usage
------
-
-Usage: `btk <command> [OPTIONS]`
-
-Bitcoin Toolkit installs an executable named **btk**. It handles commands and options much like git. The first argument is a command, and all following arguments are command options.
-
-See `btk help` for a list of available commands.
-
-See `btk help <command>` for a list of options and more info about a command.
 
 License
 -------

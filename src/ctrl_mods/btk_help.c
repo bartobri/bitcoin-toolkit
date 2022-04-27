@@ -70,7 +70,7 @@ int btk_help_cleanup(void)
 
 void btk_help_commands(void)
 {
-	printf("Usage: btk <command> [OPTIONS]\n");
+	printf("Usage: btk <command> [<args>]\n");
 	printf("\n");
 	printf("Here is a list of btk commands.\n");
 	printf("\n");
