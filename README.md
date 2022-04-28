@@ -74,11 +74,9 @@ $ btk privkey -n -C -W
 L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP
 ```
 
-See `btk help` for a full list of commands. See `btk help <command>` for a full list of options for that command.
-
 #### Redirecting Input
 
-If input is required, `btk` works best when the input is redirected with a pipe or other input redirection methods. For example, this will convert the previously generated key from hex format to wallet import format:
+If input is required, `btk` works best when the input is redirected with a pipe or other input redirection methods. For example, this will convert the previously generated key from compressed to uncompressed format:
 
 ```
 $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U
@@ -87,7 +85,7 @@ $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -
 
 #### Chaining Commands
 
-Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of btk. Here is the previous example with an extra pipe to the 'pubkey' command which ultimately prints the public key address for the private key that we started with.
+Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of Bitcoin Toolkit. Here is the previous example with added redirection to the 'pubkey' command which ultimately prints the public key address for the private key that we started with.
 
 ```
 $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U | btk pubkey
@@ -96,7 +94,7 @@ $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -
 
 #### List Processing
 
-Bitcoin Toolkit can process lists as input. Each list item must be separated by a newline character in order to be processed correctly. For example, if I can a file that contains a list of 5 uncompressed private keys:
+Bitcoin Toolkit can process lists as input. Each list item must be separated by a newline character in order to be processed correctly. For example, if I have a file that contains a list of 5 uncompressed private keys:
 
 ```
 $ cat keys.dat
