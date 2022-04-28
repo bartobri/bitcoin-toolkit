@@ -63,8 +63,6 @@ Usage
 
 #### Basic Usage
 
-SYNOPSIS:
-
 `btk <command> [<args>]`
 
 Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument is a command and is required. All following arguments are options that relate to the specified command. For example, this will create a new compressed private key in Wallet Import format:
@@ -125,109 +123,154 @@ See `btk help <command>` for a list of options and more info about a command.
 Command Examples
 ----------------
 
-Below are a few interesting examples of what Bitcoin Toolkit can do. See `btk help` for a full list of commands and a detailed help menu.
+The 'privkey' command can generate and manipulate private keys. Here is how you
+can create a new random private key:
 
-#### Private Keys
-
-Use the 'privkey' command to generate and manipulate private keys.
-
-Create a new random private key:
 ```
 $ btk privkey -n
 L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 ```
 
-Create a new random uncompressed private key:
+By default, keys are compressed. You can generate an uncompressed private key
+like this:
+
 ```
 $ btk privkey -nU
 5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff
 ```
 
-Create a private key from the SHA256 hash value of an ASCII string:
+Or you can convert a compressed private key to uncompressed:
+
 ```
-$ echo "this is my secret string" | btk privkey -s
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -U
+5KKLUsJPzHMvNG3AC5gSbkDDJeFdyvPDsNyvbhYER3gjftEDyuA
+```
+
+You can also convert keys (or generate new keys) to various output formats
+besides WIF (Wallet Import Format), which is used by default when no output
+format is specified. Below are examples where we convert the previous key to hex
+and decimal:
+
+```
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -H
+c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c
+
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -D
+89403101665417317652050958343537724738876283665880345081128506555034307196252
+```
+
+You can even print private keys in their raw 32 byte state, which can be useful
+if you want to store the raw data to a file or database. Then later you can read
+that key data and convert it back to WIF:
+
+```
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -R > key.dat
+
+$  cat key.dat | btk privkey -r
+L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
+```
+
+As you can see from the previous example, multiple input formats are also
+supported. In the previous example, -r tells btk to treat input as a raw binary
+key. But we can also use hex and decimal as input as well. In the previous example
+where we converted a key from WIF to hex and decimal, below we convert them back
+to WIF.
+
+```
+$ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk privkey -h
+L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
+
+$ echo "89403101665417317652050958343537724738876283665880345081128506555034307196252" | btk privkey -h
+L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
+```
+
+We can also use plain ascii strings of any length as input. When string input
+is used, the string data will be fed through a SHA256 hash algorithm to generate
+a 32 byte private key. This can be useful if you want to generate a private key
+from a passphrase that you've memorized.
+
+```
+$ echo "this is my secret passphrase" | btk privkey -s
 L4Cp75ZzpF5AAKwN64VBTxhMfHa8bpTw6mt6uq5T5buaEEuVU1Sz
 ```
 
-Create a private key from the SHA256 hash value of arbitrary binary data:
+You can do the same thing with arbitrary length files as well. Just like with
+strings, the raw data from the file will be fed through a SHA256 hash algorithm
+to generate a 32 byte private key:
+
 ```
-$ cat secret.dat | btk privkey -b
-L33qZ2xKYegwnhyxhdeeCCcLU7cSbbG57aG5JrdXjAUqf762wZAy
+$ cat family_photo.jpg | btk privkey -b
+L4SsobLicY7NLSozpjTtPiaREZrwCr9URPpbd1mB6SnwcZGirkiQ
 ```
 
-Create a private key with a specific decimal value:
+The risks of using strings and binary data as input should go without saying. If
+you use a string, it should be very secure and impossible to guess. If you use a
+file, know that if as much as a single byte changes in that file, it will
+generate a different private key.
+
+In either case, if the data you use for input is guessable or determinable in
+any way, you risk losing all of your funds.
+
+With that said, if you are confident enough to use such inputs, then you
+probably want the actual bitcoin address, not the private key, so you can store
+funds at the address. Then later if you wish to access and move those funds, you
+can generate the private key and import it into your perferred wallet.
+
+To generate a bitcoin address, use the 'pubkey' command:
+
 ```
-$ echo "101" | btk privkey -d
-KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU7ufmjaJwj
+$ echo "this is my secret passphrase" | btk pubkey -s
+1NRJSrg8sBua2oEBa2ExEBAsFYstdE17St
 ```
 
-Convert the previous command output to hexadecimal format:
+The pubkey command takes all the same inputs as privkey, but instead of
+generating a private key, it generates a public key, usually in the form of a
+bitcoin address. Below we convert a private key in WIF, hex, and decimal formats
+from our previous examples and generate the public address:
+
 ```
-$ echo "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU7ufmjaJwj" | btk privkey -H
-0000000000000000000000000000000000000000000000000000000000000065
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -w
+1EKtvvPytabULtFts1zJuXTrySVBvVFVky
+
+$ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk pubkey -h
+1EKtvvPytabULtFts1zJuXTrySVBvVFVky
+
+$ echo "89403101665417317652050958343537724738876283665880345081128506555034307196252" | btk pubkey -d
+1EKtvvPytabULtFts1zJuXTrySVBvVFVky
 ```
 
-Create a new random private key for testnet:
+The pubkey command also supports multiple output formats, most notable of which
+is the beck32 format. To generate a bech32 address:
+
 ```
-$ btk privkey -nT
-cPz6uKLTGD9y55GxsZcD57k7Pt2WGwHD5dePb6RsM9BkunzWcGaA
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -wB
+bc1qjgk83gxfsfteppluqn7g08r7qyd22clrf4nuhw
 ```
 
-Convert an uncompressed private key to compressed:
+And while it is not particularly useful in most cases, you can print the public
+key in hex format:
+
 ```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -C
-Kzj7EZDcEYdjNP9dM22RN9tRZ73xNzVVfqbthPgwVmsKipnfSosK
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -wH
+030713ba7032465b53fe456d3c2ba785b320e9b873389e1ab5b71860d56f5a2563
 ```
 
-Convert a private key to decimal format:
+You can also print both the public and private keys together which may be useful
+if you interface with btk like and API and you need to store both keys:
+
 ```
-$ echo "5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff" | btk privkey -D
-47327905310046739235222537463578511200578158695347137990773448104177492139470
+echo "this is my secret passphrase" | btk pubkey -sP
+L15VsN6crrGCXS4hqQZa3DF9kT6wr3ZfpDjsBQ1SAGPz6ZDFMjrF 1NRJSrg8sBua2oEBa2ExEBAsFYstdE17St
 ```
 
-#### Public Keys
+Bitcoin Toolkit can also create vanity addresses, although I make no claim as
+to its speed, except to say that it isn't uniqely fast. But if you are willing to
+wait for what could be days, it will do the job.
 
-Public keys can only be derived from a private key. Input for the pubkey command should be in the form of a private key or data from which a private key can be derived.
+To create a vanity address, pipe your vanity string to btk and use the 'vanity'
+command. Below we use -i for a case insensitive match, which I generally suggest
+you use as well.
 
-Print the public key in standard address format:
-```
-$ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey
-12UNVuALofDnkCB1rznUY7iCP3T5xeyJur
-```
-
-Print the public key in uncompressed standard address format:
-```
-$ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -U
-1Ecpnmz2no5MuKp6hpkgcPSbA71bRij46y
-```
-
-Print the public key in bech32 address format:
-```
-$ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -B
-bc1qzqj56aex707wa5lxd9t85mtudhvnaqjkn36sqw
-```
-
-Print the public key in hexadecimal format:
-```
-$ echo "L4zz3k4TS2Rg4vchjGx7XUhyUschidxmevFnvAL7z8Ru78XcDaHU" | btk pubkey -H
-03d15c40b508c6b2d13778b16af87ca2c76275ae4f1adb5db65b842fad7fe660cc
-```
-
-Print a new public key in standard address format, and include the private key in the output:
-```
-$ btk privkey -n | btk pubkey -P
-L5U7RpRwu3r9xkn5ko91vgf331EVD2C3Q3k67fTvC6qs1Vp2Ftmk 1EiuECymwtzup6fPURHqKzF1uPQXcrdaKP
-```
-
-Print a new public and private key for testnet:
-```
-$ btk privkey -n | btk pubkey -PT
-cVpTXJ1eYEySGcRB1NXgq5CDRGjgWcJAKVXav5TAeLG3YjGG5hFK msZKBKEHNPVgj45bziw7UqjsBhumoPGTh8
-```
-
-#### Vanity Addresses
-
-Create a vanity address, in standard address format, matching the string "btc", using -i for a case insensitive match:
 ```
 $ echo "btc" | btk vanity -i
 1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw            Estimated Seconds: 149 of 422
@@ -236,7 +279,10 @@ Private Key: KyY3GXxNQa4Ufi7N75tuCpNS9nTMym323isZCUyw1TLQZPXzDUNk
 Address:     1BtcyASYTqCFWHKjDPhz716j6jwh4SxVBw
 ```
 
-Create a vanity address, in bech32 address format, matching the string "pry":
+You can even create a vanity address in bech32 format, although they make less
+sense since the first 4 characters can't be used, and the overall character set
+for bech32 addresses is much more limited.
+
 ```
 $ echo "pry" | btk vanity -B
 bc1qpry94dn0zz805c4rd4fjprc9rzp7cnd5chrmys    Estimated Seconds: 336 of 368
@@ -245,9 +291,13 @@ Private Key: KyqfYMuojzuHjRjH5D8XE6nYNtX9gJufNEJ6WJTSsR8Z5xNSrbkv
 Address:     bc1qpry94dn0zz805c4rd4fjprc9rzp7cnd5chrmys
 ```
 
-#### Bitcoin Nodes
+As of the time of this writing, Bitcoin Toolkit can communicate with bitcoin
+nodes in a limited fashion. Which is to say, it can only query general node
+info. I have plans to expand this capability in the future, but for now this is
+all you can do. Still, the information gained can be very useful.
 
-Print the version message info from a bitcoin node:
+To print the general version info from a bitcoin node:
+
 ```
 $ btk node -h seed.bitcoin.sipa.be
 {
