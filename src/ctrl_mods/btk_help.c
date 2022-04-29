@@ -148,6 +148,14 @@ void btk_help_privkey(void)
 	printf("      Treat input as arbitrary (b)inary data. The data is processed through\n");
 	printf("      a SHA256 hash algorithm to generate a 32 byte private key.\n");
 	printf("\n");
+	printf("   -x\n");
+	printf("      Treat input as \"string binary data\". This option reads each\n");
+	printf("      byte in the string, from right to left, and sets the corresponding\n");
+	printf("      byte in the private key to the same value, from right to left. This\n");
+	printf("      means that a string used with this option can not be longer than\n");
+	printf("      32 bytes. When a string is less than 32 bytes, higher order bytes\n");
+	printf("      of the private key are padded with null bytes.\n");
+	printf("\n");
 	printf("OUTPUT OPTIONS\n");
 	printf("\n");
 	printf("   -W\n");
