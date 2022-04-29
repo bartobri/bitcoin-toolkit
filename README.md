@@ -206,24 +206,37 @@ L4SsobLicY7NLSozpjTtPiaREZrwCr9URPpbd1mB6SnwcZGirkiQ
 The risks of using strings and binary data as input should go without saying. If
 you use a string, it should be very secure and impossible to guess. If you use a
 file, know that if as much as a single byte changes in that file, it will
-generate a different private key.
+generate a different private key. In either case, if the data you use for input
+is guessable or determinable in any way, you risk losing all of your funds.
 
-In either case, if the data you use for input is guessable or determinable in
-any way, you risk losing all of your funds.
+With that said, btk provides an extra layer of
+security that could help you feel slightly more at ease by making it less likely
+that an attacker could guess your input. You can use the -S option to specify
+the number of times btk should hash your private key. This option requires an
+integer argument which is used as a counter, and for each iteration in the
+count, btk will (re)hash the private key, first using the input you provided,
+then using its own 32 bytes of raw binary data as input for each time
+thereafter. It is the functional equivelent of chaining multiple btk commands
+together by piping the raw private key data from one command to the next.
 
-With that said, if you are confident enough to use such inputs, then you
+```
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978
+L4g1w4WKmumg86gbbJdoP4Yd6UfXsuezDW6GDVcHrQ6Dg3Wsw6mm
+```
+
+If you feel confident enough to use string or binary inputs, then you
 probably want the actual bitcoin address, not the private key, so you can store
 funds at the address. Then later if you wish to access and move those funds, you
 can generate the private key and import it into your perferred wallet.
 
-To generate a bitcoin address, use the 'pubkey' command:
+To generate a bitcoin address, pipe your data to the 'pubkey' command:
 
 ```
-$ echo "this is my secret passphrase" | btk pubkey -s
-1NRJSrg8sBua2oEBa2ExEBAsFYstdE17St
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk pubkey -w
+1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
-The pubkey command takes all the same inputs as privkey, but instead of
+The pubkey command takes most of the same inputs as privkey, but instead of
 generating a private key, it generates a public key, usually in the form of a
 bitcoin address. Below we convert a private key in WIF, hex, and decimal formats
 from our previous examples and generate the public address:

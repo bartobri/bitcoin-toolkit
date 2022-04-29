@@ -201,6 +201,14 @@ void btk_help_privkey(void)
 	printf("      Do NOT include a (N)ewline character in the output. This may be desirable\n");
 	printf("      if the output is being parsed by a wrapper program.\n");
 	printf("\n");
+	printf("   -S\n");
+	printf("      Hash count. This option requires an integer argument that specifies the\n");
+	printf("      number of times to hash the private key data through a SHA256 hashing\n");
+	printf("      algorithm. For reach interation in the hash count, the raw key data is\n");
+	printf("      (re)hashed generating a new private key. This option provides an extra\n");
+	printf("      layer of security when used in combination with other input options such\n");
+	printf("      string and binary input.\n");
+	printf("\n");
 	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
