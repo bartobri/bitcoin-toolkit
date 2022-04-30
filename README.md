@@ -339,6 +339,55 @@ $ btk node -h seed.bitcoin.sipa.be
 }
 ```
 
+If you run btk on a full bitcoin node running bitcoin core, the 'utxodb' command 
+allows you to query the unspent transaction data from the utxo database. The utxo
+database does not exist by default. To create it you must set `txindex=1` in
+your bitcoin.conf file and restart bitcoin core. The first time you do this, 
+core will build a database containing info for every unspent transaction output
+that currently exists. This takes some time. Once complete, however, btk can
+read and display unspent transaction data from that database. But because bitcoin
+core keeps a persistant lock on the database, you will need to make a copy of
+the database before you can access it with btk. Luckily, it's only 4.7 gigs at
+the time of this writing, so hopefully you should have extra space for a copy.
+The database is stored in the "chainstate" directory where bitcoin core stores
+other database info. Once copied to an alternate location, you can get
+utxo info on any transaction by piping the transaction hash, like so:
+
+```
+$ cp -r /home/myusername/.bitcoin/chainstate/* /home/myusername/tmp/chainstate/
+
+$ echo "b8f6514badab3c53a2b7c874f1a5fb336ffe5a9f2600256cc4586337114d0899" | btk utxodb -p /home/myusername/tmp/chainstate/
+734105,0,1000000,39Mx2nbcEoMnwMKvNHKygwYyce7RAyT1oz
+734105,1,331000,3B3XevaJTfZiidpcdp11vcE6DtdJs9xSHc
+```
+
+The above output shows two utxos associated with that transaction. The columns
+are: block height, vout, amount (in sats), bitcoin address.
+
+You may ask yourself, what is the point of this? To which I have no good answer,
+except to say that this functionality was a necessary step in creating an 
+address database that holds every balance for every address in the entire
+bitcoin blockchain. Being able to query utxos means that btk can create such
+a database. And you can build it with the 'addressdb' command.
+
+The following command builds an address database containing every bitcoin
+address that currently has a balance. Use -u to specify the location of the utxo
+database and -p to specify the location where you want to build the address
+database.
+
+```
+$ btk addressdb -c -u /home/myusername/tmp/chainstate/ -p /home/myusername/tmp/addressdb/
+```
+
+The process of building an address database takes about an hour on average. You
+should see address balance output in your terminal window as the database is
+being built. Once complete, you can query the balance of any bitcoin address:
+
+```
+$ echo "3B3XevaJTfZiidpcdp11vcE6DtdJs9xSHc" | btk addressdb -p /home/myusername/tmp/addressdb/
+Address 3B3XevaJTfZiidpcdp11vcE6DtdJs9xSHc has balance: 331000
+```
+
 License
 -------
 
