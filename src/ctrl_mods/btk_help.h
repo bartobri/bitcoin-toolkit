@@ -17,5 +17,6 @@ void btk_help_pubkey(void);
 void btk_help_vanity(void);
 void btk_help_node(void);
 void btk_help_version(void);
+void btk_help_utxodb(void);
 
 #endif

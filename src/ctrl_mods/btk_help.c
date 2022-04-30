@@ -53,6 +53,10 @@ int btk_help_main(void)
 	{
 		btk_help_version();
 	}
+	else if (strcmp(command, "utxodb") == 0)
+	{
+		btk_help_utxodb();
+	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
@@ -78,6 +82,7 @@ void btk_help_commands(void)
 	printf("   pubkey       calculate and format public keys from private keys.\n");
 	printf("   vanity       generate a vanity address.\n");
 	printf("   node         interface with a bitcoin node.\n");
+	printf("   utxodb       query utxo data from bitcoin core.\n");
 	printf("   version      print btk version info.\n");
 	printf("\n");
 	printf("See 'btk help <command>' to read more about a specific command.\n");
@@ -453,4 +458,45 @@ void btk_help_version(void)
 	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
 	printf("\n");
+}
+
+void btk_help_utxodb(void)
+{
+	printf("COMMAND\n");
+	printf("\n");
+	printf("   utxodb - query utxo data from bitcoin core.\n");
+	printf("\n");
+	printf("SYNOPSIS\n");
+	printf("\n");
+	printf("   btk utxo -p <path>\n");
+	printf("\n");
+	printf("DESCRIPTION\n");
+	printf("\n");
+	printf("   If you run btk on a full bitcoin node running bitcoin core, the 'utxodb'\n");
+	printf("   command takes a transaction hash from standard input and allows you\n");
+	printf("   to query the unspent transaction data from the utxo database.\n");
+	printf("   The utxo database does not exist by default. To create it you must\n");
+	printf("   set txindex=1 in your bitcoin.conf file and restart bitcoin core. The first\n");
+	printf("   time you do this, core will build a database containing info for every\n");
+	printf("   unspent transaction output that currently exists. This takes some time. Once\n");
+	printf("   complete, the 'utxodb' command can query and display unspent transaction\n");
+	printf("   data from that database.\n");
+	printf("\n");
+	printf("   Because bitcoin core keeps a persistant lock on the utxo database, you will\n");
+	printf("   need to either stop bitcoin core, or make a copy of the database, before you\n");
+	printf("   can access it.\n");
+	printf("\n");
+	printf("   See OPTIONS for more info.\n");
+	printf("\n");
+	printf("OPTIONS\n");
+	printf("\n");
+	printf("   -p <path>\n");
+	printf("      Specify the path to bitcoin core's utxo database. By default, it is\n");
+	printf("      located in the \"chainstate\" directory within bitcoin core's default\n");
+	printf("      installation directory.\n");
+	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
+	printf("See 'btk help' to read about other commands.\n");
+	printf("\n");
+
 }
