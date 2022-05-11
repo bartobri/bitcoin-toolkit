@@ -114,6 +114,8 @@ Kz9Ef1U6Ai2VJeZ9kChDdf2WFxEUeL1hJvymfPmiPRCtpKoum7qe
 KyH4kYHsqnoZ4YymdZ2mXcXw8fRPWykomGzNrKz7Yr1bnLaB4yUo
 ```
 
+Note that when working with lists, the input format of the list item MUST be specified (-w for WIF, in this case). Otherwise btk will treat the whole list as a single string for input.
+
 #### Using Help
 
 See `btk help` for a list of available commands.
