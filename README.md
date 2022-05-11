@@ -65,7 +65,7 @@ Usage
 
 `btk <command> [<args>]`
 
-Bitcoin Toolkit installs an command line tool named `btk` that handles commands and arguments much like git. The first argument is a command and is required. All following arguments are options that relate to the specified command. For example, this will create a new compressed private key in Wallet Import format:
+Bitcoin Toolkit installs a command line tool named `btk` that handles commands and arguments much like git. The first argument is a command and is required. All following arguments are options that relate to the specified command. For example, this will create a new compressed private key in Wallet Import Format(WIF):
 
 ```
 $ btk privkey -n -C -W
