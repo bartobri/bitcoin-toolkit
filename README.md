@@ -179,15 +179,15 @@ where we converted a key from WIF to hex and decimal, below we convert them back
 to WIF.
 
 ```
-$ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk privkey -h
+$ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk privkey -hW
 L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 
-$ echo "89403101665417317652050958343537724738876283665880345081128506555034307196252" | btk privkey -d
+$ echo "89403101665417317652050958343537724738876283665880345081128506555034307196252" | btk privkey -dW
 L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 ```
 
 We can also use plain ascii strings of any length as input. When string input
-is used, the string data will be fed through a SHA256 hash algorithm to generate
+is used, the string data will be processed through a SHA256 hash algorithm to generate
 a 32 byte private key. This can be useful if you want to generate a private key
 from a passphrase that you've memorized.
 
@@ -218,11 +218,10 @@ the number of times btk should hash your private key. This option requires an
 integer argument which is used as a counter, and for each iteration in the
 count, btk will (re)hash the private key, first using the input you provided,
 then using its own 32 bytes of raw binary data as input for each time
-thereafter. It is the functional equivelent of chaining multiple btk commands
-together by piping the raw private key data from one command to the next.
+thereafter. 
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -sW -S 1978
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978
 L4g1w4WKmumg86gbbJdoP4Yd6UfXsuezDW6GDVcHrQ6Dg3Wsw6mm
 ```
 
@@ -234,7 +233,7 @@ can generate the private key and import it into your perferred wallet.
 To generate a bitcoin address, pipe your data to the 'pubkey' command:
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk pubkey -w
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -w
 1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
