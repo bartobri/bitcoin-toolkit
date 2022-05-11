@@ -26,7 +26,7 @@ The following instructions are for unix and linux systems. Windows 10
 users can install this project from within the linux subsystem.
 
 Be sure that the following dependencies are installed on your system.
-If not you can install them from your package manager.
+If not, you can install them from your package manager.
 
 1. libgmp
 2. libgcrypt
@@ -197,7 +197,7 @@ L4Cp75ZzpF5AAKwN64VBTxhMfHa8bpTw6mt6uq5T5buaEEuVU1Sz
 ```
 
 You can do the same thing with arbitrary length files as well. Just like with
-strings, the raw data from the file will be fed through a SHA256 hash algorithm
+strings, the raw data from the file will be processed through a SHA256 hash algorithm
 to generate a 32 byte private key:
 
 ```
