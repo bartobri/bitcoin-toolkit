@@ -468,7 +468,7 @@ void btk_help_utxodb(void)
 	printf("\n");
 	printf("SYNOPSIS\n");
 	printf("\n");
-	printf("   btk utxo -p <path>\n");
+	printf("   btk utxodb -p <path>\n");
 	printf("\n");
 	printf("DESCRIPTION\n");
 	printf("\n");
