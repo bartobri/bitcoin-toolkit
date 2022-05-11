@@ -193,7 +193,7 @@ from a passphrase that you've memorized.
 
 ```
 $ echo "this is my secret passphrase" | btk privkey -s
-L4Cp75ZzpF5AAKwN64VBTxhMfHa8bpTw6mt6uq5T5buaEEuVU1Sz
+L15VsN6crrGCXS4hqQZa3DF9kT6wr3ZfpDjsBQ1SAGPz6ZDFMjrF
 ```
 
 You can do the same thing with arbitrary length files as well. Just like with
