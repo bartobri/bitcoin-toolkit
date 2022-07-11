@@ -11,7 +11,6 @@
 #include <ctype.h>
 #include <string.h>
 #include "mods/privkey.h"
-#include "mods/network.h"
 #include "mods/pubkey.h"
 #include "mods/input.h"
 #include "mods/error.h"
@@ -19,19 +18,11 @@
 #define INPUT_WIF               1
 #define INPUT_HEX               2
 #define INPUT_RAW               3
-#define INPUT_STR               4
-#define INPUT_DEC               5
-#define INPUT_BLOB              6
-#define INPUT_GUESS             7
-#define INPUT_SBD               8
-#define OUTPUT_ADDRESS          1
-#define OUTPUT_BECH32_ADDRESS   2
-#define OUTPUT_HEX              3
-#define OUTPUT_RAW              4
+#define INPUT_GUESS             4
+#define OUTPUT_HEX              1
+#define OUTPUT_RAW              2
 #define OUTPUT_COMPRESS         1
 #define OUTPUT_UNCOMPRESS       2
-#define OUTPUT_MAINNET          1
-#define OUTPUT_TESTNET          2
 #define TRUE                    1
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
@@ -43,9 +34,6 @@
 static int input_format         = FALSE;
 static int output_format        = FALSE;
 static int output_compression   = FALSE;
-static int output_privkey       = FALSE;
-static int output_newline       = TRUE;
-static int output_network       = FALSE;
 
 int btk_pubkey_init(int argc, char *argv[])
 {
@@ -54,7 +42,7 @@ int btk_pubkey_init(int argc, char *argv[])
 
 	command = argv[1];
 
-	while ((o = getopt(argc, argv, "whrsdbxABHRCUPNTM")) != -1)
+	while ((o = getopt(argc, argv, "whrHRCU")) != -1)
 	{
 		switch (o)
 		{
@@ -68,32 +56,13 @@ int btk_pubkey_init(int argc, char *argv[])
 			case 'r':
 				INPUT_SET(INPUT_RAW);
 				break;
-			case 's':
-				INPUT_SET(INPUT_STR);
-				break;
-			case 'd':
-				INPUT_SET(INPUT_DEC);
-				break;
-			case 'b':
-				INPUT_SET(INPUT_BLOB);
-				break;
-			case 'x':
-				INPUT_SET(INPUT_SBD);
-				break;
 
 			// Output format
-			case 'A':
-				OUTPUT_SET(OUTPUT_ADDRESS);
-				break;
-			case 'B':
-				OUTPUT_SET(OUTPUT_BECH32_ADDRESS);
-				break;
 			case 'H':
 				OUTPUT_SET(OUTPUT_HEX);
 				break;
 			case 'R':
 				OUTPUT_SET(OUTPUT_RAW);
-				output_newline = FALSE;
 				break;
 
 				// Output Compression
@@ -102,22 +71,6 @@ int btk_pubkey_init(int argc, char *argv[])
 				break;
 			case 'U':
 				COMPRESSION_SET(OUTPUT_UNCOMPRESS);
-				break;
-
-			// Other options
-			case 'P':
-				output_privkey = TRUE;
-				break;
-			case 'N':
-				output_newline = FALSE;
-				break;
-
-			// Network Option
-			case 'T':
-				output_network = OUTPUT_TESTNET;
-				break;
-			case 'M':
-				output_network = OUTPUT_MAINNET;
 				break;
 
 			// Unknown option
@@ -142,7 +95,7 @@ int btk_pubkey_init(int argc, char *argv[])
 
 	if (output_format == FALSE)
 	{
-		output_format = OUTPUT_ADDRESS;
+		output_format = OUTPUT_HEX;
 	}
 
 	return 1;
@@ -156,20 +109,26 @@ int btk_pubkey_main(void)
 	size_t i;
 	unsigned char *input_uc;
 	char *input_sc;
-	size_t output_len;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
 
-	priv = malloc(privkey_sizeof());
-	if (priv == NULL)
+	key = malloc(pubkey_sizeof());
+	if (key == NULL)
 	{
-		error_log("Memory allocation error.");
+		error_log("Memory allocation error");
 		return -1;
 	}
 	
 	switch (input_format)
 	{
 		case INPUT_WIF:
+			priv = malloc(privkey_sizeof());
+			if (priv == NULL)
+			{
+				error_log("Memory allocation error.");
+				return -1;
+			}
+
 			r = input_get_str(&input_sc, NULL);
 			if (r < 0)
 			{
@@ -184,7 +143,21 @@ int btk_pubkey_main(void)
 				return -1;
 			}
 
+			if (privkey_is_zero(priv))
+			{
+				error_log("Private key decimal value cannot be zero.");
+				return -1;
+			}
+
+			r = pubkey_get(key, priv);
+			if (r < 0)
+			{
+				error_log("Could not calculate public key.");
+				return -1;
+			}
+
 			free(input_sc);
+			free(priv);
 			break;
 		case INPUT_HEX:
 			r = input_get_str(&input_sc, NULL);
@@ -194,7 +167,7 @@ int btk_pubkey_main(void)
 				return -1;
 			}
 
-			r = privkey_from_hex(priv, input_sc);
+			r = pubkey_from_hex(key, input_sc);
 			if (r < 0)
 			{
 				error_log("Could not calculate private key from input.");
@@ -211,82 +184,14 @@ int btk_pubkey_main(void)
 				return -1;
 			}
 
-			r = privkey_from_raw(priv, input_uc, r);
+			r = pubkey_from_raw(key, input_uc, r);
 			if (r < 0)
 			{
-				error_log("Could not calculate private key from input.");
+				error_log("Could not get public key from input.");
 				return -1;
 			}
 
 			free(input_uc);
-			break;
-		case INPUT_STR:
-			r = input_get_str(&input_sc, NULL);
-			if (r < 0)
-			{
-				error_log("Could not get input.");
-				return -1;
-			}
-
-			r = privkey_from_str(priv, input_sc);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
-
-			free(input_sc);
-			break;
-		case INPUT_DEC:
-			r = input_get_str(&input_sc, NULL);
-			if (r < 0)
-			{
-				error_log("Could not get input.");
-				return -1;
-			}
-
-			r = privkey_from_dec(priv, input_sc);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
-
-			free(input_sc);
-			break;
-		case INPUT_BLOB:
-			r = input_get_from_pipe(&input_uc);
-			if (r < 0)
-			{
-				error_log("Could not get input.");
-				return -1;
-			}
-
-			r = privkey_from_blob(priv, input_uc, r);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
-
-			free(input_uc);
-			break;
-		case INPUT_SBD:
-			r = input_get_str(&input_sc, NULL);
-			if (r < 0)
-			{
-				error_log("Could not get input.");
-				return -1;
-			}
-
-			r = privkey_from_sbd(priv, input_sc);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
-
-			free(input_sc);
 			break;
 		case INPUT_GUESS:
 			r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
@@ -296,10 +201,10 @@ int btk_pubkey_main(void)
 				return -1;
 			}
 
-			r = privkey_from_guess(priv, input_uc, r);
+			r = pubkey_from_guess(key, input_uc, r);
 			if (r < 0)
 			{
-				error_log("Could not calculate private key from input.");
+				error_log("Could not get public key from input.");
 				return -1;
 			}
 
@@ -307,15 +212,9 @@ int btk_pubkey_main(void)
 			break;
 	}
 
-	if (!priv)
+	if (!key)
 	{
-		error_log("Could not calculate private key from input.");
-		return -1;
-	}
-	
-	if (privkey_is_zero(priv))
-	{
-		error_log("Key value cannot be zero.");
+		error_log("Could not get public key from input.");
 		return -1;
 	}
 
@@ -324,78 +223,11 @@ int btk_pubkey_main(void)
 		case FALSE:
 			break;
 		case OUTPUT_COMPRESS:
-			privkey_compress(priv);
+			pubkey_compress(key);
 			break;
 		case OUTPUT_UNCOMPRESS:
-			privkey_uncompress(priv);
+			pubkey_decompress(key);
 			break;
-	}
-
-	key = malloc(pubkey_sizeof());
-	if (key == NULL)
-	{
-		error_log("Memory allocation error");
-		return -1;
-	}
-
-	r = pubkey_get(key, priv);
-	if (r < 0)
-	{
-		error_log("Could not calculate public key.");
-		return -1;
-	}
-
-	switch (output_network)
-	{
-		case FALSE:
-			break;
-		case OUTPUT_MAINNET:
-			network_set_main();
-			break;
-		case OUTPUT_TESTNET:
-			network_set_test();
-			break;
-	}
-
-	memset(output, 0, OUTPUT_BUFFER);
-	memset(uc_output, 0, OUTPUT_BUFFER);
-
-	if (output_privkey)
-	{
-		switch  (output_format)
-		{
-			case OUTPUT_HEX:
-				r = privkey_to_hex(output, priv, output_compression);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to hex format.");
-					return -1;
-				}
-				printf("%s ", output);
-				break;
-			case OUTPUT_RAW:
-				r = privkey_to_raw(uc_output, priv, output_compression);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to raw format.");
-					return -1;
-				}
-				output_len = (size_t)r;
-				for (i = 0; i < output_len; ++i)
-				{
-					putchar(uc_output[i]);
-				}
-				break;
-			default:
-				r = privkey_to_wif(output, priv);
-				if (r < 0)
-				{
-					error_log("Could not convert private key to WIF format.");
-					return -1;
-				}
-				printf("%s ", output);
-				break;
-		}
 	}
 
 	memset(output, 0, OUTPUT_BUFFER);
@@ -403,24 +235,6 @@ int btk_pubkey_main(void)
 
 	switch (output_format)
 	{
-		case OUTPUT_ADDRESS:
-			r = pubkey_to_address(output, key);
-			if (r < 0)
-			{
-				error_log("Could not calculate public key address.");
-				return -1;
-			}
-			printf("%s", output);
-			break;
-		case OUTPUT_BECH32_ADDRESS:
-			r = pubkey_to_bech32address(output, key);
-			if (r < 0)
-			{
-				error_log("Could not calculate bech32 public key address.");
-				return -1;
-			}
-			printf("%s", output);
-			break;
 		case OUTPUT_HEX:
 			r = pubkey_to_hex(output, key);
 			if (r < 0)
@@ -428,7 +242,7 @@ int btk_pubkey_main(void)
 				error_log("Could not generate hex data from public key.");
 				return -1;
 			}
-			printf("%s", output);
+			printf("%s\n", output);
 			break;
 		case OUTPUT_RAW:
 			r = pubkey_to_raw(uc_output, key);
@@ -444,14 +258,6 @@ int btk_pubkey_main(void)
 			break;
 	}
 
-	switch (output_newline)
-	{
-		case TRUE:
-			printf("\n");
-			break;
-	}
-
-	free(priv);
 	free(key);
 
 	return 1;

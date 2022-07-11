@@ -169,6 +169,49 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	return 1;
 }
 
+int pubkey_from_hex(PubKey key, char *input)
+{
+	int r;
+	size_t input_len;
+	unsigned char *raw_input;
+	
+	assert(input);
+	assert(key);
+
+	input_len = strlen(input);
+
+	if (input_len % 2 != 0)
+	{
+		error_log("Input must contain an even number of characters to be valid hexidecimal.");
+		return -1;
+	}
+
+	raw_input = malloc(input_len / 2);
+	if (raw_input == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
+
+	r = hex_str_to_raw(raw_input, input);
+	if (r < 0)
+	{
+		error_log("Could not convert hex input to raw binary.");
+		return -1;
+	}
+
+	r = pubkey_from_raw(key, raw_input, input_len / 2);
+	if (r < 0)
+	{
+		error_log("Can't convert raw input to public key.");
+		return -1;
+	}
+
+	free(raw_input);
+
+	return 1;
+}
+
 int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 {
 	assert(key);
@@ -195,6 +238,11 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 
 	memcpy(key->data, input, input_len);
 
+	return 1;
+}
+
+int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
+{
 	return 1;
 }
 
