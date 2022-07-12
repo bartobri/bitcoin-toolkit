@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gmp.h>
+#include <ctype.h>
 #include <assert.h>
 #include "pubkey.h"
 #include "privkey.h"
@@ -226,13 +227,13 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 
 	if ((input[0] == PUBKEY_COMPRESSED_FLAG_EVEN || input[0] == PUBKEY_COMPRESSED_FLAG_ODD) && input_len != PUBKEY_COMPRESSED_LENGTH + 1)
 	{
-		error_log("Incorrect data length for compressed private key.");
+		error_log("Incorrect data length for compressed public key.");
 		return -1;
 	}
 
 	if (input[0] == PUBKEY_UNCOMPRESSED_FLAG && input_len != PUBKEY_UNCOMPRESSED_LENGTH + 1)
 	{
-		error_log("Incorrect data length for uncompressed private key: %zu", input_len);
+		error_log("Incorrect data length for uncompressed public key: %zu", input_len);
 		return -1;
 	}
 
@@ -243,7 +244,87 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 
 int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
 {
-	return 1;
+	size_t i;
+	size_t input_str_len;
+	int r;
+	char *input_str;
+	PrivKey privkey;
+
+	assert(key);
+	assert(input);
+	assert(input_len);
+
+	input_str = NULL;
+
+	for (i = 0; i < input_len; i++)
+	{
+		if (!isascii(input[i]))
+		{
+			break;
+		}
+	}
+	if (i > 0)
+	{
+		input_str_len = i;
+		while (isspace(input[input_str_len - 1]))
+		{
+			--input_str_len;
+		}
+
+		input_str = malloc(input_str_len + 1);
+		if (input_str == NULL)
+		{
+			error_log("Memory allocation error.");
+			return -1;
+		}
+
+		memset(input_str, 0, input_str_len + 1);
+		memcpy(input_str, input, input_str_len);
+	}
+
+	if (input_str != NULL)
+	{
+		privkey = malloc(privkey_sizeof());
+		if (privkey == NULL)
+		{
+			error_log("Memory allocation error.");
+			return -1;
+		}
+		r = privkey_from_wif(privkey, input_str);
+		if (r > 0)
+		{
+			r = pubkey_get(key, privkey);
+			if (r > 0)
+			{
+				free(privkey);
+				free(input_str);
+				return 1;
+			}
+		}
+		free(privkey);
+
+		error_clear();
+
+		r = pubkey_from_hex(key, input_str);
+		if (r > 0)
+		{
+			free(input_str);
+			return 1;
+		}
+		free(input_str);
+
+		error_clear();
+	}
+
+	r = pubkey_from_raw(key, input, input_len);
+	if (r > 0)
+	{
+		return 1;
+	}
+	error_clear();
+
+	error_log("Unable to guess input type.");
+	return -1;
 }
 
 int pubkey_compress(PubKey key)
