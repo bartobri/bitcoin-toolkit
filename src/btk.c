@@ -12,6 +12,7 @@
 #include "ctrl_mods/btk_help.h"
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
+#include "ctrl_mods/btk_address.h"
 #include "ctrl_mods/btk_vanity.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_utxodb.h"
@@ -85,6 +86,10 @@ int main(int argc, char *argv[])
 		{
 			r = btk_pubkey_main();
 		}
+		else if (strcmp(command, "address") == 0)
+		{
+			r = btk_address_main();
+		}
 		else if (strcmp(command, "vanity") == 0)
 		{
 			r = btk_vanity_main();
@@ -154,6 +159,10 @@ int btk_init(int argc, char *argv[])
 	{
 		r = btk_pubkey_init(argc, argv);
 	}
+	else if (strcmp(command, "address") == 0)
+	{
+		r = btk_address_init(argc, argv);
+	}
 	else if (strcmp(command, "vanity") == 0)
 	{
 		r = btk_vanity_init(argc, argv);
@@ -205,6 +214,10 @@ int btk_cleanup(char *command)
 	else if (strcmp(command, "pubkey") == 0)
 	{
 		r = btk_pubkey_cleanup();
+	}
+	else if (strcmp(command, "address") == 0)
+	{
+		r = btk_address_cleanup();
 	}
 	else if (strcmp(command, "vanity") == 0)
 	{

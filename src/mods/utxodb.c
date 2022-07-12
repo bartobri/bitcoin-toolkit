@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include "mods/address.h"
 #include "mods/utxodb.h"
 #include "mods/database.h"
 #include "mods/hex.h"
@@ -426,7 +427,7 @@ int utxodb_value_get_address(char *address, UTXODBValue value)
             }
         }
 
-        r = pubkey_to_address(address, pubkey);
+        r = address_get_p2pkh(address, pubkey);
         if (r < 0)
         {
             error_log("Can not get address from pubkey.");

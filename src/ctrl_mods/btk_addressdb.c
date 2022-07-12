@@ -19,6 +19,7 @@
 #include "mods/utxodb.h"
 #include "mods/base58check.h"
 #include "mods/pubkey.h"
+#include "mods/address.h"
 
 #define BTK_ADDRESSDB_MAX_ADDRESS_LENGTH   42
 #define BTK_ADDRESSDB_INPUT_ADDRESS        1
@@ -169,7 +170,7 @@ int btk_addressdb_main(void)
         {
             memset(address, 0, BTK_ADDRESSDB_MAX_ADDRESS_LENGTH);
 
-            r = pubkey_address_from_wif(address, input);
+            r = address_from_wif(address, input);
             if (r < 0)
             {
                 error_log("Could not calculate address from private key.");
@@ -189,7 +190,7 @@ int btk_addressdb_main(void)
         {
             memset(address, 0, BTK_ADDRESSDB_MAX_ADDRESS_LENGTH);
 
-            r = pubkey_address_from_str(address, input);
+            r = address_from_str(address, input);
             if (r < 0)
             {
                 error_log("Could not calculate address from private key.");

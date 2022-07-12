@@ -13,6 +13,7 @@
 #include <time.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
+#include "mods/address.h"
 #include "mods/network.h"
 #include "mods/base58.h"
 #include "mods/base32.h"
@@ -282,7 +283,7 @@ int btk_vanity_main(void)
 
 		if (output_format == OUTPUT_ADDRESS)
 		{
-			r = pubkey_to_address(pubkey_str, key);
+			r = address_get_p2pkh(pubkey_str, key);
 			if (r < 0)
 			{
 				error_log("Could not calculate public key address.");
@@ -296,7 +297,7 @@ int btk_vanity_main(void)
 				error_log("Bech32 addresses cannot be uncompressed.");
 				return -1;
 			}
-			r = pubkey_to_bech32address(pubkey_str, key);
+			r = address_get_p2wpkh(pubkey_str, key);
 			if (r < 0)
 			{
 				error_log("Could not calculate bech32 public key address.");
