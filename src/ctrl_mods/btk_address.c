@@ -17,7 +17,8 @@
 #include "mods/error.h"
 
 #define INPUT_WIF               1
-#define INPUT_GUESS             2
+#define INPUT_HEX               2
+#define INPUT_GUESS             3
 #define OUTPUT_P2PKH            1   // Legacy Address
 #define OUTPUT_P2WPKH           2   // Segwit (Bech32) Address
 #define TRUE                    1
@@ -37,13 +38,16 @@ int btk_address_init(int argc, char *argv[])
 
     command = argv[1];
 
-    while ((o = getopt(argc, argv, "wPW")) != -1)
+    while ((o = getopt(argc, argv, "whPW")) != -1)
     {
         switch (o)
         {
             // Input format
             case 'w':
                 INPUT_SET(INPUT_WIF)
+                break;
+            case 'h':
+                INPUT_SET(INPUT_HEX)
                 break;
 
             // Output format
@@ -131,6 +135,24 @@ int btk_address_main(void)
             if (r < 0)
             {
                 error_log("Could not calculate public key.");
+                return -1;
+            }
+
+            free(input_sc);
+            break;
+            
+        case INPUT_HEX:
+            r = input_get_str(&input_sc, NULL);
+            if (r < 0)
+            {
+                error_log("Could not get input.");
+                return -1;
+            }
+
+            r = pubkey_from_hex(pubkey, input_sc);
+            if (r < 0)
+            {
+                error_log("Could not calculate private key from input.");
                 return -1;
             }
 
