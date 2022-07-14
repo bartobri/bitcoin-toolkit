@@ -90,6 +90,7 @@ int btk_address_main(void)
 {
     int r;
     char *input_sc;
+    unsigned char *input_uc;
     char output[OUTPUT_BUFFER];
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
@@ -140,7 +141,7 @@ int btk_address_main(void)
 
             free(input_sc);
             break;
-            
+
         case INPUT_HEX:
             r = input_get_str(&input_sc, NULL);
             if (r < 0)
@@ -160,6 +161,21 @@ int btk_address_main(void)
             break;
 
         case INPUT_GUESS:
+            r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
+            if (r < 0)
+            {
+                error_log("Could not get input.");
+                return -1;
+            }
+
+            r = pubkey_from_guess(pubkey, input_uc, r);
+            if (r < 0)
+            {
+                error_log("Could not get public key from input.");
+                return -1;
+            }
+
+            free(input_uc);
             break;
     }
 
