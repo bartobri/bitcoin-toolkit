@@ -343,7 +343,7 @@ void btk_help_address(void)
 	printf("      a bitcoin legacy address. This is bitcoin's first address format.\n");
 	printf("\n");
 	printf("   -W\n");
-	printf("      Print address formatted as a (P)ay-to-Witness-PubKey hash (P2PKH). Also\n");
+	printf("      Print address formatted as a (P)ay-to-Witness-PubKey hash (P2WPKH). Also\n");
 	printf("      known as a bech32 or segwit address.\n");
 	printf("\n");
 	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
