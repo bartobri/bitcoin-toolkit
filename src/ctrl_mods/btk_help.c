@@ -293,6 +293,64 @@ void btk_help_pubkey(void)
 	printf("\n");
 }
 
+void btk_help_address(void)
+{
+	printf("COMMAND\n");
+	printf("\n");
+	printf("   address - generate and format an address from a public key.\n");
+	printf("\n");
+	printf("SYNOPSIS\n");
+	printf("\n");
+	printf("   btk address [INPUT_OPTIONS] [OUTPUT_OPTIONS]\n");
+	printf("\n");
+	printf("DESCRIPTION");
+	printf("\n");
+	printf("   The address command generates a bitcoin address from a given public or\n");
+	printf("   private key. Input data can be a private key in the WIF (wallet import\n");
+	printf("   format) format, or a public key in raw binary or hexidecimal format.\n");
+	printf("\n");
+	printf("   The address command will read data from standard input and interpret the\n");
+	printf("   format according to the input option specified. If no input option is\n");
+	printf("   specified, the address command will read data from standard input and\n");
+	printf("   attempt to automatically determine the format if it can be done with a\n");
+	printf("   reasonable degree of certainty.\n");
+	printf("\n");
+	printf("   The address command will generate a bitcoin address from the provided input\n");
+	printf("   data and print it in the format specified by the output option. If no output\n");
+	printf("   option is specified, the address will be formatted as a legacy bitcoin\n");
+	printf("   address (P2PKH).\n");
+	printf("\n");
+	printf("   See INPUT OPTIONS and OUTPUT OPTIONS for more info.\n");
+	printf("\n");
+	printf("INPUT OPTIONS\n");
+	printf("\n");
+	printf("   -w\n");
+	printf("      Treat input as a (w)allet import formatted (wif) private key string.\n");
+	printf("\n");
+	printf("   -h\n");
+	printf("      Treat input as a (h)exadecimal formatted public key string. The string\n");
+	printf("      can represent either a compressed (66 characters) or uncompressed (130\n");
+	printf("      characters) public key.\n");
+	printf("\n");
+	printf("   -r\n");
+	printf("      Treat input as (r)aw binary data. The raw data can represent either a\n");
+	printf("      compressed (33 bytes) or uncompressed (65 bytes) public key.\n");
+	printf("\n");
+	printf("OUTPUT OPTIONS\n");
+	printf("\n");
+	printf("   -P\n");
+	printf("      Print address formatted as a (P)ay-to-PubKey hash (P2PKH). Also known as\n");
+	printf("      a bitcoin legacy address. This is bitcoin's first address format.\n");
+	printf("\n");
+	printf("   -W\n");
+	printf("      Print address formatted as a (P)ay-to-Witness-PubKey hash (P2PKH). Also\n");
+	printf("      known as a bech32 or segwit address.\n");
+	printf("\n");
+	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
+	printf("See 'btk help' to read about other commands.\n");
+	printf("\n");
+}
+
 void btk_help_vanity(void)
 {
 	printf("COMMAND\n");
