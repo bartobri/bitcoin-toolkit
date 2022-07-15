@@ -41,6 +41,10 @@ int btk_help_main(void)
 	{
 		btk_help_pubkey();
 	}
+	else if (strcmp(command, "address") == 0)
+	{
+		btk_help_address();
+	}
 	else if (strcmp(command, "node") == 0)
 	{
 		btk_help_node();
@@ -80,6 +84,7 @@ void btk_help_commands(void)
 	printf("\n");
 	printf("   privkey      create, modify, and format private keys.\n");
 	printf("   pubkey       calculate and format public keys from private keys.\n");
+	printf("   address      generate and format an address from a public key.\n");
 	printf("   vanity       generate a vanity address.\n");
 	printf("   node         interface with a bitcoin node.\n");
 	printf("   utxodb       query utxo data from bitcoin core.\n");
@@ -232,8 +237,8 @@ void btk_help_pubkey(void)
 	printf("DESCRIPTION");
 	printf("\n");
 	printf("   The pubkey command generates the corresponding public key from a given\n");
-	printf("   private key. Input data should be a private key, or data from which a\n");
-	printf("   private key can be derived, in the format specified by the input option.\n");
+	printf("   private key. Input data can be a private key in the WIF (wallet import\n");
+	printf("   format) format, or a public key in raw binary or hexidecimal format.\n");
 	printf("\n");
 	printf("   The pubkey command will read data from standard input and interpret the\n");
 	printf("   format according to the input option specified. If no input option is\n");
@@ -243,11 +248,11 @@ void btk_help_pubkey(void)
 	printf("\n");
 	printf("   The pubkey command will calculate a public key from the provided input data\n");
 	printf("   and print it in the format specified by the output option. If no output\n");
-	printf("   option is specified, the public key will be formatted as a standard\n");
-	printf("   bitcoin address. The public key will be compressed by default, unless\n");
-	printf("   the input data contains a compression flag, in which case it will remain\n");
+	printf("   option is specified, the public key will be formatted as a hexidecimal\n");
+	printf("   string. The public key will be compressed by default, unless the\n");
+	printf("   input data contains a compression flag, in which case it will remain\n");
 	printf("   consistent with the input data. If an output option is specified for\n");
-	printf("   compression, the private key will be compressed in accordance with that\n");
+	printf("   compression, the public key will be compressed in accordance with that\n");
 	printf("   option, which will override any compression flag provided in the input data.\n");
 	printf("\n");
 	printf("   See INPUT OPTIONS and OUTPUT OPTIONS for more info.\n");
@@ -255,47 +260,18 @@ void btk_help_pubkey(void)
 	printf("INPUT OPTIONS\n");
 	printf("\n");
 	printf("   -w\n");
-	printf("      Treat input as a (w)allet import formatted (wif) string.\n");
+	printf("      Treat input as a (w)allet import formatted (wif) private key string.\n");
 	printf("\n");
 	printf("   -h\n");
-	printf("      Treat input as a (h)exadecimal formatted string. The string must be at\n");
-	printf("      least 64 characters long. If a 65th and 66th character exist, they are\n");
-	printf("      interpreted as a compression flag. Any extra characters beyond that point\n");
-	printf("      are ignored.\n");
+	printf("      Treat input as a (h)exadecimal formatted public key string. The string\n");
+	printf("      can represent either a compressed (66 characters) or uncompressed (130\n");
+	printf("      characters) public key.\n");
 	printf("\n");
 	printf("   -r\n");
-	printf("      Treat input as (r)aw binary data. Input must be at least 32 bytes long.\n");
-	printf("      If a 33rd byte exists, it is interpreted as a compression flag. Any\n");
-	printf("      extra data beyond that point is ignored.\n");
-	printf("\n");
-	printf("   -s\n");
-	printf("      Treat input as an arbitrary ASCII (s)tring. ASCII strings are processed\n");
-	printf("      through a SHA256 hash algorithm to generate a 32 byte private key.\n");
-	printf("\n");
-	printf("   -d\n");
-	printf("      Treat input as an ASCII string containing only (d)ecimal characters. The\n");
-	printf("      decimal value is converted to its 32-byte binary equivalent to generate\n");
-	printf("      a private key.\n");
-	printf("\n");
-	printf("   -b\n");
-	printf("      Treat input as arbitrary (b)inary data. The data is processed through\n");
-	printf("      a SHA256 hash algorithm to generate a 32 byte private key.\n");
-	printf("\n");
-	printf("   -x\n");
-	printf("      Treat input as \"string binary data\". This option reads each\n");
-	printf("      byte in the string, from right to left, and sets the corresponding\n");
-	printf("      byte in the private key to the same value, from right to left. This\n");
-	printf("      means that a string used with this option can not be longer than\n");
-	printf("      32 bytes. When a string is less than 32 bytes, higher order bytes\n");
-	printf("      of the private key are padded with null bytes.\n");
+	printf("      Treat input as (r)aw binary data. The raw data can represent either a\n");
+	printf("      compressed (33 bytes) or uncompressed (65 bytes) public key.\n");
 	printf("\n");
 	printf("OUTPUT OPTIONS\n");
-	printf("\n");
-	printf("   -A\n");
-	printf("      Print public key as a traditional bitcoin (A)ddress. (default)\n");
-	printf("\n");
-	printf("   -B\n");
-	printf("      Print public key as a (B)ech32 address.\n");
 	printf("\n");
 	printf("   -H\n");
 	printf("      Print public key as a (H)exadecimal string. Note that a compressed\n");
@@ -307,36 +283,10 @@ void btk_help_pubkey(void)
 	printf("      a compressed public key and 65 bytes for an uncompressed public key.\n");
 	printf("\n");
 	printf("   -C\n");
-	printf("      (C)ompress the public key. If -P is specified (see below), the\n");
-	printf("      corresponding private key will also be compressed.\n");
+	printf("      (C)ompress the public key.\n");
 	printf("\n");
 	printf("   -U\n");
-	printf("      (U)nompress the public key. If -P is specified (see below), the\n");
-	printf("      corresponding private key will also be uncompressed.\n");
-	printf("\n");
-	printf("   -P\n");
-	printf("      Include the (P)rivate key in the output. This option is most useful for\n");
-	printf("      wrapper programs that want to generate and parse a private and public\n");
-	printf("      key pair in a single command. The private key will be printed first,\n");
-	printf("      followed by a single space, followed by the public key.\n");
-	printf("\n");
-	printf("   -N\n");
-	printf("      Do NOT print a (N)ewline character. This may be a desirable option if\n");
-	printf("      the output is being parsed by a wrapper program.\n");
-	printf("\n");
-	printf("   -T\n");
-	printf("      If the -A or -B option is specified (or assumed by default), this option\n");
-	printf("      sets the (T)ESTNET prefix so the public key is usable on the TESTNET\n");
-	printf("      network. If the -P option is also specified, the private key will be\n");
-	printf("      formatted for TESTNET network.\n");
-	printf("\n");
-	printf("   -M\n");
-	printf("      If the -A or -B option is specified (or assumed by default), this option\n");
-	printf("      sets the (M)AINNET prefix so the public key can be used on the MAINNET\n");
-	printf("      network. Note that if no network flag is specified or included in the\n");
-	printf("      input data, the MAINNET prefix is used by default. This option is only\n");
-	printf("      useful for converting TESTNET keys to MAINNET. If the -P option is also\n");
-	printf("      specified, the private key will be formatted for TESTNET network.\n");
+	printf("      (U)nompress the public key.\n");
 	printf("\n");
 	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
