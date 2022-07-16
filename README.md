@@ -83,11 +83,11 @@ $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -
 
 #### Chaining Commands
 
-Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of Bitcoin Toolkit. Here is the previous example with added redirection to the 'pubkey' command which ultimately prints the public key address for the private key that we started with.
+Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of Bitcoin Toolkit. Here is the previous example with added redirection to the 'pubkey' command which ultimately prints the uncompressed public key for the private key that we started with.
 
 ```
 $ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U | btk pubkey
-1FEEedNDX5qqCEeL8FFsrjGRYU7akdVMLF
+049f9b6e7577847e24bab3544600c6e4fef8ab6c78ba22635c70e7801db7356efe801da9673b8ec2851b5bd458896cbf12bb14cae34cfc86c02ea8427a6c9050f7
 ```
 
 #### List Processing
@@ -230,51 +230,63 @@ probably want the actual bitcoin address, not the private key, so you can store
 funds at the address. Then later if you wish to access and move those funds, you
 can generate the private key and import it into your perferred wallet.
 
-To generate a bitcoin address, pipe your data to the 'pubkey' command:
+To generate a bitcoin address, lets first create a public key, and then with
+that we can create an address. To generate a public key, pipe the private key
+(in WIF format) to the 'pubkey' command:
 
 ```
 $ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -w
+037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41
+```
+
+It's important to know that a public key is different than an address. A public
+key is literally a pair of x/y coordinates on a graph. A compressed public key
+is just a single x coordinate with a flag that indicates how to solve for the y
+corrdinate. The public key in our previous example is compressed. You can use
+the -U output option with the pubkey command to see what the same public key
+looks like when uncompressed:
+
+```
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -wU
+047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf
+```
+
+The pubkey command can also convert public keys from compressed to uncompressed
+and visa-versa by using the -C (compressed) and -U (uncompressed) output flags:
+
+```
+$ echo "037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41" | btk pubkey -U
+047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf
+
+$ echo "047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf" | btk pubkey -C
+037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41
+```
+
+Now that we have the public key, we can generate an address with it. An address
+is just a hash of the public key in base58 encoded format. To generate it, pipe
+the public key to the 'address' command:
+
+```
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -w | btk address
 1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
-The pubkey command takes most of the same inputs as privkey, but instead of
-generating a private key, it generates a public key, usually in the form of a
-bitcoin address. Below we convert a private key in WIF, hex, and decimal formats
-from our previous examples and generate the public address:
+The address command can also generate an address directly from the private key.
+In most cases, generating the address directly from the private key is the way
+you will want to do it:
 
 ```
-$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -w
-1EKtvvPytabULtFts1zJuXTrySVBvVFVky
-
-$ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk pubkey -h
-1EKtvvPytabULtFts1zJuXTrySVBvVFVky
-
-$ echo "89403101665417317652050958343537724738876283665880345081128506555034307196252" | btk pubkey -d
-1EKtvvPytabULtFts1zJuXTrySVBvVFVky
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk address -P
+1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
-The pubkey command also supports multiple output formats, most notable of which
-is the beck32 format. To generate a bech32 address:
+The -P output option creates a P2PKH legacy bitcoin address. It is the default
+output option if no other is specified. If you desire, you can create a segwit
+(bech32) address by using the -W output option:
 
 ```
-$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -wB
-bc1qjgk83gxfsfteppluqn7g08r7qyd22clrf4nuhw
-```
-
-And while it is not particularly useful in most cases, you can print the public
-key in hex format:
-
-```
-$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk pubkey -wH
-030713ba7032465b53fe456d3c2ba785b320e9b873389e1ab5b71860d56f5a2563
-```
-
-You can also print both the public and private keys together which may be useful
-if you interface with btk like and API and you need to store both keys:
-
-```
-echo "this is my secret passphrase" | btk pubkey -sP
-L15VsN6crrGCXS4hqQZa3DF9kT6wr3ZfpDjsBQ1SAGPz6ZDFMjrF 1NRJSrg8sBua2oEBa2ExEBAsFYstdE17St
+$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk address -W
+bc1qaetsuey7tt9cv3agnfkrrav922t55lwkv5n9qs
 ```
 
 Bitcoin Toolkit can also create vanity addresses, although I make no claim as
