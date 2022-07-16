@@ -18,7 +18,8 @@
 
 #define INPUT_WIF               1
 #define INPUT_HEX               2
-#define INPUT_GUESS             3
+#define INPUT_RAW               3
+#define INPUT_GUESS             4
 #define OUTPUT_P2PKH            1   // Legacy Address
 #define OUTPUT_P2WPKH           2   // Segwit (Bech32) Address
 #define TRUE                    1
@@ -38,7 +39,7 @@ int btk_address_init(int argc, char *argv[])
 
     command = argv[1];
 
-    while ((o = getopt(argc, argv, "whPW")) != -1)
+    while ((o = getopt(argc, argv, "whrPW")) != -1)
     {
         switch (o)
         {
@@ -48,6 +49,9 @@ int btk_address_init(int argc, char *argv[])
                 break;
             case 'h':
                 INPUT_SET(INPUT_HEX)
+                break;
+            case 'r':
+                INPUT_SET(INPUT_RAW);
                 break;
 
             // Output format
@@ -158,6 +162,24 @@ int btk_address_main(void)
             }
 
             free(input_sc);
+            break;
+
+        case INPUT_RAW:
+            r = input_get_from_pipe(&input_uc);
+            if (r < 0)
+            {
+                error_log("Could not get input.");
+                return -1;
+            }
+
+            r = pubkey_from_raw(pubkey, input_uc, r);
+            if (r < 0)
+            {
+                error_log("Could not get public key from input.");
+                return -1;
+            }
+
+            free(input_uc);
             break;
 
         case INPUT_GUESS:
