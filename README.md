@@ -3,11 +3,16 @@
 Bitcoin Toolkit
 ===============
 
-Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin-related tasks. Some of these tasks include creating and manipulating public or private keys, generating addresses (including vanity addresses) with support for various address formats, querying data on remote bitcoin nodes, and mining data from the bitcoin core database.
+Bitcoin Toolkit is a collection of command line tools that allow you to perform
+a variety of useful bitcoin-related tasks. Some of these tasks include creating
+and manipulating public or private keys, generating addresses (including vanity
+addresses) with support for various formats, querying data on remote bitcoin
+nodes, and mining data from the bitcoin core database.
 
 See the [Usage](#usage) for a quick introduction on the basics of Bitcoin Toolkit.
 
-See the [Command Examples](#command-examples) section for more detailed information about what you can do with this application.
+See the [Command Examples](#command-examples) section for more detailed
+information about what you can do with this application.
 
 Once installed, run `btk help` for a detailed help menu.
 
@@ -22,11 +27,11 @@ Table of Contents
 
 Download and Install
 --------------------
-The following instructions are for unix and linux systems. Windows 10
-users can install this project from within the linux subsystem.
+The following instructions are for unix and linux systems. Windows 10 users can
+install this project from within the linux subsystem.
 
-Be sure that the following dependencies are installed on your system.
-If not, you can install them from your package manager.
+Be sure that the following dependencies are installed on your system. If not,
+you can install them from your package manager.
 
 1. libgmp
 2. libgcrypt
@@ -40,7 +45,11 @@ sudo apt-get install libleveldb-dev
 ```
 
 You will also need `git` along with basic build tools like `make` and
-`gcc`. Be sure these are also installed on your system.
+`gcc`. You can install them with the following command:
+
+```
+sudo apt-get install build-essential
+```
 
 Next, follow these instructions:
 
@@ -65,34 +74,54 @@ Usage
 
 `btk <command> [<args>]`
 
-Bitcoin Toolkit installs a command line tool named `btk` that handles commands and arguments much like git. The first argument is a command and is required. All following arguments are options that relate to the specified command. For example, this will create a new compressed private key in Wallet Import Format(WIF):
+Use the 'help' command to learn about commands and options used is the following
+examples:
+
+`btk help <command>`
+
+Bitcoin Toolkit installs a command line tool named `btk` that handles commands
+and arguments much like git. The first argument is a command and is required.
+All following arguments are options that relate to the specified command. For
+example, this will create a new compressed private key in Wallet Import
+Format(WIF):
 
 ```
-$ btk privkey -n -C -W
+$ btk privkey -nCW
 L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP
 ```
 
-#### Redirecting Input
+#### Supplying Input
 
-If input is required, `btk` works best when the input is redirected with a pipe or other input redirection methods. For example, this will convert the previously generated key from compressed to uncompressed format:
+If input is required, `btk` works best when the output from a previous command
+is redirected with a pipe or other redirection methods. For example, this will
+convert a compressed private key to uncompressed format:
 
 ```
-$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U
+$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -wU
 5JyRvApPpkAtJisBNG2gRteMz3baHoYPRcefov7nDwXuvxBWvVR
 ```
 
 #### Chaining Commands
 
-Using input redirection methods makes it possible to chain together multiple commands which increases the utility and power of Bitcoin Toolkit. Here is the previous example with added redirection to the 'pubkey' command which ultimately prints the uncompressed public key for the private key that we started with.
+Using output redirection allows you to chain together multiple commands
+and increase the utility of Bitcoin Toolkit. Below we take the previous
+example and redirect the output to the 'address' command to generate a
+bitcoin address.
 
 ```
-$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -w -U | btk pubkey
-049f9b6e7577847e24bab3544600c6e4fef8ab6c78ba22635c70e7801db7356efe801da9673b8ec2851b5bd458896cbf12bb14cae34cfc86c02ea8427a6c9050f7
+$ echo "L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP" | btk privkey -wU | btk address -w
+1FEEedNDX5qqCEeL8FFsrjGRYU7akdVMLF
 ```
 
 #### List Processing
 
-Bitcoin Toolkit can process lists as input. Each list item must be separated by a newline character in order to be processed correctly. For example, if I have a file that contains a list of 5 uncompressed private keys:
+Bitcoin Toolkit can process lists as input. Each list item must be separated by
+a newline character in order to be processed correctly. It is also necessary
+that the input format for the list be explicitly specified using the command
+line input options, otherwise btk will treat the whole list as a single string.
+
+For example, if I have a file that contains a list of 5 uncompressed private
+keys...
 
 ```
 $ cat keys.dat
@@ -103,18 +132,17 @@ $ cat keys.dat
 5JHKyY76B9ZkWofh22pXUnCzaTNqbtNhxLwEZUQpFTxsUbXQT1Y
 ```
 
-... I can pipe that list to `btk privkey` to convert all of them to compressed private keys, like so:
+... I can pipe that list to `btk privkey -wC` (-w for WIF input format and -C to
+compress) and convert all of them to compressed private keys, like so:
 
 ```
-$ cat keys.dat | btk privkey -w -C
+$ cat keys.dat | btk privkey -wC
 KyzReizC2wcikbbdJm8bJNSLsCM4yAKA3tG9MvKXL5exVGEUfFXE
 L5Ms83jtu8fstjB7L5bTAfxuACPLcaaKsidyA1b7iwTAu3WfrsKk
 KyUiGiZTJ533YBDumbhX9sPUWqq9GoszQ1HwjssUHtZ85VtsYvg4
 Kz9Ef1U6Ai2VJeZ9kChDdf2WFxEUeL1hJvymfPmiPRCtpKoum7qe
 KyH4kYHsqnoZ4YymdZ2mXcXw8fRPWykomGzNrKz7Yr1bnLaB4yUo
 ```
-
-Note that when working with lists, the input format of the list item MUST be specified (-w for WIF, in this case). Otherwise btk will treat the whole list as a single string for input.
 
 #### Using Help
 
@@ -125,8 +153,9 @@ See `btk help <command>` for a list of options and more info about a command.
 Command Examples
 ----------------
 
-The 'privkey' command can generate and manipulate private keys. Here is how you
-can create a new random private key:
+The 'privkey' command can generate and format private keys. Here is how you
+can create a new (-n) random private key. Note that btk uses /dev/urandom as its
+source of entropy so all keys will be cryptographically secure.
 
 ```
 $ btk privkey -n
@@ -134,24 +163,24 @@ L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 ```
 
 By default, keys are compressed. You can generate an uncompressed private key
-like this:
+with the -U output option:
 
 ```
 $ btk privkey -nU
 5JcNMHpGEVTuCBuhrrAqZtQS3k4PWuSwXYrbNPMq9LEDQA79Pff
 ```
 
-Or you can convert a compressed private key to uncompressed:
+You can also use the -U option with output redirection to convert a compressed
+private key to uncompressed:
 
 ```
-$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -U
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -wU
 5KKLUsJPzHMvNG3AC5gSbkDDJeFdyvPDsNyvbhYER3gjftEDyuA
 ```
 
-You can also convert keys (or generate new keys) to various output formats
-besides WIF (Wallet Import Format), which is used by default when no output
-format is specified. Below are examples where we convert the previous key to hex
-and decimal:
+The output format of WIF (Wallet Import Format) is used by default when no
+output format is supplied at the command line. Use the -H  or -D output options
+to convert a private key to hexidecimal or plain decimal. Here are examples:
 
 ```
 $ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -H
@@ -161,22 +190,20 @@ $ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -D
 89403101665417317652050958343537724738876283665880345081128506555034307196252
 ```
 
-You can even print private keys in their raw 32 byte state, which can be useful
-if you want to store the raw data to a file or database. Then later you can read
-that key data and convert it back to WIF:
+There is also an option to output private keys in their raw 32 byte state, which
+can be useful if you want to store the raw data in a file or database. Then
+later you can read that key data and convert it back to WIF:
 
 ```
-$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -R > key.dat
+$ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -wR > key.dat
 
-$  cat key.dat | btk privkey -r
+$  cat key.dat | btk privkey -rW
 L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 ```
 
-As you can see from the previous example, multiple input formats are also
-supported. In the previous example, -r tells btk to treat input as a raw binary
-key. But we can also use hex and decimal as input as well. In the previous example
-where we converted a key from WIF to hex and decimal, below we convert them back
-to WIF.
+In the previous example, -r tells btk to treat input as a raw binary key. You
+can also use hex (-h) or decimal (-d) values as input as well. Below we convert
+hex and decimal keys back to WIF.
 
 ```
 $ echo "c5a85cc1e10554fdfb9eba1a6e7a188e2da7f497a87494f6b1a4b9778ab0f55c" | btk privkey -hW
@@ -186,22 +213,22 @@ $ echo "894031016654173176520509583435377247388762836658803450811285065550343071
 L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD
 ```
 
-We can also use plain ascii strings of any length as input. When string input
-is used, the string data will be processed through a SHA256 hash algorithm to generate
+You can also use plain ascii strings (-s) as input. When string input is provided,
+the string data will be processed through a SHA256 hash algorithm to generate
 a 32 byte private key. This can be useful if you want to generate a private key
 from a passphrase that you've memorized.
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s
+$ echo "this is my secret passphrase" | btk privkey -sW
 L15VsN6crrGCXS4hqQZa3DF9kT6wr3ZfpDjsBQ1SAGPz6ZDFMjrF
 ```
 
-You can do the same thing with arbitrary length files as well. Just like with
-strings, the raw data from the file will be processed through a SHA256 hash algorithm
-to generate a 32 byte private key:
+You can do the same thing with arbitrary binary (-b) data as well. Just like with
+strings, the raw data from the file will be processed through a SHA256 hash
+algorithm to generate a 32 byte private key:
 
 ```
-$ cat family_photo.jpg | btk privkey -b
+$ cat family_photo.jpg | btk privkey -bW
 L4SsobLicY7NLSozpjTtPiaREZrwCr9URPpbd1mB6SnwcZGirkiQ
 ```
 
@@ -213,61 +240,50 @@ is guessable or determinable in any way, you risk losing all of your funds.
 
 With that said, btk provides an extra layer of
 security that could help you feel slightly more at ease by making it less likely
-that an attacker could guess your input. You can use the -S option to specify
+that an attacker could guess your input. Use the -S option to specify
 the number of times btk should hash your private key. This option requires an
-integer argument which is used as a counter, and for each iteration in the
-count, btk will (re)hash the private key, first using the input you provided,
+integer argument which is used as a counter. For each iteration in the
+count, btk will rehash the private key, first using the input you provided,
 then using its own 32 bytes of raw binary data as input for each time
-thereafter. 
+thereafter.
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978
 L4g1w4WKmumg86gbbJdoP4Yd6UfXsuezDW6GDVcHrQ6Dg3Wsw6mm
 ```
 
-If you feel confident enough to use string or binary inputs, then you
-probably want the actual bitcoin address, not the private key, so you can store
-funds at the address. Then later if you wish to access and move those funds, you
-can generate the private key and import it into your perferred wallet.
+To generate a bitcoin address from your private key, first calculate a public
+key. With that, you can create the address.
 
-To generate a bitcoin address, lets first create a public key, and then with
-that we can create an address. To generate a public key, pipe the private key
-(in WIF format) to the 'pubkey' command:
+It's important to know that a public key is different than an address. A public
+key is literally a pair of x/y coordinates on a graph. A btcoin address is a
+hashed and encoded version of the private key.
+
+To generate the public key, pipe the private key, in WIF format, to the 'pubkey'
+command.
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -w
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk pubkey -w
 037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41
 ```
 
-It's important to know that a public key is different than an address. A public
-key is literally a pair of x/y coordinates on a graph. A compressed public key
-is just a single x coordinate with a flag that indicates how to solve for the y
-corrdinate. The public key in our previous example is compressed. You can use
+The public key in above example is compressed. You can use
 the -U output option with the pubkey command to see what the same public key
 looks like when uncompressed:
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -wU
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk pubkey -wU
 047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf
 ```
 
-The pubkey command can also convert public keys from compressed to uncompressed
-and visa-versa by using the -C (compressed) and -U (uncompressed) output flags:
+For generating bitcoin addresses, however, using a compressed public key is
+typically advised.
+
+Next you can generate a bitcoin address with it. To create a legacy P2PKH
+address, pipe the public key to the 'address' command with the -P output option:
 
 ```
-$ echo "037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41" | btk pubkey -U
-047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf
-
-$ echo "047e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac4142df833da40a484a5414425f0d37871ea9fb1429356ed3412a8674481283f6bf" | btk pubkey -C
-037e9e89304c21779448b1b32867e42a44986ae66576a78b12186a700d36c1ac41
-```
-
-Now that we have the public key, we can generate an address with it. An address
-is just a hash of the public key in base58 encoded format. To generate it, pipe
-the public key to the 'address' command:
-
-```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk pubkey -w | btk address
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk pubkey -w | btk address -P
 1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
@@ -276,16 +292,15 @@ In most cases, generating the address directly from the private key is the way
 you will want to do it:
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk address -P
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk address -P
 1NjE7RpwPmgXmYP9s4hGwCbZ8td9oYEtvc
 ```
 
-The -P output option creates a P2PKH legacy bitcoin address. It is the default
-output option if no other is specified. If you desire, you can create a segwit
-(bech32) address by using the -W output option:
+Instead of a P2PKH, you can also create a segwit (bech32) address by using the
+-W output option:
 
 ```
-$ echo "this is my secret passphrase" | btk privkey -s -S 1978 | btk address -W
+$ echo "this is my secret passphrase" | btk privkey -sW -S 1978 | btk address -W
 bc1qaetsuey7tt9cv3agnfkrrav922t55lwkv5n9qs
 ```
 
@@ -294,8 +309,7 @@ to its speed, except to say that it isn't uniqely fast. But if you are willing t
 wait for what could be days, it will do the job.
 
 To create a vanity address, pipe your vanity string to btk and use the 'vanity'
-command. Below we use -i for a case insensitive match, which I generally suggest
-you use as well.
+command. Below we use -i for a case insensitive match.
 
 ```
 $ echo "btc" | btk vanity -i
