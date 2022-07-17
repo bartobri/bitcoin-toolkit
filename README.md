@@ -74,11 +74,6 @@ Usage
 
 `btk <command> [<args>]`
 
-Use the 'help' command to learn about commands and options used is the following
-examples:
-
-`btk help <command>`
-
 Bitcoin Toolkit installs a command line tool named `btk` that handles commands
 and arguments much like git. The first argument is a command and is required.
 All following arguments are options that relate to the specified command. For
@@ -89,6 +84,17 @@ Format(WIF):
 $ btk privkey -nCW
 L2L4ygLBjjYdTDnUkqLR2rwucnTbwARXyeMGJ5Svc7hScvKzmLcP
 ```
+
+#### Using Help
+
+Use the 'help' command to learn what commands are supported:
+
+`btk help`
+
+Add a command after 'help' to learn more about what options are available for
+that command.
+
+`btk help <command>`
 
 #### Supplying Input
 
