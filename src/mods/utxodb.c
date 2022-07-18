@@ -419,10 +419,10 @@ int utxodb_value_get_address(char *address, UTXODBValue value)
 
         if (utxodb_value_has_uncompressed_pubkey(value))
         {
-            r = pubkey_decompress(pubkey);
+            r = pubkey_uncompress(pubkey);
             if (r < 0)
             {
-                error_log("Can not decompress pubkey.");
+                error_log("Can not uncompress pubkey.");
                 return -1;
             }
         }

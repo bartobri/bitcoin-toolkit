@@ -20,7 +20,7 @@ int pubkey_from_hex(PubKey, char *);
 int pubkey_from_raw(PubKey, unsigned char *, size_t);
 int pubkey_from_guess(PubKey, unsigned char *, size_t);
 int pubkey_compress(PubKey);
-int pubkey_decompress(PubKey);
+int pubkey_uncompress(PubKey);
 int pubkey_is_compressed(PubKey);
 int pubkey_to_hex(char *, PubKey);
 int pubkey_to_raw(unsigned char *, PubKey);

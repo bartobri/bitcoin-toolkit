@@ -226,7 +226,7 @@ int btk_pubkey_main(void)
 			pubkey_compress(key);
 			break;
 		case OUTPUT_UNCOMPRESS:
-			pubkey_decompress(key);
+			pubkey_uncompress(key);
 			break;
 	}
 

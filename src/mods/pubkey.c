@@ -354,7 +354,7 @@ int pubkey_compress(PubKey key)
 	return 1;
 }
 
-int pubkey_decompress(PubKey key)
+int pubkey_uncompress(PubKey key)
 {
 	size_t i, l;
 	Point point;
