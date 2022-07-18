@@ -9,6 +9,6 @@
 #define CAMOUNT_H 1
 
 void camount_compress(uint64_t *, uint64_t);
-void camount_decompress(uint64_t *, uint64_t);
+void camount_uncompress(uint64_t *, uint64_t);
 
 #endif

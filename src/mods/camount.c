@@ -45,7 +45,7 @@ void camount_compress(uint64_t *dest, uint64_t src)
     }
 }
 
-void camount_decompress(uint64_t *dest, uint64_t src)
+void camount_uncompress(uint64_t *dest, uint64_t src)
 {
     int e, d;
     uint64_t n = 0;

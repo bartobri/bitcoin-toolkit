@@ -523,8 +523,8 @@ int utxodb_set_value_from_raw(UTXODBValue value, unsigned char *raw_value, size_
     // pop off the coinbase flag from height.
     value->height = value->height >> 1;
 
-    // Decompress amount
-    camount_decompress(&(value->amount), value->amount);
+    // Uncompress amount
+    camount_uncompress(&(value->amount), value->amount);
 
     return 1;
 }
