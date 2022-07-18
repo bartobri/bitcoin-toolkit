@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-2.0.0-green.svg)
+![Version](https://img.shields.io/badge/Version-2.0.1-green.svg)
 
 Bitcoin Toolkit
 ===============
