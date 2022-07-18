@@ -186,7 +186,7 @@ $ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -wU
 
 The output format of WIF (Wallet Import Format) is used by default when no
 output format is supplied at the command line. Use the -H  or -D output options
-to convert a private key to hexidecimal or plain decimal. Here are examples:
+to convert a private key to hexadecimal or plain decimal. Here are examples:
 
 ```
 $ echo "L3qvz11nTqDLYqNXZuf5zMiuJsRcEEd5oN2Fa9vrD8rPLL1dPDCD" | btk privkey -H
@@ -262,7 +262,7 @@ To generate a bitcoin address from your private key, first calculate a public
 key. With that, you can create the address.
 
 It's important to know that a public key is different than an address. A public
-key is literally a pair of x/y coordinates on a graph. A btcoin address is a
+key is literally a pair of x/y coordinates on a graph. A bitcoin address is a
 hashed and encoded version of the private key.
 
 To generate the public key, pipe the private key, in WIF format, to the 'pubkey'
@@ -311,7 +311,7 @@ bc1qaetsuey7tt9cv3agnfkrrav922t55lwkv5n9qs
 ```
 
 Bitcoin Toolkit can also create vanity addresses, although I make no claim as
-to its speed, except to say that it isn't uniqely fast. But if you are willing to
+to its speed, except to say that it isn't uniquely fast. But if you are willing to
 wait for what could be days, it will do the job.
 
 To create a vanity address, pipe your vanity string to btk and use the 'vanity'
@@ -379,7 +379,7 @@ your bitcoin.conf file and restart bitcoin core. The first time you do this,
 core will build a database containing info for every unspent transaction output
 that currently exists. This takes some time. Once complete, however, btk can
 read and display unspent transaction data from that database. But because bitcoin
-core keeps a persistant lock on the database, you will need to make a copy of
+core keeps a persistent lock on the database, you will need to make a copy of
 the database before you can access it with btk. Luckily, it's only 4.7 gigs at
 the time of this writing, so hopefully you should have extra space for a copy.
 The database is stored in the "chainstate" directory where bitcoin core stores
