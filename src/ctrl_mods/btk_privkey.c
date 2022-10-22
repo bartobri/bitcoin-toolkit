@@ -15,6 +15,7 @@
 #include "mods/network.h"
 #include "mods/input.h"
 #include "mods/error.h"
+#include "mods/json.h"
 
 #define INPUT_NEW               1
 #define INPUT_WIF               2
@@ -382,6 +383,11 @@ int btk_privkey_main(void)
 		}
 	}
 
+	if (output_format != OUTPUT_RAW)
+	{
+		json_init();
+	}
+
 	do
 	{
 		if (output_hashes_arr[N] != NULL)
@@ -414,7 +420,12 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to WIF format.");
 						return -1;
 					}
-					printf("%s", output);
+					r = json_add_string(output, "privkey");
+					if (r < 0)
+					{
+						error_log("Error whole generating JSON.");
+						return -1;
+					}
 					break;
 				case OUTPUT_HEX:
 					r = privkey_to_hex(output, key, output_compression);
@@ -423,7 +434,12 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to hex format.");
 						return -1;
 					}
-					printf("%s", output);
+					r = json_add_string(output, "privkey");
+					if (r < 0)
+					{
+						error_log("Error whole generating JSON.");
+						return -1;
+					}
 					break;
 				case OUTPUT_RAW:
 					r = privkey_to_raw(uc_output, key, output_compression);
@@ -445,7 +461,12 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to decimal format.");
 						return -1;
 					}
-					printf("%s", output);
+					r = json_add_string(output, "privkey");
+					if (r < 0)
+					{
+						error_log("Error whole generating JSON.");
+						return -1;
+					}
 					break;
 			}
 
@@ -472,6 +493,11 @@ int btk_privkey_main(void)
 		while (output_compression == OUTPUT_COMPRESSION_BOTH);
 	}
 	while (output_hashes_arr[N] != NULL);
+
+	if (output_format != OUTPUT_RAW)
+	{
+		json_print();
+	}
 
 	if (input_sc != NULL)
 	{
