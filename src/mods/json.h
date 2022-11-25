@@ -5,11 +5,14 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-#ifndef HEX_H
-#define HEX_H 1
+#ifndef JSON_H
+#define JSON_H 1
+
+#include "mods/cJSON/cJSON.h"
 
 int json_init(void);
-int json_add_string(char *, char *);
 int json_print(void);
+int json_free(void);
+int json_add(char *);
 
 #endif

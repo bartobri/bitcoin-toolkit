@@ -51,7 +51,6 @@ int btk_privkey_output_hashes_comp(const void *, const void *);
 static int input_format       = FALSE;
 static int output_format      = FALSE;
 static int output_compression = FALSE;
-static int output_newline     = TRUE;
 static int output_network     = FALSE;
 static char *output_hashes    = NULL;
 static char *output_hashes_arr[OUTPUT_HASH_MAX];
@@ -63,7 +62,7 @@ int btk_privkey_init(int argc, char *argv[])
 
 	command = argv[1];
 
-	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUNTDMS:")) != -1)
+	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUTDMS:")) != -1)
 	{
 		switch (o)
 		{
@@ -102,7 +101,6 @@ int btk_privkey_init(int argc, char *argv[])
 				break;
 			case 'R':
 				OUTPUT_SET(OUTPUT_RAW);
-				output_newline = FALSE;
 				break;
 			case 'D':
 				OUTPUT_SET(OUTPUT_DEC);
@@ -117,9 +115,6 @@ int btk_privkey_init(int argc, char *argv[])
 				break;
 
 			// Other options
-			case 'N':
-				output_newline = FALSE;
-				break;
 			case 'S':
 				output_hashes = optarg;
 				break;
@@ -177,6 +172,8 @@ int btk_privkey_main(void)
 	char *input_sc = NULL;
 	char output[OUTPUT_BUFFER];
 	unsigned char uc_output[OUTPUT_BUFFER];
+
+	json_init();
 	
 	key = malloc(privkey_sizeof());
 	if (key == NULL)
@@ -194,6 +191,7 @@ int btk_privkey_main(void)
 				error_log("Could not generate a new private key.");
 				return -1;
 			}
+
 			break;
 		case INPUT_WIF:
 			r = input_get_str(&input_sc, NULL);
@@ -383,11 +381,6 @@ int btk_privkey_main(void)
 		}
 	}
 
-	if (output_format != OUTPUT_RAW)
-	{
-		json_init();
-	}
-
 	do
 	{
 		if (output_hashes_arr[N] != NULL)
@@ -420,10 +413,10 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to WIF format.");
 						return -1;
 					}
-					r = json_add_string(output, "privkey");
+					r = json_add(output);
 					if (r < 0)
 					{
-						error_log("Error whole generating JSON.");
+						error_log("Error while generating JSON.");
 						return -1;
 					}
 					break;
@@ -434,10 +427,10 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to hex format.");
 						return -1;
 					}
-					r = json_add_string(output, "privkey");
+					r = json_add(output);
 					if (r < 0)
 					{
-						error_log("Error whole generating JSON.");
+						error_log("Error while generating JSON.");
 						return -1;
 					}
 					break;
@@ -461,19 +454,12 @@ int btk_privkey_main(void)
 						error_log("Could not convert private key to decimal format.");
 						return -1;
 					}
-					r = json_add_string(output, "privkey");
+					r = json_add(output);
 					if (r < 0)
 					{
-						error_log("Error whole generating JSON.");
+						error_log("Error while generating JSON.");
 						return -1;
 					}
-					break;
-			}
-
-			switch (output_newline)
-			{
-				case TRUE:
-					printf("\n");
 					break;
 			}
 
@@ -497,6 +483,7 @@ int btk_privkey_main(void)
 	if (output_format != OUTPUT_RAW)
 	{
 		json_print();
+		json_free();
 	}
 
 	if (input_sc != NULL)

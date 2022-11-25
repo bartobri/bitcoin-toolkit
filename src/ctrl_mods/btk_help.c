@@ -207,10 +207,6 @@ void btk_help_privkey(void)
 	printf("      input data, the MAINNET prefix is used by default. This option is only\n");
 	printf("      useful for converting TESTNET keys to MAINNET.\n");
 	printf("\n");
-	printf("   -N\n");
-	printf("      Do NOT include a (N)ewline character in the output. This may be desirable\n");
-	printf("      if the output is being parsed by a wrapper program.\n");
-	printf("\n");
 	printf("   -S\n");
 	printf("      Hash count. This option requires an integer argument that specifies the\n");
 	printf("      number of times to hash the private key data through a SHA256 hashing\n");
