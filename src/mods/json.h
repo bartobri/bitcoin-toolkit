@@ -11,8 +11,8 @@
 #include "mods/cJSON/cJSON.h"
 
 int json_init(void);
+int json_add(char *);
 int json_print(void);
 int json_free(void);
-int json_add(char *);
 
 #endif

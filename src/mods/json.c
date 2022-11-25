@@ -25,6 +25,22 @@ int json_init(void)
     return 1;
 }
 
+int json_add(char *string)
+{
+    cJSON *json_str;
+
+    json_str = cJSON_CreateString(string);
+    if (json_str == NULL)
+    {
+        error_log("Could not generate JSON string.");
+        return -1;
+    }
+    
+    cJSON_AddItemToArray(json_arr, json_str);
+
+    return 1;
+}
+
 int json_print(void)
 {
     char *json_output;
@@ -46,22 +62,6 @@ int json_print(void)
 int json_free(void)
 {
     cJSON_Delete(json_arr);
-
-    return 1;
-}
-
-int json_add(char *string)
-{
-    cJSON *json_str;
-
-    json_str = cJSON_CreateString(string);
-    if (json_str == NULL)
-    {
-        error_log("Could not generate JSON string.");
-        return -1;
-    }
-    
-    cJSON_AddItemToArray(json_arr, json_str);
 
     return 1;
 }
