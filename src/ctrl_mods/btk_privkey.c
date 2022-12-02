@@ -372,7 +372,6 @@ int btk_privkey_main(void)
 
 		if (output_hashes != NULL)
 		{
-			printf("processing output_hashes for %s\n", input_sc);
 			r = btk_privkey_output_hashes_process(input_sc);
 			if (r < 0)
 			{
