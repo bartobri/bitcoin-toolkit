@@ -19,7 +19,6 @@
 #include "ctrl_mods/btk_addressdb.h"
 #include "ctrl_mods/btk_version.h"
 #include "mods/error.h"
-#include "mods/input.h"
 
 #define BTK_COMMAND_MAX_OPT 100
 
@@ -71,62 +70,57 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	// This loop provides support for list processing
-	do
+	if (strcmp(command, "help") == 0)
 	{
-		if (strcmp(command, "help") == 0)
-		{
-			r = btk_help_main();
-		}
-		else if (strcmp(command, "privkey") == 0)
-		{
-			r = btk_privkey_main();
-		}
-		else if (strcmp(command, "pubkey") == 0)
-		{
-			r = btk_pubkey_main();
-		}
-		else if (strcmp(command, "address") == 0)
-		{
-			r = btk_address_main();
-		}
-		else if (strcmp(command, "vanity") == 0)
-		{
-			r = btk_vanity_main();
-		}
-		else if (strcmp(command, "node") == 0)
-		{
-			r = btk_node_main();
-		}
-		else if (strcmp(command, "utxodb") == 0)
-		{
-			r = btk_utxodb_main();
-		}
-		else if (strcmp(command, "addressdb") == 0)
-		{
-			r = btk_addressdb_main();
-		}
-		else if (strcmp(command, "version") == 0)
-		{
-			r = btk_version_main();
-		}
-		else
-		{
-			error_log("See 'btk help' to read about available commands.");
-			error_log("'%s' is not a valid command.", command);
-			error_log("Error [%s]:", command_str);
-			error_print();
-			return EXIT_FAILURE;
-		}
-
-		if (r < 0)
-		{
-			error_log("Error [%s]:", command_str);
-			error_print();
-			return EXIT_FAILURE;
-		}
+		r = btk_help_main();
 	}
-	while (input_available());
+	else if (strcmp(command, "privkey") == 0)
+	{
+		r = btk_privkey_main();
+	}
+	else if (strcmp(command, "pubkey") == 0)
+	{
+		r = btk_pubkey_main();
+	}
+	else if (strcmp(command, "address") == 0)
+	{
+		r = btk_address_main();
+	}
+	else if (strcmp(command, "vanity") == 0)
+	{
+		r = btk_vanity_main();
+	}
+	else if (strcmp(command, "node") == 0)
+	{
+		r = btk_node_main();
+	}
+	else if (strcmp(command, "utxodb") == 0)
+	{
+		r = btk_utxodb_main();
+	}
+	else if (strcmp(command, "addressdb") == 0)
+	{
+		r = btk_addressdb_main();
+	}
+	else if (strcmp(command, "version") == 0)
+	{
+		r = btk_version_main();
+	}
+	else
+	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("'%s' is not a valid command.", command);
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
+
+	if (r < 0)
+	{
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
 
 	// Run cleanup function
 	r = btk_cleanup(command);
