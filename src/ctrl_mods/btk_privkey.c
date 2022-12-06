@@ -31,7 +31,7 @@
 #define INPUT_SBD               9
 // Input Format
 #define INPUT_JSON              1
-#define INPUT_LIST              2
+#define INPUT_ASCII             2
 #define INPUT_BINARY            3
 // Output Type
 #define OUTPUT_WIF              1
@@ -54,12 +54,14 @@
 #define OUTPUT_HASH_MAX         100
 #define HASH_WILDCARD           "w"
 
+#define INPUT_SET_FORMAT(x)     if (input_format == FALSE) { input_format = x; } else { error_log("Cannot specify ascii input format for binary input types."); return -1; }
 #define INPUT_SET(x)            if (input_type == FALSE) { input_type = x; } else { error_log("Cannot use multiple input type flags."); return -1; }
 #define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { error_log("Cannot use multiple output type flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { output_compression = OUTPUT_COMPRESSION_BOTH; }
 
-int btk_privkey_json_get(PrivKey, char *);
-int btk_privkey_binary_get(PrivKey, unsigned char*, size_t);
+int btk_privkey_get(PrivKey, char *, unsigned char *, size_t);
+//int btk_privkey_json_get(PrivKey, char *);
+//int btk_privkey_binary_get(PrivKey, unsigned char*, size_t);
 int btk_privkey_set_compression(PrivKey);
 int btk_privkey_set_network(PrivKey);
 int btk_privkey_to_output(char *, PrivKey);
@@ -67,8 +69,8 @@ int btk_privkey_output_hashes_process(char *);
 int btk_privkey_output_hashes_comp(const void *, const void *);
 int btk_privkey_rehash(PrivKey, int);
 
-static int input_type         = FALSE;
 static int input_format       = FALSE;
+static int input_type         = FALSE;
 static int output_type        = FALSE;
 static int output_compression = FALSE;
 static int output_network     = FALSE;
@@ -82,7 +84,7 @@ int btk_privkey_init(int argc, char *argv[])
 
 	command = argv[1];
 
-	while ((o = getopt(argc, argv, "nwhrsdbxWHRCUTDMS:")) != -1)
+	while ((o = getopt(argc, argv, "nwhrsdbxaWHCUTDMS:")) != -1)
 	{
 		switch (o)
 		{
@@ -98,7 +100,7 @@ int btk_privkey_init(int argc, char *argv[])
 				break;
 			case 'r':
 				INPUT_SET(INPUT_RAW);
-				input_format = INPUT_BINARY;
+				INPUT_SET_FORMAT(INPUT_BINARY);
 				break;
 			case 's':
 				INPUT_SET(INPUT_STR);
@@ -108,10 +110,15 @@ int btk_privkey_init(int argc, char *argv[])
 				break;
 			case 'b':
 				INPUT_SET(INPUT_BLOB);
-				input_format = INPUT_BINARY;
+				INPUT_SET_FORMAT(INPUT_BINARY);
 				break;
 			case 'x':
 				INPUT_SET(INPUT_SBD);
+				break;
+
+			// Input Format
+			case 'a':
+				INPUT_SET_FORMAT(INPUT_ASCII);
 				break;
 
 			// Output type
@@ -133,17 +140,17 @@ int btk_privkey_init(int argc, char *argv[])
 				COMPRESSION_SET(OUTPUT_UNCOMPRESS);
 				break;
 
-			// Other options
-			case 'S':
-				output_hashes = optarg;
-				break;
-
 			// Network Options
 			case 'T':
 				output_network = OUTPUT_TESTNET;
 				break;
 			case 'M':
 				output_network = OUTPUT_MAINNET;
+				break;
+
+			// Other options
+			case 'S':
+				output_hashes = optarg;
 				break;
 
 			// Unknown option
@@ -203,7 +210,7 @@ int btk_privkey_main(void)
 
 	if (input_format == INPUT_JSON)
 	{
-		if(json_is_valid((char *)input))
+		if(json_is_valid((char *)input, input_len))
 		{
 			r = json_set_input((char *)input);
 			ERROR_CHECK_NEG(r, "Could not load JSON input.");
@@ -219,7 +226,7 @@ int btk_privkey_main(void)
 				r = json_get_input_index(input_str, i);
 				ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
 
-				r = btk_privkey_json_get(key, input_str);
+				r = btk_privkey_get(key, input_str, NULL, 0);
 				ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 
 				r = btk_privkey_set_network(key);
@@ -300,11 +307,15 @@ int btk_privkey_main(void)
 			return -1;
 		}
 	}
+	else if (input_format == INPUT_ASCII)
+	{
+
+	}
 	else if (input_format == INPUT_BINARY)
 	{
 		memset(output_str, 0, BUFSIZ);
 
-		r = btk_privkey_binary_get(key, input, input_len);
+		r = btk_privkey_get(key, NULL, input, input_len);
 		ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 
 		r = btk_privkey_set_compression(key);
@@ -391,101 +402,65 @@ int btk_privkey_cleanup(void)
 	return 1;
 }
 
-int btk_privkey_json_get(PrivKey key, char *input)
+int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t uc_input_len)
 {
 	int r;
 
 	assert(key);
-	assert(input);
+	assert(sc_input || uc_input);
 
 	switch (input_type)
 	{
 		case INPUT_NEW:
 			r = privkey_new(key);
-			if (r < 0)
-			{
-				error_log("Could not generate a new private key.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not generate a new private key.");
 			break;
 		case INPUT_WIF:
-			r = privkey_from_wif(key, input);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
+			r = privkey_from_wif(key, sc_input);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
 		case INPUT_HEX:
-			r = privkey_from_hex(key, input);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
+			r = privkey_from_hex(key, sc_input);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
 		case INPUT_STR:
-			r = privkey_from_str(key, input);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
+			r = privkey_from_str(key, sc_input);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
 		case INPUT_DEC:
-			r = privkey_from_dec(key, input);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
+			r = privkey_from_dec(key, sc_input);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
 		case INPUT_SBD:
-			r = privkey_from_sbd(key, input);
-			if (r < 0)
-			{
-				error_log("Could not calculate private key from input.");
-				return -1;
-			}
+			r = privkey_from_sbd(key, sc_input);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+			break;
+		case INPUT_RAW:
+			r = privkey_from_raw(key, uc_input, uc_input_len);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+			break;
+		case INPUT_BLOB:
+			r = privkey_from_blob(key, uc_input, uc_input_len);
+			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
 		case INPUT_GUESS:
-			error_log("Re-implement guess option to set input type before we get this far.");
-			return -1;
-	}
-
-	if (!key)
-	{
-		error_log("Could not calculate private key from input.");
-		return -1;
+			if (uc_input)
+			{
+				r = privkey_from_guess(key, uc_input, uc_input_len);
+				ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+			}
+			else
+			{
+				r = privkey_from_guess(key, (unsigned char *)sc_input, strlen(sc_input));
+				ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+			}
+			break;
 	}
 
 	if (privkey_is_zero(key))
 	{
 		error_log("Key value cannot be zero.");
 		return -1;
-	}
-
-	return 1;
-}
-
-int btk_privkey_binary_get(PrivKey key, unsigned char *input, size_t input_len)
-{
-	int r;
-
-	assert(key);
-	assert(input);
-
-	switch (input_type)
-	{
-		case INPUT_RAW:
-			r = privkey_from_raw(key, input, input_len);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-
-		case INPUT_BLOB:
-			r = privkey_from_blob(key, input, input_len);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
 	}
 
 	return 1;
