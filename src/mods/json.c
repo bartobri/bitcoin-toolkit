@@ -28,13 +28,13 @@ int json_init(void)
     return 1;
 }
 
-int json_is_valid(char *string)
+int json_is_valid(char *string, size_t len)
 {
     assert(string);
 
     cJSON *tmp;
 
-    tmp = cJSON_Parse(string);
+    tmp = cJSON_ParseWithLength(string, len);
     if (tmp == NULL)
     {
         return 0;
