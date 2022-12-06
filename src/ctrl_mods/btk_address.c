@@ -183,7 +183,7 @@ int btk_address_main(void)
             break;
 
         case INPUT_GUESS:
-            r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
+            r = input_get_old(&input_uc, NULL, INPUT_GET_MODE_ALL);
             if (r < 0)
             {
                 error_log("Could not get input.");

@@ -14,8 +14,55 @@
 #include <sys/select.h>
 #include <time.h>
 #include <errno.h>
-#include "input.h"
-#include "error.h"
+#include "mods/input.h"
+#include "mods/error.h"
+
+int input_get(unsigned char **input, size_t *len)
+{
+	ssize_t r;
+	size_t i = 0;
+	size_t mem_size = BUFSIZ;
+	unsigned char c;
+
+	(*input) = malloc(mem_size);
+	if ((*input) == NULL)
+	{
+		error_log("Memory allocation error.");
+		return -1;
+	}
+
+	memset((*input), 0, mem_size);
+
+	r = read(STDIN_FILENO, &c, 1);
+	for (i = 0; r > 0; i++)
+	{
+		if (i == mem_size)
+		{
+			mem_size += BUFSIZ;
+			(*input) = realloc((*input), mem_size);
+			if ((*input) == NULL)
+			{
+				error_log("Memory allocation error.");
+				return -1;
+			}
+			memset((*input) + i, 0, BUFSIZ);
+		}
+
+		(*input)[i] = c;
+
+		r = read(STDIN_FILENO, &c, 1);
+	}
+
+	if (r < 0)
+	{
+		error_log("Input read error. Errno: %i", errno);
+		return -1;
+	}
+
+	*len = i;
+
+	return 1;
+}
 
 int input_available(void)
 {
@@ -63,7 +110,7 @@ int input_available(void)
 	return 0;
 }
 
-int input_get(unsigned char** dest, char *prompt, int mode)
+int input_get_old(unsigned char** dest, char *prompt, int mode)
 {
 	int i, r, input_len;
 	fd_set input_stream;
@@ -173,7 +220,7 @@ int input_get_str(char** dest, char *prompt)
 	int r, i, input_len;
 	unsigned char *input;
 
-	r = input_get(&input, prompt, INPUT_GET_MODE_LINE);
+	r = input_get_old(&input, prompt, INPUT_GET_MODE_LINE);
 	if (r < 0)
 	{
 		error_log("Could not get input.");
@@ -237,7 +284,7 @@ int input_get_from_pipe(unsigned char** dest)
 		return -1;
 	}
 
-	r = input_get(dest, NULL, INPUT_GET_MODE_ALL);
+	r = input_get_old(dest, NULL, INPUT_GET_MODE_ALL);
 	if (r < 0)
 	{
 		error_log("Could not get input.");

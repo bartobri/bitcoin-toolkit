@@ -178,12 +178,6 @@ void btk_help_privkey(void)
 	printf("      explicitely used, in which case the compression flag will be represented\n");
 	printf("      in the 65th and 66th characters of the string.\n");
 	printf("\n");
-	printf("   -R\n");
-	printf("      Print private key in (R)aw binary format. Output will be 32 bytes of\n");
-	printf("      binary data. Output will NOT contain a compression flag unless a\n");
-	printf("      compression option is explicitely used, in which case the compression\n");
-	printf("      flag will be represented in 33rd byte.\n");
-	printf("\n");
 	printf("   -D\n");
 	printf("      Print private key in (D)ecimal format. This is the literal decimal\n");
 	printf("      equivalent  of the 32 byte private key, which in most cases will be a\n");
