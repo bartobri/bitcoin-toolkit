@@ -209,6 +209,39 @@ int btk_privkey_main(void)
 
 	json_init();
 
+	if (input_format == INPUT_ASCII)
+	{
+		memset(input_str, 0, BUFSIZ);
+
+		for (i = 0; i < input_len; i++)
+		{
+			if (isascii(input[i]))
+			{
+				input_str[i] = input[i];
+			}
+			else
+			{
+				error_log("Input contains non-ascii characters.");
+				return -1;
+			}
+		}
+
+		while (input_str[input_len-1] == '\n' || input_str[input_len-1] == '\r')
+		{
+			input_str[input_len-1] = '\0';
+			input_len--;
+		}
+
+		free(input);
+
+		r = json_from_string((char **)&input, input_str);
+		ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
+
+		input_len = strlen((char *)input);
+
+		input_format = INPUT_JSON;
+	}
+
 	if (input_format == INPUT_JSON)
 	{
 		if(json_is_valid((char *)input, input_len))
@@ -306,98 +339,6 @@ int btk_privkey_main(void)
 		{
 			error_log("Invalid JSON. Input must be in JSON format.");
 			return -1;
-		}
-	}
-	else if (input_format == INPUT_ASCII)
-	{
-		memset(input_str, 0, BUFSIZ);
-		memset(output_str, 0, BUFSIZ);
-
-		for (i = 0; i < input_len; i++)
-		{
-			if (isascii(input[i]))
-			{
-				input_str[i] = input[i];
-			}
-			else
-			{
-				error_log("Input contains non-ascii characters.");
-				return -1;
-			}
-		}
-
-		while (input_str[input_len-1] == '\n' || input_str[input_len-1] == '\r')
-		{
-			input_str[input_len-1] = '\0';
-			input_len--;
-		}
-
-		r = btk_privkey_get(key, input_str, NULL, 0);
-		ERROR_CHECK_NEG(r, "Could not get privkey from input.");
-
-		r = btk_privkey_set_compression(key);
-		ERROR_CHECK_NEG(r, "Could not set key compression.");
-		
-		r = btk_privkey_set_network(key);
-		ERROR_CHECK_NEG(r, "Could not set key network.");
-
-		if (output_hashes != NULL)
-		{
-			r = btk_privkey_output_hashes_process(input_str);
-			ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
-
-			for(i = 0; output_hashes_arr[i] != NULL; i++)
-			{
-				memset(output_str, 0, BUFSIZ);
-
-				r = btk_privkey_rehash(key, i);
-				ERROR_CHECK_NEG(r, "Unable to rehash private key.");
-
-				r = btk_privkey_set_compression(key);
-				ERROR_CHECK_NEG(r, "Could not set key compression.");
-
-				r = btk_privkey_to_output(output_str, key);
-				ERROR_CHECK_NEG(r, "Could not get output.");
-
-				r = json_add(output_str);
-				ERROR_CHECK_NEG(r, "Error while generating JSON.");
-
-				if (output_compression == OUTPUT_COMPRESSION_BOTH)
-				{
-					memset(output_str, 0, BUFSIZ);
-
-					r = btk_privkey_set_compression(key);
-					ERROR_CHECK_NEG(r, "Could not set key compression.");
-
-					r = btk_privkey_to_output(output_str, key);
-					ERROR_CHECK_NEG(r, "Could not get output.");
-
-					r = json_add(output_str);
-					ERROR_CHECK_NEG(r, "Error while generating JSON.");
-				}
-			}
-		}
-		else
-		{
-			r = btk_privkey_to_output(output_str, key);
-			ERROR_CHECK_NEG(r, "Could not get output.");
-
-			r = json_add(output_str);
-			ERROR_CHECK_NEG(r, "Error while generating JSON.");
-
-			if (output_compression == OUTPUT_COMPRESSION_BOTH)
-			{
-				memset(output_str, 0, BUFSIZ);
-
-				r = btk_privkey_set_compression(key);
-				ERROR_CHECK_NEG(r, "Could not set key compression.");
-
-				r = btk_privkey_to_output(output_str, key);
-				ERROR_CHECK_NEG(r, "Could not get output.");
-
-				r = json_add(output_str);
-				ERROR_CHECK_NEG(r, "Error while generating JSON.");
-			}
 		}
 	}
 	else if (input_format == INPUT_BINARY)

@@ -28,6 +28,41 @@ int json_init(void)
     return 1;
 }
 
+int json_from_string(char ** output, char *input)
+{
+    assert (input);
+
+    cJSON *arr;
+    cJSON *str;
+
+    arr = cJSON_CreateArray();
+    if (arr == NULL)
+    {
+        error_log("Could not create JSON array object.");
+        return -1;
+    }
+
+    str = cJSON_CreateString(input);
+    if (str == NULL)
+    {
+        error_log("Could not generate JSON string.");
+        return -1;
+    }
+    
+    cJSON_AddItemToArray(arr, str);
+
+    *output = cJSON_Print(arr);
+    if (*output == NULL)
+    {
+        error_log("Could not print JSON string.");
+        return -1;
+    }
+
+    cJSON_Delete(arr);
+
+    return 1;
+}
+
 int json_is_valid(char *string, size_t len)
 {
     assert(string);
