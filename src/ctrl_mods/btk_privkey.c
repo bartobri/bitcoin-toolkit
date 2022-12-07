@@ -59,9 +59,8 @@
 #define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { error_log("Cannot use multiple output type flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { output_compression = OUTPUT_COMPRESSION_BOTH; }
 
+int btk_privkey_input_to_json(unsigned char **, size_t *);
 int btk_privkey_get(PrivKey, char *, unsigned char *, size_t);
-//int btk_privkey_json_get(PrivKey, char *);
-//int btk_privkey_binary_get(PrivKey, unsigned char*, size_t);
 int btk_privkey_set_compression(PrivKey);
 int btk_privkey_set_network(PrivKey);
 int btk_privkey_to_output(char *, PrivKey);
@@ -211,33 +210,8 @@ int btk_privkey_main(void)
 
 	if (input_format == INPUT_ASCII)
 	{
-		memset(input_str, 0, BUFSIZ);
-
-		for (i = 0; i < input_len; i++)
-		{
-			if (isascii(input[i]))
-			{
-				input_str[i] = input[i];
-			}
-			else
-			{
-				error_log("Input contains non-ascii characters.");
-				return -1;
-			}
-		}
-
-		while (input_str[input_len-1] == '\n' || input_str[input_len-1] == '\r')
-		{
-			input_str[input_len-1] = '\0';
-			input_len--;
-		}
-
-		free(input);
-
-		r = json_from_string((char **)&input, input_str);
+		r = btk_privkey_input_to_json(&input, &input_len);
 		ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
-
-		input_len = strlen((char *)input);
 
 		input_format = INPUT_JSON;
 	}
@@ -429,6 +403,43 @@ int btk_privkey_main(void)
 
 int btk_privkey_cleanup(void)
 {
+	return 1;
+}
+
+int btk_privkey_input_to_json(unsigned char **input, size_t *input_len)
+{
+	int r;
+	size_t i;
+	char str[BUFSIZ];
+
+	memset(str, 0, BUFSIZ);
+
+	for (i = 0; i < *input_len; i++)
+	{
+		if (isascii((*input)[i]))
+		{
+			str[i] = (*input)[i];
+		}
+		else
+		{
+			error_log("Input contains non-ascii characters.");
+			return -1;
+		}
+	}
+
+	while (str[(*input_len)-1] == '\n' || str[(*input_len)-1] == '\r')
+	{
+		str[(*input_len)-1] = '\0';
+		(*input_len)--;
+	}
+
+	free(*input);
+
+	r = json_from_string((char **)input, str);
+	ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
+
+	*input_len = strlen((char *)*input);
+
 	return 1;
 }
 
