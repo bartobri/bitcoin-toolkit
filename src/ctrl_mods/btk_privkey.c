@@ -650,6 +650,9 @@ int btk_privkey_output_hashes_process(char *input_str)
 				output_hashes_arr[N-1] = NULL;
 			}
 		}
+
+		// Sort a second time now that the wildcard has been substituted
+		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
 	}
 
 	// Undo the strtok changes to output_hashes for use in next item in input
