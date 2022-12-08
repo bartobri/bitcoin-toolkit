@@ -61,7 +61,8 @@
 
 int btk_privkey_input_to_json(unsigned char **, size_t *);
 int btk_privkey_get(PrivKey, char *, unsigned char *, size_t);
-int btk_privkey_args_and_add(PrivKey);
+int btk_privkey_hashes_args_add(PrivKey, char *);
+int btk_privkey_args_add(PrivKey);
 int btk_privkey_set_compression(PrivKey);
 int btk_privkey_set_network(PrivKey);
 int btk_privkey_to_output(char *, PrivKey);
@@ -193,12 +194,14 @@ int btk_privkey_init(int argc, char *argv[])
 
 int btk_privkey_main(void)
 {
-	size_t i, j, len;
+	size_t i, len;
 	int r;
 	PrivKey key = NULL;
 	unsigned char *input; 
 	size_t input_len;
 	char input_str[BUFSIZ];
+
+	memset(input_str, 0, BUFSIZ);
 
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
@@ -238,27 +241,12 @@ int btk_privkey_main(void)
 
 				if (output_hashes != NULL)
 				{
-					r = btk_privkey_output_hashes_process(input_str);
-					ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
-					if (r == 0)
-					{
-						// TODO - check that this logic is correct
-						// Maybe i should treat this as a zero rehash instead.
-						continue;
-					}
-
-					for(j = 0; output_hashes_arr[j] != NULL; j++)
-					{
-						r = btk_privkey_rehash(key, j);
-						ERROR_CHECK_NEG(r, "Unable to rehash private key.");
-
-						r = btk_privkey_args_and_add(key);
-						ERROR_CHECK_NEG(r, "");
-					}
+					r = btk_privkey_hashes_args_add(key, input_str);
+					ERROR_CHECK_NEG(r, "");
 				}
 				else
 				{
-					r = btk_privkey_args_and_add(key);
+					r = btk_privkey_args_add(key);
 					ERROR_CHECK_NEG(r, "");
 				}
 			}
@@ -276,27 +264,12 @@ int btk_privkey_main(void)
 
 		if (output_hashes != NULL)
 		{
-			r = btk_privkey_output_hashes_process(input_str);
-			ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
-			if (r == 0)
-			{
-				// TODO - check that this logic is correct
-				// Maybe i should treat this as a zero rehash instead.
-				return 1;
-			}
-
-			for(i = 0; output_hashes_arr[i] != NULL; i++)
-			{
-				r = btk_privkey_rehash(key, i);
-				ERROR_CHECK_NEG(r, "Unable to rehash private key.");
-
-				r = btk_privkey_args_and_add(key);
-				ERROR_CHECK_NEG(r, "");
-			}
+			r = btk_privkey_hashes_args_add(key, (char *)NULL);
+			ERROR_CHECK_NEG(r, "");
 		}
 		else
 		{
-			r = btk_privkey_args_and_add(key);
+			r = btk_privkey_args_add(key);
 			ERROR_CHECK_NEG(r, "");
 		}
 	}
@@ -420,7 +393,32 @@ int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t
 	return 1;
 }
 
-int btk_privkey_args_and_add(PrivKey key)
+int btk_privkey_hashes_args_add(PrivKey key, char *input_str)
+{
+	int r, i;
+
+	r = btk_privkey_output_hashes_process(input_str);
+	ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
+	if (r == 0)
+	{
+		// TODO - check that this logic is correct
+		// Maybe i should treat this as a zero rehash instead.
+		return 0;
+	}
+
+	for(i = 0; output_hashes_arr[i] != NULL; i++)
+	{
+		r = btk_privkey_rehash(key, i);
+		ERROR_CHECK_NEG(r, "Unable to rehash private key.");
+
+		r = btk_privkey_args_add(key);
+		ERROR_CHECK_NEG(r, "");
+	}
+
+	return 1;
+}
+
+int btk_privkey_args_add(PrivKey key)
 {
 	int r;
 	char output_str[BUFSIZ];
