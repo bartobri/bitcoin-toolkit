@@ -575,18 +575,17 @@ int btk_privkey_output_hashes_process(char *input_str)
 				return -1;
 			}
 
-			tmp = strtol(input_str, &tokend, 10);
-			if (tmp > 0)
+			tokend = input_str;
+			while (*tokend != '\0')
 			{
-				output_hashes_arr[i++] = tmp;
-			}
-			while (strcmp(tokend, "") != 0)
-			{
-				input_str = tokend + 1;
 				tmp = strtol(input_str, &tokend, 10);
 				if (tmp > 0)
 				{
 					output_hashes_arr[i++] = tmp;
+				}
+				if (*tokend != '\0')
+				{
+					input_str = tokend + 1;
 				}
 			}
 
