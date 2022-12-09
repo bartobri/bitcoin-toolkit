@@ -249,7 +249,7 @@ int btk_privkey_main(void)
 		}
 		else
 		{
-			error_log("Invalid JSON. Input must be in JSON format.");
+			error_log("Invalid JSON. Input must be in JSON format or specify a non-JSON input format.");
 			return -1;
 		}
 	}
