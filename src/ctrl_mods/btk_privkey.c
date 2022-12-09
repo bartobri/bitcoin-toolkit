@@ -202,71 +202,90 @@ int btk_privkey_main(void)
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
 
-	r = input_get(&input, &input_len);
-	ERROR_CHECK_NEG(r, "Error getting input.");
-
 	json_init();
 
-	if (input_format == INPUT_ASCII)
+	if (input_type == INPUT_NEW)
 	{
-		r = btk_privkey_input_to_json(&input, &input_len);
-		ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
-
-		input_format = INPUT_JSON;
-	}
-
-	if (input_format == INPUT_JSON)
-	{
-		if(json_is_valid((char *)input, input_len))
-		{
-			r = json_set_input((char *)input);
-			ERROR_CHECK_NEG(r, "Could not load JSON input.");
-
-			r = json_get_input_len((int *)&len);
-			ERROR_CHECK_NEG(r, "Could not get input list length.");
-
-			for (i = 0; i < len; i++)
-			{
-				memset(input_str, 0, BUFSIZ);
-
-				r = json_get_input_index(input_str, i);
-				ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
-
-				r = btk_privkey_get(key, input_str, NULL, 0);
-				ERROR_CHECK_NEG(r, "Could not get privkey from input.");
-
-				if (output_hashes != NULL)
-				{
-					r = btk_privkey_hashes_args_add(key, input_str);
-					ERROR_CHECK_NEG(r, "");
-				}
-				else
-				{
-					r = btk_privkey_args_add(key);
-					ERROR_CHECK_NEG(r, "");
-				}
-			}
-		}
-		else
-		{
-			error_log("Invalid JSON. Input must be in JSON format or specify a non-JSON input format.");
-			return -1;
-		}
-	}
-	else if (input_format == INPUT_BINARY)
-	{
-		r = btk_privkey_get(key, NULL, input, input_len);
-		ERROR_CHECK_NEG(r, "Could not get privkey from input.");
+		r = privkey_new(key);
+		ERROR_CHECK_NEG(r, "Could not generate a new private key.");
 
 		if (output_hashes != NULL)
 		{
-			r = btk_privkey_hashes_args_add(key, (char *)NULL);
+			r = btk_privkey_hashes_args_add(key, input_str);
 			ERROR_CHECK_NEG(r, "");
 		}
 		else
 		{
 			r = btk_privkey_args_add(key);
 			ERROR_CHECK_NEG(r, "");
+		}
+	}
+	else
+	{
+		r = input_get(&input, &input_len);
+		ERROR_CHECK_NEG(r, "Error getting input.");
+
+		if (input_format == INPUT_ASCII)
+		{
+			r = btk_privkey_input_to_json(&input, &input_len);
+			ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
+
+			input_format = INPUT_JSON;
+		}
+
+		if (input_format == INPUT_JSON)
+		{
+			if(json_is_valid((char *)input, input_len))
+			{
+				r = json_set_input((char *)input);
+				ERROR_CHECK_NEG(r, "Could not load JSON input.");
+
+				r = json_get_input_len((int *)&len);
+				ERROR_CHECK_NEG(r, "Could not get input list length.");
+
+				for (i = 0; i < len; i++)
+				{
+					memset(input_str, 0, BUFSIZ);
+
+					r = json_get_input_index(input_str, i);
+					ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
+
+					r = btk_privkey_get(key, input_str, NULL, 0);
+					ERROR_CHECK_NEG(r, "Could not get privkey from input.");
+
+					if (output_hashes != NULL)
+					{
+						r = btk_privkey_hashes_args_add(key, input_str);
+						ERROR_CHECK_NEG(r, "");
+					}
+					else
+					{
+						r = btk_privkey_args_add(key);
+						ERROR_CHECK_NEG(r, "");
+					}
+				}
+			}
+			else
+			{
+				error_log("Invalid JSON. Input must be in JSON format or specify a non-JSON input format.");
+				return -1;
+			}
+		}
+		else if (input_format == INPUT_BINARY)
+		{
+			r = btk_privkey_get(key, NULL, input, input_len);
+			ERROR_CHECK_NEG(r, "Could not get privkey from input.");
+
+			if (output_hashes != NULL)
+			{
+				r = btk_privkey_hashes_args_add(key, (char *)NULL);
+				ERROR_CHECK_NEG(r, "");
+			}
+			else
+			{
+				r = btk_privkey_args_add(key);
+				ERROR_CHECK_NEG(r, "");
+			}
 		}
 	}
 
