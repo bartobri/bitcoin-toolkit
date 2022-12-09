@@ -76,11 +76,12 @@ static int output_type        = FALSE;
 static int output_compression = FALSE;
 static int output_network     = FALSE;
 static char *output_hashes    = NULL;
-static char *output_hashes_arr[OUTPUT_HASH_MAX];
+static long int output_hashes_arr[OUTPUT_HASH_MAX];
+static int output_hashes_arr_len = 0;
 
 int btk_privkey_init(int argc, char *argv[])
 {
-	int o, i;
+	int o;
 	char *command = NULL;
 
 	command = argv[1];
@@ -182,11 +183,6 @@ int btk_privkey_init(int argc, char *argv[])
 	if (output_type == FALSE)
 	{
 		output_type = OUTPUT_WIF;
-	}
-
-	for (i = 0; i < OUTPUT_HASH_MAX; i++)
-	{
-		output_hashes_arr[i] = NULL;
 	}
 
 	return 1;
@@ -406,7 +402,7 @@ int btk_privkey_hashes_args_add(PrivKey key, char *input_str)
 		return 0;
 	}
 
-	for(i = 0; output_hashes_arr[i] != NULL; i++)
+	for(i = 0; i < output_hashes_arr_len; i++)
 	{
 		r = btk_privkey_rehash(key, i);
 		ERROR_CHECK_NEG(r, "Unable to rehash private key.");
@@ -546,113 +542,80 @@ int btk_privkey_to_output(char *output, PrivKey key)
 
 int btk_privkey_output_hashes_process(char *input_str)
 {
-	size_t i, j, len, N = 0;
-	size_t output_hashes_len = 0;
-	char *wild = NULL;
+	int i, j;
+	int output_hashes_len = 0;
+	char *tok;
+	char *tokend;
+	long int tmp;
 
 	// Save a pointer to the start of output_hashes so that it can be reset
-	// after processing.
+	// for list processing.
 	output_hashes_len = strlen(output_hashes);
 
-	if (output_hashes != NULL)
+	i = 0;
+	tok = strtok(output_hashes, ",");
+	while (tok != NULL)
 	{
-		// Parsing string
-		output_hashes_arr[N] = strtok(output_hashes, ",");
-		while (output_hashes_arr[N] != NULL)
+		tmp = strtol(tok, &tokend, 10);
+		if (strcmp(tokend, "") == 0)
 		{
-			output_hashes_arr[++N] = strtok(NULL, ",");
-		}
-
-		// Valid token check
-		for (i = 0; i < N; i++)
-		{
-			if (output_hashes_arr[i][0] == '-')
+			if (tmp < 0)
 			{
-				error_log("Argument cannot contain a negative number: %s", output_hashes_arr[i]);
+				error_log("Argument cannot contain a negative number: %ld", tmp);
 				return -1;
 			}
-			else if (strcmp(output_hashes_arr[i], HASH_WILDCARD) == 0)
-			{
-				if (input_type != INPUT_STR && input_type != INPUT_DEC)
-				{
-					error_log("Can not use wildcard '%s' with current input mode.", output_hashes_arr[i]);
-					return -1;
-				}
 
-				for (j = strlen(input_str); isdigit(input_str[j-1]); j--)
-				{
-					if (j == 0)
-					{
-						break;
-					}
-				}
-				if (strlen(input_str + j) > 0)
-				{
-					wild = input_str + j;
-				}
-			}
-			else
-			{
-				len = strlen(output_hashes_arr[i]);
-				for (j = 0; j < len; j++)
-				{
-					if (!isdigit(output_hashes_arr[i][j]))
-					{
-						error_log("Argument contains unexpected character: %c", output_hashes_arr[i][j]);
-						return -1;
-					}
-				}
-			}
+			output_hashes_arr[i++] = tmp;
 		}
-
-		// Max number for wildcard is 1000000. Ignore anything greater.
-		if (wild != NULL && atoi(wild) > 1000000)
+		else if (strcmp(tok, HASH_WILDCARD) == 0)
 		{
-			wild = NULL;
-		}
-
-		// Duplicate check
-		for (i = 0; i < N; i++)
-		{
-			for (j = i + 1; j < N; j++)
+			if (input_type != INPUT_STR && input_type != INPUT_DEC)
 			{
-				if (strcmp(output_hashes_arr[i], output_hashes_arr[j]) == 0)
+				error_log("Can not use wildcard '%s' with current input mode.", HASH_WILDCARD);
+				return -1;
+			}
+
+			tmp = strtol(input_str, &tokend, 10);
+			if (tmp > 0)
+			{
+				output_hashes_arr[i++] = tmp;
+			}
+			while (strcmp(tokend, "") != 0)
+			{
+				input_str = tokend + 1;
+				tmp = strtol(input_str, &tokend, 10);
+				if (tmp > 0)
 				{
-					error_log("Argument cannot contain duplicate numbers: %s", output_hashes_arr[i]);
-					return -1;
+					output_hashes_arr[i++] = tmp;
 				}
 			}
-			if (wild != NULL && strcmp(output_hashes_arr[i], wild) == 0)
-			{
-				wild = NULL;
-			}
+
 		}
-
-		// Sort
-		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
-
-		// If all we have is a wildcard and no wildcard value,
-		// return zero which tells the caller not to print any output.
-		if (strcmp(output_hashes_arr[0], HASH_WILDCARD) == 0 && wild == NULL)
+		else
 		{
-			return 0;
+			error_log("Invalid rehash argument: '%s'. Must be numbers only.", tok);
+			return -1;
 		}
 
-		// Wildcard substitute
-		if (strcmp(output_hashes_arr[N-1], HASH_WILDCARD) == 0)
+		tok = strtok(NULL, ",");
+	}
+
+	qsort(output_hashes_arr, i, sizeof(long int), btk_privkey_output_hashes_comp);
+
+	output_hashes_arr_len = i;
+
+	// Get rid of dups
+	for (i = 0; i < output_hashes_arr_len-1; i++)
+	{
+		if (output_hashes_arr[i] == output_hashes_arr[i+1])
 		{
-			if (wild != NULL)
+			for (j = i; j < output_hashes_arr_len-1; j++)
 			{
-				output_hashes_arr[N-1] = wild;
+				output_hashes_arr[j] = output_hashes_arr[j+1];
 			}
-			else
-			{
-				output_hashes_arr[N-1] = NULL;
-			}
+			output_hashes_arr_len--;
+			i--;
 		}
-
-		// Sort a second time now that the wildcard has been substituted
-		qsort(output_hashes_arr, N, sizeof(char *), btk_privkey_output_hashes_comp);
 	}
 
 	// Undo the strtok changes to output_hashes for use in next item in input
@@ -670,25 +633,18 @@ int btk_privkey_output_hashes_process(char *input_str)
 
 int btk_privkey_output_hashes_comp(const void *i, const void *j)
 {
-	if (strcmp(*(char **)i, HASH_WILDCARD) == 0)
-	{
-		return 1;
-	}
-	if (strcmp(*(char **)j, HASH_WILDCARD) == 0)
-	{
-		return -1;
-	}
-	return (atoi(*(char **)i) - atoi(*(char **)j));
+	return (*(long int *)i - *(long int *)j);
 }
 
 int btk_privkey_rehash(PrivKey key, int i)
 {
-	int r, hash_count;
+	int r;
+	long int hash_count;
 
-	hash_count = atoi(output_hashes_arr[i]);
+	hash_count = output_hashes_arr[i];
 	if (i > 0)
 	{
-		hash_count -= atoi(output_hashes_arr[i-1]);
+		hash_count -= output_hashes_arr[i-1];
 	}
 
 	while (hash_count > 0)
