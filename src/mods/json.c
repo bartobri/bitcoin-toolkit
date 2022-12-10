@@ -82,6 +82,11 @@ int json_is_valid(char *string, size_t len)
 
 int json_set_input(char *input)
 {
+    int i, len;
+    char str[BUFSIZ];
+    cJSON *item;
+    cJSON *new_item;
+
     assert (input);
 
     json_input = cJSON_Parse(input);
@@ -95,6 +100,28 @@ int json_set_input(char *input)
     {
         error_log("JSON must be an array.");
         return -1;
+    }
+
+    len = cJSON_GetArraySize(json_input);
+    for (i = 0; i < len; i++)
+    {
+        item = cJSON_GetArrayItem(json_input, i);
+        if (cJSON_IsNumber(item))
+        {
+            memset(str, 0, BUFSIZ);
+            snprintf(str, BUFSIZ, "%d", item->valueint);
+            new_item = cJSON_CreateString(str);
+            if (new_item == NULL)
+            {
+                error_log("Could not convert number to JSON string.");
+                return -1;
+            }
+            cJSON_ReplaceItemInArray(json_input, i, new_item);
+        }
+        else
+        {
+            cJSON_Delete(item);
+        }
     }
 
     return 1;
