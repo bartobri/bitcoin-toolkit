@@ -314,6 +314,11 @@ int btk_privkey_input_to_json(unsigned char **input, size_t *input_len)
 
 	for (i = 0; i < *input_len; i++)
 	{
+		if (i > BUFSIZ-1)
+		{
+			error_log("Input string too large. Consider using -b for arbitrarily large abouts of input data.");
+			return -1;
+		}
 		if (isascii((*input)[i]))
 		{
 			str[i] = (*input)[i];
@@ -331,6 +336,7 @@ int btk_privkey_input_to_json(unsigned char **input, size_t *input_len)
 		(*input_len)--;
 	}
 
+	// Free input here because json_from_string reallocates it.
 	free(*input);
 
 	r = json_from_string((char **)input, str);
