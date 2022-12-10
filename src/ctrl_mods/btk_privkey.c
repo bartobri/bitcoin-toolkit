@@ -604,6 +604,10 @@ int btk_privkey_output_hashes_process(char *input_str)
 				{
 					output_hashes_arr[i++] = tmp;
 				}
+				else if (tmp < 0)
+				{
+					output_hashes_arr[i++] = labs(tmp);
+				}
 				if (*tokend != '\0')
 				{
 					input_str = tokend + 1;
