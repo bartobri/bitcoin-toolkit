@@ -414,18 +414,20 @@ int btk_privkey_hashes_args_add(PrivKey key, char *input_str)
 
 	r = btk_privkey_output_hashes_process(input_str);
 	ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
-	if (r == 0)
+
+	if (output_hashes_arr_len > 0)
 	{
-		// TODO - check that this logic is correct
-		// Maybe i should treat this as a zero rehash instead.
-		return 0;
+		for(i = 0; i < output_hashes_arr_len; i++)
+		{
+			r = btk_privkey_rehash(key, i);
+			ERROR_CHECK_NEG(r, "Unable to rehash private key.");
+
+			r = btk_privkey_args_add(key);
+			ERROR_CHECK_NEG(r, "");
+		}
 	}
-
-	for(i = 0; i < output_hashes_arr_len; i++)
+	else
 	{
-		r = btk_privkey_rehash(key, i);
-		ERROR_CHECK_NEG(r, "Unable to rehash private key.");
-
 		r = btk_privkey_args_add(key);
 		ERROR_CHECK_NEG(r, "");
 	}
