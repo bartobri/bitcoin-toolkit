@@ -116,7 +116,7 @@ int json_set_input(char *input)
         if (cJSON_IsNumber(item))
         {
             memset(str, 0, BUFSIZ);
-            snprintf(str, BUFSIZ, "%d", item->valueint);
+            snprintf(str, BUFSIZ-1, "%d", item->valueint);
             new_item = cJSON_CreateString(str);
             if (new_item == NULL)
             {
