@@ -118,10 +118,6 @@ int json_set_input(char *input)
             }
             cJSON_ReplaceItemInArray(json_input, i, new_item);
         }
-        else
-        {
-            cJSON_Delete(item);
-        }
     }
 
     return 1;
@@ -183,6 +179,24 @@ int json_print(void)
     char *json_output;
 
     json_output = cJSON_Print(json_arr);
+    if (json_output == NULL)
+    {
+        error_log("Could not print JSON string.");
+        return -1;
+    }
+
+    printf("%s\n", json_output);
+
+    free(json_output);
+
+    return 1;
+}
+
+int json_print_input(void)
+{
+    char *json_output;
+
+    json_output = cJSON_Print(json_input);
     if (json_output == NULL)
     {
         error_log("Could not print JSON string.");

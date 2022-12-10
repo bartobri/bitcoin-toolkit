@@ -14,6 +14,7 @@ int json_init(void);
 int json_from_string(char **, char *);
 int json_is_valid(char *, size_t);
 int json_set_input(char *);
+int json_print_input(void);
 int json_get_input_len(int *);
 int json_get_input_index(char *, int);
 
