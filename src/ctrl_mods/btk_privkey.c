@@ -443,6 +443,7 @@ int btk_privkey_args_add(PrivKey key)
 	int r;
 	char output_str[BUFSIZ];
 
+	// In theory, no output type should ever overrun this buffer (famous last words).
 	memset(output_str, 0, BUFSIZ);
 
 	r = btk_privkey_set_network(key);
