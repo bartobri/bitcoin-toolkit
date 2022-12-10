@@ -247,7 +247,7 @@ int btk_privkey_main(void)
 				{
 					memset(input_str, 0, BUFSIZ);
 
-					r = json_get_input_index(input_str, i);
+					r = json_get_input_index(input_str, BUFSIZ, i);
 					ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
 
 					r = btk_privkey_get(key, input_str, NULL, 0);

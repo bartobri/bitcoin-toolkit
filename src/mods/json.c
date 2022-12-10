@@ -140,7 +140,7 @@ int json_get_input_len(int *len)
     return 1;
 }
 
-int json_get_input_index(char *dest, int i)
+int json_get_input_index(char *dest, size_t max_len, int i)
 {
     assert(dest);
     assert(json_input);
@@ -160,7 +160,7 @@ int json_get_input_index(char *dest, int i)
         return -1;
     }
 
-    strcpy(dest, string->valuestring);
+    strncpy(dest, string->valuestring, max_len);
 
     return 1;
 }
