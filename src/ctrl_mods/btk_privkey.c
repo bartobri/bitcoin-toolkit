@@ -287,17 +287,14 @@ int btk_privkey_main(void)
 				ERROR_CHECK_NEG(r, "");
 			}
 		}
+
+		free(input);
 	}
 
 	json_print();
 	json_free();
 
 	free(key);
-
-	if (input != NULL)
-	{
-		free(input);
-	}
 
 	return 1;
 }
