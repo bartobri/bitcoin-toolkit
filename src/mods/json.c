@@ -30,10 +30,11 @@ int json_init(void)
 
 int json_from_string(char ** output, char *input)
 {
-    assert (input);
-
+    char *tok;
     cJSON *arr;
     cJSON *str;
+
+    assert (input);
 
     arr = cJSON_CreateArray();
     if (arr == NULL)
@@ -42,14 +43,20 @@ int json_from_string(char ** output, char *input)
         return -1;
     }
 
-    str = cJSON_CreateString(input);
-    if (str == NULL)
+    tok = strtok(input, "\n");
+    while (tok != NULL)
     {
-        error_log("Could not generate JSON string.");
-        return -1;
+        str = cJSON_CreateString(tok);
+        if (str == NULL)
+        {
+            error_log("Could not generate JSON string.");
+            return -1;
+        }
+        
+        cJSON_AddItemToArray(arr, str);
+
+        tok = strtok(NULL, "\n");
     }
-    
-    cJSON_AddItemToArray(arr, str);
 
     *output = cJSON_Print(arr);
     if (*output == NULL)
