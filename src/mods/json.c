@@ -143,6 +143,7 @@ int json_get_input_len(int *len)
 int json_get_input_index(char *dest, size_t max_len, int i)
 {
     assert(dest);
+    assert(max_len > 0);
     assert(json_input);
 
     cJSON *string;
@@ -157,6 +158,15 @@ int json_get_input_index(char *dest, size_t max_len, int i)
     if (!cJSON_IsString(string))
     {
         error_log("JSON array must contain strings only.");
+        return -1;
+    }
+
+    // Decrement to account for final null byte.
+    max_len--;
+
+    if (strlen(string->valuestring) > max_len)
+    {
+        error_log("JSON value at index %d too large.", i);
         return -1;
     }
 
