@@ -316,7 +316,7 @@ int btk_privkey_input_to_json(unsigned char **input, size_t *input_len)
 	{
 		if (i > BUFSIZ-1)
 		{
-			error_log("Input string too large. Consider using -b for arbitrarily large abouts of input data.");
+			error_log("Input string too large. Consider using -b for arbitrarily large amounts of input data.");
 			return -1;
 		}
 		if (isascii((*input)[i]))
