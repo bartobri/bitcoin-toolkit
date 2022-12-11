@@ -82,6 +82,11 @@ int json_is_valid(char *string, size_t len)
         return 0;
     }
 
+    if (cJSON_IsNumber(tmp))
+    {
+        return 0;
+    }
+
     cJSON_Delete(tmp);
 
     return 1;
