@@ -312,12 +312,6 @@ int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
 
 		error_clear();
 	}
-
-	r = pubkey_from_raw(key, input, input_len);
-	if (r > 0)
-	{
-		return 1;
-	}
 	error_clear();
 
 	error_log("Unable to guess input type. Specify an input type flag.");
