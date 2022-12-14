@@ -29,8 +29,6 @@
 #define INPUT_SET(x)            if (input_type == FALSE) { input_type = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
 #define COMPRESSION_SET(x)      if (output_compression == FALSE) { output_compression = x; } else { error_log("Only specify one compression flag."); return -1; }
 
-int btk_pubkey_input_to_json(unsigned char **, size_t *);
-
 static int input_format         = FALSE;
 static int input_type           = FALSE;
 static int output_compression   = FALSE;
@@ -116,7 +114,7 @@ int btk_pubkey_main(void)
 
 	if (input_format == INPUT_ASCII)
 	{
-		r = btk_pubkey_input_to_json(&input, &input_len);
+		r = json_from_input(&input, &input_len);
 		ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
 	}
 
@@ -189,48 +187,5 @@ int btk_pubkey_main(void)
 
 int btk_pubkey_cleanup(void)
 {
-	return 1;
-}
-
-int btk_pubkey_input_to_json(unsigned char **input, size_t *input_len)
-{
-	int r;
-	size_t i;
-	char str[BUFSIZ];
-
-	memset(str, 0, BUFSIZ);
-
-	for (i = 0; i < *input_len; i++)
-	{
-		if (i > BUFSIZ-1)
-		{
-			error_log("Input string too large. Consider using -b for arbitrarily large amounts of input data.");
-			return -1;
-		}
-		if (isascii((*input)[i]))
-		{
-			str[i] = (*input)[i];
-		}
-		else
-		{
-			error_log("Input contains non-ascii characters.");
-			return -1;
-		}
-	}
-
-	while (str[(*input_len)-1] == '\n' || str[(*input_len)-1] == '\r')
-	{
-		str[(*input_len)-1] = '\0';
-		(*input_len)--;
-	}
-
-	// Free input here because json_from_string reallocates it.
-	free(*input);
-
-	r = json_from_string((char **)input, str);
-	ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
-
-	*input_len = strlen((char *)*input);
-
 	return 1;
 }
