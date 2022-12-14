@@ -184,6 +184,8 @@ int json_add(char *string)
 {
     cJSON *json_str;
 
+    assert(string);
+
     json_str = cJSON_CreateString(string);
     if (json_str == NULL)
     {
