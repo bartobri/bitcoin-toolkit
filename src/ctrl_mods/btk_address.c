@@ -23,13 +23,14 @@
 #define INPUT_GUESS             3
 #define OUTPUT_P2PKH            1   // Legacy Address
 #define OUTPUT_P2WPKH           2   // Segwit (Bech32) Address
+#define OUTPUT_BOTH             3
 #define TRUE                    1
 #define FALSE                   0
 #define OUTPUT_BUFFER           150
 
 #define INPUT_SET_FORMAT(x)     if (input_format == FALSE) { input_format = x; } else { error_log("Cannot specify ascii input format."); return -1; }
 #define INPUT_SET(x)            if (input_type == FALSE) { input_type = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
-#define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
+#define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { output_type = OUTPUT_BOTH; }
 
 static int input_format         = FALSE;
 static int input_type           = FALSE;
@@ -163,15 +164,29 @@ int btk_address_main(void)
                 case OUTPUT_P2PKH:
                     r = address_get_p2pkh(output_str, pubkey);
                     ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+                    r = json_add(output_str);
+                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
                     break;
                 case OUTPUT_P2WPKH:
                     r = address_get_p2wpkh(output_str, pubkey);
                     ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+                    r = json_add(output_str);
+                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
+                    break;
+                case OUTPUT_BOTH:
+                    r = address_get_p2pkh(output_str, pubkey);
+                    ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+                    r = json_add(output_str);
+                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
+                    if (pubkey_is_compressed(pubkey))
+                    {
+                        r = address_get_p2wpkh(output_str, pubkey);
+                        ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+                        r = json_add(output_str);
+                        ERROR_CHECK_NEG(r, "Error while generating JSON.");
+                    }
                     break;
             }
-
-            r = json_add(output_str);
-            ERROR_CHECK_NEG(r, "Error while generating JSON.");
         }
     }
     else
