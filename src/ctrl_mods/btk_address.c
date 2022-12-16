@@ -14,6 +14,8 @@
 #include "mods/pubkey.h"
 #include "mods/address.h"
 #include "mods/input.h"
+#include "mods/base58.h"
+#include "mods/base32.h"
 #include "mods/json.h"
 #include "mods/error.h"
 
@@ -235,11 +237,32 @@ int btk_address_cleanup(void)
 int btk_address_get_vanity(char *output_privkey, char *output_address, char *input)
 {
     int r, offset;
-    size_t input_len;
+    size_t i, input_len;
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
 
     input_len = strlen(input);
+
+    switch (output_type)
+    {
+        case OUTPUT_P2PKH:
+            for (i = 0; i < input_len; ++i)
+            {
+                if (!base58_ischar(input[i]))
+                {
+                    error_log("Invalid characters in match string. Must only contain base58 characters.");
+                    return -1;
+                }
+            }
+            break;
+        case OUTPUT_P2WPKH:
+            for (i = 0; i < input_len; ++i)
+            {
+                r = base32_get_raw(input[i]);
+                ERROR_CHECK_NEG(r, "Input error.");
+            }
+            break;
+    }
 
     privkey = malloc(privkey_sizeof());
     ERROR_CHECK_NULL(privkey, "Memory allocation error.");
