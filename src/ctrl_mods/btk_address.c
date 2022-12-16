@@ -176,11 +176,11 @@ int btk_address_main(void)
                     break;
                 case INPUT_HEX:
                     r = pubkey_from_hex(pubkey, input_str);
-                    ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+                    ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
                     break;
                 case INPUT_GUESS:
                     r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
-                    ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+                    ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
                     break;
             }
 
