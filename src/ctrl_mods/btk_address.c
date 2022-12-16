@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/address.h"
@@ -36,6 +37,7 @@
 #define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { output_type = OUTPUT_BOTH; }
 
 int btk_address_get_vanity(char *, char *, char *);
+int btk_address_get_vanity_estimate(long int *, long int);
 
 static int input_format         = FALSE;
 static int input_type           = FALSE;
@@ -238,6 +240,7 @@ int btk_address_get_vanity(char *output_privkey, char *output_address, char *inp
 {
     int r, offset;
     size_t i, input_len;
+    long int perms_total = 0, perms_checked = 0, estimate;
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
 
@@ -266,6 +269,21 @@ int btk_address_get_vanity(char *output_privkey, char *output_address, char *inp
 
     pubkey = malloc(pubkey_sizeof());
     ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
+
+    perms_total = 1;
+    for (i = 0; i < input_len; ++i)
+    {
+        if (isalpha(input[i]))
+        {
+            perms_total *= 29;
+        }
+        else
+        {
+            perms_total *= 58;
+        }
+    }
+    r = btk_address_get_vanity_estimate(&estimate, perms_total);
+    ERROR_CHECK_NEG(r, "Error computing estimated time left.");
 
     while (1)
     {
@@ -298,7 +316,50 @@ int btk_address_get_vanity(char *output_privkey, char *output_address, char *inp
             ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
             return 1;
         }
+
+        perms_checked++;
         
+        if (perms_checked % 10000 == 0)
+        {
+            r = btk_address_get_vanity_estimate(&estimate, perms_checked);
+            ERROR_CHECK_NEG(r, "Error computing estimated time left.");
+            
+            fprintf(stderr, "Estimated Seconds Remaining: %ld\n", estimate);
+            fflush(stderr);
+        }
+    }
+
+    return 1;
+}
+
+int btk_address_get_vanity_estimate(long int *e, long int p)
+{
+    long double estimate;
+    static long int perms = 0;
+    static time_t start_time = 0;
+    time_t elapsed_time = 0;
+
+    if (!perms)
+    {
+        perms = p;
+        start_time = time(NULL);
+        return 1;
+    }
+    
+    ERROR_CHECK_FALSE(perms, "Can not generate time estimate. Did not initialize permutations.");
+
+    elapsed_time = time(NULL) - start_time;
+
+    estimate = (long double)perms / (long double)p;
+    estimate = (estimate * (long double)elapsed_time);
+    estimate -= elapsed_time;
+    if (estimate < 0)
+    {
+        *e = 0;
+    }
+    else
+    {
+        *e = (long int)estimate;
     }
 
     return 1;
