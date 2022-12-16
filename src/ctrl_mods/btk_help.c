@@ -49,10 +49,6 @@ int btk_help_main(void)
 	{
 		btk_help_node();
 	}
-	else if (strcmp(command, "vanity") == 0)
-	{
-		btk_help_vanity();
-	}
 	else if (strcmp(command, "version") == 0)
 	{
 		btk_help_version();
@@ -85,7 +81,6 @@ void btk_help_commands(void)
 	printf("   privkey      create, modify, and format private keys.\n");
 	printf("   pubkey       calculate and format public keys from private keys.\n");
 	printf("   address      generate and format an address from a public key.\n");
-	printf("   vanity       generate a vanity address.\n");
 	printf("   node         interface with a bitcoin node.\n");
 	printf("   utxodb       query utxo data from bitcoin core.\n");
 	printf("   version      print btk version info.\n");
@@ -335,59 +330,6 @@ void btk_help_address(void)
 	printf("   -W\n");
 	printf("      Print address formatted as a (P)ay-to-Witness-PubKey hash (P2WPKH). Also\n");
 	printf("      known as a bech32 or segwit address.\n");
-	printf("\n");
-	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
-	printf("See 'btk help' to read about other commands.\n");
-	printf("\n");
-}
-
-void btk_help_vanity(void)
-{
-	printf("COMMAND\n");
-	printf("\n");
-	printf("   vanity - generate a vanity address.\n");
-	printf("\n");
-	printf("SYNOPSIS\n");
-	printf("\n");
-	printf("   btk vanity [OPTIONS]\n");
-	printf("\n");
-	printf("DESCRIPTION\n");
-	printf("\n");
-	printf("   The vanity command will read an input string from standard input and\n");
-	printf("   continuously generate bitcoin addresses until it finds one whose initial\n");
-	printf("   non-static characters match the input string provided. Note that the vanity\n");
-	printf("   command attempts to match your input string after any static character\n");
-	printf("   components of the address. Only include the vanity characters in your input\n");
-	printf("   string. Do not include preceding static characters.\n");
-	printf("\n");
-	printf("   If no options are specified, the vanity command will search for a\n");
-	printf("   traditional compressed bitcoin address. Options exist for uncompressed,\n");
-	printf("   bech32, and testnet addresses. If the -i option is specified, the vanity\n");
-	printf("   command will perform a case insensitive match\n");
-	printf("\n");
-	printf("   See OPTIONS for more info.\n");
-	printf("\n");
-	printf("OPTIONS\n");
-	printf("\n");
-	printf("   -A\n");
-	printf("      Match a traditional bitcoin (A)ddress. (default)\n");
-	printf("\n");
-	printf("   -B\n");
-	printf("      Match a (B)ech32 address.\n");
-	printf("\n");
-	printf("   -C\n");
-	printf("      Match a (C)ompressed address. (default)\n");
-	printf("\n");
-	printf("   -U\n");
-	printf("      Match an (U)ncompressed address. Note that this option is not allowed for\n");
-	printf("      bech32 addresses.\n");
-	printf("\n");
-	printf("   -T\n");
-	printf("      Generate a TESTNET address.\n");
-	printf("\n");
-	printf("   -i\n");
-	printf("      Perform a case (i)nsensitive match. Note that this option is not useful\n");
-	printf("      for bech32 addresses as all characters are lowercase.\n");
 	printf("\n");
 	printf("See https://github.com/bartobri/bitcoin-toolkit for examples.\n");
 	printf("See 'btk help' to read about other commands.\n");
