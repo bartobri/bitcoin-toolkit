@@ -248,11 +248,8 @@ int btk_address_get_vanity(char *output_privkey, char *output_address, char *inp
         case OUTPUT_P2PKH:
             for (i = 0; i < input_len; ++i)
             {
-                if (!base58_ischar(input[i]))
-                {
-                    error_log("Invalid characters in match string. Must only contain base58 characters.");
-                    return -1;
-                }
+                r = base58_ischar(input[i]);
+                ERROR_CHECK_FALSE(r, "Input error. Must only contain base58 characters.");
             }
             break;
         case OUTPUT_P2WPKH:
