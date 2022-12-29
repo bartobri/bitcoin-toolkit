@@ -11,157 +11,113 @@
 #include "opts.h"
 #include "error.h"
 
-#define INPUT_FORMAT_NONE              0
-#define INPUT_FORMAT_ASCII             1
-#define INPUT_FORMAT_BINARY            2
-#define INPUT_FORMAT_JSON              3
-#define INPUT_FORMAT_DEFAULT           INPUT_FORMAT_JSON
+#define INPUT_SET_FORMAT(x)        if (opts->input_format == OPTS_INPUT_FORMAT_NONE) { opts->input_format = x; } else { error_log("Cannot use multiple input format options."); return -1; }
+#define INPUT_SET_TYPE(x)          if (opts->input_type == OPTS_INPUT_TYPE_NONE) { opts->input_type = x; } else { error_log("Cannot use multiple input type options."); return -1; }
+#define OUTPUT_SET_FORMAT(x)       if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE) { opts->output_format = x; } else { error_log("Cannot use multiple output format options."); return -1; }
+#define OUTPUT_SET_TYPE(x)         if (opts->output_type == OPTS_OUTPUT_TYPE_NONE) { opts->output_type = x; } else { error_log("Cannot use multiple output type options."); return -1; }
+#define OUTPUT_SET_COMPRESSION(x)  if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) { opts->compression = x; } else { opts->compression = OPTS_OUTPUT_COMPRESSION_BOTH; }
+#define OUTPUT_SET_NETWORK(x)      if (opts->network == OPTS_OUTPUT_NETWORK_NONE) { opts->network = x; } else { error_log("Cannot use multiple network options."); return -1; }
+#define OUTPUT_SET_REHASHES(x)     if (opts->rehashes == OPTS_OUTPUT_REHASHES_NONE) { opts->rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
+#define HOST_SET_NAME(x)           if (opts->host_name == OPTS_HOST_NAME_NONE) { opts->host_name = x; } else { error_log("Cannot use multiple host name options."); return -1; }
+#define HOST_SET_PORT(x)           if (opts->host_port == OPTS_HOST_PORT_NONE) { opts->host_port = x; } else { error_log("Cannot use multiple host port options."); return -1; }
+#define CREATE_SET_CREATE(x)       if (opts->create == OPTS_CREATE_FALSE) { opts->create = x; } else { error_log("Cannot use multiple create options."); return -1; }
+#define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
+#define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
 
-#define INPUT_TYPE_NONE                0
-#define INPUT_TYPE_WIF                 1
-#define INPUT_TYPE_HEX                 2
-#define INPUT_TYPE_RAW                 3
-#define INPUT_TYPE_STRING              4
-#define INPUT_TYPE_DECIMAL             5
-#define INPUT_TYPE_BINARY              6
-#define INPUT_TYPE_SBD                 7
-#define INPUT_TYPE_GUESS               8
-#define INPUT_TYPE_DEFAULT             INPUT_TYPE_GUESS
-
-#define OUTPUT_FORMAT_NONE             0
-#define OUTPUT_FORMAT_ASCII            1
-#define OUTPUT_FORMAT_JSON             2
-#define OUTPUT_FORMAT_DEFAULT          OUTPUT_FORMAT_JSON
-
-#define OUTPUT_TYPE_NONE               0
-#define OUTPUT_TYPE_WIF                1
-#define OUTPUT_TYPE_HEX                2
-#define OUTPUT_TYPE_DECIMAL            3
-#define OUTPUT_TYPE_P2PKH              4    // Legacy address
-#define OUTPUT_TYPE_P2WPKH             5    // Bech32 address
-#define OUTPUT_TYPE_DEFAULT            OUTPUT_TYPE_HEX
-
-#define OUTPUT_COMPRESSION_NONE        0
-#define OUTPUT_COMPRESSION_TRUE        1
-#define OUTPUT_COMPRESSION_FALSE       2
-#define OUTPUT_COMPRESSION_BOTH        3
-#define OUTPUT_COMPRESSION_DEFAULT     OUTPUT_COMPRESSION_TRUE
-
-#define OUTPUT_NETWORK_NONE            0
-#define OUTPUT_NETWORK_MAINNET         1
-#define OUTPUT_NETWORK_TESTNET         2
-#define OUTPUT_NETWORK_DEFAULT         OUTPUT_NETWORK_MAINNET
-
-#define OUTPUT_REHASHES_NONE           NULL
-
-#define INPUT_PATH_NONE                NULL
-#define OUTPUT_PATH_NONE               NULL
-
-#define HOST_NAME_NONE                 NULL
-#define HOST_PORT_NONE                 0
-
-#define CREATE_FALSE                   0
-#define CREATE_TRUE                    1   // Optional arg. Can be used with privey, database, and vanity
-
-#define INPUT_SET_FORMAT(x)        if (input_format == INPUT_FORMAT_NONE) { input_format = x; } else { error_log("Cannot use multiple input format options."); return -1; }
-#define INPUT_SET_TYPE(x)          if (input_type == INPUT_TYPE_NONE) { input_type = x; } else { error_log("Cannot use multiple input type options."); return -1; }
-#define OUTPUT_SET_FORMAT(x)       if (output_format == OUTPUT_FORMAT_NONE) { output_format = x; } else { error_log("Cannot use multiple output format options."); return -1; }
-#define OUTPUT_SET_TYPE(x)         if (output_type == OUTPUT_TYPE_NONE) { output_type = x; } else { error_log("Cannot use multiple output type options."); return -1; }
-#define OUTPUT_SET_COMPRESSION(x)  if (compression == OUTPUT_COMPRESSION_NONE) { compression = x; } else { compression = OUTPUT_COMPRESSION_BOTH; }
-#define OUTPUT_SET_NETWORK(x)      if (network == OUTPUT_NETWORK_NONE) { network = x; } else { error_log("Cannot use multiple network options."); return -1; }
-#define OUTPUT_SET_REHASHES(x)     if (rehashes == OUTPUT_REHASHES_NONE) { rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
-#define HOST_SET_NAME(x)           if (host_name == HOST_NAME_NONE) { host_name = x; } else { error_log("Cannot use multiple host name options."); return -1; }
-#define HOST_SET_PORT(x)           if (host_port == HOST_PORT_NONE) { host_port = x; } else { error_log("Cannot use multiple host port options."); return -1; }
-#define CREATE_SET_CREATE(x)       if (create == CREATE_FALSE) { create = x; } else { error_log("Cannot use multiple create options."); return -1; }
-#define INPUT_SET_PATH(x)          if (input_path == INPUT_PATH_NONE) { input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
-#define OUTPUT_SET_PATH(x)         if (output_path == OUTPUT_PATH_NONE) { output_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
-
-static int input_format = INPUT_FORMAT_NONE;
-static int input_type = INPUT_TYPE_NONE;
-static int output_format = OUTPUT_FORMAT_NONE;
-static int output_type = OUTPUT_TYPE_NONE;
-static int compression = OUTPUT_COMPRESSION_NONE;
-static int network = OUTPUT_NETWORK_NONE;
-static char *rehashes = OUTPUT_REHASHES_NONE;
-static char *host_name = HOST_NAME_NONE;
-static int host_port = HOST_PORT_NONE;
-static int create = CREATE_FALSE;
-static char *input_path = INPUT_PATH_NONE;
-static char *output_path = OUTPUT_PATH_NONE;
+static opts_p opts = NULL;
 
 int opts_init(int argc, char *argv[])
 {
     int o;
+
+    opts = malloc(sizeof(*opts));
+    ERROR_CHECK_FALSE(opts, "Memory allocation error.");
+
+    opts->input_format = OPTS_INPUT_FORMAT_NONE;
+    opts->input_type = OPTS_INPUT_TYPE_NONE;
+    opts->output_format = OPTS_OUTPUT_FORMAT_NONE;
+    opts->output_type = OPTS_OUTPUT_TYPE_NONE;
+    opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
+    opts->network = OPTS_OUTPUT_NETWORK_NONE;
+    opts->rehashes = OPTS_OUTPUT_REHASHES_NONE;
+    opts->host_name = OPTS_HOST_NAME_NONE;
+    opts->host_port = OPTS_HOST_PORT_NONE;
+    opts->create = OPTS_CREATE_FALSE;
+    opts->input_path = OPTS_INPUT_PATH_NONE;
+    opts->output_path = OPTS_OUTPUT_PATH_NONE;
+
+    // Turn off getopt errors. I print my own errors.
+    opterr = 0;
 
     while ((o = getopt(argc, argv, "abjwhrsdbxJAWHDMTPBCUR:n:p:c::F:f:")) != -1)
     {
         switch (o)
         {
             case 'a':
-                INPUT_SET_FORMAT(INPUT_FORMAT_ASCII);
+                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_ASCII);
                 break;
             case 'b':
-                INPUT_SET_FORMAT(INPUT_FORMAT_BINARY);
-                INPUT_SET_TYPE(INPUT_TYPE_BINARY);
+                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_BINARY);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_BINARY);
                 break;
             case 'j':
-                INPUT_SET_FORMAT(INPUT_FORMAT_JSON);
+                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_JSON);
                 break;
 
             case 'w':
-                INPUT_SET_TYPE(INPUT_TYPE_WIF);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_WIF);
                 break;
             case 'h':
-                INPUT_SET_TYPE(INPUT_TYPE_HEX);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_HEX);
                 break;
             case 'r':
-                INPUT_SET_TYPE(INPUT_TYPE_RAW);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_RAW);
                 break;
             case 's':
-                INPUT_SET_TYPE(INPUT_TYPE_STRING);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_STRING);
                 break;
             case 'd':
-                INPUT_SET_TYPE(INPUT_TYPE_DECIMAL);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_DECIMAL);
                 break;
             case 'x':
-                INPUT_SET_TYPE(INPUT_TYPE_SBD);
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_SBD);
                 break;
 
             case 'J':
-                OUTPUT_SET_FORMAT(OUTPUT_FORMAT_JSON);
+                OUTPUT_SET_FORMAT(OPTS_OUTPUT_FORMAT_JSON);
                 break;
             case 'A':
-                OUTPUT_SET_FORMAT(OUTPUT_FORMAT_ASCII);
+                OUTPUT_SET_FORMAT(OPTS_OUTPUT_FORMAT_ASCII);
                 break;
 
             case 'W':
-                OUTPUT_SET_TYPE(OUTPUT_TYPE_WIF);
+                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_WIF);
                 break;
             case 'H':
-                OUTPUT_SET_TYPE(OUTPUT_TYPE_HEX);
+                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_HEX);
                 break;
             case 'D':
-                OUTPUT_SET_TYPE(OUTPUT_TYPE_DECIMAL);
+                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_DECIMAL);
                 break;
             case 'P':
-                OUTPUT_SET_TYPE(OUTPUT_TYPE_P2PKH);
+                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_P2PKH);
                 break;
             case 'B':
-                OUTPUT_SET_TYPE(OUTPUT_TYPE_P2WPKH);
+                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_P2WPKH);
                 break;
 
             case 'C':
-                OUTPUT_SET_COMPRESSION(OUTPUT_COMPRESSION_TRUE);
+                OUTPUT_SET_COMPRESSION(OPTS_OUTPUT_COMPRESSION_TRUE);
                 break;
             case 'U':
-                OUTPUT_SET_COMPRESSION(OUTPUT_COMPRESSION_FALSE);
+                OUTPUT_SET_COMPRESSION(OPTS_OUTPUT_COMPRESSION_FALSE);
                 break;
 
             case 'M':
-                OUTPUT_SET_NETWORK(OUTPUT_NETWORK_MAINNET);
+                OUTPUT_SET_NETWORK(OPTS_OUTPUT_NETWORK_MAINNET);
                 break;
             case 'T':
-                OUTPUT_SET_NETWORK(OUTPUT_NETWORK_TESTNET);
+                OUTPUT_SET_NETWORK(OPTS_OUTPUT_NETWORK_TESTNET);
                 break;
 
             case 'R':
@@ -176,7 +132,7 @@ int opts_init(int argc, char *argv[])
                 break;
 
             case 'c':
-                CREATE_SET_CREATE(CREATE_TRUE);
+                CREATE_SET_CREATE(OPTS_CREATE_TRUE);
                 break;
 
             case 'f':
@@ -201,30 +157,48 @@ int opts_init(int argc, char *argv[])
     }
 
     // Defalts
-    if (input_format == INPUT_FORMAT_NONE)
+    if (opts->input_format == OPTS_INPUT_FORMAT_NONE)
     {
-        input_format = INPUT_FORMAT_DEFAULT;
+        opts->input_format = OPTS_INPUT_FORMAT_DEFAULT;
     }
-    if (input_type == INPUT_TYPE_NONE)
+    if (opts->input_type == OPTS_INPUT_TYPE_NONE)
     {
-        input_type = INPUT_TYPE_DEFAULT;
+        opts->input_type = OPTS_INPUT_TYPE_DEFAULT;
     }
-    if (output_format == OUTPUT_FORMAT_NONE)
+    if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE)
     {
-        output_format = OUTPUT_FORMAT_DEFAULT;
+        opts->output_format = OPTS_OUTPUT_FORMAT_DEFAULT;
     }
-    if (output_type == OUTPUT_TYPE_NONE)
+    if (opts->output_type == OPTS_OUTPUT_TYPE_NONE)
     {
-        output_type = OUTPUT_TYPE_DEFAULT;
+        opts->output_type = OPTS_OUTPUT_TYPE_DEFAULT;
     }
-    if (compression == OUTPUT_COMPRESSION_NONE)
+    if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE)
     {
-        compression = OUTPUT_COMPRESSION_DEFAULT;
+        // For hex output we want to default to uncompressed to not show the
+        // cflag byte.
+        if (opts->output_type == OPTS_OUTPUT_TYPE_HEX)
+        {
+            opts->compression = OPTS_OUTPUT_COMPRESSION_FALSE;
+        }
+        else
+        {
+            opts->compression = OPTS_OUTPUT_COMPRESSION_DEFAULT;
+        }
     }
-    if (network == OUTPUT_NETWORK_NONE)
+    if (opts->network == OPTS_OUTPUT_NETWORK_NONE)
     {
-        network = OUTPUT_NETWORK_DEFAULT;
+        opts->network = OPTS_OUTPUT_NETWORK_DEFAULT;
     }
+
+    return 1;
+}
+
+int opts_get(opts_p *opts_out)
+{
+    ERROR_CHECK_NULL(opts, "Opts not initialized. Call opts_init() first.");
+
+    *opts_out = opts;
 
     return 1;
 }

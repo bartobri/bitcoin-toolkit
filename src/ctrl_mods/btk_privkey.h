@@ -8,7 +8,7 @@
 #ifndef BTK_PRIVKEY_H
 #define BTK_PRIVKEY_H 1
 
-int btk_privkey_init(int argc, char *argv[]);
+int btk_privkey_init(void);
 int btk_privkey_main(void);
 int btk_privkey_cleanup(void);
 

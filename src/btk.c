@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "mods/opts.h"
+#include "mods/error.h"
 #include "ctrl_mods/btk_help.h"
 #include "ctrl_mods/btk_privkey.h"
 #include "ctrl_mods/btk_pubkey.h"
@@ -17,7 +19,6 @@
 #include "ctrl_mods/btk_utxodb.h"
 #include "ctrl_mods/btk_addressdb.h"
 #include "ctrl_mods/btk_version.h"
-#include "mods/error.h"
 
 #define BTK_COMMAND_MAX_OPT 100
 
@@ -56,9 +57,34 @@ int main(int argc, char *argv[])
 	// Save command for later referece.
 	command = argv[1];
 
-	// Turn off getopt errors for all control mods. I print my own 
-	// error message.
-	opterr = 0;
+	r = opts_init(argc, argv);
+	if (r < 0)
+	{
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
+
+	if (strcmp(command, "privkey") == 0)
+	{
+		r = btk_privkey_init();
+		if (r < 0)
+		{
+			error_log("Error [%s]:", command_str);
+			error_print();
+			return EXIT_FAILURE;
+		}
+
+		r = btk_privkey_main();
+		if (r < 0)
+		{
+			error_log("Error [%s]:", command_str);
+			error_print();
+			return EXIT_FAILURE;
+		}
+	}
+
+	/*
 
 	// Run init function
 	r = btk_init(argc, argv);
@@ -117,6 +143,8 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	*/
+
 	// Run cleanup function
 	r = btk_cleanup(command);
 	if (r < 0)
@@ -142,7 +170,7 @@ int btk_init(int argc, char *argv[])
 	}
 	else if (strcmp(command, "privkey") == 0)
 	{
-		r = btk_privkey_init(argc, argv);
+		r = btk_privkey_init();
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
