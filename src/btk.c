@@ -20,10 +20,7 @@
 #include "ctrl_mods/btk_addressdb.h"
 #include "ctrl_mods/btk_version.h"
 
-#define BTK_COMMAND_MAX_OPT 100
-
-int btk_init(int argc, char *argv[]);
-int btk_cleanup(char *);
+#define BTK_CHECK_NEG(x)            if (x < 0) { error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
 int main(int argc, char *argv[])
 {
@@ -33,8 +30,7 @@ int main(int argc, char *argv[])
 
 	r = 0;
 
-	// Assembling the original command string for logging purposes before we
-	// pass the args to the control modules.
+	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
 	for (i = 0; i < argc; ++i)
 	{
@@ -58,74 +54,18 @@ int main(int argc, char *argv[])
 	command = argv[1];
 
 	r = opts_init(argc, argv);
-	if (r < 0)
-	{
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
+	BTK_CHECK_NEG(r);
 
 	if (strcmp(command, "privkey") == 0)
 	{
 		r = btk_privkey_init();
-		if (r < 0)
-		{
-			error_log("Error [%s]:", command_str);
-			error_print();
-			return EXIT_FAILURE;
-		}
+		BTK_CHECK_NEG(r);
 
 		r = btk_privkey_main();
-		if (r < 0)
-		{
-			error_log("Error [%s]:", command_str);
-			error_print();
-			return EXIT_FAILURE;
-		}
-	}
+		BTK_CHECK_NEG(r);
 
-	/*
-
-	// Run init function
-	r = btk_init(argc, argv);
-	if (r < 0)
-	{
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
-
-	if (strcmp(command, "help") == 0)
-	{
-		r = btk_help_main();
-	}
-	else if (strcmp(command, "privkey") == 0)
-	{
-		r = btk_privkey_main();
-	}
-	else if (strcmp(command, "pubkey") == 0)
-	{
-		r = btk_pubkey_main();
-	}
-	else if (strcmp(command, "address") == 0)
-	{
-		r = btk_address_main();
-	}
-	else if (strcmp(command, "node") == 0)
-	{
-		r = btk_node_main();
-	}
-	else if (strcmp(command, "utxodb") == 0)
-	{
-		r = btk_utxodb_main();
-	}
-	else if (strcmp(command, "addressdb") == 0)
-	{
-		r = btk_addressdb_main();
-	}
-	else if (strcmp(command, "version") == 0)
-	{
-		r = btk_version_main();
+		r = btk_privkey_cleanup();
+		BTK_CHECK_NEG(r);
 	}
 	else
 	{
@@ -136,130 +76,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (r < 0)
-	{
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
-
-	*/
-
-	// Run cleanup function
-	r = btk_cleanup(command);
-	if (r < 0)
-	{
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
-
 	return EXIT_SUCCESS;
 }
 
-int btk_init(int argc, char *argv[])
-{
-	int r = 0;
-	char *command = NULL;
-
-	command = argv[1];
-
-	if (strcmp(command, "help") == 0)
-	{
-		r = btk_help_init(argc, argv);
-	}
-	else if (strcmp(command, "privkey") == 0)
-	{
-		r = btk_privkey_init();
-	}
-	else if (strcmp(command, "pubkey") == 0)
-	{
-		r = btk_pubkey_init(argc, argv);
-	}
-	else if (strcmp(command, "address") == 0)
-	{
-		r = btk_address_init(argc, argv);
-	}
-	else if (strcmp(command, "node") == 0)
-	{
-		r = btk_node_init(argc, argv);
-	}
-	else if (strcmp(command, "utxodb") == 0)
-	{
-		r = btk_utxodb_init(argc, argv);
-	}
-	else if (strcmp(command, "addressdb") == 0)
-	{
-		r = btk_addressdb_init(argc, argv);
-	}
-	else if (strcmp(command, "version") == 0)
-	{
-		r = btk_version_init(argc, argv);
-	}
-	else
-	{
-		error_log("See 'btk help' to read about available commands.");
-		error_log("Invalid command: '%s'", command);
-		return -1;
-	}
-
-	if (r < 0)
-	{
-		error_log("Can not run initialization for command '%s'.", command);
-		return -1;
-	}
-
-	return 1;
-}
-
-int btk_cleanup(char *command)
-{
-	int r = 0;
-
-	if (strcmp(command, "help") == 0)
-	{
-		r = btk_help_cleanup();
-	}
-	else if (strcmp(command, "privkey") == 0)
-	{
-		r = btk_privkey_cleanup();
-	}
-	else if (strcmp(command, "pubkey") == 0)
-	{
-		r = btk_pubkey_cleanup();
-	}
-	else if (strcmp(command, "address") == 0)
-	{
-		r = btk_address_cleanup();
-	}
-	else if (strcmp(command, "node") == 0)
-	{
-		r = btk_node_cleanup();
-	}
-	else if (strcmp(command, "utxodb") == 0)
-	{
-		r = btk_utxodb_cleanup();
-	}
-	else if (strcmp(command, "addressdb") == 0)
-	{
-		r = btk_addressdb_cleanup();
-	}
-	else if (strcmp(command, "version") == 0)
-	{
-		r = btk_version_cleanup();
-	}
-	else
-	{
-		error_log("See 'btk help' to read about available commands.");
-		error_log("Invalid command: '%s'", command);
-		return -1;
-	}
-
-	if (r < 0)
-	{
-		error_log("Can not run cleanup for command %s.", command);
-		return -1;
-	}
-
-	return 1;
-}
