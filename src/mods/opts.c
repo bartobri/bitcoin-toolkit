@@ -143,7 +143,6 @@ int opts_init(int argc, char *argv[])
                 break;
 
             case '?':
-                error_log("See 'btk help %s' to read about available argument options.", argv[1]);
                 if (isprint(optopt))
                 {
                     error_log("Invalid command option or argument required: '-%c'.", optopt);

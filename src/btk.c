@@ -24,11 +24,9 @@
 
 int main(int argc, char *argv[])
 {
-	int i, r;
+	int i, r = 0;
 	char *command = NULL;
 	char command_str[BUFSIZ];
-
-	r = 0;
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -49,22 +47,17 @@ int main(int argc, char *argv[])
 		error_print();
 		return EXIT_FAILURE;
 	}
-
-	// Save command for later referece.
-	command = argv[1];
-
-	r = opts_init(argc, argv);
-	BTK_CHECK_NEG(r);
+	else
+	{
+		command = argv[1];
+	}
 
 	if (strcmp(command, "privkey") == 0)
 	{
-		r = btk_privkey_init();
+		r = opts_init(argc, argv);
 		BTK_CHECK_NEG(r);
 
 		r = btk_privkey_main();
-		BTK_CHECK_NEG(r);
-
-		r = btk_privkey_cleanup();
 		BTK_CHECK_NEG(r);
 	}
 	else

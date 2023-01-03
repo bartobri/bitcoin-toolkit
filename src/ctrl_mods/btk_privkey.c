@@ -37,16 +37,6 @@ static opts_p opts;
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
 static int output_hashes_arr_len = 0;
 
-int btk_privkey_init(void)
-{
-	int r;
-
-	r = opts_get(&opts);
-	ERROR_CHECK_NEG(r, "Could not get command options.");
-
-	return 1;
-}
-
 int btk_privkey_main(void)
 {
 	size_t i, len;
@@ -62,6 +52,9 @@ int btk_privkey_main(void)
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
 
 	json_init();
+
+	r = opts_get(&opts);
+	ERROR_CHECK_NEG(r, "Could not get command options.");
 
 	if (opts->create)
 	{
@@ -155,11 +148,6 @@ int btk_privkey_main(void)
 
 	free(key);
 
-	return 1;
-}
-
-int btk_privkey_cleanup(void)
-{
 	return 1;
 }
 
