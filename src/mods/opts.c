@@ -174,16 +174,8 @@ int opts_init(int argc, char *argv[])
     }
     if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE)
     {
-        // For hex output we want to default to uncompressed to not show the
-        // cflag byte.
-        if (opts->output_type == OPTS_OUTPUT_TYPE_HEX)
-        {
-            opts->compression = OPTS_OUTPUT_COMPRESSION_FALSE;
-        }
-        else
-        {
-            opts->compression = OPTS_OUTPUT_COMPRESSION_DEFAULT;
-        }
+        // Don't set a default for compression. Let each ctrl module decide its
+        // own default behavior.
     }
     if (opts->network == OPTS_OUTPUT_NETWORK_NONE)
     {
