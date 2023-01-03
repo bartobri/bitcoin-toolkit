@@ -8,8 +8,6 @@
 #ifndef BTK_PUBKEY_H
 #define BTK_PUBKEY_H 1
 
-int btk_pubkey_init(int argc, char *argv[]);
 int btk_pubkey_main(void);
-int btk_pubkey_cleanup(void);
 
 #endif

@@ -60,6 +60,14 @@ int main(int argc, char *argv[])
 		r = btk_privkey_main();
 		BTK_CHECK_NEG(r);
 	}
+	else if (strcmp(command, "pubkey") == 0)
+	{
+		r = opts_init(argc, argv);
+		BTK_CHECK_NEG(r);
+
+		r = btk_pubkey_main();
+		BTK_CHECK_NEG(r);
+	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
