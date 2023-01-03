@@ -285,14 +285,13 @@ int btk_privkey_args_add(PrivKey key)
 
 int btk_privkey_set_compression(PrivKey key)
 {
-	static int last = OPTS_OUTPUT_COMPRESSION_TRUE;
+	static int last = 0;
 
 	assert(key);
 
 	switch (opts->compression)
 	{
 		case OPTS_OUTPUT_COMPRESSION_NONE:
-			break;
 		case OPTS_OUTPUT_COMPRESSION_TRUE:
 			privkey_compress(key);
 			break;
@@ -353,7 +352,7 @@ int btk_privkey_to_output(char *output, PrivKey key)
 			}
 			break;
 		case OPTS_OUTPUT_TYPE_HEX:
-			r = privkey_to_hex(output, key, (opts->compression == OPTS_OUTPUT_COMPRESSION_TRUE || opts->compression == OPTS_OUTPUT_COMPRESSION_BOTH) ? 1 : 0);
+			r = privkey_to_hex(output, key, (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
 			if (r < 0)
 			{
 				error_log("Could not convert private key to hex format.");
