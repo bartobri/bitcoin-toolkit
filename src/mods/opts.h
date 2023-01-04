@@ -22,7 +22,8 @@
 #define OPTS_INPUT_TYPE_DECIMAL             5
 #define OPTS_INPUT_TYPE_BINARY              6
 #define OPTS_INPUT_TYPE_SBD                 7
-#define OPTS_INPUT_TYPE_GUESS               8
+#define OPTS_INPUT_TYPE_VANITY              8
+#define OPTS_INPUT_TYPE_GUESS               9
 #define OPTS_INPUT_TYPE_DEFAULT             OPTS_INPUT_TYPE_GUESS
 
 #define OPTS_OUTPUT_FORMAT_NONE             0

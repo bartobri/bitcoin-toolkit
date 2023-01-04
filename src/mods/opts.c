@@ -49,7 +49,7 @@ int opts_init(int argc, char *argv[])
     // Turn off getopt errors. I print my own errors.
     opterr = 0;
 
-    while ((o = getopt(argc, argv, "abjwhrsdbxJAWHDMTPBCUR:n:p:c::F:f:")) != -1)
+    while ((o = getopt(argc, argv, "abjwhrsdbxvJAWHDMTPBCUR:n:p:c::F:f:")) != -1)
     {
         switch (o)
         {
@@ -81,6 +81,9 @@ int opts_init(int argc, char *argv[])
                 break;
             case 'x':
                 INPUT_SET_TYPE(OPTS_INPUT_TYPE_SBD);
+                break;
+            case 'v':
+                INPUT_SET_TYPE(OPTS_INPUT_TYPE_VANITY);
                 break;
 
             case 'J':
