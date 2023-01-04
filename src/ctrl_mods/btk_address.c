@@ -18,96 +18,13 @@
 #include "mods/base58.h"
 #include "mods/base32.h"
 #include "mods/json.h"
+#include "mods/opts.h"
 #include "mods/error.h"
 
-#define INPUT_ASCII             1
-#define INPUT_WIF               1
-#define INPUT_HEX               2
-#define INPUT_GUESS             3
-#define OUTPUT_P2PKH            1   // Legacy Address
-#define OUTPUT_P2WPKH           2   // Segwit (Bech32) Address
-#define OUTPUT_BOTH             3
-#define OUTPUT_VANITY           1
-#define TRUE                    1
-#define FALSE                   0
-#define OUTPUT_BUFFER           150
-
-#define INPUT_SET_FORMAT(x)     if (input_format == FALSE) { input_format = x; } else { error_log("Cannot specify ascii input format."); return -1; }
-#define INPUT_SET(x)            if (input_type == FALSE) { input_type = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
-#define OUTPUT_SET(x)           if (output_type == FALSE) { output_type = x; } else { output_type = OUTPUT_BOTH; }
-
-int btk_address_get_vanity(char *, char *, char *);
+int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
-static int input_format         = FALSE;
-static int input_type           = FALSE;
-static int output_type          = FALSE;
-static int output_vanity        = FALSE;
-
-int btk_address_init(int argc, char *argv[])
-{
-    int o;
-    char *command = NULL;
-
-    command = argv[1];
-
-    while ((o = getopt(argc, argv, "awhPWV")) != -1)
-    {
-        switch (o)
-        {
-            // Input format
-            case 'a':
-                INPUT_SET_FORMAT(INPUT_ASCII);
-                break;
-
-            // Input type
-            case 'w':
-                INPUT_SET(INPUT_WIF)
-                break;
-            case 'h':
-                INPUT_SET(INPUT_HEX)
-                break;
-
-            // Output format
-            case 'P':
-                OUTPUT_SET(OUTPUT_P2PKH);
-                break;
-            case 'W':
-                OUTPUT_SET(OUTPUT_P2WPKH);
-                break;
-
-            // Output vanity
-            case 'V':
-                output_vanity = OUTPUT_VANITY;
-                break;
-
-            // Unknown option
-            case '?':
-                error_log("See 'btk help %s' to read about available argument options.", command);
-                if (isprint(optopt))
-                {
-                    error_log("Invalid command option or argument required: '-%c'.", optopt);
-                }
-                else
-                {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
-                }
-                return -1;
-        }
-    }
-
-    if (input_type == FALSE)
-    {
-        input_type = INPUT_GUESS;
-    }
-
-    if (output_type == FALSE)
-    {
-        output_type = OUTPUT_P2PKH;
-    }
-
-    return 1;
-}
+static opts_p opts;
 
 int btk_address_main(void)
 {
@@ -132,10 +49,18 @@ int btk_address_main(void)
 
     json_init();
 
+    r = opts_get(&opts);
+    ERROR_CHECK_NEG(r, "Could not get command options.");
+
+    if (opts->output_type == OPTS_OUTPUT_TYPE_DEFAULT)
+    {
+        opts->output_type = OPTS_OUTPUT_TYPE_P2PKH;
+    }
+
     r = input_get(&input, &input_len);
     ERROR_CHECK_NEG(r, "Error getting input.");
 
-    if (input_format == INPUT_ASCII)
+    if (opts->input_format == OPTS_OUTPUT_FORMAT_ASCII)
     {
         r = json_from_input(&input, &input_len);
         ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
@@ -156,64 +81,66 @@ int btk_address_main(void)
             r = json_get_input_index(input_str, BUFSIZ, i);
             ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
 
-            if (output_vanity)
+            switch (opts->input_type)
             {
-                r = btk_address_get_vanity(output_str, output_str2, input_str);
-                ERROR_CHECK_NEG(r, "Could not generate vanity address.");
-                r = json_add(output_str);
-                ERROR_CHECK_NEG(r, "Error while generating JSON.");
-                r = json_add(output_str2);
-                ERROR_CHECK_NEG(r, "Error while generating JSON.");
-
-                continue;
-            }
-
-            switch (input_type)
-            {
-                case INPUT_WIF:
+                case OPTS_INPUT_TYPE_WIF:
                     r = privkey_from_wif(privkey, input_str);
                     ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
                     r = pubkey_get(pubkey, privkey);
                     ERROR_CHECK_NEG(r, "Could not calculate public key.");
                     break;
-                case INPUT_HEX:
+                case OPTS_INPUT_TYPE_HEX:
                     r = pubkey_from_hex(pubkey, input_str);
                     ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
                     break;
-                case INPUT_GUESS:
+                case OPTS_INPUT_TYPE_VANITY:
+                    r = privkey_new(privkey);
+                    ERROR_CHECK_NEG(r, "Could not generate a new private key.");
+                    r = pubkey_get(pubkey, privkey);
+                    ERROR_CHECK_NEG(r, "Could not calculate public key.");
+                    break;
+                case OPTS_INPUT_TYPE_GUESS:
                     r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
                     ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
                     break;
+                default:
+                    ERROR_CHECK_NEG(-1, "Invalid input type specified.");
+                    break;
             }
 
-            switch (output_type)
+            switch (opts->output_type)
             {
-                case OUTPUT_P2PKH:
+                case OPTS_OUTPUT_TYPE_P2PKH:
                     r = address_get_p2pkh(output_str, pubkey);
                     ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
-                    r = json_add(output_str);
-                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
                     break;
-                case OUTPUT_P2WPKH:
+                case OPTS_OUTPUT_TYPE_P2WPKH:
                     r = address_get_p2wpkh(output_str, pubkey);
                     ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
-                    r = json_add(output_str);
-                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
                     break;
-                case OUTPUT_BOTH:
-                    r = address_get_p2pkh(output_str, pubkey);
-                    ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
-                    r = json_add(output_str);
-                    ERROR_CHECK_NEG(r, "Error while generating JSON.");
-                    if (pubkey_is_compressed(pubkey))
-                    {
-                        r = address_get_p2wpkh(output_str, pubkey);
-                        ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
-                        r = json_add(output_str);
-                        ERROR_CHECK_NEG(r, "Error while generating JSON.");
-                    }
+                default:
+                    ERROR_CHECK_NEG(-1, "Invalid output type specified.");
                     break;
             }
+
+            if (opts->input_type == OPTS_INPUT_TYPE_VANITY)
+            {
+                r = btk_address_vanity_match(input_str, output_str);
+                ERROR_CHECK_NEG(r, "Error matching vanity string.");
+                if (r == 0)
+                {
+                    i--;
+                    continue;
+                }
+
+                r = privkey_to_wif(output_str2, privkey);
+                ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
+                r = json_add(output_str2);
+                ERROR_CHECK_NEG(r, "Error while generating JSON.");
+            }
+
+            r = json_add(output_str);
+            ERROR_CHECK_NEG(r, "Error while generating JSON.");
         }
     }
     else
@@ -231,49 +158,39 @@ int btk_address_main(void)
     return 1;
 }
 
-int btk_address_cleanup(void)
-{
-    return 1;
-}
-
-int btk_address_get_vanity(char *output_privkey, char *output_address, char *input)
+int btk_address_vanity_match(char *input_str, char *output_str)
 {
     int r, offset;
     size_t i, input_len;
-    long int perms_total = 0, perms_checked = 0, estimate;
-    PubKey pubkey = NULL;
-    PrivKey privkey = NULL;
+    long int perms_total = 0, estimate;
+    static long int perms_checked = 0;
 
-    input_len = strlen(input);
+    input_len = strlen(input_str);
 
-    switch (output_type)
+    switch (opts->output_type)
     {
-        case OUTPUT_P2PKH:
+        case OPTS_OUTPUT_TYPE_P2PKH:
             for (i = 0; i < input_len; ++i)
             {
-                r = base58_ischar(input[i]);
+                r = base58_ischar(input_str[i]);
                 ERROR_CHECK_FALSE(r, "Input error. Must only contain base58 characters.");
             }
+            offset = 1;
             break;
-        case OUTPUT_P2WPKH:
+        case OPTS_OUTPUT_TYPE_P2WPKH:
             for (i = 0; i < input_len; ++i)
             {
-                r = base32_get_raw(input[i]);
+                r = base32_get_raw(input_str[i]);
                 ERROR_CHECK_NEG(r, "Input error.");
             }
+            offset = 4;
             break;
     }
-
-    privkey = malloc(privkey_sizeof());
-    ERROR_CHECK_NULL(privkey, "Memory allocation error.");
-
-    pubkey = malloc(pubkey_sizeof());
-    ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
     perms_total = 1;
     for (i = 0; i < input_len; ++i)
     {
-        if (isalpha(input[i]))
+        if (isalpha(input_str[i]))
         {
             perms_total *= 29;
         }
@@ -282,54 +199,27 @@ int btk_address_get_vanity(char *output_privkey, char *output_address, char *inp
             perms_total *= 58;
         }
     }
+
     r = btk_address_get_vanity_estimate(&estimate, perms_total);
     ERROR_CHECK_NEG(r, "Error computing estimated time left.");
 
-    while (1)
+    if (strncasecmp(input_str, output_str + offset, input_len) == 0)
     {
-        r = privkey_new(privkey);
-        ERROR_CHECK_NEG(r, "Could not generate a new private key.");
-
-        r = pubkey_get(pubkey, privkey);
-        ERROR_CHECK_NEG(r, "Could not calculate new public key.");
-
-        switch (output_type)
-        {
-            case OUTPUT_P2PKH:
-                r = address_get_p2pkh(output_address, pubkey);
-                ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
-                offset = 1;
-                break;
-            case OUTPUT_P2WPKH:
-                r = address_get_p2wpkh(output_address, pubkey);
-                ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
-                offset = 4;
-                break;
-            case OUTPUT_BOTH:
-                error_log("Use only one output type when generating a vanity address.");
-                return -1;
-        }
-
-        if (strncasecmp(input, output_address + offset, input_len) == 0)
-        {
-            r = privkey_to_wif(output_privkey, privkey);
-            ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
-            return 1;
-        }
-
-        perms_checked++;
-        
-        if (perms_checked % 10000 == 0)
-        {
-            r = btk_address_get_vanity_estimate(&estimate, perms_checked);
-            ERROR_CHECK_NEG(r, "Error computing estimated time left.");
-            
-            fprintf(stderr, "Estimated Seconds Remaining: %ld\n", estimate);
-            fflush(stderr);
-        }
+        return 1;
     }
 
-    return 1;
+    perms_checked++;
+        
+    if (perms_checked % 10000 == 0)
+    {
+        r = btk_address_get_vanity_estimate(&estimate, perms_checked);
+        ERROR_CHECK_NEG(r, "Error computing estimated time left.");
+        
+        fprintf(stderr, "Estimated Seconds Remaining: %ld\n", estimate);
+        fflush(stderr);
+    }
+
+    return 0;
 }
 
 int btk_address_get_vanity_estimate(long int *e, long int p)
