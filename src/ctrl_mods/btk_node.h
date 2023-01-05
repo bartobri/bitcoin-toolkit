@@ -8,8 +8,6 @@
 #ifndef BTK_NODE_H
 #define BTK_NODE_H 1
 
-int btk_node_init(int argc, char *argv[]);
 int btk_node_main(void);
-int btk_node_cleanup(void);
 
 #endif

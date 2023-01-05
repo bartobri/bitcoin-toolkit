@@ -12,6 +12,7 @@
 #include "mods/network.h"
 #include "mods/node.h"
 #include "mods/message.h"
+#include "mods/opts.h"
 #include "mods/error.h"
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
@@ -21,53 +22,7 @@
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-static char* host = NULL;
-static int port   = HOST_PORT_MAIN;
-
-int btk_node_init(int argc, char *argv[])
-{
-	int o;
-	char *command = NULL;
-
-	command = argv[1];
-
-	while ((o = getopt(argc, argv, "h:p:T")) != -1)
-	{
-		switch (o)
-		{
-			case 'h':
-				host = optarg;
-				break;
-			case 'p':
-				port = atoi(optarg);
-				break;
-			case 'T':
-				port = HOST_PORT_TEST;
-				network_set_test();
-				break;
-			case '?':
-				error_log("See 'btk help %s' to read about available argument options.", command);
-				if (isprint(optopt))
-				{
-					error_log("Invalid command option or argument required: '-%c'.", optopt);
-				}
-				else
-				{
-					error_log("Invalid command option character '\\x%x'.", optopt);
-				}
-				return -1;
-		}
-	}
-
-	if (host == NULL)
-	{
-		error_log("See 'btk help %s' to read about available argument options.", command);
-		error_log("Missing host argument.");
-		return -1;
-	}
-
-	return 1;
-}
+static opts_p opts;
 
 int btk_node_main(void)
 {
@@ -89,73 +44,57 @@ int btk_node_main(void)
 	size_t version_string_len;
 	char *json = NULL;
 
+	r = opts_get(&opts);
+	ERROR_CHECK_NEG(r, "Could not get command options.");
+
+	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
+
+	if (!opts->host_port)
+	{
+		if (opts->network == OPTS_OUTPUT_NETWORK_MAINNET)
+		{
+			opts->host_port = HOST_PORT_MAIN;
+		}
+		else if (opts->network == OPTS_OUTPUT_NETWORK_TESTNET)
+		{
+			opts->host_port = HOST_PORT_TEST;
+		}
+	}
+	
 	switch (message_type)
 	{
 		case MESSAGE_TYPE_VERSION:
 			node = malloc(node_sizeof());
-			if (node == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(node, "Memory allocation error.");
 
-			r = node_connect(node, host, port);
-			if (r < 0)
-			{
-				error_log("Could not connect to host.");
-				return -1;
-			}
+			r = node_connect(node, opts->host_name, opts->host_port);
+			ERROR_CHECK_NEG(r, "Could not connect to host.");
 
 			version_string = malloc(version_sizeof());
-			if (version_string == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(version_string, "Memory allocation error.");
 
 			r = version_new_serialize(version_string);
-			if (r < 0)
-			{
-				error_log("Could not serialize version data.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not serialize version data.");
+
 			version_string_len = r;
 
 			message = malloc(message_sizeof());
-			if (message == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(message, "Memory allocation error.");
 
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
-			if (r < 0)
-			{
-				error_log("Could not create a new message.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not create a new message.");
+
 			free(version_string);
 
 			message_raw = malloc(message_sizeof());
-			if (message_raw == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(message_raw, "Memory allocation error.");
 
 			r = message_serialize(message_raw, &message_raw_len, message);
-			if (r < 0)
-			{
-				error_log("Could not serialize message data.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not serialize message data.");
 
 			r = node_write(node, message_raw, message_raw_len);
-			if (r < 0)
-			{
-				error_log("Could not send message to host.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not send message to host.");
+
 			free(message);
 			free(message_raw);
 
@@ -163,12 +102,9 @@ int btk_node_main(void)
 			{
 				node_data = NULL;
 				node_data_len = 0;
+
 				r = node_read(node, &node_data);
-				if (r < 0)
-				{
-					error_log("Could not read message from host.");
-					return -1;
-				}
+				ERROR_CHECK_NEG(r, "Could not read message from host.");
 
 				if (r > 0)
 				{
@@ -178,6 +114,7 @@ int btk_node_main(void)
 
 				sleep(1);
 			}
+
 			node_disconnect(node);
 
 			node_data_walk = node_data;
@@ -186,32 +123,17 @@ int btk_node_main(void)
 			while (node_data_len > 0)
 			{
 				message = malloc(message_sizeof());
-				if (message == NULL)
-				{
-					error_log("Memory allocation error.");
-					return -1;
-				}
+				ERROR_CHECK_NULL(message, "Memory allocation error.");
 
 				r = message_deserialize(message, node_data_walk, node_data_len);
-				if (r < 0)
-				{
-					error_log("Could not deserialize message from host.");
-					return -1;
-				}
+				ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
+
 				node_data_len -= r;
 				node_data_walk += r;
 
 				r = message_is_valid(message);
-				if (r < 0)
-				{
-					error_log("Could not validate message from host.");
-					return -1;
-				}
-				if (r == 0)
-				{
-					error_log("The message received from host contains an invalid checksum.");
-					return -1;
-				}
+				ERROR_CHECK_NEG(r, "Could not validate message from host.");
+				ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
 
 				r = message_cmp_command(message, VERSION_COMMAND);
 				if (r == 0)
@@ -225,41 +147,21 @@ int btk_node_main(void)
 				}
 			}
 			
-			if (message == NULL)
-			{
-				printf("Did not receive response from host before timeout.\n");
-				return 1;
-			}
+			ERROR_CHECK_NULL(message, "Did not receive response from host before timeout.");
 			
 			payload = malloc(message_get_payload_len(message));
-			if (payload == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(payload, "Memory allocation error.");
 
 			payload_len = message_get_payload(payload, message);
 			
 			version = malloc(version_sizeof());
-			if (version == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(version, "Memory allocation error.");
 
 			r = version_deserialize(version, payload, payload_len);
-			if (r < 0)
-			{
-				error_log("Could not deserialize host response.");
-				return -1;
-			}
+			ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
 			json = malloc(1000);
-			if (json == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL(json, "Memory allocation error.");
 
 			version_to_json(json, version);
 
@@ -275,10 +177,5 @@ int btk_node_main(void)
 			break;
 	}
 
-	return 1;
-}
-
-int btk_node_cleanup(void)
-{
 	return 1;
 }
