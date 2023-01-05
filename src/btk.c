@@ -84,6 +84,11 @@ int main(int argc, char *argv[])
 		r = btk_node_main();
 		BTK_CHECK_NEG(r);
 	}
+	else if (strcmp(command, "version") == 0)
+	{
+		r = btk_version_main();
+		BTK_CHECK_NEG(r);
+	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");

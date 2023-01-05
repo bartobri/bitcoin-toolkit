@@ -13,14 +13,6 @@
 #include "mods/error.h"
 #include "mods/config.h"
 
-int btk_version_init(int argc, char *argv[])
-{
-	(void)argc;
-	(void)argv;
-
-	return 1;
-}
-
 int btk_version_main(void)
 {
 	int r;
@@ -38,10 +30,5 @@ int btk_version_main(void)
 	json_print();
 	json_free();
 
-	return 1;
-}
-
-int btk_version_cleanup(void)
-{
 	return 1;
 }
