@@ -59,7 +59,7 @@
 #define OPTS_HOST_PORT_NONE                 0
 
 #define OPTS_CREATE_FALSE                   0
-#define OPTS_CREATE_TRUE                    1   // Optional arg. Can be used with privey, database, and vanity
+#define OPTS_CREATE_TRUE                    1   // Optional arg. Can be used with privkey, database, and vanity
 
 typedef struct opts *opts_p;
 struct opts {
