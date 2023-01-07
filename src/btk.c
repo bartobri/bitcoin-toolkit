@@ -84,6 +84,14 @@ int main(int argc, char *argv[])
 		r = btk_node_main();
 		BTK_CHECK_NEG(r);
 	}
+	else if (strcmp(command, "utxodb") == 0)
+	{
+		r = opts_init(argc, argv);
+		BTK_CHECK_NEG(r);
+		
+		r = btk_utxodb_main();
+		BTK_CHECK_NEG(r);
+	}
 	else if (strcmp(command, "version") == 0)
 	{
 		r = btk_version_main();

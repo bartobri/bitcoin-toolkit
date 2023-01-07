@@ -8,8 +8,6 @@
 #ifndef BTK_UTXODB_H
 #define BTK_UTXODB_H 1
 
-int btk_utxodb_init(int argc, char *argv[]);
 int btk_utxodb_main(void);
-int btk_utxodb_cleanup(void);
 
 #endif

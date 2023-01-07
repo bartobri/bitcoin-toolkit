@@ -18,59 +18,38 @@
 #include "mods/pubkey.h"
 #include "mods/script.h"
 #include "mods/utxodb.h"
+#include "mods/opts.h"
 
 #define BTK_UTXODB_TX_LENGTH          32
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
 #define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
-static char *db_path = NULL;
-
-int btk_utxodb_init(int argc, char *argv[])
-{
-    int o;
-    char *command = NULL;
-
-    command = argv[1];
-
-    while ((o = getopt(argc, argv, "p:")) != -1)
-    {
-        switch (o)
-        {
-            case 'p':
-                db_path = optarg;
-                break;
-            case '?':
-                error_log("See 'btk help %s' to read about available argument options.", command);
-                if (isprint(optopt))
-                {
-                    error_log("Invalid command option or argument required: '-%c'.", optopt);
-                }
-                else
-                {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
-                }
-                return -1;
-        }
-    }
-
-    return 1;
-}
+static opts_p opts;
 
 int btk_utxodb_main(void)
 {
     int r;
     char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
     char *input = NULL;
+    char *db_path = NULL;
     unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
     UTXODBKey key = NULL;
     UTXODBValue value = NULL;
 
+    key = malloc(utxodb_sizeof_key());
+    ERROR_CHECK_NULL(key, "Memory Allocation Error.");
+
+    value = malloc(utxodb_sizeof_value());
+    ERROR_CHECK_NULL(value, "Memory Allocation Error.");
+
+    r = opts_get(&opts);
+    ERROR_CHECK_NEG(r, "Could not get command options.");
+
+    db_path = opts->input_path;
+    ERROR_CHECK_NULL(db_path, "Missing database path argument.");
+
     r = input_get_str(&input, "Enter TX Hash: ");
-    if (r < 0)
-    {
-        error_log("Could not get input.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Could not get input.");
 
     if (strlen(input) != (UTXODB_TX_HASH_LENGTH * 2))
     {
@@ -79,26 +58,10 @@ int btk_utxodb_main(void)
     }
 
     r = hex_str_to_raw(input_raw, input);
-    if (r < 0)
-    {
-        error_log("Can not convert hex input to raw binary.");
-        return -1;
-    }
-
-    key = malloc(utxodb_sizeof_key());
-    value = malloc(utxodb_sizeof_value());
-    if (key == NULL || value == NULL)
-    {
-        error_log("Memory Allocation Error.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Can not convert hex input to raw binary.");
 
     r = utxodb_open(db_path);
-    if (r < 0)
-    {
-        error_log("Could not open utxo database.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Could not open utxo database.");
 
     while ((r = utxodb_get(key, value, input_raw)) == 1)
     {
@@ -109,12 +72,9 @@ int btk_utxodb_main(void)
         if (utxodb_value_has_address(value))
         {
             r = utxodb_value_get_address(address, value);
-            if (r < 0)
-            {
-                error_log("Can not get address from value.");
-                return -1;
-            }
-            else if (r > 0)
+            ERROR_CHECK_NEG(r, "Can not get address from value.");
+            
+            if (r > 0)
             {
                 printf("%s", address);
             }
@@ -122,11 +82,7 @@ int btk_utxodb_main(void)
 
         printf("\n");
     }
-    if (r < 0)
-    {
-        error_log("Could not get record from utxo database.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Could not get record from utxo database.");
 
     utxodb_close();
 
@@ -135,9 +91,4 @@ int btk_utxodb_main(void)
     free(value);
 
     return EXIT_SUCCESS;
-}
-
-int btk_utxodb_cleanup(void)
-{
-    return 1;
 }
