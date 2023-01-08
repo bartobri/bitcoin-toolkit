@@ -46,7 +46,7 @@ int addressdb_open(char *p, bool create)
     r = database_open(&dbref, path, create);
     if (r < 0)
     {
-        error_log("Error while opening UTXO database.");
+        error_log("Error while opening address database.");
         return -1;
     }
 
