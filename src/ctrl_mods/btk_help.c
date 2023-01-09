@@ -8,24 +8,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "btk_help.h"
 #include "mods/error.h"
 
-static char *command = NULL;
+void btk_help_commands(void);
+void btk_help_privkey(void);
+void btk_help_pubkey(void);
+void btk_help_address(void);
+void btk_help_node(void);
+void btk_help_version(void);
+void btk_help_utxodb(void);
 
-int btk_help_init(int argc, char *argv[])
-{
-	if (argc <= 2)
-	{
-		return 1;
-	}
-
-	command = argv[2];
-
-	return 1;
-}
-
-int btk_help_main(void)
+int btk_help_main(char *command)
 {
 	if (command == NULL)
 	{
@@ -64,11 +59,6 @@ int btk_help_main(void)
 		return -1;
 	}
 	
-	return 1;
-}
-
-int btk_help_cleanup(void)
-{
 	return 1;
 }
 
