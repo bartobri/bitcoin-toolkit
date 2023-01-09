@@ -8,6 +8,8 @@
 #ifndef BTK_UTXODB_H
 #define BTK_UTXODB_H 1
 
-int btk_utxodb_main(void);
+#include "mods/opts.h"
+
+int btk_utxodb_main(opts_p);
 
 #endif

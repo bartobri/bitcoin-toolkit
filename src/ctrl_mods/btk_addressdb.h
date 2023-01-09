@@ -8,6 +8,8 @@
 #ifndef BTK_ADDRESSDB_H
 #define BTK_ADDRESSDB_H 1
 
-int btk_addressdb_main(void);
+#include "mods/opts.h"
+
+int btk_addressdb_main(opts_p);
 
 #endif

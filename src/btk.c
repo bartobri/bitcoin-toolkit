@@ -22,6 +22,8 @@
 
 #define BTK_CHECK_NEG(x)            if (x < 0) { error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
+static opts_p opts;
+
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
@@ -52,52 +54,39 @@ int main(int argc, char *argv[])
 		command = argv[1];
 	}
 
+	opts = malloc(sizeof(*opts));
+	ERROR_CHECK_FALSE(opts, "Memory allocation error.");
+	r = opts_get(opts, argc, argv);
+	BTK_CHECK_NEG(r);
+
 	if (strcmp(command, "privkey") == 0)
 	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-
-		r = btk_privkey_main();
+		r = btk_privkey_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-
-		r = btk_pubkey_main();
+		r = btk_pubkey_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "address") == 0)
 	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-
-		r = btk_address_main();
+		r = btk_address_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "node") == 0)
 	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-
-		r = btk_node_main();
+		r = btk_node_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "utxodb") == 0)
 	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-
-		r = btk_utxodb_main();
+		r = btk_utxodb_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "addressdb") == 0)
-	{
-		r = opts_init(argc, argv);
-		BTK_CHECK_NEG(r);
-		
-		r = btk_addressdb_main();
+	{	
+		r = btk_addressdb_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "version") == 0)

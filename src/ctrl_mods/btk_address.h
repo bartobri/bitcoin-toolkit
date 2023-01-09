@@ -8,6 +8,8 @@
 #ifndef BTK_ADDRESS_H
 #define BTK_ADDRESS_H 1
 
-int btk_address_main(void);
+#include "mods/opts.h"
+
+int btk_address_main(opts_p);
 
 #endif

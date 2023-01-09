@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "mods/error.h"
 #include "mods/input.h"
 #include "mods/addressdb.h"
@@ -22,9 +23,7 @@
 #include "mods/address.h"
 #include "mods/opts.h"
 
-static opts_p opts;
-
-int btk_addressdb_main(void)
+int btk_addressdb_main(opts_p opts)
 {
     int r;
     uint64_t sats = 0;
@@ -32,11 +31,10 @@ int btk_addressdb_main(void)
     char address[BUFSIZ];
     unsigned char tmp[BUFSIZ];
 
+    assert(opts);
+
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
-
-    r = opts_get(&opts);
-    ERROR_CHECK_NEG(r, "Could not get command options.");
 
     if (opts->create)
     {

@@ -8,6 +8,8 @@
 #ifndef BTK_PUBKEY_H
 #define BTK_PUBKEY_H 1
 
-int btk_pubkey_main(void);
+#include "mods/opts.h"
+
+int btk_pubkey_main(opts_p);
 
 #endif

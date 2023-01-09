@@ -77,7 +77,6 @@ struct opts {
     char *output_path;
 };
 
-int opts_init(int, char **);
-int opts_get(opts_p *);
+int opts_get(opts_p, int, char **);
 
 #endif

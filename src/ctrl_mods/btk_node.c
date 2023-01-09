@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <assert.h>
 #include "mods/network.h"
 #include "mods/node.h"
 #include "mods/message.h"
@@ -22,9 +23,7 @@
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-static opts_p opts;
-
-int btk_node_main(void)
+int btk_node_main(opts_p opts)
 {
 	int i, r;
 	int message_type = MESSAGE_TYPE_VERSION;
@@ -44,8 +43,7 @@ int btk_node_main(void)
 	size_t version_string_len;
 	char *json = NULL;
 
-	r = opts_get(&opts);
-	ERROR_CHECK_NEG(r, "Could not get command options.");
+	assert(opts);
 
 	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
 

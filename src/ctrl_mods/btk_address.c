@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/address.h"
@@ -26,7 +27,7 @@ int btk_address_get_vanity_estimate(long int *, long int);
 
 static opts_p opts;
 
-int btk_address_main(void)
+int btk_address_main(opts_p opts_in)
 {
     int r;
     size_t i, len, input_len;
@@ -36,6 +37,10 @@ int btk_address_main(void)
     char output_str2[BUFSIZ];
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
+
+    assert(opts_in);
+
+    opts = opts_in;
 
     memset(input_str, 0, BUFSIZ);
     memset(output_str, 0, BUFSIZ);
@@ -48,9 +53,6 @@ int btk_address_main(void)
     ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
     json_init();
-
-    r = opts_get(&opts);
-    ERROR_CHECK_NEG(r, "Could not get command options.");
 
     if (opts->output_type == OPTS_OUTPUT_TYPE_DEFAULT)
     {

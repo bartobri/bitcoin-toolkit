@@ -22,7 +22,7 @@ int btk_pubkey_set_compression(PubKey);
 
 static opts_p opts;
 
-int btk_pubkey_main(void)
+int btk_pubkey_main(opts_p opts_in)
 {
 	int r;
 	size_t i, len, input_len;
@@ -31,6 +31,10 @@ int btk_pubkey_main(void)
 	char output_str[BUFSIZ];
 	PubKey pubkey = NULL;
 	PrivKey privkey = NULL;
+
+	assert(opts_in);
+
+	opts = opts_in;
 
 	memset(input_str, 0, BUFSIZ);
 	memset(output_str, 0, BUFSIZ);
@@ -42,9 +46,6 @@ int btk_pubkey_main(void)
 	ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
 	json_init();
-
-	r = opts_get(&opts);
-	ERROR_CHECK_NEG(r, "Could not get command options.");
 
 	r = input_get(&input, &input_len);
 	ERROR_CHECK_NEG(r, "Error getting input.");

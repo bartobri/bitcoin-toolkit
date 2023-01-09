@@ -12,6 +12,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <assert.h>
 #include "mods/error.h"
 #include "mods/input.h"
 #include "mods/hex.h"
@@ -24,9 +25,7 @@
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
 #define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
-static opts_p opts;
-
-int btk_utxodb_main(void)
+int btk_utxodb_main(opts_p opts)
 {
     int r;
     char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
@@ -36,14 +35,13 @@ int btk_utxodb_main(void)
     UTXODBKey key = NULL;
     UTXODBValue value = NULL;
 
+    assert(opts);
+
     key = malloc(utxodb_sizeof_key());
     ERROR_CHECK_NULL(key, "Memory Allocation Error.");
 
     value = malloc(utxodb_sizeof_value());
     ERROR_CHECK_NULL(value, "Memory Allocation Error.");
-
-    r = opts_get(&opts);
-    ERROR_CHECK_NEG(r, "Could not get command options.");
 
     db_path = opts->input_path;
     ERROR_CHECK_NULL(db_path, "Missing database path argument.");

@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include "opts.h"
 #include "error.h"
+#include "assert.h"
 
 #define INPUT_SET_FORMAT(x)        if (opts->input_format == OPTS_INPUT_FORMAT_NONE) { opts->input_format = x; } else { error_log("Cannot use multiple input format options."); return -1; }
 #define INPUT_SET_TYPE(x)          if (opts->input_type == OPTS_INPUT_TYPE_NONE) { opts->input_type = x; } else { error_log("Cannot use multiple input type options."); return -1; }
@@ -24,14 +25,11 @@
 #define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
 #define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
 
-static opts_p opts = NULL;
-
-int opts_init(int argc, char *argv[])
+int opts_get(opts_p opts, int argc, char *argv[])
 {
     int o;
 
-    opts = malloc(sizeof(*opts));
-    ERROR_CHECK_FALSE(opts, "Memory allocation error.");
+    assert(opts);
 
     opts->input_format = OPTS_INPUT_FORMAT_NONE;
     opts->input_type = OPTS_INPUT_TYPE_NONE;
@@ -184,15 +182,6 @@ int opts_init(int argc, char *argv[])
     {
         opts->network = OPTS_OUTPUT_NETWORK_DEFAULT;
     }
-
-    return 1;
-}
-
-int opts_get(opts_p *opts_out)
-{
-    ERROR_CHECK_NULL(opts, "Opts not initialized. Call opts_init() first.");
-
-    *opts_out = opts;
 
     return 1;
 }

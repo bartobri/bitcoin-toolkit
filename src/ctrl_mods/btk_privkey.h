@@ -8,6 +8,8 @@
 #ifndef BTK_PRIVKEY_H
 #define BTK_PRIVKEY_H 1
 
-int btk_privkey_main(void);
+#include "mods/opts.h"
+
+int btk_privkey_main(opts_p);
 
 #endif

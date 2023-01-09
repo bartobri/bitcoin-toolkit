@@ -8,6 +8,8 @@
 #ifndef BTK_NODE_H
 #define BTK_NODE_H 1
 
-int btk_node_main(void);
+#include "mods/opts.h"
+
+int btk_node_main(opts_p);
 
 #endif

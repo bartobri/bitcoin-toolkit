@@ -37,7 +37,7 @@ static opts_p opts;
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
 static int output_hashes_arr_len = 0;
 
-int btk_privkey_main(void)
+int btk_privkey_main(opts_p opts_in)
 {
 	size_t i, len;
 	int r;
@@ -46,15 +46,16 @@ int btk_privkey_main(void)
 	size_t input_len;
 	char input_str[BUFSIZ];
 
+	assert(opts_in);
+
+	opts = opts_in;
+
 	memset(input_str, 0, BUFSIZ);
 
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
 
 	json_init();
-
-	r = opts_get(&opts);
-	ERROR_CHECK_NEG(r, "Could not get command options.");
 
 	if (opts->create)
 	{
