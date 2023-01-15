@@ -93,7 +93,7 @@ int btk_pubkey_main(opts_p opts)
 					if (r < 0)
                     {
                         error_clear();
-                        ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+                        ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
                     }
 					break;
 			}

@@ -217,7 +217,7 @@ int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t
 			if (r < 0)
             {
                 error_clear();
-                ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+                ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
             }
 			break;
 	}

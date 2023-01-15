@@ -26,7 +26,7 @@ int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
 static int input_format    = OPTS_INPUT_FORMAT_JSON;
-static int input_type      = OPTS_INPUT_TYPE_HEX;
+static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int output_type     = OPTS_OUTPUT_TYPE_P2PKH;
 
 int btk_address_main(opts_p opts)
@@ -106,7 +106,7 @@ int btk_address_main(opts_p opts)
                     if (r < 0)
                     {
                         error_clear();
-                        ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+                        ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
                     }
                     break;
             }
