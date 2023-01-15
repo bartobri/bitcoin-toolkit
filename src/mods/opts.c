@@ -25,7 +25,9 @@
 #define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
 #define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
 
-int opts_get(opts_p opts, int argc, char *argv[])
+#define OPTS_STRING_DEFAULT        "abjwhrsdbxvJAWHDMTPBCUR:n:p:c::F:f:"
+
+int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
 {
     int o;
 
@@ -44,10 +46,15 @@ int opts_get(opts_p opts, int argc, char *argv[])
     opts->input_path = OPTS_INPUT_PATH_NONE;
     opts->output_path = OPTS_OUTPUT_PATH_NONE;
 
+    if (!opts_string)
+    {
+        opts_string = OPTS_STRING_DEFAULT;
+    }
+
     // Turn off getopt errors. I print my own errors.
     opterr = 0;
 
-    while ((o = getopt(argc, argv, "abjwhrsdbxvJAWHDMTPBCUR:n:p:c::F:f:")) != -1)
+    while ((o = getopt(argc, argv, opts_string)) != -1)
     {
         switch (o)
         {
@@ -146,11 +153,11 @@ int opts_get(opts_p opts, int argc, char *argv[])
             case '?':
                 if (isprint(optopt))
                 {
-                    error_log("Invalid command option or argument required: '-%c'.", optopt);
+                    error_log("Invalid option or missing option argument: '-%c'.", optopt);
                 }
                 else
                 {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
+                    error_log("Invalid option character '\\x%x'.", optopt);
                 }
                 return -1;
         }

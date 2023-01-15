@@ -70,6 +70,6 @@ struct opts {
     char *output_path;
 };
 
-int opts_get(opts_p, int, char **);
+int opts_get(opts_p, int, char **, char *);
 
 #endif

@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, "abjwhrsdxcCUMTWHDR:");
 		BTK_CHECK_NEG(r);
 
 		r = btk_privkey_main(opts);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, NULL);
 		BTK_CHECK_NEG(r);
 
 		r = btk_pubkey_main(opts);
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, NULL);
 		BTK_CHECK_NEG(r);
 
 		r = btk_address_main(opts);
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, NULL);
 		BTK_CHECK_NEG(r);
 
 		r = btk_node_main(opts);
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, NULL);
 		BTK_CHECK_NEG(r);
 
 		r = btk_utxodb_main(opts);
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv);
+		r = opts_get(opts, argc, argv, NULL);
 		BTK_CHECK_NEG(r);
 
 		r = btk_addressdb_main(opts);
