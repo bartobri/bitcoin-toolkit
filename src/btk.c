@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv, NULL);
+		r = opts_get(opts, argc, argv, "n:p:MT");
 		BTK_CHECK_NEG(r);
 
 		r = btk_node_main(opts);
