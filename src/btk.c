@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 		opts = malloc(sizeof(*opts));
 		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
 		
-		r = opts_get(opts, argc, argv, NULL);
+		r = opts_get(opts, argc, argv, "f:");
 		BTK_CHECK_NEG(r);
 
 		r = btk_utxodb_main(opts);
