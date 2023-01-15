@@ -23,6 +23,11 @@
 #include "mods/address.h"
 #include "mods/opts.h"
 
+static int input_type      = OPTS_INPUT_TYPE_NONE;
+static int create          = OPTS_CREATE_FALSE;
+static char *input_path    = OPTS_INPUT_PATH_NONE;
+static char *output_path   = OPTS_OUTPUT_PATH_NONE;
+
 int btk_addressdb_main(opts_p opts)
 {
     int r;
@@ -31,14 +36,20 @@ int btk_addressdb_main(opts_p opts)
     char address[BUFSIZ];
     unsigned char tmp[BUFSIZ];
 
-    assert(opts);
-
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;
 
-    if (opts->create)
+    assert(opts);
+
+    // Override defaults
+    if (opts->input_type) { input_type = opts->input_type; }
+    if (opts->create) { create = opts->create; }
+    if (opts->input_path) { input_path = opts->input_path; }
+    if (opts->output_path) { output_path = opts->output_path; }
+
+    if (create)
     {
-        r = addressdb_open(opts->output_path, opts->create);
+        r = addressdb_open(output_path, create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
         utxodb_key = malloc(utxodb_sizeof_key());
@@ -47,7 +58,7 @@ int btk_addressdb_main(opts_p opts)
         utxodb_value = malloc(utxodb_sizeof_value());
         ERROR_CHECK_NULL(utxodb_value, "Memory Allocation Error.");
 
-        r = utxodb_open(opts->input_path);
+        r = utxodb_open(input_path);
         ERROR_CHECK_NEG(r, "Could not open utxo database.");
 
         while ((r = utxodb_get(utxodb_key, utxodb_value, NULL)) == 1)
@@ -84,13 +95,13 @@ int btk_addressdb_main(opts_p opts)
     }
     else
     {
-        r = addressdb_open(opts->input_path, opts->create);
+        r = addressdb_open(input_path, create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
         r = input_get_str(&input, "Enter Input: ");
         ERROR_CHECK_NEG(r, "Could not get input.");
 
-        if (opts->input_type == OPTS_INPUT_TYPE_WIF)
+        if (input_type == OPTS_INPUT_TYPE_WIF)
         {
             memset(address, 0, BUFSIZ);
 
@@ -102,7 +113,7 @@ int btk_addressdb_main(opts_p opts)
 
             strcpy(input, address);
         }
-        else if (opts->input_type == OPTS_INPUT_TYPE_STRING)
+        else if (input_type == OPTS_INPUT_TYPE_STRING)
         {
             memset(address, 0, BUFSIZ);
 

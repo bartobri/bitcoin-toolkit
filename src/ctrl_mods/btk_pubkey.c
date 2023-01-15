@@ -20,9 +20,12 @@
 
 int btk_pubkey_set_compression(PubKey);
 
-static opts_p opts;
+// Defaults
+static int input_format    = OPTS_INPUT_FORMAT_JSON;
+static int input_type      = OPTS_INPUT_TYPE_HEX;
+static int compression     = OPTS_OUTPUT_COMPRESSION_NONE;
 
-int btk_pubkey_main(opts_p opts_in)
+int btk_pubkey_main(opts_p opts)
 {
 	int r;
 	size_t i, len, input_len;
@@ -32,9 +35,11 @@ int btk_pubkey_main(opts_p opts_in)
 	PubKey pubkey = NULL;
 	PrivKey privkey = NULL;
 
-	assert(opts_in);
+	assert(opts);
 
-	opts = opts_in;
+	if (opts->input_format) { input_format = opts->input_format; }
+	if (opts->input_type) { input_type = opts->input_type; }
+	if (opts->compression) { compression = opts->compression; }
 
 	memset(input_str, 0, BUFSIZ);
 	memset(output_str, 0, BUFSIZ);
@@ -50,7 +55,7 @@ int btk_pubkey_main(opts_p opts_in)
 	r = input_get(&input, &input_len);
 	ERROR_CHECK_NEG(r, "Error getting input.");
 
-	if (opts->input_format == OPTS_INPUT_FORMAT_ASCII)
+	if (input_format == OPTS_INPUT_FORMAT_ASCII)
 	{
 		r = json_from_input(&input, &input_len);
 		ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
@@ -71,7 +76,7 @@ int btk_pubkey_main(opts_p opts_in)
 			r = json_get_input_index(input_str, BUFSIZ, i);
 			ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
 
-			switch (opts->input_type)
+			switch (input_type)
 			{
 				case OPTS_INPUT_TYPE_WIF:
 					r = privkey_from_wif(privkey, input_str);
@@ -83,13 +88,17 @@ int btk_pubkey_main(opts_p opts_in)
 					r = pubkey_from_hex(pubkey, input_str);
 					ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 					break;
-				case OPTS_INPUT_TYPE_GUESS:
+				default:
 					r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
-					ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+					if (r < 0)
+                    {
+                        error_clear();
+                        ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+                    }
 					break;
 			}
 
-			if (opts->input_type == OPTS_INPUT_TYPE_WIF && opts->compression == OPTS_OUTPUT_COMPRESSION_NONE)
+			if (input_type == OPTS_INPUT_TYPE_WIF && compression == OPTS_OUTPUT_COMPRESSION_NONE)
 			{
 				if (privkey_is_compressed(privkey))
 				{
@@ -112,7 +121,7 @@ int btk_pubkey_main(opts_p opts_in)
 			r = json_add(output_str);
 			ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
-			if (opts->compression == OPTS_OUTPUT_COMPRESSION_BOTH)
+			if (compression == OPTS_OUTPUT_COMPRESSION_BOTH)
 			{
 				memset(output_str, 0, BUFSIZ);
 				
@@ -148,7 +157,7 @@ int btk_pubkey_set_compression(PubKey key)
 
 	assert(key);
 
-	switch (opts->compression)
+	switch (compression)
 	{
 		case OPTS_OUTPUT_COMPRESSION_NONE:
 		case OPTS_OUTPUT_COMPRESSION_TRUE:

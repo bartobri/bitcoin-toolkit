@@ -33,11 +33,20 @@ int btk_privkey_output_hashes_process(char *);
 int btk_privkey_output_hashes_comp(const void *, const void *);
 int btk_privkey_rehash(PrivKey, int);
 
-static opts_p opts;
+// Defaults
+static int input_format    = OPTS_INPUT_FORMAT_JSON;
+static int input_type      = OPTS_INPUT_TYPE_NONE;
+static int create          = OPTS_CREATE_FALSE;
+static int compression     = OPTS_OUTPUT_COMPRESSION_TRUE;
+static int network         = OPTS_OUTPUT_NETWORK_MAINNET;
+static int output_type     = OPTS_OUTPUT_TYPE_WIF;
+static char *rehashes      = OPTS_OUTPUT_REHASHES_NONE;
+
+// Do these need to be static?
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
 static int output_hashes_arr_len = 0;
 
-int btk_privkey_main(opts_p opts_in)
+int btk_privkey_main(opts_p opts)
 {
 	size_t i, len;
 	int r;
@@ -46,9 +55,16 @@ int btk_privkey_main(opts_p opts_in)
 	size_t input_len;
 	char input_str[BUFSIZ];
 
-	assert(opts_in);
+	assert(opts);
 
-	opts = opts_in;
+	// Override defaults
+	if (opts->input_format) { input_format = opts->input_format; }
+	if (opts->input_type) { input_type = opts->input_type; }
+	if (opts->create) { create = opts->create; }
+	if (opts->compression) { compression = opts->compression; }
+	if (opts->network) { network = opts->network; }
+	if (opts->output_type) { output_type = opts->output_type; }
+	if (opts->rehashes) { rehashes = opts->rehashes; }
 
 	memset(input_str, 0, BUFSIZ);
 
@@ -57,12 +73,12 @@ int btk_privkey_main(opts_p opts_in)
 
 	json_init();
 
-	if (opts->create)
+	if (create)
 	{
 		r = privkey_new(key);
 		ERROR_CHECK_NEG(r, "Could not generate a new private key.");
 
-		if (opts->rehashes)
+		if (rehashes)
 		{
 			r = btk_privkey_hashes_args_add(key, input_str);
 			ERROR_CHECK_NEG(r, "");
@@ -78,15 +94,15 @@ int btk_privkey_main(opts_p opts_in)
 		r = input_get(&input, &input_len);
 		ERROR_CHECK_NEG(r, "Error getting input.");
 
-		if (opts->input_format == OPTS_INPUT_FORMAT_ASCII)
+		if (input_format == OPTS_INPUT_FORMAT_ASCII)
 		{
 			r = json_from_input(&input, &input_len);
 			ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
 
-			opts->input_format = OPTS_INPUT_FORMAT_JSON;
+			input_format = OPTS_INPUT_FORMAT_JSON;
 		}
 
-		if (opts->input_format == OPTS_INPUT_FORMAT_JSON)
+		if (input_format == OPTS_INPUT_FORMAT_JSON)
 		{
 			if(json_is_valid((char *)input, input_len))
 			{
@@ -106,7 +122,7 @@ int btk_privkey_main(opts_p opts_in)
 					r = btk_privkey_get(key, input_str, NULL, 0);
 					ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 
-					if (opts->rehashes)
+					if (rehashes)
 					{
 						r = btk_privkey_hashes_args_add(key, input_str);
 						ERROR_CHECK_NEG(r, "");
@@ -124,12 +140,12 @@ int btk_privkey_main(opts_p opts_in)
 				return -1;
 			}
 		}
-		else if (opts->input_format == OPTS_INPUT_FORMAT_BINARY)
+		else if (input_format == OPTS_INPUT_FORMAT_BINARY)
 		{
 			r = btk_privkey_get(key, NULL, input, input_len);
 			ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 
-			if (opts->rehashes)
+			if (rehashes)
 			{
 				r = btk_privkey_hashes_args_add(key, (char *)NULL);
 				ERROR_CHECK_NEG(r, "");
@@ -159,15 +175,7 @@ int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t
 	assert(key);
 	assert(sc_input || uc_input);
 
-	if (opts->create)
-	{
-		r = privkey_new(key);
-		ERROR_CHECK_NEG(r, "Could not generate a new private key.");
-		
-		return 1;
-	}
-
-	switch (opts->input_type)
+	switch (input_type)
 	{		
 		case OPTS_INPUT_TYPE_WIF:
 			r = privkey_from_wif(key, sc_input);
@@ -197,17 +205,20 @@ int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t
 			r = privkey_from_blob(key, uc_input, uc_input_len);
 			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			break;
-		case OPTS_INPUT_TYPE_GUESS:
+		default:
 			if (uc_input)
 			{
 				r = privkey_from_guess(key, uc_input, uc_input_len);
-				ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			}
 			else
 			{
 				r = privkey_from_guess(key, (unsigned char *)sc_input, strlen(sc_input));
-				ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 			}
+			if (r < 0)
+            {
+                error_clear();
+                ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+            }
 			break;
 	}
 
@@ -267,7 +278,7 @@ int btk_privkey_args_add(PrivKey key)
 	r = json_add(output_str);
 	ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
-	if (opts->compression == OPTS_OUTPUT_COMPRESSION_BOTH)
+	if (compression == OPTS_OUTPUT_COMPRESSION_BOTH)
 	{
 		memset(output_str, 0, BUFSIZ);
 
@@ -290,7 +301,7 @@ int btk_privkey_set_compression(PrivKey key)
 
 	assert(key);
 
-	switch (opts->compression)
+	switch (compression)
 	{
 		case OPTS_OUTPUT_COMPRESSION_NONE:
 		case OPTS_OUTPUT_COMPRESSION_TRUE:
@@ -320,7 +331,7 @@ int btk_privkey_set_network(PrivKey key)
 {
 	assert(key);
 
-	switch (opts->network)
+	switch (network)
 	{
 		case OPTS_OUTPUT_NETWORK_NONE:
 			break;
@@ -342,7 +353,7 @@ int btk_privkey_to_output(char *output, PrivKey key)
 	assert(output);
 	assert(key);
 
-	switch (opts->output_type)
+	switch (output_type)
 	{
 		case OPTS_OUTPUT_TYPE_WIF:
 			r = privkey_to_wif(output, key);
@@ -353,7 +364,7 @@ int btk_privkey_to_output(char *output, PrivKey key)
 			}
 			break;
 		case OPTS_OUTPUT_TYPE_HEX:
-			r = privkey_to_hex(output, key, (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
+			r = privkey_to_hex(output, key, (compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
 			if (r < 0)
 			{
 				error_log("Could not convert private key to hex format.");
@@ -383,10 +394,10 @@ int btk_privkey_output_hashes_process(char *input_str)
 
 	// Save a pointer to the start of output_hashes so that it can be reset
 	// for list processing.
-	output_hashes_len = strlen(opts->rehashes);
+	output_hashes_len = strlen(rehashes);
 
 	i = 0;
-	tok = strtok(opts->rehashes, ",");
+	tok = strtok(rehashes, ",");
 	while (tok != NULL)
 	{
 		tmp = strtol(tok, &tokend, 10);
@@ -402,7 +413,7 @@ int btk_privkey_output_hashes_process(char *input_str)
 		}
 		else if (strcmp(tok, HASH_WILDCARD) == 0)
 		{
-			if (opts->input_type != OPTS_INPUT_TYPE_STRING && opts->input_type != OPTS_INPUT_TYPE_DECIMAL)
+			if (input_type != OPTS_INPUT_TYPE_STRING && input_type != OPTS_INPUT_TYPE_DECIMAL)
 			{
 				error_log("Can not use wildcard '%s' with current input mode.", HASH_WILDCARD);
 				return -1;
@@ -458,9 +469,9 @@ int btk_privkey_output_hashes_process(char *input_str)
 	// list (if exists).
 	for (i = 0; i < output_hashes_len; i++)
 	{
-		if (opts->rehashes[i] == '\0')
+		if (rehashes[i] == '\0')
 		{
-			opts->rehashes[i] = ',';
+			rehashes[i] = ',';
 		}
 	}
 

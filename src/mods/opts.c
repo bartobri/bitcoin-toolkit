@@ -156,32 +156,5 @@ int opts_get(opts_p opts, int argc, char *argv[])
         }
     }
 
-    // Defalts
-    if (opts->input_format == OPTS_INPUT_FORMAT_NONE)
-    {
-        opts->input_format = OPTS_INPUT_FORMAT_DEFAULT;
-    }
-    if (opts->input_type == OPTS_INPUT_TYPE_NONE)
-    {
-        opts->input_type = OPTS_INPUT_TYPE_DEFAULT;
-    }
-    if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE)
-    {
-        opts->output_format = OPTS_OUTPUT_FORMAT_DEFAULT;
-    }
-    if (opts->output_type == OPTS_OUTPUT_TYPE_NONE)
-    {
-        opts->output_type = OPTS_OUTPUT_TYPE_DEFAULT;
-    }
-    if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE)
-    {
-        // Don't set a default for compression. Let each ctrl module decide its
-        // own default behavior.
-    }
-    if (opts->network == OPTS_OUTPUT_NETWORK_NONE)
-    {
-        opts->network = OPTS_OUTPUT_NETWORK_DEFAULT;
-    }
-
     return 1;
 }

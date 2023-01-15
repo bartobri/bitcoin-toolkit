@@ -12,7 +12,6 @@
 #define OPTS_INPUT_FORMAT_ASCII             1
 #define OPTS_INPUT_FORMAT_BINARY            2
 #define OPTS_INPUT_FORMAT_JSON              3
-#define OPTS_INPUT_FORMAT_DEFAULT           3 //OPTS_INPUT_FORMAT_JSON
 
 #define OPTS_INPUT_TYPE_NONE                0
 #define OPTS_INPUT_TYPE_WIF                 1
@@ -23,13 +22,10 @@
 #define OPTS_INPUT_TYPE_BINARY              6
 #define OPTS_INPUT_TYPE_SBD                 7
 #define OPTS_INPUT_TYPE_VANITY              8
-#define OPTS_INPUT_TYPE_GUESS               9
-#define OPTS_INPUT_TYPE_DEFAULT             OPTS_INPUT_TYPE_GUESS
 
 #define OPTS_OUTPUT_FORMAT_NONE             0
 #define OPTS_OUTPUT_FORMAT_ASCII            1
 #define OPTS_OUTPUT_FORMAT_JSON             2
-#define OPTS_OUTPUT_FORMAT_DEFAULT          OPTS_OUTPUT_FORMAT_JSON
 
 #define OPTS_OUTPUT_TYPE_NONE               0
 #define OPTS_OUTPUT_TYPE_WIF                1
@@ -37,18 +33,15 @@
 #define OPTS_OUTPUT_TYPE_DECIMAL            3
 #define OPTS_OUTPUT_TYPE_P2PKH              4    // Legacy address
 #define OPTS_OUTPUT_TYPE_P2WPKH             5    // Bech32 address
-#define OPTS_OUTPUT_TYPE_DEFAULT            OPTS_OUTPUT_TYPE_HEX
 
 #define OPTS_OUTPUT_COMPRESSION_NONE        0
 #define OPTS_OUTPUT_COMPRESSION_TRUE        1
 #define OPTS_OUTPUT_COMPRESSION_FALSE       2
 #define OPTS_OUTPUT_COMPRESSION_BOTH        3
-#define OPTS_OUTPUT_COMPRESSION_DEFAULT     OPTS_OUTPUT_COMPRESSION_TRUE
 
 #define OPTS_OUTPUT_NETWORK_NONE            0
 #define OPTS_OUTPUT_NETWORK_MAINNET         1
 #define OPTS_OUTPUT_NETWORK_TESTNET         2
-#define OPTS_OUTPUT_NETWORK_DEFAULT         OPTS_OUTPUT_NETWORK_MAINNET
 
 #define OPTS_OUTPUT_REHASHES_NONE           NULL
 

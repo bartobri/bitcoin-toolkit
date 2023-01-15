@@ -25,9 +25,11 @@
 int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
-static opts_p opts;
+static int input_format    = OPTS_INPUT_FORMAT_JSON;
+static int input_type      = OPTS_INPUT_TYPE_HEX;
+static int output_type     = OPTS_OUTPUT_TYPE_P2PKH;
 
-int btk_address_main(opts_p opts_in)
+int btk_address_main(opts_p opts)
 {
     int r;
     size_t i, len, input_len;
@@ -38,9 +40,12 @@ int btk_address_main(opts_p opts_in)
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
 
-    assert(opts_in);
+    assert(opts);
 
-    opts = opts_in;
+    // Override defaults
+    if (opts->input_format) { input_format = opts->input_format; }
+    if (opts->input_type) { input_type = opts->input_type; }
+    if (opts->output_type) { output_type = opts->output_type; }
 
     memset(input_str, 0, BUFSIZ);
     memset(output_str, 0, BUFSIZ);
@@ -54,15 +59,10 @@ int btk_address_main(opts_p opts_in)
 
     json_init();
 
-    if (opts->output_type == OPTS_OUTPUT_TYPE_DEFAULT)
-    {
-        opts->output_type = OPTS_OUTPUT_TYPE_P2PKH;
-    }
-
     r = input_get(&input, &input_len);
     ERROR_CHECK_NEG(r, "Error getting input.");
 
-    if (opts->input_format == OPTS_OUTPUT_FORMAT_ASCII)
+    if (input_format == OPTS_OUTPUT_FORMAT_ASCII)
     {
         r = json_from_input(&input, &input_len);
         ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
@@ -83,7 +83,7 @@ int btk_address_main(opts_p opts_in)
             r = json_get_input_index(input_str, BUFSIZ, i);
             ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
 
-            switch (opts->input_type)
+            switch (input_type)
             {
                 case OPTS_INPUT_TYPE_WIF:
                     r = privkey_from_wif(privkey, input_str);
@@ -101,16 +101,17 @@ int btk_address_main(opts_p opts_in)
                     r = pubkey_get(pubkey, privkey);
                     ERROR_CHECK_NEG(r, "Could not calculate public key.");
                     break;
-                case OPTS_INPUT_TYPE_GUESS:
-                    r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
-                    ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
-                    break;
                 default:
-                    ERROR_CHECK_NEG(-1, "Invalid input type specified.");
+                    r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
+                    if (r < 0)
+                    {
+                        error_clear();
+                        ERROR_CHECK_NEG(-1, "Invalid of missing input type specified.");
+                    }
                     break;
             }
 
-            switch (opts->output_type)
+            switch (output_type)
             {
                 case OPTS_OUTPUT_TYPE_P2PKH:
                     r = address_get_p2pkh(output_str, pubkey);
@@ -125,7 +126,7 @@ int btk_address_main(opts_p opts_in)
                     break;
             }
 
-            if (opts->input_type == OPTS_INPUT_TYPE_VANITY)
+            if (input_type == OPTS_INPUT_TYPE_VANITY)
             {
                 r = btk_address_vanity_match(input_str, output_str);
                 ERROR_CHECK_NEG(r, "Error matching vanity string.");
@@ -169,7 +170,7 @@ int btk_address_vanity_match(char *input_str, char *output_str)
 
     input_len = strlen(input_str);
 
-    switch (opts->output_type)
+    switch (output_type)
     {
         case OPTS_OUTPUT_TYPE_P2PKH:
             for (i = 0; i < input_len; ++i)
