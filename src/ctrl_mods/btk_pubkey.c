@@ -22,7 +22,7 @@ int btk_pubkey_set_compression(PubKey);
 
 // Defaults
 static int input_format    = OPTS_INPUT_FORMAT_JSON;
-static int input_type      = OPTS_INPUT_TYPE_HEX;
+static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int compression     = OPTS_OUTPUT_COMPRESSION_NONE;
 
 int btk_pubkey_main(opts_p opts)
