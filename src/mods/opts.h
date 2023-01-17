@@ -54,6 +54,16 @@
 #define OPTS_CREATE_FALSE                   0
 #define OPTS_CREATE_TRUE                    1   // Optional arg. Can be used with privkey, database, and vanity
 
+#define OPTS_SUBCOMMAND_NONE                NULL
+
+#define OPTS_STRING_PRIVKEY                 "abjwhrsdxcAJCUMTWHDR:"
+#define OPTS_STRING_PUBKEY                  "ajwhCU"
+#define OPTS_STRING_ADDRESS                 "ajwhvPB"
+#define OPTS_STRING_NODE                    "n:p:MT"
+#define OPTS_STRING_UTXODB                  "f:"
+#define OPTS_STRING_ADDRESSDB               "wscf:F:"
+#define OPTS_STRING_HELP                    ""
+
 typedef struct opts *opts_p;
 struct opts {
     int input_format;
@@ -68,8 +78,10 @@ struct opts {
     int create;
     char *input_path;
     char *output_path;
+    char *subcommand;
 };
 
+int opts_init(opts_p);
 int opts_get(opts_p, int, char **, char *);
 
 #endif

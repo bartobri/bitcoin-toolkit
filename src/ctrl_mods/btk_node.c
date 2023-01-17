@@ -28,7 +28,7 @@ static int network       = OPTS_OUTPUT_NETWORK_MAINNET;
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-int btk_node_main(opts_p opts)
+int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
 	int message_type = MESSAGE_TYPE_VERSION;
@@ -49,6 +49,9 @@ int btk_node_main(opts_p opts)
 	char *json = NULL;
 
 	assert(opts);
+
+	(void)input;
+	(void)input_len;
 
 	// Override defaults
 	if (opts->host_name) { host_name = opts->host_name; }

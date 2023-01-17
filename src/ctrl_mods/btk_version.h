@@ -8,6 +8,8 @@
 #ifndef BTK_VERSION_H
 #define BTK_VERSION_H 1
 
-int btk_version_main(void);
+#include "mods/opts.h"
+
+int btk_version_main(opts_p, unsigned char *, size_t);
 
 #endif

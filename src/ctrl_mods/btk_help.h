@@ -8,6 +8,8 @@
 #ifndef BTK_HELP_H
 #define BTK_HELP_H 1
 
-int btk_help_main(char *);
+#include "mods/opts.h"
+
+int btk_help_main(opts_p, unsigned char *, size_t);
 
 #endif

@@ -27,16 +27,17 @@
 
 static char *input_path = OPTS_INPUT_PATH_NONE;
 
-int btk_utxodb_main(opts_p opts)
+int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
-    char *input = NULL;
     unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
     UTXODBKey key = NULL;
     UTXODBValue value = NULL;
 
     assert(opts);
+
+    (void)input_len;
 
     // Override defaults
     if (opts->input_path) { input_path = opts->input_path; }
@@ -48,16 +49,13 @@ int btk_utxodb_main(opts_p opts)
     value = malloc(utxodb_sizeof_value());
     ERROR_CHECK_NULL(value, "Memory Allocation Error.");
 
-    r = input_get_str(&input, "Enter TX Hash: ");
-    ERROR_CHECK_NEG(r, "Could not get input.");
-
-    if (strlen(input) != (UTXODB_TX_HASH_LENGTH * 2))
+    if (strlen((char *)input) != (UTXODB_TX_HASH_LENGTH * 2))
     {
         error_log("Input must be a %i byte hexidecimal string.", (UTXODB_TX_HASH_LENGTH * 2));
         return -1;
     }
 
-    r = hex_str_to_raw(input_raw, input);
+    r = hex_str_to_raw(input_raw, (char *)input);
     ERROR_CHECK_NEG(r, "Can not convert hex input to raw binary.");
 
     r = utxodb_open(input_path);

@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "mods/input.h"
+#include "mods/json.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 #include "ctrl_mods/btk_help.h"
@@ -20,14 +22,24 @@
 #include "ctrl_mods/btk_addressdb.h"
 #include "ctrl_mods/btk_version.h"
 
-#define BTK_CHECK_NEG(x)            if (x < 0) { error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
+#define BTK_CHECK_NEG(x, y)         if (x < 0) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
+#define BTK_CHECK_NULL(x, y)        if (x == NULL) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
+#define BTK_CHECK_FALSE(x, y)       if (!x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
+	int json_len = 0;
+	unsigned char *input = NULL; 
+	size_t input_len = 0;
 	char *command = NULL;
 	char command_str[BUFSIZ];
-	opts_p opts;
+	char json_str[BUFSIZ];
+	opts_p opts = NULL;
+	char *opts_string = NULL;
+	int (*function_p)(opts_p, unsigned char *, size_t) = NULL;
+
+	json_init();
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -55,67 +67,152 @@ int main(int argc, char *argv[])
 
 	if (strcmp(command, "privkey") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
+		opts_string = OPTS_STRING_PRIVKEY;
+		function_p = &btk_privkey_main;
 
-		r = opts_get(opts, argc, argv, "abjwhrsdxcCUMTWHDR:");
-		BTK_CHECK_NEG(r);
+		r = input_get(&input, &input_len);
+		BTK_CHECK_NEG(r, NULL);
+	}
+	else if (strcmp(command, "pubkey") == 0)
+	{
+		opts_string = OPTS_STRING_PUBKEY;
+		function_p = &btk_pubkey_main;
 
+		r = input_get(&input, &input_len);
+		BTK_CHECK_NEG(r, NULL);
+	}
+	else if (strcmp(command, "address") == 0)
+	{
+		opts_string = OPTS_STRING_ADDRESS;
+		function_p = &btk_address_main;
+
+		r = input_get(&input, &input_len);
+		BTK_CHECK_NEG(r, NULL);
+	}
+	else if (strcmp(command, "node") == 0)
+	{
+		opts_string = OPTS_STRING_NODE;
+		function_p = &btk_node_main;
+	}
+	else if (strcmp(command, "utxodb") == 0)
+	{
+		opts_string = OPTS_STRING_UTXODB;
+		function_p = &btk_utxodb_main;
+	}
+	else if (strcmp(command, "addressdb") == 0)
+	{
+		opts_string = OPTS_STRING_ADDRESSDB;
+		function_p = &btk_addressdb_main;
+	}
+	else if (strcmp(command, "version") == 0)
+	{
+		function_p = &btk_version_main;
+	}
+	else if (strcmp(command, "help") == 0)
+	{
+		opts_string = OPTS_STRING_ADDRESSDB;
+		function_p = &btk_help_main;
+	}
+	else
+	{
+		error_log("See 'btk help' to read about available commands.");
+		error_log("'%s' is not a valid command.", command);
+		error_log("Error [%s]:", command_str);
+		error_print();
+		return EXIT_FAILURE;
+	}
+
+	opts = malloc(sizeof(*opts));
+	if (opts == NULL)
+	BTK_CHECK_NULL(opts, "Memory allocation error.");
+
+	r = opts_init(opts);
+	BTK_CHECK_NEG(r, NULL);
+
+	if (opts_string)
+	{
+		r = opts_get(opts, argc, argv, opts_string);
+		BTK_CHECK_NEG(r, NULL);
+	}
+
+	if (opts->input_format == OPTS_INPUT_FORMAT_NONE)
+	{
+		opts->input_format = OPTS_INPUT_FORMAT_JSON;
+	}
+
+	if (input && opts->input_format == OPTS_INPUT_FORMAT_ASCII)
+	{
+		r = json_from_input(&input, &input_len);
+		BTK_CHECK_NEG(r, "Could not convert input to JSON.");
+
+		opts->input_format = OPTS_INPUT_FORMAT_JSON;
+	}
+
+	if (input && opts->input_format == OPTS_INPUT_FORMAT_BINARY)
+	{
+		r = function_p(opts, input, input_len);
+		BTK_CHECK_NEG(r, NULL);
+	}
+	else if (input && opts->input_format == OPTS_INPUT_FORMAT_JSON)
+	{
+		r = json_is_valid((char *)input, input_len);
+		BTK_CHECK_FALSE(r, "Expecting input in JSON format.");
+
+		r = json_set_input((char *)input);
+		BTK_CHECK_NEG(r, "Could not load JSON input.");
+
+		r = json_get_input_len(&json_len);
+		BTK_CHECK_NEG(r, "Could not get input list length.");
+
+		for (i = 0; i < json_len; i++)
+		{
+			memset(json_str, 0, BUFSIZ);
+
+			r = json_get_input_index(json_str, BUFSIZ, i);
+			BTK_CHECK_NEG(r, "Could not get JSON string object at index.");
+
+			r = function_p(opts, (unsigned char *)json_str, strlen(json_str));
+			BTK_CHECK_NEG(r, NULL);
+		}
+	}
+	else if (!input)
+	{
+		r = function_p(opts, NULL, 0);
+		BTK_CHECK_NEG(r, NULL);
+	}
+
+	json_print();
+	json_free();
+
+/*
+	// Execute command function
+	if (strcmp(command, "privkey") == 0)
+	{
 		r = btk_privkey_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
-		
-		r = opts_get(opts, argc, argv, "ajwhCU");
-		BTK_CHECK_NEG(r);
-
 		r = btk_pubkey_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "address") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
-		
-		r = opts_get(opts, argc, argv, "ajwhvPB");
-		BTK_CHECK_NEG(r);
-
 		r = btk_address_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "node") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
-		
-		r = opts_get(opts, argc, argv, "n:p:MT");
-		BTK_CHECK_NEG(r);
-
 		r = btk_node_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "utxodb") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
-		
-		r = opts_get(opts, argc, argv, "f:");
-		BTK_CHECK_NEG(r);
-
 		r = btk_utxodb_main(opts);
 		BTK_CHECK_NEG(r);
 	}
 	else if (strcmp(command, "addressdb") == 0)
 	{
-		opts = malloc(sizeof(*opts));
-		ERROR_CHECK_FALSE(opts, "Memory allocation error.");
-		
-		r = opts_get(opts, argc, argv, "wscf:F:");
-		BTK_CHECK_NEG(r);
-
 		r = btk_addressdb_main(opts);
 		BTK_CHECK_NEG(r);
 	}
@@ -144,6 +241,7 @@ int main(int argc, char *argv[])
 		error_print();
 		return EXIT_FAILURE;
 	}
+*/
 
 	return EXIT_SUCCESS;
 }

@@ -25,16 +25,12 @@
 int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
-static int input_format    = OPTS_INPUT_FORMAT_JSON;
 static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int output_type     = OPTS_OUTPUT_TYPE_P2PKH;
 
-int btk_address_main(opts_p opts)
+int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
-    size_t i, len, input_len;
-    unsigned char *input; 
-    char input_str[BUFSIZ];
     char output_str[BUFSIZ];
     char output_str2[BUFSIZ];
     PubKey pubkey = NULL;
@@ -43,11 +39,9 @@ int btk_address_main(opts_p opts)
     assert(opts);
 
     // Override defaults
-    if (opts->input_format) { input_format = opts->input_format; }
     if (opts->input_type) { input_type = opts->input_type; }
     if (opts->output_type) { output_type = opts->output_type; }
 
-    memset(input_str, 0, BUFSIZ);
     memset(output_str, 0, BUFSIZ);
     memset(output_str2, 0, BUFSIZ);
 
@@ -57,103 +51,69 @@ int btk_address_main(opts_p opts)
     pubkey = malloc(pubkey_sizeof());
     ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
-    json_init();
+    restart:
 
-    r = input_get(&input, &input_len);
-    ERROR_CHECK_NEG(r, "Error getting input.");
-
-    if (input_format == OPTS_OUTPUT_FORMAT_ASCII)
+    switch (input_type)
     {
-        r = json_from_input(&input, &input_len);
-        ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
+        case OPTS_INPUT_TYPE_WIF:
+            r = privkey_from_wif(privkey, (char *)input);
+            ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+            r = pubkey_get(pubkey, privkey);
+            ERROR_CHECK_NEG(r, "Could not calculate public key.");
+            break;
+        case OPTS_INPUT_TYPE_HEX:
+            r = pubkey_from_hex(pubkey, (char *)input);
+            ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
+            break;
+        case OPTS_INPUT_TYPE_VANITY:
+            r = privkey_new(privkey);
+            ERROR_CHECK_NEG(r, "Could not generate a new private key.");
+            r = pubkey_get(pubkey, privkey);
+            ERROR_CHECK_NEG(r, "Could not calculate public key.");
+            break;
+        default:
+            r = pubkey_from_guess(pubkey, input, input_len);
+            if (r < 0)
+            {
+                error_clear();
+                ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
+            }
+            break;
     }
 
-    if(json_is_valid((char *)input, input_len))
+    switch (output_type)
     {
-        r = json_set_input((char *)input);
-        ERROR_CHECK_NEG(r, "Could not load JSON input.");
+        case OPTS_OUTPUT_TYPE_P2PKH:
+            r = address_get_p2pkh(output_str, pubkey);
+            ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+            break;
+        case OPTS_OUTPUT_TYPE_P2WPKH:
+            r = address_get_p2wpkh(output_str, pubkey);
+            ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+            break;
+        default:
+            error_log("Invalid output type specified.");
+            return -1;
+    }
 
-        r = json_get_input_len((int *)&len);
-        ERROR_CHECK_NEG(r, "Could not get input list length.");
+    if (input_type == OPTS_INPUT_TYPE_VANITY)
+    {
+        r = btk_address_vanity_match((char *)input, output_str);
+        ERROR_CHECK_NEG(r, "Error matching vanity string.");
 
-        for (i = 0; i < len; i++)
+        if (r == 0)
         {
-            memset(input_str, 0, BUFSIZ);
-
-            r = json_get_input_index(input_str, BUFSIZ, i);
-            ERROR_CHECK_NEG(r, "Could not get JSON string object at index.");
-
-            switch (input_type)
-            {
-                case OPTS_INPUT_TYPE_WIF:
-                    r = privkey_from_wif(privkey, input_str);
-                    ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-                    r = pubkey_get(pubkey, privkey);
-                    ERROR_CHECK_NEG(r, "Could not calculate public key.");
-                    break;
-                case OPTS_INPUT_TYPE_HEX:
-                    r = pubkey_from_hex(pubkey, input_str);
-                    ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
-                    break;
-                case OPTS_INPUT_TYPE_VANITY:
-                    r = privkey_new(privkey);
-                    ERROR_CHECK_NEG(r, "Could not generate a new private key.");
-                    r = pubkey_get(pubkey, privkey);
-                    ERROR_CHECK_NEG(r, "Could not calculate public key.");
-                    break;
-                default:
-                    r = pubkey_from_guess(pubkey, (unsigned char *)input_str, strlen(input_str));
-                    if (r < 0)
-                    {
-                        error_clear();
-                        ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
-                    }
-                    break;
-            }
-
-            switch (output_type)
-            {
-                case OPTS_OUTPUT_TYPE_P2PKH:
-                    r = address_get_p2pkh(output_str, pubkey);
-                    ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
-                    break;
-                case OPTS_OUTPUT_TYPE_P2WPKH:
-                    r = address_get_p2wpkh(output_str, pubkey);
-                    ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
-                    break;
-                default:
-                    ERROR_CHECK_NEG(-1, "Invalid output type specified.");
-                    break;
-            }
-
-            if (input_type == OPTS_INPUT_TYPE_VANITY)
-            {
-                r = btk_address_vanity_match(input_str, output_str);
-                ERROR_CHECK_NEG(r, "Error matching vanity string.");
-                if (r == 0)
-                {
-                    i--;
-                    continue;
-                }
-
-                r = privkey_to_wif(output_str2, privkey);
-                ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
-                r = json_add(output_str2);
-                ERROR_CHECK_NEG(r, "Error while generating JSON.");
-            }
-
-            r = json_add(output_str);
-            ERROR_CHECK_NEG(r, "Error while generating JSON.");
+            goto restart;
         }
-    }
-    else
-    {
-        error_log("Invalid JSON. Input must be in JSON format or specify a non-JSON input format.");
-        return -1;
+
+        r = privkey_to_wif(output_str2, privkey);
+        ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
+        r = json_add(output_str2);
+        ERROR_CHECK_NEG(r, "Error while generating JSON.");
     }
 
-    json_print();
-    json_free();
+    r = json_add(output_str);
+    ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
     free(pubkey);
     free(privkey);

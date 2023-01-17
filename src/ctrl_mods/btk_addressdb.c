@@ -28,11 +28,10 @@ static int create          = OPTS_CREATE_FALSE;
 static char *input_path    = OPTS_INPUT_PATH_NONE;
 static char *output_path   = OPTS_OUTPUT_PATH_NONE;
 
-int btk_addressdb_main(opts_p opts)
+int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     uint64_t sats = 0;
-    char *input = NULL;
     char address[BUFSIZ];
     unsigned char tmp[BUFSIZ];
 
@@ -40,6 +39,8 @@ int btk_addressdb_main(opts_p opts)
     UTXODBValue utxodb_value = NULL;
 
     assert(opts);
+
+    (void)input_len;
 
     // Override defaults
     if (opts->input_type) { input_type = opts->input_type; }
@@ -98,41 +99,38 @@ int btk_addressdb_main(opts_p opts)
         r = addressdb_open(input_path, create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
-        r = input_get_str(&input, "Enter Input: ");
-        ERROR_CHECK_NEG(r, "Could not get input.");
-
         if (input_type == OPTS_INPUT_TYPE_WIF)
         {
             memset(address, 0, BUFSIZ);
 
-            r = address_from_wif(address, input);
+            r = address_from_wif(address, (char *)input);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
 
             input = realloc(input, strlen(address) + 1);
             ERROR_CHECK_NULL(input, "Could not allocate memory.");
 
-            strcpy(input, address);
+            strcpy((char *)input, address);
         }
         else if (input_type == OPTS_INPUT_TYPE_STRING)
         {
             memset(address, 0, BUFSIZ);
 
-            r = address_from_str(address, input);
+            r = address_from_str(address, (char *)input);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
 
             input = realloc(input, strlen(address) + 1);
             ERROR_CHECK_NULL(input, "Could not allocate memory.");
 
-            strcpy(input, address);
+            strcpy((char *)input, address);
         }
 
-        r = base58check_decode(tmp, input, BASE58CHECK_TYPE_ADDRESS_MAINNET);
+        r = base58check_decode(tmp, (char *)input, BASE58CHECK_TYPE_ADDRESS_MAINNET);
         ERROR_CHECK_NEG(r, "Error while decoding input.");
 
-        r = addressdb_get(&sats, input);
+        r = addressdb_get(&sats, (char *)input);
         ERROR_CHECK_NEG(r, "Could not query address database.");
 
-        printf("Address %s has balance: %"PRIu64"\n", input, sats);
+        printf("Address %s has balance: %"PRIu64"\n", (char *)input, sats);
 
         free(input);
     }

@@ -10,6 +10,7 @@
 #include <string.h>
 #include <assert.h>
 #include "btk_help.h"
+#include "mods/opts.h"
 #include "mods/error.h"
 
 void btk_help_commands(void);
@@ -20,42 +21,45 @@ void btk_help_node(void);
 void btk_help_version(void);
 void btk_help_utxodb(void);
 
-int btk_help_main(char *command)
+int btk_help_main(opts_p opts, unsigned char *input, size_t input_len)
 {
-	if (command == NULL)
+	(void)input;
+	(void)input_len;
+
+	if (opts->subcommand == NULL)
 	{
 		btk_help_commands();
 		return 1;
 	}
 
-	if (strcmp(command, "privkey") == 0)
+	if (strcmp(opts->subcommand, "privkey") == 0)
 	{
 		btk_help_privkey();
 	}
-	else if (strcmp(command, "pubkey") == 0)
+	else if (strcmp(opts->subcommand, "pubkey") == 0)
 	{
 		btk_help_pubkey();
 	}
-	else if (strcmp(command, "address") == 0)
+	else if (strcmp(opts->subcommand, "address") == 0)
 	{
 		btk_help_address();
 	}
-	else if (strcmp(command, "node") == 0)
+	else if (strcmp(opts->subcommand, "node") == 0)
 	{
 		btk_help_node();
 	}
-	else if (strcmp(command, "version") == 0)
+	else if (strcmp(opts->subcommand, "version") == 0)
 	{
 		btk_help_version();
 	}
-	else if (strcmp(command, "utxodb") == 0)
+	else if (strcmp(opts->subcommand, "utxodb") == 0)
 	{
 		btk_help_utxodb();
 	}
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("'%s' is not a valid command.", command);
+		error_log("'%s' is not a valid command.", opts->subcommand);
 		return -1;
 	}
 	

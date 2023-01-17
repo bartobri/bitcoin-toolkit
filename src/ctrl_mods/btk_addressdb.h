@@ -10,6 +10,6 @@
 
 #include "mods/opts.h"
 
-int btk_addressdb_main(opts_p);
+int btk_addressdb_main(opts_p, unsigned char *, size_t);
 
 #endif

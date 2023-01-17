@@ -25,12 +25,8 @@
 #define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
 #define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
 
-#define OPTS_STRING_DEFAULT        "abjwhrsdbxvJAWHDMTPBCUR:n:p:c::F:f:"
-
-int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
+int opts_init(opts_p opts)
 {
-    int o;
-
     assert(opts);
 
     opts->input_format = OPTS_INPUT_FORMAT_NONE;
@@ -45,10 +41,24 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
     opts->create = OPTS_CREATE_FALSE;
     opts->input_path = OPTS_INPUT_PATH_NONE;
     opts->output_path = OPTS_OUTPUT_PATH_NONE;
+    opts->subcommand = OPTS_SUBCOMMAND_NONE;
 
-    if (!opts_string)
+    return 1;
+}
+
+int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
+{
+    int r, o;
+
+    assert(opts);
+    assert(opts_string);
+
+    r = opts_init(opts);
+    ERROR_CHECK_NEG(r, "Could not initialize opts.");
+
+    if (argc > 2 && argv[2][0] != '-')
     {
-        opts_string = OPTS_STRING_DEFAULT;
+        opts->subcommand = argv[2];
     }
 
     // Turn off getopt errors. I print my own errors.

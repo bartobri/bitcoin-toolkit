@@ -10,6 +10,6 @@
 
 #include "mods/opts.h"
 
-int btk_node_main(opts_p);
+int btk_node_main(opts_p, unsigned char *, size_t);
 
 #endif
