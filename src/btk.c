@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "help") == 0)
 	{
-		opts_string = OPTS_STRING_ADDRESSDB;
+		opts_string = OPTS_STRING_HELP;
 		function_p = &btk_help_main;
 	}
 	else
