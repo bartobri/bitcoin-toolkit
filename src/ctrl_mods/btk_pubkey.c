@@ -118,6 +118,7 @@ int btk_pubkey_set_compression(PubKey key)
 	switch (compression)
 	{
 		case OPTS_OUTPUT_COMPRESSION_NONE:
+			break;
 		case OPTS_OUTPUT_COMPRESSION_TRUE:
 			pubkey_compress(key);
 			break;
