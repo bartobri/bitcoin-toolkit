@@ -190,3 +190,10 @@ int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	return 1;
 }
+
+int btk_node_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    return 0;
+}

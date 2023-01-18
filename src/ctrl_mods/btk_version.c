@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
 #include "mods/opts.h"
 #include "mods/json.h"
 #include "mods/error.h"
@@ -31,4 +32,11 @@ int btk_version_main(opts_p opts, unsigned char *input, size_t input_len)
 	ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
 	return 1;
+}
+
+int btk_version_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    return 0;
 }

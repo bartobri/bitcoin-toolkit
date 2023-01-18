@@ -90,3 +90,10 @@ int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
 
     return EXIT_SUCCESS;
 }
+
+int btk_utxodb_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    return 1;
+}

@@ -11,5 +11,6 @@
 #include "mods/opts.h"
 
 int btk_utxodb_main(opts_p, unsigned char *, size_t);
+int btk_utxodb_requires_input(opts_p);
 
 #endif

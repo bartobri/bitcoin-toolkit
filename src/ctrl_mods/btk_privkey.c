@@ -406,3 +406,15 @@ int btk_privkey_process_rehashes_comp(const void *i, const void *j)
 {
 	return (*(long int *)i - *(long int *)j);
 }
+
+int btk_privkey_requires_input(opts_p opts)
+{
+	assert(opts);
+
+	if (opts->create)
+	{
+		return 0;
+	}
+
+	return 1;
+}

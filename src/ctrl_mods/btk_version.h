@@ -11,5 +11,6 @@
 #include "mods/opts.h"
 
 int btk_version_main(opts_p, unsigned char *, size_t);
+int btk_version_requires_input(opts_p);
 
 #endif

@@ -139,3 +139,15 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
 
     return EXIT_SUCCESS;
 }
+
+int btk_addressdb_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    if (opts->create)
+    {
+        return 0;
+    }
+
+    return 1;
+}

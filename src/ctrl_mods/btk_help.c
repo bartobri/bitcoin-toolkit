@@ -66,6 +66,13 @@ int btk_help_main(opts_p opts, unsigned char *input, size_t input_len)
 	return 1;
 }
 
+int btk_help_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    return 0;
+}
+
 void btk_help_commands(void)
 {
 	printf("Usage: btk <command> [<args>]\n");

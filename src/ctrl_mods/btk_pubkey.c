@@ -140,3 +140,10 @@ int btk_pubkey_set_compression(PubKey key)
 
 	return 1;
 }
+
+int btk_pubkey_requires_input(opts_p opts)
+{
+	assert(opts);
+
+	return 1;
+}

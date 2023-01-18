@@ -217,3 +217,10 @@ int btk_address_get_vanity_estimate(long int *e, long int p)
 
     return 1;
 }
+
+int btk_address_requires_input(opts_p opts)
+{
+    assert(opts);
+
+    return 1;
+}

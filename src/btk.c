@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
 	char json_str[BUFSIZ];
 	opts_p opts = NULL;
 	char *opts_string = NULL;
-	int (*function_p)(opts_p, unsigned char *, size_t) = NULL;
+	int (*main_fp)(opts_p, unsigned char *, size_t) = NULL;
+	int (*input_fp)(opts_p) = NULL;
 
 	json_init();
 
@@ -68,50 +69,49 @@ int main(int argc, char *argv[])
 	if (strcmp(command, "privkey") == 0)
 	{
 		opts_string = OPTS_STRING_PRIVKEY;
-		function_p = &btk_privkey_main;
-
-		r = input_get(&input, &input_len);
-		BTK_CHECK_NEG(r, NULL);
+		main_fp = &btk_privkey_main;
+		input_fp = &btk_privkey_requires_input;
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
 		opts_string = OPTS_STRING_PUBKEY;
-		function_p = &btk_pubkey_main;
-
-		r = input_get(&input, &input_len);
-		BTK_CHECK_NEG(r, NULL);
+		main_fp = &btk_pubkey_main;
+		input_fp = &btk_pubkey_requires_input;
 	}
 	else if (strcmp(command, "address") == 0)
 	{
 		opts_string = OPTS_STRING_ADDRESS;
-		function_p = &btk_address_main;
-
-		r = input_get(&input, &input_len);
-		BTK_CHECK_NEG(r, NULL);
+		main_fp = &btk_address_main;
+		input_fp = &btk_address_requires_input;
 	}
 	else if (strcmp(command, "node") == 0)
 	{
 		opts_string = OPTS_STRING_NODE;
-		function_p = &btk_node_main;
+		main_fp = &btk_node_main;
+		input_fp = &btk_node_requires_input;
 	}
 	else if (strcmp(command, "utxodb") == 0)
 	{
 		opts_string = OPTS_STRING_UTXODB;
-		function_p = &btk_utxodb_main;
+		main_fp = &btk_utxodb_main;
+		input_fp = &btk_utxodb_requires_input;
 	}
 	else if (strcmp(command, "addressdb") == 0)
 	{
 		opts_string = OPTS_STRING_ADDRESSDB;
-		function_p = &btk_addressdb_main;
+		main_fp = &btk_addressdb_main;
+		input_fp = &btk_addressdb_requires_input;
 	}
 	else if (strcmp(command, "version") == 0)
 	{
-		function_p = &btk_version_main;
+		main_fp = &btk_version_main;
+		input_fp = &btk_version_requires_input;
 	}
 	else if (strcmp(command, "help") == 0)
 	{
 		opts_string = OPTS_STRING_HELP;
-		function_p = &btk_help_main;
+		main_fp = &btk_help_main;
+		input_fp = &btk_help_requires_input;
 	}
 	else
 	{
@@ -140,44 +140,53 @@ int main(int argc, char *argv[])
 		opts->input_format = OPTS_INPUT_FORMAT_JSON;
 	}
 
-	if (input && opts->input_format == OPTS_INPUT_FORMAT_ASCII)
+	if (input_fp(opts))
 	{
-		r = json_from_input(&input, &input_len);
-		BTK_CHECK_NEG(r, "Could not convert input to JSON.");
-
-		opts->input_format = OPTS_INPUT_FORMAT_JSON;
-	}
-
-	if (input && opts->input_format == OPTS_INPUT_FORMAT_BINARY)
-	{
-		r = function_p(opts, input, input_len);
+		r = input_get(&input, &input_len);
 		BTK_CHECK_NEG(r, NULL);
 	}
-	else if (input && opts->input_format == OPTS_INPUT_FORMAT_JSON)
+
+	if (input)
 	{
-		r = json_is_valid((char *)input, input_len);
-		BTK_CHECK_FALSE(r, "Expecting input in JSON format.");
-
-		r = json_set_input((char *)input);
-		BTK_CHECK_NEG(r, "Could not load JSON input.");
-
-		r = json_get_input_len(&json_len);
-		BTK_CHECK_NEG(r, "Could not get input list length.");
-
-		for (i = 0; i < json_len; i++)
+		if (opts->input_format == OPTS_INPUT_FORMAT_ASCII)
 		{
-			memset(json_str, 0, BUFSIZ);
+			r = json_from_input(&input, &input_len);
+			BTK_CHECK_NEG(r, "Could not convert input to JSON.");
 
-			r = json_get_input_index(json_str, BUFSIZ, i);
-			BTK_CHECK_NEG(r, "Could not get JSON string object at index.");
+			opts->input_format = OPTS_INPUT_FORMAT_JSON;
+		}
 
-			r = function_p(opts, (unsigned char *)json_str, strlen(json_str));
+		if (opts->input_format == OPTS_INPUT_FORMAT_BINARY)
+		{
+			r = main_fp(opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
 		}
+		else if (opts->input_format == OPTS_INPUT_FORMAT_JSON)
+		{
+			r = json_is_valid((char *)input, input_len);
+			BTK_CHECK_FALSE(r, "Expecting input in JSON format.");
+
+			r = json_set_input((char *)input);
+			BTK_CHECK_NEG(r, "Could not load JSON input.");
+
+			r = json_get_input_len(&json_len);
+			BTK_CHECK_NEG(r, "Could not get input list length.");
+
+			for (i = 0; i < json_len; i++)
+			{
+				memset(json_str, 0, BUFSIZ);
+
+				r = json_get_input_index(json_str, BUFSIZ, i);
+				BTK_CHECK_NEG(r, "Could not get JSON string object at index.");
+
+				r = main_fp(opts, (unsigned char *)json_str, strlen(json_str));
+				BTK_CHECK_NEG(r, NULL);
+			}
+		}
 	}
-	else if (!input)
+	else
 	{
-		r = function_p(opts, NULL, 0);
+		r = main_fp(opts, NULL, 0);
 		BTK_CHECK_NEG(r, NULL);
 	}
 
