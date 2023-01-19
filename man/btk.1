@@ -1,0 +1,77 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk \- Assortment of bitcoin-related tools.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR <command> [<opts>]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, wallets, nodes, and data contained in the blockchain. There is little in the core bitcoin ecosystem that this toolkit cannot perform some sort of task in relation to.
+.sp
+A JSON standard for structured input and output is utilized by all tools which allows them to easily interact with other software programs, or by using I/O redirection and piping, to be strung together with eachother to execute a variety of complex tasks.
+.sp
+.SH "COMMANDS"
+.PP
+\fBprivkey\fR
+.RS 4
+Create, modify, and format private keys.
+.RE
+.PP
+\fBpubkey\fR
+.RS 4
+Calculate and format public keys from private keys.
+.RE
+.PP
+\fBaddress\fR
+.RS 4
+Generate and format an address from a public key.
+.RE
+.PP
+\fBnode\fR
+.RS 4
+Interface with a bitcoin node.
+.RE
+.PP
+\fButxodb\fR
+.RS 4
+Query utxo data from bitcoin core.
+.RE
+.PP
+\fBaddressdb\fR
+.RS 4
+Create database to store/query address balances.
+.RE
+.PP
+\fBversion\fR
+.RS 4
+Print btk version info.
+.RE
+.sp
+.SH "COMMAND OPTIONS"
+.sp
+Command options and their arguments vary based on the command being used. See \fBbtk help <command>\fR for more info.
+.sp
+.SH "AUTHORS"
+.sp
+Bitcoin toolkit was created, and is maintained, by Brian Barto. Brian can be contacted at \fBbartobrian@gmail.com\fR.

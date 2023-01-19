@@ -1,0 +1,107 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-pubkey \- Calculate, format, compress public keys.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIpubkey\fR [-j | -a ] [-w | -h ] [-C | -U]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+The pubkey command generates the corresponding public key from a given private key. Input data can be a private key in the wif (wallet import format) format, or a public key in raw binary or hexidecimal format.
+.sp
+The pubkey command will read data from standard input and interpret the format according to the input option specified. If no input option is specified, the pubkey command will read data from standard input and attempt to automatically determine the format if it can be done with a reasonable degree of certainty.
+.sp
+The pubkey command will calculate a public key from the provided input data and print it in the format specified by the output option. If no output option is specified, the public key will be formatted as a hexidecimal string. The public key will be compressed by default, unless the input data contains a compression flag, in which case it will remain consistent with the input data. If an output option is specified for compression, the public key will be compressed in accordance with that option, which will override any compression flag provided in the input data.
+
+.sp
+.SH "OPTIONS"
+
+.SS "Input Format"
+
+.PP
+\-j
+.RS 4
+Input is formatted as a json data structure. This is the default option when no input format option is specified.
+.RE
+
+.PP
+\-a
+.RS 4
+Input is formated as an ascii string.
+.RE
+
+.SS "Input Type"
+
+.PP
+\-w
+.RS 4
+Treat input as a wallet import formatted (wif) string.
+.RE
+
+.PP
+\-h
+.RS 4
+Treat input as a hexadecimal formatted string. The string must be at least 64 characters long. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+.RE
+
+.SS "Output Format"
+
+.PP
+\-J
+.RS 4
+Format output as a json data structure. This is the default option when no output format option is specified.
+.RE
+
+.PP
+\-A
+.RS 4
+Format output as an ascii string.
+.RE
+
+.SS "Output Type"
+
+.PP
+\-H
+.RS 4
+Default. Print the private key as a hexadecimal string. The string will be 66 characters in length representing 33 bytes of data: the 32 byte private key and the 1 byte compression flag.
+.RE
+
+.SS "Output Compression"
+
+PP
+\-C
+.RS 4
+Compress the private key. Default.
+.RE
+
+PP
+\-U
+.RS 4
+Unompress the private key.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)

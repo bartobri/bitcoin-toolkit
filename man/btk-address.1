@@ -1,0 +1,99 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-address \- Generate and format an address.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIaddress\fR [-j | -a ] [-w | -h ] [-v] [-A | -J] [-P | -B]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+The address command generates a bitcoin address from a given public or private key. Input data can be a private key in the wif (wallet import format) format, or a public key in raw binary or hexidecimal format.
+.sp
+The address command will read data from standard input and interpret the format according to the input option specified. If no input option is specified, the address command will read data from standard input and attempt to automatically determine the format if it can be done with a reasonable degree of certainty.
+.sp
+The address command will generate a bitcoin address from the provided input data and print it in the format specified by the output option. If no output option is specified, the address will be formatted as a legacy bitcoin address (P2PKH).
+
+.sp
+.SH "OPTIONS"
+
+.SS "Input Format"
+
+.PP
+\-j
+.RS 4
+Input is formatted as a json data structure. This is the default option when no input format option is specified.
+.RE
+
+.PP
+\-a
+.RS 4
+Input is formated as an ascii string.
+.RE
+
+.SS "Input Type"
+
+.PP
+\-w
+.RS 4
+Treat input as a wallet import formatted (wif) string.
+.RE
+
+.PP
+\-h
+.RS 4
+Treat input as a hexadecimal formatted string. The string must be at least 64 characters long. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+.RE
+
+.SS "Output Format"
+
+.PP
+\-J
+.RS 4
+Format output as a json data structure. This is the default option when no output format option is specified.
+.RE
+
+.PP
+\-A
+.RS 4
+Format output as an ascii string.
+.RE
+
+.SS "Output Type"
+
+.PP
+\-P
+.RS 4
+Print address formatted as a (P)ay-to-PubKey hash (P2PKH). Also known as a bitcoin legacy address. This is bitcoin's first address format.
+.RE
+
+.PP
+\-B
+.RS 4
+Print address formatted as a (P)ay-to-Witness-PubKey hash (P2WPKH). Also known as a bech32 or segwit address.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)

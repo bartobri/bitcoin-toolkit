@@ -1,0 +1,182 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-privkey \- Create, modify, and format private keys.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIprivkey\fR [-j | -a | -b ] [-c] [-w | -h | -r | -s | -d] [-A | -J]
+            [-C | -U] [-M | -T] [-W | -H | -D] [-R <rehashes>]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+If -c is used, the privkey command creates a new random private key using your local CSPRNG as an input source.
+.sp
+If an input option other than -n is specified, the privkey command will read data from standard input and interpret its format according to the input option. If no input option is specified, the privkey command will read data from standard input and attempt to automatically determine the format if it can be done with a reasonable degree of certainty.
+.sp
+If no output option is specified, the private key will be formatted in the standard Wallet Import Format (WIF) by default. If an output option is specified, the private key will be formatted according to the output option. Private keys will be compressed by default, unless the input data contains a compression flag, in which case it will remain consistent with the input data. If an output option is specified for compression, the private key will be compressed in accordance with that option, which will override any compression flag provided in the input data.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+\-c
+.RS 4
+Create a new random private key from your local CSPRNG.
+.RE
+
+.SS "Input Format"
+
+.PP
+\-j
+.RS 4
+Input is formatted as a json data structure. This is the default option when no input format option is specified.
+.RE
+
+.PP
+\-a
+.RS 4
+Input is formated as an ascii string.
+.RE
+
+.PP
+\-b
+.RS 4
+Input is in binary data format. This option should be used when contents of a file at used as input. For example:
+.sp
+.RS 4
+cat my-image.jpg | btk privkey -b
+.RE
+.RE
+
+.SS "Input Type"
+
+.PP
+\-w
+.RS 4
+Treat input as a wallet import formatted (wif) string.
+.RE
+
+.PP
+\-h
+.RS 4
+Treat input as a hexadecimal formatted string. The string must be at least 64 characters long. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+.RE
+
+.PP
+\-r
+.RS 4
+Treat input as raw binary data. Input must be at least 32 bytes long. If a 33rd byte exists, it is interpreted as a compression flag. Any extra data beyond that point is ignored.
+.RE
+
+.PP
+\-s
+.RS 4
+Treat input as an arbitrary ASCII string. ASCII strings are processed through a SHA256 hash algorithm to generate a 32 byte private key.
+.RE
+
+.PP
+\-d
+.RS 4
+Treat input as an ASCII string containing only decimal characters. The decimal value is converted to its 32-byte binary equivalent to generate\ a private key.
+.RE
+
+.PP
+\-x
+.RS 4
+Treat input as \fB"string binary data"\fR. This option reads each byte in the string, from right to left, and sets the corresponding byte in the private key to the same value, from right to left. This means that a string used with this option can not be longer than 32 bytes. When a string is less than 32 bytes, higher order bytes of the private key are padded with null bytes.
+.RE
+
+.SS "Output Format"
+
+.PP
+\-J
+.RS 4
+Format output as a json data structure. This is the default option when no output format option is specified.
+.RE
+
+.PP
+\-A
+.RS 4
+Format output as an ascii string.
+.RE
+
+.SS "Output Type"
+
+.PP
+\-W
+.RS 4
+Print the private key as a wallet import formatted (wif) string. This is the default option when no output format option is specified.
+.RE
+
+.PP
+\-H
+.RS 4
+Print the private key as a hexadecimal string. The string will be 66 characters in length representing 33 bytes of data: the 32 byte private key and the 1 byte compression flag.
+.RE
+
+.PP
+\-D
+.RS 4
+Print the private key in decimal format. This is the literal decimal equivalent of the 32 byte private key, which will be a very large number.
+.RE
+
+.SS "Output Compression"
+
+PP
+\-C
+.RS 4
+Compress the private key. Default.
+.RE
+
+PP
+\-U
+.RS 4
+Unompress the private key.
+.RE
+
+.SS "Network"
+
+PP
+\-M
+.RS 4
+If the output type is set to wif, this option sets the (M)AINNET prefix so the private key can be used on the MAINNET network. This is the default setting when no network option is specified, and the input does not contain a network flag, such as with wif formmatted private keys.
+.RE
+
+PP
+\-T
+.RS 4
+If the output type is set to wif, this option sets the TESTNET prefix so the private key can be used on the TESTNET network.
+.RE
+
+.SS "Rehashing"
+
+PP
+\-R
+.RS 4
+Reash count. This option requires an integer argument that specifies the number of times to rehash the private key. Rehashing consists of processing the raw private key data through a SHA256 hashing algorithm. Eash rehash generates a new private key. This option provides an extra layer of security when used in combination with input type options such as string or binary.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)
