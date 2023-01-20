@@ -21,7 +21,6 @@
 int btk_pubkey_set_compression(PubKey);
 
 // Defaults
-static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int compression     = OPTS_OUTPUT_COMPRESSION_NONE;
 
 int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
@@ -33,7 +32,6 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	assert(opts);
 
-	if (opts->input_type) { input_type = opts->input_type; }
 	if (opts->compression) { compression = opts->compression; }
 
 	memset(output_str, 0, BUFSIZ);
@@ -44,29 +42,29 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	pubkey = malloc(pubkey_sizeof());
 	ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
-	switch (input_type)
+	if (opts->input_type_wif)
 	{
-		case OPTS_INPUT_TYPE_WIF:
-			r = privkey_from_wif(privkey, (char *)input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			r = pubkey_get(pubkey, privkey);
-			ERROR_CHECK_NEG(r, "Could not calculate public key.");
-			break;
-		case OPTS_INPUT_TYPE_HEX:
-			r = pubkey_from_hex(pubkey, (char *)input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		default:
-			r = pubkey_from_guess(pubkey, (unsigned char *)input, input_len);
-			if (r < 0)
-			{
-				error_clear();
-				ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
-			}
-			break;
+		r = privkey_from_wif(privkey, (char *)input);
+		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+		r = pubkey_get(pubkey, privkey);
+		ERROR_CHECK_NEG(r, "Could not calculate public key.");
+	}
+	else if (opts->input_type_hex)
+	{
+		r = pubkey_from_hex(pubkey, (char *)input);
+		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+	}
+	else
+	{
+		r = pubkey_from_guess(pubkey, input, input_len);
+		if (r < 0)
+		{
+			error_clear();
+			ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
+		}
 	}
 
-	if (input_type == OPTS_INPUT_TYPE_WIF && compression == OPTS_OUTPUT_COMPRESSION_NONE)
+	if (opts->input_type_wif && compression == OPTS_OUTPUT_COMPRESSION_NONE)
 	{
 		if (privkey_is_compressed(privkey))
 		{

@@ -23,7 +23,6 @@
 #include "mods/address.h"
 #include "mods/opts.h"
 
-static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int create          = OPTS_CREATE_FALSE;
 static char *input_path    = OPTS_INPUT_PATH_NONE;
 static char *output_path   = OPTS_OUTPUT_PATH_NONE;
@@ -43,7 +42,6 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
     (void)input_len;
 
     // Override defaults
-    if (opts->input_type) { input_type = opts->input_type; }
     if (opts->create) { create = opts->create; }
     if (opts->input_path) { input_path = opts->input_path; }
     if (opts->output_path) { output_path = opts->output_path; }
@@ -99,7 +97,7 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
         r = addressdb_open(input_path, create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
-        if (input_type == OPTS_INPUT_TYPE_WIF)
+        if (opts->input_type_wif)
         {
             memset(address, 0, BUFSIZ);
 
@@ -111,7 +109,7 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
 
             strcpy((char *)input, address);
         }
-        else if (input_type == OPTS_INPUT_TYPE_STRING)
+        else if (opts->input_type_string)
         {
             memset(address, 0, BUFSIZ);
 

@@ -12,7 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define INPUT_SET_TYPE(x)          if (opts->input_type == OPTS_INPUT_TYPE_NONE) { opts->input_type = x; } else { error_log("Cannot use multiple input type options."); return -1; }
 #define OUTPUT_SET_FORMAT(x)       if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE) { opts->output_format = x; } else { error_log("Cannot use multiple output format options."); return -1; }
 #define OUTPUT_SET_TYPE(x)         if (opts->output_type == OPTS_OUTPUT_TYPE_NONE) { opts->output_type = x; } else { error_log("Cannot use multiple output type options."); return -1; }
 #define OUTPUT_SET_COMPRESSION(x)  if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) { opts->compression = x; } else { opts->compression = OPTS_OUTPUT_COMPRESSION_BOTH; }
@@ -30,6 +29,14 @@ int opts_init(opts_p opts)
 
     opts->input_format_list = 0;
     opts->input_format_binary = 0;
+    opts->input_type_wif = 0;
+    opts->input_type_hex = 0;
+    opts->input_type_raw = 0;
+    opts->input_type_string = 0;
+    opts->input_type_decimal = 0;
+    opts->input_type_binary = 0;
+    opts->input_type_sbd = 0;
+    opts->input_type_vanity = 0;
     opts->output_format = OPTS_OUTPUT_FORMAT_NONE;
     opts->output_type = OPTS_OUTPUT_TYPE_NONE;
     opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
@@ -72,29 +79,29 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
             case 'b':
                 opts->input_format_binary = 1;
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_BINARY);
+                opts->input_type_binary = 1;
                 break;
 
             case 'w':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_WIF);
+                opts->input_type_wif = 1;
                 break;
             case 'h':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_HEX);
+                opts->input_type_hex = 1;
                 break;
             case 'r':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_RAW);
+                opts->input_type_raw = 1;
                 break;
             case 's':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_STRING);
+                opts->input_type_string = 1;
                 break;
             case 'd':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_DECIMAL);
+                opts->input_type_decimal = 1;
                 break;
             case 'x':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_SBD);
+                opts->input_type_sbd = 1;
                 break;
             case 'v':
-                INPUT_SET_TYPE(OPTS_INPUT_TYPE_VANITY);
+                opts->input_type_vanity = 1;
                 break;
 
             case 'J':

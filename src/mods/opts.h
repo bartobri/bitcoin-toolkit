@@ -8,16 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_INPUT_TYPE_NONE                0
-#define OPTS_INPUT_TYPE_WIF                 1
-#define OPTS_INPUT_TYPE_HEX                 2
-#define OPTS_INPUT_TYPE_RAW                 3
-#define OPTS_INPUT_TYPE_STRING              4
-#define OPTS_INPUT_TYPE_DECIMAL             5
-#define OPTS_INPUT_TYPE_BINARY              6
-#define OPTS_INPUT_TYPE_SBD                 7
-#define OPTS_INPUT_TYPE_VANITY              8
-
 #define OPTS_OUTPUT_FORMAT_NONE             0
 #define OPTS_OUTPUT_FORMAT_ASCII            1
 #define OPTS_OUTPUT_FORMAT_JSON             2
@@ -63,7 +53,14 @@ typedef struct opts *opts_p;
 struct opts {
     int input_format_list;
     int input_format_binary;
-    int input_type;
+    int input_type_wif;
+    int input_type_hex;
+    int input_type_raw;
+    int input_type_string;
+    int input_type_decimal;
+    int input_type_binary;
+    int input_type_sbd;
+    int input_type_vanity;
     int output_format;
     int output_type;
     int compression;

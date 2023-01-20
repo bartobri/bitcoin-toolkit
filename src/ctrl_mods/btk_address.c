@@ -25,7 +25,6 @@
 int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
-static int input_type      = OPTS_INPUT_TYPE_NONE;
 static int output_type     = OPTS_OUTPUT_TYPE_P2PKH;
 
 int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
@@ -39,7 +38,6 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
     assert(opts);
 
     // Override defaults
-    if (opts->input_type) { input_type = opts->input_type; }
     if (opts->output_type) { output_type = opts->output_type; }
 
     memset(output_str, 0, BUFSIZ);
@@ -53,32 +51,33 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 
     restart:
 
-    switch (input_type)
+    if (opts->input_type_wif)
     {
-        case OPTS_INPUT_TYPE_WIF:
-            r = privkey_from_wif(privkey, (char *)input);
-            ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-            r = pubkey_get(pubkey, privkey);
-            ERROR_CHECK_NEG(r, "Could not calculate public key.");
-            break;
-        case OPTS_INPUT_TYPE_HEX:
-            r = pubkey_from_hex(pubkey, (char *)input);
-            ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
-            break;
-        case OPTS_INPUT_TYPE_VANITY:
-            r = privkey_new(privkey);
-            ERROR_CHECK_NEG(r, "Could not generate a new private key.");
-            r = pubkey_get(pubkey, privkey);
-            ERROR_CHECK_NEG(r, "Could not calculate public key.");
-            break;
-        default:
-            r = pubkey_from_guess(pubkey, input, input_len);
-            if (r < 0)
-            {
-                error_clear();
-                ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
-            }
-            break;
+         r = privkey_from_wif(privkey, (char *)input);
+        ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+        r = pubkey_get(pubkey, privkey);
+        ERROR_CHECK_NEG(r, "Could not calculate public key.");
+    }
+    else if (opts->input_type_hex)
+    {
+        r = pubkey_from_hex(pubkey, (char *)input);
+        ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
+    }
+    else if (opts->input_type_vanity)
+    {
+         r = privkey_new(privkey);
+        ERROR_CHECK_NEG(r, "Could not generate a new private key.");
+        r = pubkey_get(pubkey, privkey);
+        ERROR_CHECK_NEG(r, "Could not calculate public key.");
+    }
+    else
+    {
+        r = pubkey_from_guess(pubkey, input, input_len);
+        if (r < 0)
+        {
+            error_clear();
+            ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
+        }
     }
 
     switch (output_type)
@@ -96,8 +95,11 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
             return -1;
     }
 
-    if (input_type == OPTS_INPUT_TYPE_VANITY)
+    if (opts->input_type_vanity)
     {
+        ERROR_CHECK_TRUE(opts->input_type_wif, "Cannot use wif and vanity input types together.");
+        ERROR_CHECK_TRUE(opts->input_type_hex, "Cannot use hex and vanity input types together.");
+
         r = btk_address_vanity_match((char *)input, output_str);
         ERROR_CHECK_NEG(r, "Error matching vanity string.");
 

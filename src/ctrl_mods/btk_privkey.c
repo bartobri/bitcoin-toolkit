@@ -23,7 +23,7 @@
 #define OUTPUT_HASH_MAX    50
 #define HASH_WILDCARD      "r"
 
-int btk_privkey_get(PrivKey, char *, unsigned char *, size_t);
+int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(PrivKey);
 int btk_privkey_set_compression(PrivKey);
 int btk_privkey_set_network(PrivKey);
@@ -32,7 +32,13 @@ int btk_privkey_process_rehashes(char *);
 int btk_privkey_process_rehashes_comp(const void *, const void *);
 
 // Defaults
-static int input_type      = OPTS_INPUT_TYPE_NONE;
+static int input_type_wif = 0;
+static int input_type_hex = 0;
+static int input_type_raw = 0;
+static int input_type_string = 0;
+static int input_type_decimal = 0;
+static int input_type_binary = 0;
+static int input_type_sbd = 0;
 static int create          = OPTS_CREATE_FALSE;
 static int compression     = OPTS_OUTPUT_COMPRESSION_TRUE;
 static int network         = OPTS_OUTPUT_NETWORK_MAINNET;
@@ -51,7 +57,13 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	assert(opts);
 
 	// Override defaults
-	if (opts->input_type) { input_type = opts->input_type; }
+	if (opts->input_type_wif) { input_type_wif =  opts->input_type_wif; }
+	if (opts->input_type_hex) { input_type_hex =  opts->input_type_hex; }
+	if (opts->input_type_raw) { input_type_raw =  opts->input_type_raw; }
+	if (opts->input_type_string) { input_type_string =  opts->input_type_string; }
+	if (opts->input_type_decimal) { input_type_decimal =  opts->input_type_decimal; }
+	if (opts->input_type_binary) { input_type_binary =  opts->input_type_binary; }
+	if (opts->input_type_sbd) { input_type_sbd =  opts->input_type_sbd; }
 	if (opts->create) { create = opts->create; }
 	if (opts->compression) { compression = opts->compression; }
 	if (opts->network) { network = opts->network; }
@@ -70,16 +82,8 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	{
 		ERROR_CHECK_NULL(input, "Input required.");
 
-		if (input_type == OPTS_INPUT_TYPE_BINARY)
-		{
-			r = btk_privkey_get(key, NULL, input, input_len);
-			ERROR_CHECK_NEG(r, "Could not get privkey from input.");
-		}
-		else
-		{
-			r = btk_privkey_get(key, (char *)input, (unsigned char *)NULL, 0);
-			ERROR_CHECK_NEG(r, "Could not get privkey from input.");
-		}
+		r = btk_privkey_get(key, input, input_len);
+		ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 	}
 
 	r = btk_privkey_set_network(key);
@@ -122,59 +126,46 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int btk_privkey_get(PrivKey key, char *sc_input, unsigned char *uc_input, size_t uc_input_len)
+int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 {
 	int r;
 
 	assert(key);
-	assert(sc_input || uc_input);
+	assert(input);
 
-	switch (input_type)
-	{		
-		case OPTS_INPUT_TYPE_WIF:
-			r = privkey_from_wif(key, sc_input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_HEX:
-			r = privkey_from_hex(key, sc_input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_STRING:
-			r = privkey_from_str(key, sc_input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_DECIMAL:
-			r = privkey_from_dec(key, sc_input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_SBD:
-			r = privkey_from_sbd(key, sc_input);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_RAW:
-			r = privkey_from_raw(key, uc_input, uc_input_len);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		case OPTS_INPUT_TYPE_BINARY:
-			r = privkey_from_blob(key, uc_input, uc_input_len);
-			ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-			break;
-		default:
-			if (uc_input)
-			{
-				r = privkey_from_guess(key, uc_input, uc_input_len);
-			}
-			else
-			{
-				r = privkey_from_guess(key, (unsigned char *)sc_input, strlen(sc_input));
-			}
-			if (r < 0)
-            {
-                error_clear();
-                ERROR_CHECK_NEG(-1, "Invalid or missing input type specified.");
-            }
-			break;
+	if (input_type_wif)
+	{
+		r = privkey_from_wif(key, (char *)input);
 	}
+	else if (input_type_hex)
+	{
+		r = privkey_from_hex(key, (char *)input);
+	}
+	else if (input_type_string)
+	{
+		r = privkey_from_str(key, (char *)input);
+	}
+	else if (input_type_decimal)
+	{
+		r = privkey_from_dec(key, (char *)input);
+	}
+	else if (input_type_sbd)
+	{
+		r = privkey_from_sbd(key, (char *)input);
+	}
+	else if (input_type_raw)
+	{
+		r = privkey_from_raw(key, input, input_len);
+	}
+	else if (input_type_binary)
+	{
+		r = privkey_from_raw(key, input, input_len);
+	}
+	else
+	{
+		r = privkey_from_guess(key, input, input_len);
+	}
+	ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 
 	if (privkey_is_zero(key))
 	{
@@ -337,7 +328,7 @@ int btk_privkey_process_rehashes(char *input_str)
 		}
 		else if (strcmp(tok, HASH_WILDCARD) == 0)
 		{
-			if (input_type != OPTS_INPUT_TYPE_STRING && input_type != OPTS_INPUT_TYPE_DECIMAL)
+			if (!input_type_string && !input_type_decimal)
 			{
 				error_log("Can not use wildcard '%s' with current input mode.", HASH_WILDCARD);
 				return -1;
