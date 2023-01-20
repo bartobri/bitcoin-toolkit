@@ -52,8 +52,8 @@
 #define OPTS_SUBCOMMAND_NONE                NULL
 
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcAJCUMTWHDR:"
-#define OPTS_STRING_PUBKEY                  "ajwhCU"
-#define OPTS_STRING_ADDRESS                 "ajwhvPB"
+#define OPTS_STRING_PUBKEY                  "lwhCU"
+#define OPTS_STRING_ADDRESS                 "lwhvPB"
 #define OPTS_STRING_NODE                    "n:p:MT"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"
