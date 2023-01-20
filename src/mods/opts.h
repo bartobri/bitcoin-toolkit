@@ -8,11 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_INPUT_FORMAT_NONE              0
-#define OPTS_INPUT_FORMAT_ASCII             1
-#define OPTS_INPUT_FORMAT_BINARY            2
-#define OPTS_INPUT_FORMAT_JSON              3
-
 #define OPTS_INPUT_TYPE_NONE                0
 #define OPTS_INPUT_TYPE_WIF                 1
 #define OPTS_INPUT_TYPE_HEX                 2
@@ -56,7 +51,7 @@
 
 #define OPTS_SUBCOMMAND_NONE                NULL
 
-#define OPTS_STRING_PRIVKEY                 "abjwhrsdxcAJCUMTWHDR:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcAJCUMTWHDR:"
 #define OPTS_STRING_PUBKEY                  "ajwhCU"
 #define OPTS_STRING_ADDRESS                 "ajwhvPB"
 #define OPTS_STRING_NODE                    "n:p:MT"
@@ -66,7 +61,8 @@
 
 typedef struct opts *opts_p;
 struct opts {
-    int input_format;
+    int input_format_list;
+    int input_format_binary;
     int input_type;
     int output_format;
     int output_type;

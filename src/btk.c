@@ -135,11 +135,6 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
-	if (opts->input_format == OPTS_INPUT_FORMAT_NONE)
-	{
-		opts->input_format = OPTS_INPUT_FORMAT_JSON;
-	}
-
 	if (input_fp(opts))
 	{
 		r = input_get(&input, &input_len);
@@ -148,23 +143,27 @@ int main(int argc, char *argv[])
 
 	if (input)
 	{
-		if (opts->input_format == OPTS_INPUT_FORMAT_ASCII)
-		{
-			r = json_from_input(&input, &input_len);
-			BTK_CHECK_NEG(r, "Could not convert input to JSON.");
-
-			opts->input_format = OPTS_INPUT_FORMAT_JSON;
-		}
-
-		if (opts->input_format == OPTS_INPUT_FORMAT_BINARY)
+		if (opts->input_format_binary)
 		{
 			r = main_fp(opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
 		}
-		else if (opts->input_format == OPTS_INPUT_FORMAT_JSON)
+		else if (opts->input_format_list)
+		{
+			char *tok;
+			tok = strtok((char *)input, "\n");
+			while (tok != NULL)
+			{
+				r = main_fp(opts, (unsigned char *)tok, strlen(tok));
+				BTK_CHECK_NEG(r, NULL);
+
+				tok = strtok(NULL, "\n");
+			}
+		}
+		else
 		{
 			r = json_is_valid((char *)input, input_len);
-			BTK_CHECK_FALSE(r, "Expecting input in JSON format.");
+			BTK_CHECK_FALSE(r, "Input contains invalid JSON formatting.");
 
 			r = json_set_input((char *)input);
 			BTK_CHECK_NEG(r, "Could not load JSON input.");
@@ -192,65 +191,6 @@ int main(int argc, char *argv[])
 
 	json_print();
 	json_free();
-
-/*
-	// Execute command function
-	if (strcmp(command, "privkey") == 0)
-	{
-		r = btk_privkey_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "pubkey") == 0)
-	{
-		r = btk_pubkey_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "address") == 0)
-	{
-		r = btk_address_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "node") == 0)
-	{
-		r = btk_node_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "utxodb") == 0)
-	{
-		r = btk_utxodb_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "addressdb") == 0)
-	{
-		r = btk_addressdb_main(opts);
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "version") == 0)
-	{
-		r = btk_version_main();
-		BTK_CHECK_NEG(r);
-	}
-	else if (strcmp(command, "help") == 0)
-	{
-		if (argc > 2)
-		{
-			r = btk_help_main(argv[2]);
-		}
-		else
-		{
-			r = btk_help_main(NULL);
-		}
-		BTK_CHECK_NEG(r);
-	}
-	else
-	{
-		error_log("See 'btk help' to read about available commands.");
-		error_log("'%s' is not a valid command.", command);
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
-*/
 
 	return EXIT_SUCCESS;
 }

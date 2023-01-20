@@ -11,7 +11,6 @@
 #include "mods/cJSON/cJSON.h"
 
 int json_init(void);
-int json_from_input(unsigned char **, size_t *);
 int json_from_string(char **, char *);
 int json_is_valid(char *, size_t);
 int json_set_input(char *);

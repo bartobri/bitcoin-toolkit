@@ -12,7 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define INPUT_SET_FORMAT(x)        if (opts->input_format == OPTS_INPUT_FORMAT_NONE) { opts->input_format = x; } else { error_log("Cannot use multiple input format options."); return -1; }
 #define INPUT_SET_TYPE(x)          if (opts->input_type == OPTS_INPUT_TYPE_NONE) { opts->input_type = x; } else { error_log("Cannot use multiple input type options."); return -1; }
 #define OUTPUT_SET_FORMAT(x)       if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE) { opts->output_format = x; } else { error_log("Cannot use multiple output format options."); return -1; }
 #define OUTPUT_SET_TYPE(x)         if (opts->output_type == OPTS_OUTPUT_TYPE_NONE) { opts->output_type = x; } else { error_log("Cannot use multiple output type options."); return -1; }
@@ -29,8 +28,8 @@ int opts_init(opts_p opts)
 {
     assert(opts);
 
-    opts->input_format = OPTS_INPUT_FORMAT_NONE;
-    opts->input_type = OPTS_INPUT_TYPE_NONE;
+    opts->input_format_list = 0;
+    opts->input_format_binary = 0;
     opts->output_format = OPTS_OUTPUT_FORMAT_NONE;
     opts->output_type = OPTS_OUTPUT_TYPE_NONE;
     opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
@@ -68,15 +67,12 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
     {
         switch (o)
         {
-            case 'a':
-                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_ASCII);
+            case 'l':
+                opts->input_format_list = 1;
                 break;
             case 'b':
-                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_BINARY);
+                opts->input_format_binary = 1;
                 INPUT_SET_TYPE(OPTS_INPUT_TYPE_BINARY);
-                break;
-            case 'j':
-                INPUT_SET_FORMAT(OPTS_INPUT_FORMAT_JSON);
                 break;
 
             case 'w':

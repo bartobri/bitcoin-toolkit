@@ -29,49 +29,6 @@ int json_init(void)
     return 1;
 }
 
-int json_from_input(unsigned char **input, size_t *input_len)
-{
-    int r;
-    size_t i;
-    char str[BUFSIZ];
-
-    memset(str, 0, BUFSIZ);
-
-    for (i = 0; i < *input_len; i++)
-    {
-        if (i > BUFSIZ-1)
-        {
-            error_log("Input string too large. Consider using -b for arbitrarily large amounts of input data.");
-            return -1;
-        }
-        if (isascii((*input)[i]))
-        {
-            str[i] = (*input)[i];
-        }
-        else
-        {
-            error_log("Input contains non-ascii characters.");
-            return -1;
-        }
-    }
-
-    while (str[(*input_len)-1] == '\n' || str[(*input_len)-1] == '\r')
-    {
-        str[(*input_len)-1] = '\0';
-        (*input_len)--;
-    }
-
-    // Free input here because json_from_string reallocates it.
-    free(*input);
-
-    r = json_from_string((char **)input, str);
-    ERROR_CHECK_NEG(r, "Could not convert input to JSON.");
-
-    *input_len = strlen((char *)*input);
-
-    return 1;
-}
-
 int json_from_string(char ** output, char *input)
 {
     char *tok;
