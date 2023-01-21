@@ -8,10 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_OUTPUT_FORMAT_NONE             0
-#define OPTS_OUTPUT_FORMAT_ASCII            1
-#define OPTS_OUTPUT_FORMAT_JSON             2
-
 #define OPTS_OUTPUT_TYPE_NONE               0
 #define OPTS_OUTPUT_TYPE_WIF                1
 #define OPTS_OUTPUT_TYPE_HEX                2
@@ -41,7 +37,7 @@
 
 #define OPTS_SUBCOMMAND_NONE                NULL
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcAJCUMTWHDR:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUMTWHDR:"
 #define OPTS_STRING_PUBKEY                  "lwhCU"
 #define OPTS_STRING_ADDRESS                 "lwhvPB"
 #define OPTS_STRING_NODE                    "n:p:MT"
@@ -61,7 +57,8 @@ struct opts {
     int input_type_binary;
     int input_type_sbd;
     int input_type_vanity;
-    int output_format;
+    int output_format_list;
+    int output_format_binary;
     int output_type;
     int compression;
     int network;

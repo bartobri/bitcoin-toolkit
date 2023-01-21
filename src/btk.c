@@ -192,6 +192,8 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
+	BTK_CHECK_TRUE(opts->output_format_list, "List output not implemented yet.");
+
 	json_print();
 	json_free();
 

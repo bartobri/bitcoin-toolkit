@@ -37,7 +37,8 @@ int opts_init(opts_p opts)
     opts->input_type_binary = 0;
     opts->input_type_sbd = 0;
     opts->input_type_vanity = 0;
-    opts->output_format = OPTS_OUTPUT_FORMAT_NONE;
+    opts->output_format_list = 0;
+    opts->output_format_binary = 0;
     opts->output_type = OPTS_OUTPUT_TYPE_NONE;
     opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
     opts->network = OPTS_OUTPUT_NETWORK_NONE;
@@ -104,11 +105,8 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->input_type_vanity = 1;
                 break;
 
-            case 'J':
-                OUTPUT_SET_FORMAT(OPTS_OUTPUT_FORMAT_JSON);
-                break;
-            case 'A':
-                OUTPUT_SET_FORMAT(OPTS_OUTPUT_FORMAT_ASCII);
+            case 'L':
+                opts->output_format_list = 1;
                 break;
 
             case 'W':
