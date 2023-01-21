@@ -18,10 +18,8 @@
 #include "mods/opts.h"
 #include "mods/error.h"
 
-int btk_pubkey_set_compression(PubKey);
-
-// Defaults
-static int compression     = OPTS_OUTPUT_COMPRESSION_NONE;
+static int compression_on = 0;
+static int compression_off = 0;
 
 int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 {
@@ -32,7 +30,8 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	assert(opts);
 
-	if (opts->compression) { compression = opts->compression; }
+	if (opts->compression_on) { compression_on = opts->compression_on; }
+	if (opts->compression_off) { compression_off = opts->compression_off; }
 
 	memset(output_str, 0, BUFSIZ);
 
@@ -64,7 +63,7 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 		}
 	}
 
-	if (opts->input_type_wif && compression == OPTS_OUTPUT_COMPRESSION_NONE)
+	if (opts->input_type_wif)
 	{
 		if (privkey_is_compressed(privkey))
 		{
@@ -75,10 +74,17 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 			pubkey_uncompress(pubkey);
 		}
 	}
-	else
+
+	compression_again:
+
+	if (compression_on)
 	{
-		r = btk_pubkey_set_compression(pubkey);
-		ERROR_CHECK_NEG(r, "Could not set compression for public key.");
+		pubkey_compress(pubkey);
+
+	}
+	else if (compression_off)
+	{
+		pubkey_uncompress(pubkey);
 	}
 
 	r = pubkey_to_hex(output_str, pubkey);
@@ -87,55 +93,22 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	r = json_add(output_str);
 	ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
-	if (compression == OPTS_OUTPUT_COMPRESSION_BOTH)
+	if (compression_on && compression_off)
 	{
-		memset(output_str, 0, BUFSIZ);
-		
-		r = btk_pubkey_set_compression(pubkey);
-		ERROR_CHECK_NEG(r, "Could not set compression for public key.");
+		if (pubkey_is_compressed(pubkey))
+		{
+			compression_on = 0;
+		}
+		else
+		{
+			compression_off = 0;
+		}
 
-		r = pubkey_to_hex(output_str, pubkey);
-		ERROR_CHECK_NEG(r, "Could not get output.");
-
-		r = json_add(output_str);
-		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+		goto compression_again;
 	}
 	
 	free(pubkey);
 	free(privkey);
-
-	return 1;
-}
-
-int btk_pubkey_set_compression(PubKey key)
-{
-	static int last = 0;
-
-	assert(key);
-
-	switch (compression)
-	{
-		case OPTS_OUTPUT_COMPRESSION_NONE:
-			break;
-		case OPTS_OUTPUT_COMPRESSION_TRUE:
-			pubkey_compress(key);
-			break;
-		case OPTS_OUTPUT_COMPRESSION_FALSE:
-			pubkey_uncompress(key);
-			break;
-		case OPTS_OUTPUT_COMPRESSION_BOTH:
-			if (last == OPTS_OUTPUT_COMPRESSION_TRUE)
-			{
-				pubkey_uncompress(key);
-				last = OPTS_OUTPUT_COMPRESSION_FALSE;
-			}
-			else
-			{
-				pubkey_compress(key);
-				last = OPTS_OUTPUT_COMPRESSION_TRUE;
-			}
-			break;
-	}
 
 	return 1;
 }

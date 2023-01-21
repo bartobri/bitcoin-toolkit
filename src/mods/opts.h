@@ -8,11 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_OUTPUT_COMPRESSION_NONE        0
-#define OPTS_OUTPUT_COMPRESSION_TRUE        1
-#define OPTS_OUTPUT_COMPRESSION_FALSE       2
-#define OPTS_OUTPUT_COMPRESSION_BOTH        3
-
 #define OPTS_OUTPUT_NETWORK_NONE            0
 #define OPTS_OUTPUT_NETWORK_MAINNET         1
 #define OPTS_OUTPUT_NETWORK_TESTNET         2
@@ -56,7 +51,9 @@ struct opts {
     int output_type_decimal;
     int output_type_p2pkh;
     int output_type_p2wpkh;
-    int compression;
+    int compression_on;
+    int compression_off;
+
     int network;
     char *rehashes;
     char *host_name;

@@ -12,7 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define OUTPUT_SET_COMPRESSION(x)  if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) { opts->compression = x; } else { opts->compression = OPTS_OUTPUT_COMPRESSION_BOTH; }
 #define OUTPUT_SET_NETWORK(x)      if (opts->network == OPTS_OUTPUT_NETWORK_NONE) { opts->network = x; } else { error_log("Cannot use multiple network options."); return -1; }
 #define OUTPUT_SET_REHASHES(x)     if (opts->rehashes == OPTS_OUTPUT_REHASHES_NONE) { opts->rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
 #define HOST_SET_NAME(x)           if (opts->host_name == OPTS_HOST_NAME_NONE) { opts->host_name = x; } else { error_log("Cannot use multiple host name options."); return -1; }
@@ -41,7 +40,9 @@ int opts_init(opts_p opts)
     opts->output_type_decimal = 0;
     opts->output_type_p2pkh = 0;
     opts->output_type_p2wpkh = 0;
-    opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
+    opts->compression_on = 0;
+    opts->compression_off = 0;
+
     opts->network = OPTS_OUTPUT_NETWORK_NONE;
     opts->rehashes = OPTS_OUTPUT_REHASHES_NONE;
     opts->host_name = OPTS_HOST_NAME_NONE;
@@ -124,10 +125,10 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
 
             case 'C':
-                OUTPUT_SET_COMPRESSION(OPTS_OUTPUT_COMPRESSION_TRUE);
+                opts->compression_on = 1;
                 break;
             case 'U':
-                OUTPUT_SET_COMPRESSION(OPTS_OUTPUT_COMPRESSION_FALSE);
+                opts->compression_off = 1;
                 break;
 
             case 'M':

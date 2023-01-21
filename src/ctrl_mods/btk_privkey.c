@@ -25,7 +25,6 @@
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(PrivKey);
-int btk_privkey_set_compression(PrivKey);
 int btk_privkey_set_network(PrivKey);
 int btk_privkey_to_output(char *, PrivKey);
 int btk_privkey_process_rehashes(char *);
@@ -41,8 +40,10 @@ static int input_type_binary = 0;
 static int input_type_sbd = 0;
 static int output_type_hex = 0;
 static int output_type_decimal = 0;
+static int compression_on = 0;
+static int compression_off = 0;
+
 static int create          = OPTS_CREATE_FALSE;
-static int compression     = OPTS_OUTPUT_COMPRESSION_TRUE;
 static int network         = OPTS_OUTPUT_NETWORK_MAINNET;
 static char *rehashes      = OPTS_OUTPUT_REHASHES_NONE;
 
@@ -57,7 +58,6 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	assert(opts);
 
-	// Override defaults
 	if (opts->input_type_wif) { input_type_wif =  opts->input_type_wif; }
 	if (opts->input_type_hex) { input_type_hex =  opts->input_type_hex; }
 	if (opts->input_type_raw) { input_type_raw =  opts->input_type_raw; }
@@ -67,8 +67,10 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->input_type_sbd) { input_type_sbd =  opts->input_type_sbd; }
 	if (opts->output_type_hex) { output_type_hex = opts->output_type_hex; }
 	if (opts->output_type_decimal) { output_type_decimal = opts->output_type_decimal; }
+	if (opts->compression_on) { compression_on = opts->compression_on; }
+	if (opts->compression_off) { compression_off = opts->compression_off; }
+
 	if (opts->create) { create = opts->create; }
-	if (opts->compression) { compression = opts->compression; }
 	if (opts->network) { network = opts->network; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
@@ -181,13 +183,26 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 int btk_privkey_compression_add(PrivKey key)
 {
 	int r;
+	int comp_on, comp_off;
 	char output_str[BUFSIZ];
 
-	// In theory, no output type should ever overrun this buffer (famous last words).
-	memset(output_str, 0, BUFSIZ);
+	comp_on = compression_on;
+	comp_off = compression_off;
 
-	r = btk_privkey_set_compression(key);
-	ERROR_CHECK_NEG(r, "Could not set key compression.");
+	comp_again:
+
+	if (comp_on)
+	{
+		privkey_compress(key);
+
+	}
+	else if (comp_off)
+	{
+		privkey_uncompress(key);
+
+	}
+
+	memset(output_str, 0, BUFSIZ);
 
 	r = btk_privkey_to_output(output_str, key);
 	ERROR_CHECK_NEG(r, "Could not get output.");
@@ -195,50 +210,18 @@ int btk_privkey_compression_add(PrivKey key)
 	r = json_add(output_str);
 	ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
-	if (compression == OPTS_OUTPUT_COMPRESSION_BOTH)
+	if (comp_on && comp_off)
 	{
-		memset(output_str, 0, BUFSIZ);
+		if (privkey_is_compressed(key))
+		{
+			comp_on = 0;
+		}
+		else
+		{
+			comp_off = 0;
+		}
 
-		r = btk_privkey_set_compression(key);
-		ERROR_CHECK_NEG(r, "Could not set key compression.");
-
-		r = btk_privkey_to_output(output_str, key);
-		ERROR_CHECK_NEG(r, "Could not get output.");
-
-		r = json_add(output_str);
-		ERROR_CHECK_NEG(r, "Error while generating JSON.");
-	}
-
-	return 1;
-}
-
-int btk_privkey_set_compression(PrivKey key)
-{
-	static int last = 0;
-
-	assert(key);
-
-	switch (compression)
-	{
-		case OPTS_OUTPUT_COMPRESSION_NONE:
-		case OPTS_OUTPUT_COMPRESSION_TRUE:
-			privkey_compress(key);
-			break;
-		case OPTS_OUTPUT_COMPRESSION_FALSE:
-			privkey_uncompress(key);
-			break;
-		case OPTS_OUTPUT_COMPRESSION_BOTH:
-			if (last == OPTS_OUTPUT_COMPRESSION_TRUE)
-			{
-				privkey_uncompress(key);
-				last = OPTS_OUTPUT_COMPRESSION_FALSE;
-			}
-			else
-			{
-				privkey_compress(key);
-				last = OPTS_OUTPUT_COMPRESSION_TRUE;
-			}
-			break;
+		goto comp_again;
 	}
 
 	return 1;
@@ -272,7 +255,7 @@ int btk_privkey_to_output(char *output, PrivKey key)
 
 	if (output_type_hex)
 	{
-		r = privkey_to_hex(output, key, (compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
+		r = privkey_to_hex(output, key, (compression_on || compression_off) ? 0 : 1);
 		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
 	}
 	else if (output_type_decimal)
