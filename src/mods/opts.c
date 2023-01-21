@@ -12,8 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define OUTPUT_SET_FORMAT(x)       if (opts->output_format == OPTS_OUTPUT_FORMAT_NONE) { opts->output_format = x; } else { error_log("Cannot use multiple output format options."); return -1; }
-#define OUTPUT_SET_TYPE(x)         if (opts->output_type == OPTS_OUTPUT_TYPE_NONE) { opts->output_type = x; } else { error_log("Cannot use multiple output type options."); return -1; }
 #define OUTPUT_SET_COMPRESSION(x)  if (opts->compression == OPTS_OUTPUT_COMPRESSION_NONE) { opts->compression = x; } else { opts->compression = OPTS_OUTPUT_COMPRESSION_BOTH; }
 #define OUTPUT_SET_NETWORK(x)      if (opts->network == OPTS_OUTPUT_NETWORK_NONE) { opts->network = x; } else { error_log("Cannot use multiple network options."); return -1; }
 #define OUTPUT_SET_REHASHES(x)     if (opts->rehashes == OPTS_OUTPUT_REHASHES_NONE) { opts->rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
@@ -39,7 +37,10 @@ int opts_init(opts_p opts)
     opts->input_type_vanity = 0;
     opts->output_format_list = 0;
     opts->output_format_binary = 0;
-    opts->output_type = OPTS_OUTPUT_TYPE_NONE;
+    opts->output_type_hex = 0;
+    opts->output_type_decimal = 0;
+    opts->output_type_p2pkh = 0;
+    opts->output_type_p2wpkh = 0;
     opts->compression = OPTS_OUTPUT_COMPRESSION_NONE;
     opts->network = OPTS_OUTPUT_NETWORK_NONE;
     opts->rehashes = OPTS_OUTPUT_REHASHES_NONE;
@@ -109,20 +110,17 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->output_format_list = 1;
                 break;
 
-            case 'W':
-                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_WIF);
-                break;
             case 'H':
-                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_HEX);
+                opts->output_type_hex = 1;
                 break;
             case 'D':
-                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_DECIMAL);
+                opts->output_type_decimal = 1;
                 break;
             case 'P':
-                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_P2PKH);
+                opts->output_type_p2pkh = 1;
                 break;
             case 'B':
-                OUTPUT_SET_TYPE(OPTS_OUTPUT_TYPE_P2WPKH);
+                opts->output_type_p2wpkh = 1;
                 break;
 
             case 'C':

@@ -39,10 +39,11 @@ static int input_type_string = 0;
 static int input_type_decimal = 0;
 static int input_type_binary = 0;
 static int input_type_sbd = 0;
+static int output_type_hex = 0;
+static int output_type_decimal = 0;
 static int create          = OPTS_CREATE_FALSE;
 static int compression     = OPTS_OUTPUT_COMPRESSION_TRUE;
 static int network         = OPTS_OUTPUT_NETWORK_MAINNET;
-static int output_type     = OPTS_OUTPUT_TYPE_WIF;
 static char *rehashes      = OPTS_OUTPUT_REHASHES_NONE;
 
 static int output_hashes_arr_len = 0;
@@ -64,10 +65,11 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->input_type_decimal) { input_type_decimal =  opts->input_type_decimal; }
 	if (opts->input_type_binary) { input_type_binary =  opts->input_type_binary; }
 	if (opts->input_type_sbd) { input_type_sbd =  opts->input_type_sbd; }
+	if (opts->output_type_hex) { output_type_hex = opts->output_type_hex; }
+	if (opts->output_type_decimal) { output_type_decimal = opts->output_type_decimal; }
 	if (opts->create) { create = opts->create; }
 	if (opts->compression) { compression = opts->compression; }
 	if (opts->network) { network = opts->network; }
-	if (opts->output_type) { output_type = opts->output_type; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
 	key = malloc(privkey_sizeof());
@@ -268,32 +270,20 @@ int btk_privkey_to_output(char *output, PrivKey key)
 	assert(output);
 	assert(key);
 
-	switch (output_type)
+	if (output_type_hex)
 	{
-		case OPTS_OUTPUT_TYPE_WIF:
-			r = privkey_to_wif(output, key);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to WIF format.");
-				return -1;
-			}
-			break;
-		case OPTS_OUTPUT_TYPE_HEX:
-			r = privkey_to_hex(output, key, (compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to hex format.");
-				return -1;
-			}
-			break;
-		case OPTS_OUTPUT_TYPE_DECIMAL:
-			r = privkey_to_dec(output, key);
-			if (r < 0)
-			{
-				error_log("Could not convert private key to decimal format.");
-				return -1;
-			}
-			break;
+		r = privkey_to_hex(output, key, (compression == OPTS_OUTPUT_COMPRESSION_NONE) ? 0 : 1);
+		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
+	}
+	else if (output_type_decimal)
+	{
+		r = privkey_to_dec(output, key);
+		ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
+	}
+	else
+	{
+		r = privkey_to_wif(output, key);
+		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 	}
 
 	return 1;

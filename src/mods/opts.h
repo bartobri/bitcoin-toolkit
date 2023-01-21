@@ -8,13 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_OUTPUT_TYPE_NONE               0
-#define OPTS_OUTPUT_TYPE_WIF                1
-#define OPTS_OUTPUT_TYPE_HEX                2
-#define OPTS_OUTPUT_TYPE_DECIMAL            3
-#define OPTS_OUTPUT_TYPE_P2PKH              4    // Legacy address
-#define OPTS_OUTPUT_TYPE_P2WPKH             5    // Bech32 address
-
 #define OPTS_OUTPUT_COMPRESSION_NONE        0
 #define OPTS_OUTPUT_COMPRESSION_TRUE        1
 #define OPTS_OUTPUT_COMPRESSION_FALSE       2
@@ -37,7 +30,7 @@
 
 #define OPTS_SUBCOMMAND_NONE                NULL
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUMTWHDR:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUMTHDR:"
 #define OPTS_STRING_PUBKEY                  "lwhCU"
 #define OPTS_STRING_ADDRESS                 "lwhvPB"
 #define OPTS_STRING_NODE                    "n:p:MT"
@@ -59,7 +52,10 @@ struct opts {
     int input_type_vanity;
     int output_format_list;
     int output_format_binary;
-    int output_type;
+    int output_type_hex;
+    int output_type_decimal;
+    int output_type_p2pkh;
+    int output_type_p2wpkh;
     int compression;
     int network;
     char *rehashes;

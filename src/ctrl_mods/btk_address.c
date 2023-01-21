@@ -25,7 +25,8 @@
 int btk_address_vanity_match(char *, char *);
 int btk_address_get_vanity_estimate(long int *, long int);
 
-static int output_type     = OPTS_OUTPUT_TYPE_P2PKH;
+static int output_type_p2pkh = 0;
+static int output_type_p2wpkh = 0;
 
 int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 {
@@ -37,8 +38,8 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 
     assert(opts);
 
-    // Override defaults
-    if (opts->output_type) { output_type = opts->output_type; }
+    if (opts->output_type_p2pkh) { output_type_p2pkh = opts->output_type_p2pkh; }
+    if (opts->output_type_p2wpkh) { output_type_p2wpkh = opts->output_type_p2wpkh; }
 
     memset(output_str, 0, BUFSIZ);
     memset(output_str2, 0, BUFSIZ);
@@ -80,19 +81,15 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
         }
     }
 
-    switch (output_type)
+    if (output_type_p2wpkh)
     {
-        case OPTS_OUTPUT_TYPE_P2PKH:
-            r = address_get_p2pkh(output_str, pubkey);
-            ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
-            break;
-        case OPTS_OUTPUT_TYPE_P2WPKH:
-            r = address_get_p2wpkh(output_str, pubkey);
-            ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
-            break;
-        default:
-            error_log("Invalid output type specified.");
-            return -1;
+        r = address_get_p2wpkh(output_str, pubkey);
+        ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+    }
+    else
+    {
+        r = address_get_p2pkh(output_str, pubkey);
+        ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
     }
 
     if (opts->input_type_vanity)
@@ -132,24 +129,23 @@ int btk_address_vanity_match(char *input_str, char *output_str)
 
     input_len = strlen(input_str);
 
-    switch (output_type)
+    if (output_type_p2wpkh)
     {
-        case OPTS_OUTPUT_TYPE_P2PKH:
-            for (i = 0; i < input_len; ++i)
-            {
-                r = base58_ischar(input_str[i]);
-                ERROR_CHECK_FALSE(r, "Input error. Must only contain base58 characters.");
-            }
-            offset = 1;
-            break;
-        case OPTS_OUTPUT_TYPE_P2WPKH:
-            for (i = 0; i < input_len; ++i)
-            {
-                r = base32_get_raw(input_str[i]);
-                ERROR_CHECK_NEG(r, "Input error.");
-            }
-            offset = 4;
-            break;
+        for (i = 0; i < input_len; ++i)
+        {
+            r = base32_get_raw(input_str[i]);
+            ERROR_CHECK_NEG(r, "Input error.");
+        }
+        offset = 4;
+    }
+    else
+    {
+        for (i = 0; i < input_len; ++i)
+        {
+            r = base58_ischar(input_str[i]);
+            ERROR_CHECK_FALSE(r, "Input error. Must only contain base58 characters.");
+        }
+        offset = 1;
     }
 
     perms_total = 1;
