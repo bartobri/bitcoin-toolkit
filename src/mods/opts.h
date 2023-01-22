@@ -8,14 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_INPUT_PATH_NONE                NULL
-#define OPTS_OUTPUT_PATH_NONE               NULL
-
-#define OPTS_CREATE_FALSE                   0
-#define OPTS_CREATE_TRUE                    1   // Optional arg. Can be used with privkey, database, and vanity
-
-#define OPTS_SUBCOMMAND_NONE                NULL
-
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUTHDR:"
 #define OPTS_STRING_PUBKEY                  "lwhCU"
 #define OPTS_STRING_ADDRESS                 "lwhvPB"
@@ -49,7 +41,6 @@ struct opts {
     char *host_name;
     int host_port;
     int create;
-    
     char *input_path;
     char *output_path;
     char *subcommand;

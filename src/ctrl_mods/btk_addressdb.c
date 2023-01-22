@@ -23,9 +23,6 @@
 #include "mods/address.h"
 #include "mods/opts.h"
 
-static char *input_path    = OPTS_INPUT_PATH_NONE;
-static char *output_path   = OPTS_OUTPUT_PATH_NONE;
-
 int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
@@ -40,13 +37,9 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
 
     (void)input_len;
 
-    // Override defaults
-    if (opts->input_path) { input_path = opts->input_path; }
-    if (opts->output_path) { output_path = opts->output_path; }
-
     if (opts->create)
     {
-        r = addressdb_open(output_path, opts->create);
+        r = addressdb_open(opts->output_path, opts->create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
         utxodb_key = malloc(utxodb_sizeof_key());
@@ -55,7 +48,7 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
         utxodb_value = malloc(utxodb_sizeof_value());
         ERROR_CHECK_NULL(utxodb_value, "Memory Allocation Error.");
 
-        r = utxodb_open(input_path);
+        r = utxodb_open(opts->input_path);
         ERROR_CHECK_NEG(r, "Could not open utxo database.");
 
         while ((r = utxodb_get(utxodb_key, utxodb_value, NULL)) == 1)
@@ -92,7 +85,7 @@ int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
     }
     else
     {
-        r = addressdb_open(input_path, opts->create);
+        r = addressdb_open(opts->input_path, opts->create);
         ERROR_CHECK_NEG(r, "Could not open address database.");
 
         if (opts->input_type_wif)

@@ -12,9 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
-#define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
-
 int opts_init(opts_p opts)
 {
     assert(opts);
@@ -42,10 +39,9 @@ int opts_init(opts_p opts)
     opts->host_name = NULL;
     opts->host_port = 0;
     opts->create = 0;
-
-    opts->input_path = OPTS_INPUT_PATH_NONE;
-    opts->output_path = OPTS_OUTPUT_PATH_NONE;
-    opts->subcommand = OPTS_SUBCOMMAND_NONE;
+    opts->input_path = NULL;
+    opts->output_path = NULL;
+    opts->subcommand = NULL;
 
     return 1;
 }
@@ -146,10 +142,10 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
 
             case 'f':
-                INPUT_SET_PATH(optarg);
+                opts->input_path = optarg;
                 break;
             case 'F':
-                OUTPUT_SET_PATH(optarg);
+                opts->output_path = optarg;
                 break;
 
             case '?':

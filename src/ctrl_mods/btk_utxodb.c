@@ -25,8 +25,6 @@
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
 #define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
-static char *input_path = OPTS_INPUT_PATH_NONE;
-
 int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
@@ -39,9 +37,7 @@ int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
 
     (void)input_len;
 
-    // Override defaults
-    if (opts->input_path) { input_path = opts->input_path; }
-    ERROR_CHECK_NULL(input_path, "Missing database path argument.");
+    ERROR_CHECK_NULL(opts->input_path, "Missing database path argument.");
 
     key = malloc(utxodb_sizeof_key());
     ERROR_CHECK_NULL(key, "Memory Allocation Error.");
@@ -58,7 +54,7 @@ int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
     r = hex_str_to_raw(input_raw, (char *)input);
     ERROR_CHECK_NEG(r, "Can not convert hex input to raw binary.");
 
-    r = utxodb_open(input_path);
+    r = utxodb_open(opts->input_path);
     ERROR_CHECK_NEG(r, "Could not open utxo database.");
 
     while ((r = utxodb_get(key, value, input_raw)) == 1)
