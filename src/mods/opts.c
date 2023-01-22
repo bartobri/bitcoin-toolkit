@@ -12,8 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define HOST_SET_PORT(x)           if (opts->host_port == OPTS_HOST_PORT_NONE) { opts->host_port = x; } else { error_log("Cannot use multiple host port options."); return -1; }
-#define CREATE_SET_CREATE(x)       if (opts->create == OPTS_CREATE_FALSE) { opts->create = x; } else { error_log("Cannot use multiple create options."); return -1; }
 #define INPUT_SET_PATH(x)          if (opts->input_path == OPTS_INPUT_PATH_NONE) { opts->input_path = x; } else { error_log("Cannot use multiple input path options."); return -1; }
 #define OUTPUT_SET_PATH(x)         if (opts->output_path == OPTS_OUTPUT_PATH_NONE) { opts->output_path = x; } else { error_log("Cannot use multiple output path options."); return -1; }
 
@@ -43,8 +41,8 @@ int opts_init(opts_p opts)
     opts->rehashes = NULL;
     opts->host_name = NULL;
     opts->host_port = 0;
+    opts->create = 0;
 
-    opts->create = OPTS_CREATE_FALSE;
     opts->input_path = OPTS_INPUT_PATH_NONE;
     opts->output_path = OPTS_OUTPUT_PATH_NONE;
     opts->subcommand = OPTS_SUBCOMMAND_NONE;
@@ -144,7 +142,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
 
             case 'c':
-                CREATE_SET_CREATE(OPTS_CREATE_TRUE);
+                opts->create = 1;
                 break;
 
             case 'f':

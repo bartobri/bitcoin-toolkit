@@ -43,8 +43,6 @@ static int compression_on = 0;
 static int compression_off = 0;
 static char *rehashes = NULL;
 
-static int create          = OPTS_CREATE_FALSE;
-
 static int output_hashes_arr_len = 0;
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
 
@@ -69,12 +67,10 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
-	if (opts->create) { create = opts->create; }
-
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
 
-	if (create)
+	if (opts->create)
 	{
 		r = privkey_new(key);
 		ERROR_CHECK_NEG(r, "Could not generate a new private key.");
