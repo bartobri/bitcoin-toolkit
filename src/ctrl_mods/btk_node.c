@@ -18,10 +18,6 @@
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
 
-// Defaults
-static char *host_name   = OPTS_HOST_NAME_NONE;
-static int host_port     = OPTS_HOST_PORT_NONE;
-
 #define HOST_PORT_MAIN       8333
 #define HOST_PORT_TEST       18333
 #define TIMEOUT              10
@@ -52,21 +48,17 @@ int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
 	(void)input;
 	(void)input_len;
 
-	// Override defaults
-	if (opts->host_name) { host_name = opts->host_name; }
-	if (opts->host_port) { host_port = opts->host_port; }
+	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
 
-	ERROR_CHECK_NULL(host_name, "Missing host argument.");
-
-	if (!host_port)
+	if (!opts->host_port)
 	{
 		if (opts->network_test)
 		{
-			host_port = HOST_PORT_TEST;
+			opts->host_port = HOST_PORT_TEST;
 		}
 		else
 		{
-			host_port = HOST_PORT_MAIN;
+			opts->host_port = HOST_PORT_MAIN;
 		}
 	}
 	
@@ -76,7 +68,7 @@ int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
 			node = malloc(node_sizeof());
 			ERROR_CHECK_NULL(node, "Memory allocation error.");
 
-			r = node_connect(node, host_name, host_port);
+			r = node_connect(node, opts->host_name, opts->host_port);
 			ERROR_CHECK_NEG(r, "Could not connect to host.");
 
 			version_string = malloc(version_sizeof());

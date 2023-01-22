@@ -49,9 +49,9 @@ struct opts {
     int compression_off;
     int network_test;
     char *rehashes;
-
     char *host_name;
     int host_port;
+
     int create;
     char *input_path;
     char *output_path;
