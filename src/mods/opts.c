@@ -12,7 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define OUTPUT_SET_NETWORK(x)      if (opts->network == OPTS_OUTPUT_NETWORK_NONE) { opts->network = x; } else { error_log("Cannot use multiple network options."); return -1; }
 #define OUTPUT_SET_REHASHES(x)     if (opts->rehashes == OPTS_OUTPUT_REHASHES_NONE) { opts->rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
 #define HOST_SET_NAME(x)           if (opts->host_name == OPTS_HOST_NAME_NONE) { opts->host_name = x; } else { error_log("Cannot use multiple host name options."); return -1; }
 #define HOST_SET_PORT(x)           if (opts->host_port == OPTS_HOST_PORT_NONE) { opts->host_port = x; } else { error_log("Cannot use multiple host port options."); return -1; }
@@ -42,8 +41,8 @@ int opts_init(opts_p opts)
     opts->output_type_p2wpkh = 0;
     opts->compression_on = 0;
     opts->compression_off = 0;
+    opts->network_test = 0;
 
-    opts->network = OPTS_OUTPUT_NETWORK_NONE;
     opts->rehashes = OPTS_OUTPUT_REHASHES_NONE;
     opts->host_name = OPTS_HOST_NAME_NONE;
     opts->host_port = OPTS_HOST_PORT_NONE;
@@ -131,11 +130,8 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->compression_off = 1;
                 break;
 
-            case 'M':
-                OUTPUT_SET_NETWORK(OPTS_OUTPUT_NETWORK_MAINNET);
-                break;
             case 'T':
-                OUTPUT_SET_NETWORK(OPTS_OUTPUT_NETWORK_TESTNET);
+                opts->network_test = 1;
                 break;
 
             case 'R':

@@ -25,7 +25,6 @@
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(PrivKey);
-int btk_privkey_set_network(PrivKey);
 int btk_privkey_to_output(char *, PrivKey);
 int btk_privkey_process_rehashes(char *);
 int btk_privkey_process_rehashes_comp(const void *, const void *);
@@ -44,7 +43,6 @@ static int compression_on = 0;
 static int compression_off = 0;
 
 static int create          = OPTS_CREATE_FALSE;
-static int network         = OPTS_OUTPUT_NETWORK_MAINNET;
 static char *rehashes      = OPTS_OUTPUT_REHASHES_NONE;
 
 static int output_hashes_arr_len = 0;
@@ -71,7 +69,6 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 
 	if (opts->create) { create = opts->create; }
-	if (opts->network) { network = opts->network; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
 	key = malloc(privkey_sizeof());
@@ -90,8 +87,14 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 		ERROR_CHECK_NEG(r, "Could not get privkey from input.");
 	}
 
-	r = btk_privkey_set_network(key);
-	ERROR_CHECK_NEG(r, "Could not set key network.");
+	if (opts->network_test)
+	{
+		network_set_test();
+	}
+	else
+	{
+		network_set_main();
+	}
 
 	if (rehashes)
 	{
@@ -222,25 +225,6 @@ int btk_privkey_compression_add(PrivKey key)
 		}
 
 		goto comp_again;
-	}
-
-	return 1;
-}
-
-int btk_privkey_set_network(PrivKey key)
-{
-	assert(key);
-
-	switch (network)
-	{
-		case OPTS_OUTPUT_NETWORK_NONE:
-			break;
-		case OPTS_OUTPUT_NETWORK_MAINNET:
-			network_set_main();
-			break;
-		case OPTS_OUTPUT_NETWORK_TESTNET:
-			network_set_test();
-			break;
 	}
 
 	return 1;

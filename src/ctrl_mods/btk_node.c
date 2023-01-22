@@ -21,7 +21,6 @@
 // Defaults
 static char *host_name   = OPTS_HOST_NAME_NONE;
 static int host_port     = OPTS_HOST_PORT_NONE;
-static int network       = OPTS_OUTPUT_NETWORK_MAINNET;
 
 #define HOST_PORT_MAIN       8333
 #define HOST_PORT_TEST       18333
@@ -56,19 +55,18 @@ int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
 	// Override defaults
 	if (opts->host_name) { host_name = opts->host_name; }
 	if (opts->host_port) { host_port = opts->host_port; }
-	if (opts->network) { network = opts->network; }
 
 	ERROR_CHECK_NULL(host_name, "Missing host argument.");
 
 	if (!host_port)
 	{
-		if (network == OPTS_OUTPUT_NETWORK_MAINNET)
-		{
-			host_port = HOST_PORT_MAIN;
-		}
-		else if (network == OPTS_OUTPUT_NETWORK_TESTNET)
+		if (opts->network_test)
 		{
 			host_port = HOST_PORT_TEST;
+		}
+		else
+		{
+			host_port = HOST_PORT_MAIN;
 		}
 	}
 	

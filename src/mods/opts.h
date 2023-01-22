@@ -25,10 +25,10 @@
 
 #define OPTS_SUBCOMMAND_NONE                NULL
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUMTHDR:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLCUTHDR:"
 #define OPTS_STRING_PUBKEY                  "lwhCU"
 #define OPTS_STRING_ADDRESS                 "lwhvPB"
-#define OPTS_STRING_NODE                    "n:p:MT"
+#define OPTS_STRING_NODE                    "n:p:T"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"
 #define OPTS_STRING_HELP                    ""
@@ -53,8 +53,8 @@ struct opts {
     int output_type_p2wpkh;
     int compression_on;
     int compression_off;
+    int network_test;
 
-    int network;
     char *rehashes;
     char *host_name;
     int host_port;
