@@ -41,9 +41,9 @@ static int output_type_hex = 0;
 static int output_type_decimal = 0;
 static int compression_on = 0;
 static int compression_off = 0;
+static char *rehashes = NULL;
 
 static int create          = OPTS_CREATE_FALSE;
-static char *rehashes      = OPTS_OUTPUT_REHASHES_NONE;
 
 static int output_hashes_arr_len = 0;
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
@@ -67,9 +67,9 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->output_type_decimal) { output_type_decimal = opts->output_type_decimal; }
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
+	if (opts->rehashes) { rehashes = opts->rehashes; }
 
 	if (opts->create) { create = opts->create; }
-	if (opts->rehashes) { rehashes = opts->rehashes; }
 
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");

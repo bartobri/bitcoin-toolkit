@@ -8,12 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_OUTPUT_NETWORK_NONE            0
-#define OPTS_OUTPUT_NETWORK_MAINNET         1
-#define OPTS_OUTPUT_NETWORK_TESTNET         2
-
-#define OPTS_OUTPUT_REHASHES_NONE           NULL
-
 #define OPTS_INPUT_PATH_NONE                NULL
 #define OPTS_OUTPUT_PATH_NONE               NULL
 
@@ -54,8 +48,8 @@ struct opts {
     int compression_on;
     int compression_off;
     int network_test;
-
     char *rehashes;
+
     char *host_name;
     int host_port;
     int create;

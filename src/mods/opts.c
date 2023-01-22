@@ -12,7 +12,6 @@
 #include "error.h"
 #include "assert.h"
 
-#define OUTPUT_SET_REHASHES(x)     if (opts->rehashes == OPTS_OUTPUT_REHASHES_NONE) { opts->rehashes = x; } else { error_log("Cannot use multiple rehash options."); return -1; }
 #define HOST_SET_NAME(x)           if (opts->host_name == OPTS_HOST_NAME_NONE) { opts->host_name = x; } else { error_log("Cannot use multiple host name options."); return -1; }
 #define HOST_SET_PORT(x)           if (opts->host_port == OPTS_HOST_PORT_NONE) { opts->host_port = x; } else { error_log("Cannot use multiple host port options."); return -1; }
 #define CREATE_SET_CREATE(x)       if (opts->create == OPTS_CREATE_FALSE) { opts->create = x; } else { error_log("Cannot use multiple create options."); return -1; }
@@ -42,8 +41,8 @@ int opts_init(opts_p opts)
     opts->compression_on = 0;
     opts->compression_off = 0;
     opts->network_test = 0;
+    opts->rehashes = NULL;
 
-    opts->rehashes = OPTS_OUTPUT_REHASHES_NONE;
     opts->host_name = OPTS_HOST_NAME_NONE;
     opts->host_port = OPTS_HOST_PORT_NONE;
     opts->create = OPTS_CREATE_FALSE;
@@ -135,7 +134,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
 
             case 'R':
-                OUTPUT_SET_REHASHES(optarg);
+                opts->rehashes = optarg;
                 break;
 
             case 'n':
