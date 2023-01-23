@@ -37,6 +37,7 @@ static int input_type_string = 0;
 static int input_type_decimal = 0;
 static int input_type_binary = 0;
 static int input_type_sbd = 0;
+static int output_type_wif = 0;
 static int output_type_hex = 0;
 static int output_type_decimal = 0;
 static int compression_on = 0;
@@ -61,6 +62,7 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->input_type_decimal) { input_type_decimal =  opts->input_type_decimal; }
 	if (opts->input_type_binary) { input_type_binary =  opts->input_type_binary; }
 	if (opts->input_type_sbd) { input_type_sbd =  opts->input_type_sbd; }
+	if (opts->output_type_wif) { output_type_wif = opts->output_type_wif; }
 	if (opts->output_type_hex) { output_type_hex = opts->output_type_hex; }
 	if (opts->output_type_decimal) { output_type_decimal = opts->output_type_decimal; }
 	if (opts->compression_on) { compression_on = opts->compression_on; }
@@ -245,6 +247,7 @@ int btk_privkey_to_output(char *output, PrivKey key)
 	}
 	else
 	{
+		// Default to wif.
 		r = privkey_to_wif(output, key);
 		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 	}
