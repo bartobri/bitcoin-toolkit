@@ -25,7 +25,6 @@
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(PrivKey);
-int btk_privkey_to_output(char *, PrivKey);
 int btk_privkey_process_rehashes(char *);
 int btk_privkey_process_rehashes_comp(const void *, const void *);
 
@@ -69,6 +68,12 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
+	// Defaut to wif if no output type specified.
+	if (!output_type_wif && !output_type_hex && !output_type_decimal)
+	{
+		output_type_wif = 1;
+	}
+
 	key = malloc(privkey_sizeof());
 	ERROR_CHECK_NULL(key, "Memory allocation error.");
 
@@ -97,7 +102,7 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (rehashes)
 	{
 		r = btk_privkey_process_rehashes((char *)input);
-		ERROR_CHECK_NEG(r, "Error while processing hash argument [-S].");
+		ERROR_CHECK_NEG(r, "Error while processing hash argument [-R].");
 
 		// Perform rehash on key
 		for(i = 0; i < output_hashes_arr_len; i++)
@@ -203,13 +208,38 @@ int btk_privkey_compression_add(PrivKey key)
 
 	}
 
-	memset(output_str, 0, BUFSIZ);
+	if (output_type_wif)
+	{
+		memset(output_str, 0, BUFSIZ);
 
-	r = btk_privkey_to_output(output_str, key);
-	ERROR_CHECK_NEG(r, "Could not get output.");
+		r = privkey_to_wif(output_str, key);
+		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 
-	r = json_add(output_str);
-	ERROR_CHECK_NEG(r, "Error while generating JSON.");
+		r = json_add(output_str);
+		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+	}
+	
+	if (output_type_hex)
+	{
+		memset(output_str, 0, BUFSIZ);
+
+		r = privkey_to_hex(output_str, key, (compression_on || compression_off) ? 0 : 1);
+		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
+
+		r = json_add(output_str);
+		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+	}
+	
+	if (output_type_decimal)
+	{
+		memset(output_str, 0, BUFSIZ);
+
+		r = privkey_to_dec(output_str, key);
+		ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
+
+		r = json_add(output_str);
+		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+	}
 
 	if (comp_on && comp_off)
 	{
@@ -223,33 +253,6 @@ int btk_privkey_compression_add(PrivKey key)
 		}
 
 		goto comp_again;
-	}
-
-	return 1;
-}
-
-int btk_privkey_to_output(char *output, PrivKey key)
-{
-	int r;
-
-	assert(output);
-	assert(key);
-
-	if (output_type_hex)
-	{
-		r = privkey_to_hex(output, key, (compression_on || compression_off) ? 0 : 1);
-		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
-	}
-	else if (output_type_decimal)
-	{
-		r = privkey_to_dec(output, key);
-		ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
-	}
-	else
-	{
-		// Default to wif.
-		r = privkey_to_wif(output, key);
-		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 	}
 
 	return 1;
