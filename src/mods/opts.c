@@ -28,6 +28,7 @@ int opts_init(opts_p opts)
     opts->input_type_vanity = 0;
     opts->output_format_list = 0;
     opts->output_format_binary = 0;
+    opts->output_type_wif = 0;
     opts->output_type_hex = 0;
     opts->output_type_decimal = 0;
     opts->output_type_p2pkh = 0;
@@ -102,6 +103,9 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->output_format_list = 1;
                 break;
 
+            case 'W':
+                opts->output_type_wif = 1;
+                break;
             case 'H':
                 opts->output_type_hex = 1;
                 break;
