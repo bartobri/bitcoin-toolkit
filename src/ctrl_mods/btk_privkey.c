@@ -68,6 +68,20 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
 
+	// Enforce only one input type option.
+	i = 0;
+	if (input_type_wif) { i++; }
+	if (input_type_hex) { i++; }
+	if (input_type_raw) { i++; }
+	if (input_type_string) { i++; }
+	if (input_type_decimal) { i++; }
+	if (input_type_sbd) { i++; }
+	if (i > 1)
+	{
+		error_log("Can not use more than one input type option.");
+		return -1;
+	}
+
 	// Defaut to wif if no output type specified.
 	if (!output_type_wif && !output_type_hex && !output_type_decimal)
 	{
