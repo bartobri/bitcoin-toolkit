@@ -154,13 +154,14 @@ int main(int argc, char *argv[])
 		else if (opts->input_format_list)
 		{
 			char *tok;
-			tok = strtok((char *)input, "\n");
+			char *tok_saveptr;
+			tok = strtok_r((char *)input, "\n", &tok_saveptr);
 			while (tok != NULL)
 			{
 				r = main_fp(opts, (unsigned char *)tok, strlen(tok));
 				BTK_CHECK_NEG(r, NULL);
 
-				tok = strtok(NULL, "\n");
+				tok = strtok_r(NULL, "\n", &tok_saveptr);
 			}
 		}
 		else
