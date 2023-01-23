@@ -192,9 +192,21 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
-	BTK_CHECK_TRUE(opts->output_format_list, "List output not implemented yet.");
+	BTK_CHECK_TRUE(opts->output_format_list && opts->output_format_binary, "Can not use list and binary output formats together.");
 
-	json_print();
+	if (opts->output_format_list)
+	{
+		BTK_CHECK_FALSE(0, "List output format not implemented yet.");
+	}
+	else if (opts->output_format_binary)
+	{
+		BTK_CHECK_FALSE(0, "Binary output format not implemented yet.");
+	}
+	else
+	{
+		json_print();
+	}
+
 	json_free();
 
 	return EXIT_SUCCESS;

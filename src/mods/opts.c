@@ -102,6 +102,9 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'L':
                 opts->output_format_list = 1;
                 break;
+            case 'N':
+                opts->output_format_binary = 1;
+                break;
 
             case 'W':
                 opts->output_type_wif = 1;
