@@ -521,7 +521,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_dec(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_DECIMAL;
 		}
 		error_clear();
 
@@ -529,7 +529,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_hex(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_HEX;
 		}
 		error_clear();
 
@@ -537,7 +537,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_wif(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_WIF;
 		}
 		error_clear();
 
@@ -545,7 +545,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_str(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_STRING;
 		}
 		error_clear();
 	}
@@ -554,7 +554,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	r = privkey_from_raw(key, data, data_len);
 	if (r > 0)
 	{
-		return 1;
+		return PRIVKEY_GUESS_RAW;
 	}
 	error_clear();
 

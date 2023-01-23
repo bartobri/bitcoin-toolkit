@@ -11,6 +11,11 @@
 #define PRIVKEY_LENGTH         32
 #define PRIVKEY_WIF_LENGTH_MIN 51
 #define PRIVKEY_WIF_LENGTH_MAX 52
+#define PRIVKEY_GUESS_DECIMAL  1
+#define PRIVKEY_GUESS_HEX      2
+#define PRIVKEY_GUESS_WIF      3
+#define PRIVKEY_GUESS_STRING   4
+#define PRIVKEY_GUESS_RAW      5
 
 typedef struct PrivKey *PrivKey;
 

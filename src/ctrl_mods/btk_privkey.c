@@ -116,7 +116,7 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (rehashes)
 	{
 		r = btk_privkey_process_rehashes((char *)input);
-		ERROR_CHECK_NEG(r, "Error while processing hash argument [-R].");
+		ERROR_CHECK_NEG(r, "Error while processing rehash argument.");
 
 		// Perform rehash on key
 		for(i = 0; i < output_hashes_arr_len; i++)
@@ -188,6 +188,27 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 	else
 	{
 		r = privkey_from_guess(key, input, input_len);
+		if (r > 0)
+		{
+			switch(r)
+			{
+				case PRIVKEY_GUESS_DECIMAL:
+					input_type_decimal = 1;
+					break;
+				case PRIVKEY_GUESS_HEX:
+					input_type_hex = 1;
+					break;
+				case PRIVKEY_GUESS_WIF:
+					input_type_wif = 1;
+					break;
+				case PRIVKEY_GUESS_STRING:
+					input_type_string = 1;
+					break;
+				case PRIVKEY_GUESS_RAW:
+					input_type_raw = 1;
+					break;
+			}
+		}
 	}
 	ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 
@@ -303,7 +324,7 @@ int btk_privkey_process_rehashes(char *input_str)
 		{
 			if (!input_type_string && !input_type_decimal)
 			{
-				error_log("Can not use wildcard '%s' with current input mode.", HASH_WILDCARD);
+				error_log("Can not use wildcard '%s' with current input type.", HASH_WILDCARD);
 				return -1;
 			}
 
