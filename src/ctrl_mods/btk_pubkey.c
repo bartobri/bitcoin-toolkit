@@ -33,6 +33,12 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 
+	if (opts->input_type_wif && opts->input_type_hex)
+	{
+		error_log("Can not use multiple input type options.");
+		return -1;
+	}
+
 	memset(output_str, 0, BUFSIZ);
 
 	privkey = malloc(privkey_sizeof());
