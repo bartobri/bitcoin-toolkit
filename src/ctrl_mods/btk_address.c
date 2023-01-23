@@ -41,8 +41,17 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
     if (opts->output_type_p2pkh) { output_type_p2pkh = opts->output_type_p2pkh; }
     if (opts->output_type_p2wpkh) { output_type_p2wpkh = opts->output_type_p2wpkh; }
 
-    memset(output_str, 0, BUFSIZ);
-    memset(output_str2, 0, BUFSIZ);
+    if (output_type_p2pkh && output_type_p2wpkh && opts->input_type_vanity)
+    {
+        error_log("Cannot use multiple output types when generating a vanity address.");
+        return -1;
+    }
+
+    // Default to P2PKH
+    if (!output_type_p2pkh && !output_type_p2wpkh)
+    {
+        output_type_p2pkh = 1;
+    }
 
     privkey = malloc(privkey_sizeof());
     ERROR_CHECK_NULL(privkey, "Memory allocation error.");
@@ -83,13 +92,30 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 
     if (output_type_p2wpkh)
     {
+        memset(output_str, 0, BUFSIZ);
+
         r = address_get_p2wpkh(output_str, pubkey);
         ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+
+        if (!opts->input_type_vanity)
+        {
+            r = json_add(output_str);
+            ERROR_CHECK_NEG(r, "Error while generating JSON.");
+        }
     }
-    else
+
+    if (output_type_p2pkh)
     {
+        memset(output_str, 0, BUFSIZ);
+
         r = address_get_p2pkh(output_str, pubkey);
         ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+
+        if (!opts->input_type_vanity)
+        {
+            r = json_add(output_str);
+            ERROR_CHECK_NEG(r, "Error while generating JSON.");
+        }
     }
 
     if (opts->input_type_vanity)
@@ -105,14 +131,16 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
             goto restart;
         }
 
+        r = json_add(output_str);
+        ERROR_CHECK_NEG(r, "Error while generating JSON.");
+
+        memset(output_str2, 0, BUFSIZ);
+
         r = privkey_to_wif(output_str2, privkey);
         ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
         r = json_add(output_str2);
         ERROR_CHECK_NEG(r, "Error while generating JSON.");
     }
-
-    r = json_add(output_str);
-    ERROR_CHECK_NEG(r, "Error while generating JSON.");
 
     free(pubkey);
     free(privkey);
