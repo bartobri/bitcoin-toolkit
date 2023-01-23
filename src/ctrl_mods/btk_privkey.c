@@ -223,7 +223,7 @@ int btk_privkey_compression_add(PrivKey key)
 	{
 		memset(output_str, 0, BUFSIZ);
 
-		r = privkey_to_hex(output_str, key, (compression_on || compression_off) ? 0 : 1);
+		r = privkey_to_hex(output_str, key, (comp_on || comp_off) ? 1 : 0);
 		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
 
 		r = json_add(output_str);
