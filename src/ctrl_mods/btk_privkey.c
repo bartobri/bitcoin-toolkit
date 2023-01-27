@@ -20,8 +20,8 @@
 #include "mods/error.h"
 #include "mods/opts.h"
 
-#define OUTPUT_HASH_MAX    50
-#define HASH_WILDCARD      "*"
+#define REHASHES_ARRAY_SIZE    50
+#define HASH_WILDCARD          "*"
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(output_list *, PrivKey);
@@ -45,7 +45,7 @@ static int compression_off = 0;
 static char *rehashes = NULL;
 
 static int output_hashes_arr_len = 0;
-static long int output_hashes_arr[OUTPUT_HASH_MAX];
+static long int output_hashes_arr[REHASHES_ARRAY_SIZE];
 
 int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
@@ -331,6 +331,12 @@ int btk_privkey_process_rehashes(char *input_str)
 	tok = strtok(rehashes, ",");
 	while (tok != NULL)
 	{
+		if (i + 1 > REHASHES_ARRAY_SIZE)
+		{
+			error_log("Rehash list too long.");
+			return -1;
+		}
+
 		tmp = strtol(tok, &tokend, 10);
 		if (strcmp(tokend, "") == 0)
 		{
