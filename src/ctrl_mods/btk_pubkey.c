@@ -14,14 +14,14 @@
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/input.h"
-#include "mods/json.h"
+#include "mods/output.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 
 static int compression_on = 0;
 static int compression_off = 0;
 
-int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_pubkey_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int r;
 	char output_str[BUFSIZ];
@@ -96,8 +96,8 @@ int btk_pubkey_main(opts_p opts, unsigned char *input, size_t input_len)
 	r = pubkey_to_hex(output_str, pubkey);
 	ERROR_CHECK_NEG(r, "Could not get output.");
 
-	r = json_add(output_str);
-	ERROR_CHECK_NEG(r, "Error while generating JSON.");
+	*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+	ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 	if (compression_on && compression_off)
 	{

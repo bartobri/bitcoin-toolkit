@@ -13,6 +13,7 @@
 #include "mods/network.h"
 #include "mods/node.h"
 #include "mods/message.h"
+#include "mods/output.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 #include "mods/commands/version.h"
@@ -23,10 +24,12 @@
 #define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
-int btk_node_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
 	int message_type = MESSAGE_TYPE_VERSION;
+
+	(void)output;
 
 	Node node;
 	unsigned char *node_data, *node_data_walk;

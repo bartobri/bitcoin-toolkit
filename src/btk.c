@@ -30,7 +30,6 @@
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
-	int json_len = 0;
 	unsigned char *input = NULL; 
 	size_t input_len = 0;
 	char *command = NULL;
@@ -38,10 +37,13 @@ int main(int argc, char *argv[])
 	char json_str[BUFSIZ];
 	opts_p opts = NULL;
 	char *opts_string = NULL;
-	int (*main_fp)(opts_p, unsigned char *, size_t) = NULL;
+	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
 	int (*input_fp)(opts_p) = NULL;
-
-	json_init();
+	cJSON *json_input;
+	cJSON *json_output;
+	char *json_output_str = NULL;
+	output_list output = NULL;
+	output_list output_head = NULL;
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -54,18 +56,9 @@ int main(int argc, char *argv[])
 		strncat(command_str, argv[i], BUFSIZ - 1 - strlen(command_str));
 	}
 
-	if (argc <= 1)
-	{
-		error_log("See 'btk help' to read about available commands.");
-		error_log("Missing command parameter.");
-		error_log("Error [%s]:", command_str);
-		error_print();
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		command = argv[1];
-	}
+	BTK_CHECK_TRUE((argc <= 1), "Missing command parameter.");
+
+	command = argv[1];
 
 	if (strcmp(command, "privkey") == 0)
 	{
@@ -148,7 +141,7 @@ int main(int argc, char *argv[])
 
 		if (opts->input_format_binary)
 		{
-			r = main_fp(opts, input, input_len);
+			r = main_fp(&output, opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
 		}
 		else if (opts->input_format_list)
@@ -158,7 +151,7 @@ int main(int argc, char *argv[])
 			tok = strtok_r((char *)input, "\n", &tok_saveptr);
 			while (tok != NULL)
 			{
-				r = main_fp(opts, (unsigned char *)tok, strlen(tok));
+				r = main_fp(&output, opts, (unsigned char *)tok, strlen(tok));
 				BTK_CHECK_NEG(r, NULL);
 
 				tok = strtok_r(NULL, "\n", &tok_saveptr);
@@ -166,50 +159,67 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			r = json_is_valid((char *)input, input_len);
-			BTK_CHECK_FALSE(r, "Input contains invalid JSON formatting.");
+			r = json_init(&json_input, (char *)input, input_len);
+			BTK_CHECK_NEG(r, "Error initializing JSON input.");
 
-			r = json_set_input((char *)input);
-			BTK_CHECK_NEG(r, "Could not load JSON input.");
+			memset(json_str, 0, BUFSIZ);
+			i = 0;
 
-			r = json_get_input_len(&json_len);
-			BTK_CHECK_NEG(r, "Could not get input list length.");
-
-			for (i = 0; i < json_len; i++)
+			while(json_get_index(json_str, BUFSIZ, json_input, i++) > 0)
 			{
-				memset(json_str, 0, BUFSIZ);
-
-				r = json_get_input_index(json_str, BUFSIZ, i);
-				BTK_CHECK_NEG(r, "Could not get JSON string object at index.");
-
-				r = main_fp(opts, (unsigned char *)json_str, strlen(json_str));
+				r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
 				BTK_CHECK_NEG(r, NULL);
+
+				memset(json_str, 0, BUFSIZ);
 			}
+
+			json_free(json_input);
 		}
 	}
 	else
 	{
-		r = main_fp(opts, NULL, 0);
+		r = main_fp(&output, opts, NULL, 0);
 		BTK_CHECK_NEG(r, NULL);
 	}
 
 	BTK_CHECK_TRUE(opts->output_format_list && opts->output_format_binary, "Can not use list and binary output formats together.");
 
-	if (opts->output_format_list)
+	if (output)
 	{
-		BTK_CHECK_FALSE(0, "List output format not implemented yet.");
-	}
-	else if (opts->output_format_binary)
-	{
-		BTK_CHECK_FALSE(0, "Binary output format not implemented yet.");
-	}
-	else
-	{
-		json_print();
-	}
+		output_head = output;
 
-	json_free();
+		if (opts->output_format_list)
+		{
+			BTK_CHECK_FALSE(0, "List output format not implemented yet.");
+		}
+		else if (opts->output_format_binary)
+		{
+			BTK_CHECK_FALSE(0, "Binary output format not implemented yet.");
+		}
+		else
+		{
+			r = json_init(&json_output, NULL, 0);
+			BTK_CHECK_NEG(r, "Error initializing JSON input.");
+
+			while(output)
+			{
+				r = json_add(json_output, (char *)(output->content));
+				BTK_CHECK_NEG(r, "Output handling error.");
+
+				output = output->next;
+			}
+
+			r = json_print(&json_output_str, json_output);
+			BTK_CHECK_NEG(r, "Error converting output to JSON.");
+
+			printf("%s\n", json_output_str);
+
+			free(json_output_str);
+			json_free(json_output);
+		}
+
+		output_free(output_head);
+	}
 
 	return EXIT_SUCCESS;
 }
-

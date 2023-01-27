@@ -16,6 +16,7 @@
 #include <assert.h>
 #include "mods/error.h"
 #include "mods/input.h"
+#include "mods/output.h"
 #include "mods/addressdb.h"
 #include "mods/utxodb.h"
 #include "mods/base58check.h"
@@ -23,12 +24,14 @@
 #include "mods/address.h"
 #include "mods/opts.h"
 
-int btk_addressdb_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_addressdb_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     uint64_t sats = 0;
     char address[BUFSIZ];
     unsigned char tmp[BUFSIZ];
+
+    (void)output;
 
     UTXODBKey utxodb_key = NULL;
     UTXODBValue utxodb_value = NULL;

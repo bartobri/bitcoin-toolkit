@@ -11,13 +11,12 @@
 #include <string.h>
 #include <assert.h>
 #include "mods/opts.h"
-#include "mods/json.h"
+#include "mods/output.h"
 #include "mods/error.h"
 #include "mods/config.h"
 
-int btk_version_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_version_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
-	int r;
 	char output_str[BUFSIZ];
 
 	(void)opts;
@@ -28,8 +27,8 @@ int btk_version_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	sprintf(output_str, "Bitcoin Toolkit Version %d.%d.%d", BTK_VERSION_MAJOR, BTK_VERSION_MINOR, BTK_VERSION_REVISION);
 
-	r = json_add(output_str);
-	ERROR_CHECK_NEG(r, "Error while generating JSON.");
+	*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+	ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 	return 1;
 }

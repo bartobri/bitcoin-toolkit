@@ -18,7 +18,7 @@
 #include "mods/input.h"
 #include "mods/base58.h"
 #include "mods/base32.h"
-#include "mods/json.h"
+#include "mods/output.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 
@@ -28,7 +28,7 @@ int btk_address_get_vanity_estimate(long int *, long int);
 static int output_type_p2pkh = 0;
 static int output_type_p2wpkh = 0;
 
-int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_address_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     char output_str[BUFSIZ];
@@ -105,8 +105,8 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 
         if (!opts->input_type_vanity)
         {
-            r = json_add(output_str);
-            ERROR_CHECK_NEG(r, "Error while generating JSON.");
+            *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+            ERROR_CHECK_NULL(*output, "Memory allocation error.");
         }
     }
 
@@ -119,8 +119,8 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
 
         if (!opts->input_type_vanity)
         {
-            r = json_add(output_str);
-            ERROR_CHECK_NEG(r, "Error while generating JSON.");
+            *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+            ERROR_CHECK_NULL(*output, "Memory allocation error.");
         }
     }
 
@@ -137,15 +137,16 @@ int btk_address_main(opts_p opts, unsigned char *input, size_t input_len)
             goto restart;
         }
 
-        r = json_add(output_str);
-        ERROR_CHECK_NEG(r, "Error while generating JSON.");
+        *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+        ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
         memset(output_str2, 0, BUFSIZ);
 
         r = privkey_to_wif(output_str2, privkey);
         ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
-        r = json_add(output_str2);
-        ERROR_CHECK_NEG(r, "Error while generating JSON.");
+
+        *output = output_append_new_copy(*output, output_str2, strlen(output_str2) + 1);
+        ERROR_CHECK_NULL(*output, "Memory allocation error.");
     }
 
     free(pubkey);

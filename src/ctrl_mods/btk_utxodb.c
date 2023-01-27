@@ -15,6 +15,7 @@
 #include <assert.h>
 #include "mods/error.h"
 #include "mods/input.h"
+#include "mods/output.h"
 #include "mods/hex.h"
 #include "mods/pubkey.h"
 #include "mods/script.h"
@@ -25,13 +26,15 @@
 #define BTK_UTXODB_MAX_ADDRESS_LENGTH 42
 #define BTK_UTXODB_MAX_SCRIPT_LENGTH  100
 
-int btk_utxodb_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_utxodb_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     char address[BTK_UTXODB_MAX_ADDRESS_LENGTH];
     unsigned char input_raw[BTK_UTXODB_TX_LENGTH];
     UTXODBKey key = NULL;
     UTXODBValue value = NULL;
+
+    (void)output;
 
     assert(opts);
 

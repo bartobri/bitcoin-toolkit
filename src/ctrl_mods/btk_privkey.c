@@ -16,15 +16,15 @@
 #include "mods/privkey.h"
 #include "mods/network.h"
 #include "mods/input.h"
+#include "mods/output.h"
 #include "mods/error.h"
-#include "mods/json.h"
 #include "mods/opts.h"
 
 #define OUTPUT_HASH_MAX    50
 #define HASH_WILDCARD      "r"
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
-int btk_privkey_compression_add(PrivKey);
+int btk_privkey_compression_add(output_list *, PrivKey);
 int btk_privkey_process_rehashes(char *);
 int btk_privkey_process_rehashes_comp(const void *, const void *);
 
@@ -46,7 +46,7 @@ static char *rehashes = NULL;
 static int output_hashes_arr_len = 0;
 static long int output_hashes_arr[OUTPUT_HASH_MAX];
 
-int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
 	PrivKey key = NULL;
@@ -135,13 +135,13 @@ int btk_privkey_main(opts_p opts, unsigned char *input, size_t input_len)
 				hash_count--;
 			}
 
-			r = btk_privkey_compression_add(key);
+			r = btk_privkey_compression_add(output, key);
 			ERROR_CHECK_NEG(r, "");
 		}
 	}
 	else
 	{
-		r = btk_privkey_compression_add(key);
+		r = btk_privkey_compression_add(output, key);
 		ERROR_CHECK_NEG(r, "");
 	}
 
@@ -221,7 +221,7 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int btk_privkey_compression_add(PrivKey key)
+int btk_privkey_compression_add(output_list *output, PrivKey key)
 {
 	int r;
 	int comp_on, comp_off;
@@ -250,8 +250,8 @@ int btk_privkey_compression_add(PrivKey key)
 		r = privkey_to_wif(output_str, key);
 		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 
-		r = json_add(output_str);
-		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		ERROR_CHECK_NULL(*output, "Memory allocation error.");
 	}
 	
 	if (output_type_hex)
@@ -261,8 +261,8 @@ int btk_privkey_compression_add(PrivKey key)
 		r = privkey_to_hex(output_str, key, (comp_on || comp_off) ? 1 : 0);
 		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
 
-		r = json_add(output_str);
-		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		ERROR_CHECK_NULL(*output, "Memory allocation error.");
 	}
 	
 	if (output_type_decimal)
@@ -272,8 +272,8 @@ int btk_privkey_compression_add(PrivKey key)
 		r = privkey_to_dec(output_str, key);
 		ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
 
-		r = json_add(output_str);
-		ERROR_CHECK_NEG(r, "Error while generating JSON.");
+		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		ERROR_CHECK_NULL(*output, "Memory allocation error.");
 	}
 
 	if (comp_on && comp_off)

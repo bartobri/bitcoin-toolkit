@@ -10,6 +10,7 @@
 #include <string.h>
 #include <assert.h>
 #include "btk_help.h"
+#include "mods/output.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 
@@ -21,7 +22,7 @@ void btk_help_node(void);
 void btk_help_version(void);
 void btk_help_utxodb(void);
 
-int btk_help_main(opts_p opts, unsigned char *input, size_t input_len)
+int btk_help_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	char command_str[BUFSIZ];
 
@@ -29,6 +30,7 @@ int btk_help_main(opts_p opts, unsigned char *input, size_t input_len)
 
 	(void)input;
 	(void)input_len;
+	(void)output;
 
 	memset(command_str, 0, BUFSIZ);
 

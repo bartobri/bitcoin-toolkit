@@ -8,9 +8,10 @@
 #ifndef BTK_PUBKEY_H
 #define BTK_PUBKEY_H 1
 
+#include "mods/output.h"
 #include "mods/opts.h"
 
-int btk_pubkey_main(opts_p, unsigned char *, size_t);
+int btk_pubkey_main(output_list *, opts_p, unsigned char *, size_t);
 int btk_pubkey_requires_input(opts_p);
 
 #endif
