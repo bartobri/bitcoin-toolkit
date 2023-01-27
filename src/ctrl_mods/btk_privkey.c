@@ -21,7 +21,7 @@
 #include "mods/opts.h"
 
 #define OUTPUT_HASH_MAX    50
-#define HASH_WILDCARD      "r"
+#define HASH_WILDCARD      "*"
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(output_list *, PrivKey);
