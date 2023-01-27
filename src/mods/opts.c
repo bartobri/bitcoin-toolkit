@@ -31,6 +31,7 @@ int opts_init(opts_p opts)
     opts->output_type_wif = 0;
     opts->output_type_hex = 0;
     opts->output_type_decimal = 0;
+    opts->output_type_raw = 0;
     opts->output_type_p2pkh = 0;
     opts->output_type_p2wpkh = 0;
     opts->compression_on = 0;
@@ -85,6 +86,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
             case 'r':
                 opts->input_type_raw = 1;
+                opts->input_format_binary = 1;
                 break;
             case 's':
                 opts->input_type_string = 1;
@@ -115,6 +117,10 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'D':
                 opts->output_type_decimal = 1;
                 break;
+            case 'R':
+                opts->output_type_raw = 1;
+                opts->output_format_binary = 1;
+                break;
             case 'P':
                 opts->output_type_p2pkh = 1;
                 break;
@@ -133,7 +139,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->network_test = 1;
                 break;
 
-            case 'R':
+            case 'X':
                 opts->rehashes = optarg;
                 break;
 

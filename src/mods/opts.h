@@ -8,7 +8,7 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLNCUTWHDR:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLNCUTWHDRX:"
 #define OPTS_STRING_PUBKEY                  "lwhLNCU"
 #define OPTS_STRING_ADDRESS                 "lwhvLPB"
 #define OPTS_STRING_NODE                    "n:p:T"
@@ -33,6 +33,7 @@ struct opts {
     int output_type_wif;
     int output_type_hex;
     int output_type_decimal;
+    int output_type_raw;
     int output_type_p2pkh;
     int output_type_p2wpkh;
     int compression_on;

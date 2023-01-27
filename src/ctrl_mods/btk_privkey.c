@@ -39,6 +39,7 @@ static int input_type_sbd = 0;
 static int output_type_wif = 0;
 static int output_type_hex = 0;
 static int output_type_decimal = 0;
+static int output_type_raw = 0;
 static int compression_on = 0;
 static int compression_off = 0;
 static char *rehashes = NULL;
@@ -64,6 +65,7 @@ int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, siz
 	if (opts->output_type_wif) { output_type_wif = opts->output_type_wif; }
 	if (opts->output_type_hex) { output_type_hex = opts->output_type_hex; }
 	if (opts->output_type_decimal) { output_type_decimal = opts->output_type_decimal; }
+	if (opts->output_type_raw) { output_type_raw = opts->output_type_raw; }
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
@@ -82,8 +84,14 @@ int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, siz
 		return -1;
 	}
 
+	if (output_type_raw && (output_type_wif || output_type_hex || output_type_decimal))
+	{
+		error_log("Can not use raw output type in combination with other output types.");
+		return -1;
+	}
+
 	// Defaut to wif if no output type specified.
-	if (!output_type_wif && !output_type_hex && !output_type_decimal)
+	if (!output_type_wif && !output_type_hex && !output_type_decimal && !output_type_raw)
 	{
 		output_type_wif = 1;
 	}
@@ -226,6 +234,7 @@ int btk_privkey_compression_add(output_list *output, PrivKey key)
 	int r;
 	int comp_on, comp_off;
 	char output_str[BUFSIZ];
+	unsigned char output_raw[BUFSIZ];
 
 	comp_on = compression_on;
 	comp_off = compression_off;
@@ -243,37 +252,50 @@ int btk_privkey_compression_add(output_list *output, PrivKey key)
 
 	}
 
-	if (output_type_wif)
+	if (output_type_raw)
 	{
-		memset(output_str, 0, BUFSIZ);
+		memset(output_raw, 0, BUFSIZ);
 
-		r = privkey_to_wif(output_str, key);
-		ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
+		r = privkey_to_raw(output_raw, key, 0);
+		ERROR_CHECK_NEG(r, "Could not convert private key to raw data.");
 
-		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		*output = output_append_new_copy(*output, output_raw, PRIVKEY_LENGTH);
 		ERROR_CHECK_NULL(*output, "Memory allocation error.");
 	}
-	
-	if (output_type_hex)
+	else
 	{
-		memset(output_str, 0, BUFSIZ);
+		if (output_type_wif)
+		{
+			memset(output_str, 0, BUFSIZ);
 
-		r = privkey_to_hex(output_str, key, (comp_on || comp_off) ? 1 : 0);
-		ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
+			r = privkey_to_wif(output_str, key);
+			ERROR_CHECK_NEG(r, "Could not convert private key to WIF format.");
 
-		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
-		ERROR_CHECK_NULL(*output, "Memory allocation error.");
-	}
-	
-	if (output_type_decimal)
-	{
-		memset(output_str, 0, BUFSIZ);
+			*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
+		}
+		
+		if (output_type_hex)
+		{
+			memset(output_str, 0, BUFSIZ);
 
-		r = privkey_to_dec(output_str, key);
-		ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
+			r = privkey_to_hex(output_str, key, (comp_on || comp_off) ? 1 : 0);
+			ERROR_CHECK_NEG(r, "Could not convert private key to hex format.");
 
-		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
-		ERROR_CHECK_NULL(*output, "Memory allocation error.");
+			*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
+		}
+		
+		if (output_type_decimal)
+		{
+			memset(output_str, 0, BUFSIZ);
+
+			r = privkey_to_dec(output_str, key);
+			ERROR_CHECK_NEG(r, "Could not convert private key to decimal format.");
+
+			*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
+		}
 	}
 
 	if (comp_on && comp_off)
