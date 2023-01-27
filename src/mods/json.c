@@ -120,7 +120,7 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
     return 1;
 }
 
-int json_print(char **output, cJSON *jobj)
+int json_to_string(char **output, cJSON *jobj)
 {
     *output = cJSON_Print(jobj);
     if (*output == NULL)

@@ -13,7 +13,7 @@
 int json_init(cJSON **, char *, size_t);
 int json_add(cJSON *, char *);
 int json_get_index(char *, size_t, cJSON *, int);
-int json_print(char **, cJSON *);
+int json_to_string(char **, cJSON *);
 int json_free(cJSON *);
 
 #endif

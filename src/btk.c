@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 				output = output->next;
 			}
 
-			r = json_print(&json_output_str, json_output);
+			r = json_to_string(&json_output_str, json_output);
 			BTK_CHECK_NEG(r, "Error converting output to JSON.");
 
 			printf("%s\n", json_output_str);
