@@ -30,6 +30,7 @@
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
+	size_t j;
 	unsigned char *input = NULL; 
 	size_t input_len = 0;
 	char *command = NULL;
@@ -201,9 +202,9 @@ int main(int argc, char *argv[])
 		{
 			while(output)
 			{
-				for (i = 0; i < output->length; i++)
+				for (j = 0; j < output->length; j++)
 				{
-					fputc(((unsigned char *)(output->content))[i], stdout);
+					fputc(((unsigned char *)(output->content))[j], stdout);
 				}
 
 				output = output->next;
