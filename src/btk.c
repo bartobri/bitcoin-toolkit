@@ -199,7 +199,15 @@ int main(int argc, char *argv[])
 		}
 		else if (opts->output_format_binary)
 		{
-			BTK_CHECK_FALSE(0, "Binary output format not implemented yet.");
+			while(output)
+			{
+				for (i = 0; i < output->length; i++)
+				{
+					fputc(((unsigned char *)(output->content))[i], stdout);
+				}
+
+				output = output->next;
+			}
 		}
 		else
 		{
