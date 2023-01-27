@@ -8,9 +8,9 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLNCUTWHDRX:"
-#define OPTS_STRING_PUBKEY                  "lwhLNCU"
-#define OPTS_STRING_ADDRESS                 "lwhvLPB"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBCUTWHDRX:"
+#define OPTS_STRING_PUBKEY                  "lwhLBCU"
+#define OPTS_STRING_ADDRESS                 "lwhvLBPE"
 #define OPTS_STRING_NODE                    "n:p:T"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"

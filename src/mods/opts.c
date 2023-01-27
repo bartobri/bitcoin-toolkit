@@ -104,7 +104,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'L':
                 opts->output_format_list = 1;
                 break;
-            case 'N':
+            case 'B':
                 opts->output_format_binary = 1;
                 break;
 
@@ -124,7 +124,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'P':
                 opts->output_type_p2pkh = 1;
                 break;
-            case 'B':
+            case 'E':
                 opts->output_type_p2wpkh = 1;
                 break;
 
