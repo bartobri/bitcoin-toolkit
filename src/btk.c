@@ -190,7 +190,12 @@ int main(int argc, char *argv[])
 
 		if (opts->output_format_list)
 		{
-			BTK_CHECK_FALSE(0, "List output format not implemented yet.");
+			while(output)
+			{
+				printf("%s\n", (char *)(output->content));
+
+				output = output->next;
+			}
 		}
 		else if (opts->output_format_binary)
 		{
