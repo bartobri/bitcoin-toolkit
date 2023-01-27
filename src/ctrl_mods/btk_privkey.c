@@ -21,6 +21,7 @@
 #include "mods/opts.h"
 
 #define REHASHES_ARRAY_SIZE    50
+#define REHASH_MAX_SIZE        1000000
 #define HASH_WILDCARD          "*"
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
@@ -346,6 +347,12 @@ int btk_privkey_process_rehashes(char *input_str)
 				return -1;
 			}
 
+			if (tmp > REHASH_MAX_SIZE)
+			{
+				error_log("Argument cannot contain a number greater than %d", REHASH_MAX_SIZE);
+				return -1;
+			}
+
 			output_hashes_arr[i++] = tmp;
 		}
 		else if (strcmp(tok, HASH_WILDCARD) == 0)
@@ -360,14 +367,19 @@ int btk_privkey_process_rehashes(char *input_str)
 			while (*tokend != '\0')
 			{
 				tmp = strtol(input_str, &tokend, 10);
-				if (tmp > 0)
+				if (tmp < 0)
 				{
-					output_hashes_arr[i++] = tmp;
+					tmp = labs(tmp);
 				}
-				else if (tmp < 0)
+
+				if (tmp > REHASH_MAX_SIZE)
 				{
-					output_hashes_arr[i++] = labs(tmp);
+					// Just ignore when found with wildcard.
+					continue;
 				}
+
+				output_hashes_arr[i++] = tmp;
+
 				if (*tokend != '\0')
 				{
 					input_str = tokend + 1;
