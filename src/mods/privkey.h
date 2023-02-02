@@ -26,6 +26,7 @@ int privkey_to_hex(char *, PrivKey, int);
 int privkey_to_raw(unsigned char *, PrivKey, int);
 int privkey_to_wif(char *, PrivKey);
 int privkey_to_dec(char *, PrivKey);
+int privkey_to_qrcode(char *, PrivKey);
 int privkey_from_wif(PrivKey, char *);
 int privkey_from_hex(PrivKey, char *);
 int privkey_from_dec(PrivKey, char *);

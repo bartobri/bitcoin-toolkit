@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <stdbool.h>
 #include <assert.h>
 #include "privkey.h"
 #include "network.h"
@@ -19,6 +20,7 @@
 #include "base58check.h"
 #include "crypto.h"
 #include "error.h"
+#include "QRCodeGen/qrcodegen.h"
 
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF
@@ -177,6 +179,39 @@ int privkey_to_wif(char *str, PrivKey key)
 
 	free(base58check);
 	
+	return 1;
+}
+
+int privkey_to_qrcode(char *str, PrivKey key)
+{
+	int r, x, y;
+	int size;
+	int border = 0;
+	bool ok;
+	char wif_str[BUFSIZ];
+	enum qrcodegen_Ecc errCorLvl = qrcodegen_Ecc_LOW;
+
+	memset(wif_str, 0, BUFSIZ);
+
+	r = privkey_to_wif(wif_str, key);
+	ERROR_CHECK_NEG(r, "Can not convert private key to WIF.");
+
+	uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+
+	ok = qrcodegen_encodeText(wif_str, tempBuffer, qrcode, errCorLvl, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true);
+	ERROR_CHECK_FALSE(ok, "Could not encode QR code.");
+
+	size = qrcodegen_getSize(qrcode);
+	for (y = -border; y < size + border; y++)
+	{
+		for (x = -border; x < size + border; x++)
+		{
+			strcat(str, (qrcodegen_getModule(qrcode, x, y) ? "##" : "  "));
+		}
+		strcat(str, "\n");
+	}
+
 	return 1;
 }
 
