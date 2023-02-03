@@ -9,7 +9,7 @@
 #define OPTS_H 1
 
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBCUTWHDRQX:"
-#define OPTS_STRING_PUBKEY                  "lwhLBCU"
+#define OPTS_STRING_PUBKEY                  "lwhLBCUQ"
 #define OPTS_STRING_ADDRESS                 "lwhvLBPE"
 #define OPTS_STRING_NODE                    "n:p:T"
 #define OPTS_STRING_UTXODB                  "f:"
