@@ -11,6 +11,8 @@
 #include "error.h"
 #include "QRCodeGen/qrcodegen.h"
 
+#define BLOCK_STRING "\xe2\x96\x88\xe2\x96\x88"
+
 int qrcode_from_str(char *output, char *input)
 {
     int x, y;
@@ -33,7 +35,7 @@ int qrcode_from_str(char *output, char *input)
     {
         for (x = -border; x < size + border; x++)
         {
-            strcat(output, (qrcodegen_getModule(qrcode, x, y) ? "##" : "  "));
+            strcat(output, (qrcodegen_getModule(qrcode, x, y) ? BLOCK_STRING : "  "));
         }
         strcat(output, "\n");
     }
