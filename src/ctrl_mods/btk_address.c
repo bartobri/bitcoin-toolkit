@@ -19,6 +19,7 @@
 #include "mods/base58.h"
 #include "mods/base32.h"
 #include "mods/output.h"
+#include "mods/qrcode.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 
@@ -105,6 +106,16 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (!opts->input_type_vanity)
         {
+            if (opts->output_type_qrcode)
+            {
+                memset(output_str2, 0, BUFSIZ);
+
+                r = qrcode_from_str(output_str2, output_str);
+                ERROR_CHECK_NEG(r, "Could not get output.");
+
+                memcpy(output_str, output_str2, BUFSIZ);
+            }
+
             *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
             ERROR_CHECK_NULL(*output, "Memory allocation error.");
         }
@@ -119,6 +130,16 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (!opts->input_type_vanity)
         {
+            if (opts->output_type_qrcode)
+            {
+                memset(output_str2, 0, BUFSIZ);
+
+                r = qrcode_from_str(output_str2, output_str);
+                ERROR_CHECK_NEG(r, "Could not get output.");
+
+                memcpy(output_str, output_str2, BUFSIZ);
+            }
+
             *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
             ERROR_CHECK_NULL(*output, "Memory allocation error.");
         }
