@@ -21,6 +21,10 @@
  *   Software.
  */
 
+/*
+ * https://github.com/nayuki/QR-Code-generator/blob/master/c/qrcodegen-demo.c
+ */
+
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
