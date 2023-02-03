@@ -92,17 +92,9 @@ int btk_pubkey_main(output_list *output, opts_p opts, unsigned char *input, size
 	{
 		pubkey_uncompress(pubkey);
 	}
-
-	if (opts->output_type_qrcode)
-	{
-		r = pubkey_to_qrcode(output_str, pubkey);
-		ERROR_CHECK_NEG(r, "Could not get output.");
-	}
-	else
-	{
-		r = pubkey_to_hex(output_str, pubkey);
-		ERROR_CHECK_NEG(r, "Could not get output.");
-	}
+	
+	r = pubkey_to_hex(output_str, pubkey);
+	ERROR_CHECK_NEG(r, "Could not get output.");
 
 	*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
 	ERROR_CHECK_NULL(*output, "Memory allocation error.");

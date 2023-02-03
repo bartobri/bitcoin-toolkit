@@ -27,12 +27,12 @@ int opts_init(opts_p opts)
     opts->input_type_sbd = 0;
     opts->input_type_vanity = 0;
     opts->output_format_list = 0;
+    opts->output_format_qrcode = 0;
     opts->output_format_binary = 0;
     opts->output_type_wif = 0;
     opts->output_type_hex = 0;
     opts->output_type_decimal = 0;
     opts->output_type_raw = 0;
-    opts->output_type_qrcode = 0;
     opts->output_type_p2pkh = 0;
     opts->output_type_p2wpkh = 0;
     opts->compression_on = 0;
@@ -105,6 +105,9 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'L':
                 opts->output_format_list = 1;
                 break;
+            case 'Q':
+                opts->output_format_qrcode = 1;
+                break;
             case 'B':
                 opts->output_format_binary = 1;
                 break;
@@ -121,9 +124,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'R':
                 opts->output_type_raw = 1;
                 opts->output_format_binary = 1;
-                break;
-            case 'Q':
-                opts->output_type_qrcode = 1;
                 break;
             case 'P':
                 opts->output_type_p2pkh = 1;

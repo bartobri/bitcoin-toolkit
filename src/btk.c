@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "mods/input.h"
 #include "mods/json.h"
+#include "mods/qrcode.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 #include "ctrl_mods/btk_help.h"
@@ -36,6 +37,7 @@ int main(int argc, char *argv[])
 	char *command = NULL;
 	char command_str[BUFSIZ];
 	char json_str[BUFSIZ];
+	char qrcode_str[BUFSIZ];
 	opts_p opts = NULL;
 	char *opts_string = NULL;
 	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
@@ -183,7 +185,11 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
-	BTK_CHECK_TRUE(opts->output_format_list && opts->output_format_binary, "Can not use list and binary output formats together.");
+	i = 0;
+	if (opts->output_format_binary) { i++; }
+	if (opts->output_format_list) { i++; }
+	if (opts->output_format_qrcode) { i++; }
+	BTK_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
 
 	if (output)
 	{
@@ -194,6 +200,20 @@ int main(int argc, char *argv[])
 			while(output)
 			{
 				printf("%s\n", (char *)(output->content));
+
+				output = output->next;
+			}
+		}
+		else if (opts->output_format_qrcode)
+		{
+			while(output)
+			{
+				memset(qrcode_str, 0, BUFSIZ);
+
+				r = qrcode_from_str(qrcode_str, (char *)(output->content));
+				ERROR_CHECK_NEG(r, "Can not generate qr code.");
+
+				printf("\n%s\n", qrcode_str);
 
 				output = output->next;
 			}

@@ -18,7 +18,6 @@
 #include "base58check.h"
 #include "hex.h"
 #include "network.h"
-#include "qrcode.h"
 #include "error.h"
 
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
@@ -450,25 +449,6 @@ int pubkey_to_raw(unsigned char *raw, PubKey key)
 	}
 	
 	return l;
-}
-
-int pubkey_to_qrcode(char *output, PubKey key)
-{
-	int r;
-	char hex_str[BUFSIZ];
-
-	assert(output);
-	assert(key);
-
-	memset(hex_str, 0, BUFSIZ);
-
-	r = pubkey_to_hex(hex_str, key);
-	ERROR_CHECK_NEG(r, "Can not convert public key to hex.");
-
-	r = qrcode_from_str(output, hex_str);
-	ERROR_CHECK_NEG(r, "Can not generate qr code.");
-
-	return 1;
 }
 
 size_t pubkey_sizeof(void)

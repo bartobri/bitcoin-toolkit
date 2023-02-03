@@ -18,7 +18,6 @@
 #include "hex.h"
 #include "base58.h"
 #include "base58check.h"
-#include "qrcode.h"
 #include "crypto.h"
 #include "error.h"
 
@@ -179,22 +178,6 @@ int privkey_to_wif(char *str, PrivKey key)
 
 	free(base58check);
 	
-	return 1;
-}
-
-int privkey_to_qrcode(char *output, PrivKey key)
-{
-	int r;
-	char wif_str[BUFSIZ];
-
-	memset(wif_str, 0, BUFSIZ);
-
-	r = privkey_to_wif(wif_str, key);
-	ERROR_CHECK_NEG(r, "Can not convert private key to WIF.");
-
-	r = qrcode_from_str(output, wif_str);
-	ERROR_CHECK_NEG(r, "Can not generate qr code.");
-
 	return 1;
 }
 

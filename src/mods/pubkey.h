@@ -24,7 +24,6 @@ int pubkey_uncompress(PubKey);
 int pubkey_is_compressed(PubKey);
 int pubkey_to_hex(char *, PubKey);
 int pubkey_to_raw(unsigned char *, PubKey);
-int pubkey_to_qrcode(char *, PubKey);
 size_t pubkey_sizeof(void);
 
 #endif
