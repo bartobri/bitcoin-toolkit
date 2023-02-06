@@ -1,4 +1,5 @@
 ![Version](https://img.shields.io/badge/Version-2.0.1-green.svg)
+![Twitter](https://img.shields.io/twitter/follow/bartobri78?label=Follow%20@bartobri78)
 
 Bitcoin Toolkit
 ===============
