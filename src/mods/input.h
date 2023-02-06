@@ -12,9 +12,5 @@
 #define INPUT_GET_MODE_LINE 2
 
 int input_get(unsigned char **, size_t *);
-int input_available(void);
-int input_get_old(unsigned char** dest, char *prompt, int);
-int input_get_str(char** dest, char *prompt);
-int input_get_from_pipe(unsigned char** dest);
 
 #endif
