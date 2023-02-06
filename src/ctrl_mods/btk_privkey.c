@@ -192,7 +192,7 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 	}
 	else if (input_type_binary)
 	{
-		r = privkey_from_raw(key, input, input_len);
+		r = privkey_from_blob(key, input, input_len);
 	}
 	else
 	{
