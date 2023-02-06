@@ -33,24 +33,19 @@ int input_get(unsigned char **input, size_t *len)
 
 	memset((*input), 0, mem_size);
 
-	r = read(STDIN_FILENO, &c, 1);
-	for (i = 0; r > 0; i++)
+	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
 	{
+		(*input)[i++] = c;
+
 		if (i == mem_size)
 		{
 			mem_size += BUFSIZ;
+
 			(*input) = realloc((*input), mem_size);
-			if ((*input) == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
+			ERROR_CHECK_NULL((*input), "Memory allocation error.");
+
 			memset((*input) + i, 0, BUFSIZ);
 		}
-
-		(*input)[i] = c;
-
-		r = read(STDIN_FILENO, &c, 1);
 	}
 
 	if (r < 0)
