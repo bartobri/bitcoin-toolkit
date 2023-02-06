@@ -229,7 +229,8 @@ int input_get_str(char** dest, char *prompt)
 
 int input_get_from_pipe(unsigned char** dest)
 {
-	int r;
+	int r, size = 0, prev_size = 0;
+	unsigned char *tmp;
 
 	if (isatty(STDIN_FILENO))
 	{
@@ -237,17 +238,36 @@ int input_get_from_pipe(unsigned char** dest)
 		return -1;
 	}
 
-	r = input_get(dest, NULL, INPUT_GET_MODE_ALL);
-	if (r < 0)
+	while (input_available())
 	{
-		error_log("Could not get input.");
-		return -1;
-	}
-	if (r == 0)
-	{
-		error_log("No input provided.");
-		return -1;
+		r = input_get(&tmp, NULL, INPUT_GET_MODE_ALL);
+		if (r < 0)
+		{
+			error_log("Could not get input.");
+			return -1;
+		}
+		if (r == 0)
+		{
+			error_log("No input provided.");
+			return -1;
+		}
+
+		size += r;
+
+		(*dest) = realloc((*dest), size);
+		if ((*dest) == NULL)
+		{
+			error_log("Memory allocation error.");
+			return -1;
+		}
+
+		memcpy((*dest) + prev_size, tmp, r);
+
+		prev_size = size;
+
+		free(tmp);
+		tmp = NULL;
 	}
 
-	return r;
+	return size;
 }

@@ -10,6 +10,6 @@
 
  #define BTK_VERSION_MAJOR      2
  #define BTK_VERSION_MINOR      0
- #define BTK_VERSION_REVISION   1
+ #define BTK_VERSION_REVISION   2
 
  #endif
