@@ -35,6 +35,7 @@ int opts_init(opts_p opts)
     opts->output_type_raw = 0;
     opts->output_type_p2pkh = 0;
     opts->output_type_p2wpkh = 0;
+    opts->output_stream = 0;
     opts->compression_on = 0;
     opts->compression_off = 0;
     opts->network_test = 0;
@@ -130,6 +131,10 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
             case 'E':
                 opts->output_type_p2wpkh = 1;
+                break;
+
+            case 'S':
+                opts->output_stream = 1;
                 break;
 
             case 'C':

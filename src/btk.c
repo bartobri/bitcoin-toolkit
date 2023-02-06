@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 #include "mods/input.h"
 #include "mods/json.h"
 #include "mods/qrcode.h"
@@ -28,25 +29,22 @@
 #define BTK_CHECK_FALSE(x, y)       if (!x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 #define BTK_CHECK_TRUE(x, y)        if (x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
+int btk_print_output(output_list, opts_p);
+
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
-	size_t j;
 	unsigned char *input = NULL; 
 	size_t input_len = 0;
 	char *command = NULL;
 	char command_str[BUFSIZ];
 	char json_str[BUFSIZ];
-	char qrcode_str[BUFSIZ];
 	opts_p opts = NULL;
 	char *opts_string = NULL;
 	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
 	int (*input_fp)(opts_p) = NULL;
 	cJSON *json_input;
-	cJSON *json_output;
-	char *json_output_str = NULL;
 	output_list output = NULL;
-	output_list output_head = NULL;
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -146,6 +144,15 @@ int main(int argc, char *argv[])
 		{
 			r = main_fp(&output, opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
+
+			if (opts->output_stream)
+			{
+				r = btk_print_output(output, opts);
+				BTK_CHECK_NEG(r, "Error printing output.");
+
+				output_free(output);
+				output = NULL;
+			}
 		}
 		else if (opts->input_format_list)
 		{
@@ -156,6 +163,15 @@ int main(int argc, char *argv[])
 			{
 				r = main_fp(&output, opts, (unsigned char *)tok, strlen(tok));
 				BTK_CHECK_NEG(r, NULL);
+
+				if (opts->output_stream)
+				{
+					r = btk_print_output(output, opts);
+					BTK_CHECK_NEG(r, "Error printing output.");
+
+					output_free(output);
+					output = NULL;
+				}
 
 				tok = strtok_r(NULL, "\n", &tok_saveptr);
 			}
@@ -173,6 +189,15 @@ int main(int argc, char *argv[])
 				r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
 				BTK_CHECK_NEG(r, NULL);
 
+				if (opts->output_stream)
+				{
+					r = btk_print_output(output, opts);
+					BTK_CHECK_NEG(r, "Error printing output.");
+
+					output_free(output);
+					output = NULL;
+				}
+
 				memset(json_str, 0, BUFSIZ);
 			}
 
@@ -185,75 +210,89 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
+	if (output)
+	{
+		r = btk_print_output(output, opts);
+		BTK_CHECK_NEG(r, "Error printing output.");
+
+		output_free(output);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int btk_print_output(output_list output, opts_p opts)
+{
+	int r;
+	size_t i;
+	char qrcode_str[BUFSIZ];
+	cJSON *json_output;
+	char *json_output_str = NULL;
+
+	assert(output);
+
 	i = 0;
 	if (opts->output_format_binary) { i++; }
 	if (opts->output_format_list) { i++; }
 	if (opts->output_format_qrcode) { i++; }
-	BTK_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
+	ERROR_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
 
-	if (output)
+	if (opts->output_format_list)
 	{
-		output_head = output;
-
-		if (opts->output_format_list)
+		while(output)
 		{
-			while(output)
-			{
-				printf("%s\n", (char *)(output->content));
+			printf("%s\n", (char *)(output->content));
 
-				output = output->next;
-			}
+			output = output->next;
 		}
-		else if (opts->output_format_qrcode)
+	}
+	else if (opts->output_format_qrcode)
+	{
+		while(output)
 		{
-			while(output)
-			{
-				memset(qrcode_str, 0, BUFSIZ);
+			memset(qrcode_str, 0, BUFSIZ);
 
-				r = qrcode_from_str(qrcode_str, (char *)(output->content));
-				ERROR_CHECK_NEG(r, "Can not generate qr code.");
+			r = qrcode_from_str(qrcode_str, (char *)(output->content));
+			ERROR_CHECK_NEG(r, "Can not generate qr code.");
 
-				printf("\n%s\n", qrcode_str);
+			printf("\n%s\n", qrcode_str);
 
-				output = output->next;
-			}
+			output = output->next;
 		}
-		else if (opts->output_format_binary)
+	}
+	else if (opts->output_format_binary)
+	{
+		while(output)
 		{
-			while(output)
+			for (i = 0; i < output->length; i++)
 			{
-				for (j = 0; j < output->length; j++)
-				{
-					fputc(((unsigned char *)(output->content))[j], stdout);
-				}
-
-				output = output->next;
-			}
-		}
-		else
-		{
-			r = json_init(&json_output, NULL, 0);
-			BTK_CHECK_NEG(r, "Error initializing JSON input.");
-
-			while(output)
-			{
-				r = json_add(json_output, (char *)(output->content));
-				BTK_CHECK_NEG(r, "Output handling error.");
-
-				output = output->next;
+				fputc(((unsigned char *)(output->content))[i], stdout);
 			}
 
-			r = json_to_string(&json_output_str, json_output);
-			BTK_CHECK_NEG(r, "Error converting output to JSON.");
+			output = output->next;
+		}
+	}
+	else
+	{
+		r = json_init(&json_output, NULL, 0);
+		ERROR_CHECK_NEG(r, "Error initializing JSON input.");
 
-			printf("%s\n", json_output_str);
+		while(output)
+		{
+			r = json_add(json_output, (char *)(output->content));
+			ERROR_CHECK_NEG(r, "Output handling error.");
 
-			free(json_output_str);
-			json_free(json_output);
+			output = output->next;
 		}
 
-		output_free(output_head);
+		r = json_to_string(&json_output_str, json_output);
+		ERROR_CHECK_NEG(r, "Error converting output to JSON.");
+
+		printf("%s\n", json_output_str);
+
+		free(json_output_str);
+		json_free(json_output);
 	}
 
-	return EXIT_SUCCESS;
+	return 1;
 }
