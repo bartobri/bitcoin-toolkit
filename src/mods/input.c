@@ -23,6 +23,8 @@ int input_get(unsigned char **input, size_t *len)
 	(*input) = malloc(BUFSIZ);
 	ERROR_CHECK_NULL((*input), "Memory allocation error.");
 
+	memset((*input), 0, BUFSIZ);
+
 	while ((r = read(STDIN_FILENO, (*input) + read_total, BUFSIZ)) > 0)
 	{
 		read_total += r;
@@ -32,6 +34,8 @@ int input_get(unsigned char **input, size_t *len)
 		{
 			(*input) = realloc((*input), BUFSIZ * (i + 1));
 			ERROR_CHECK_NULL((*input), "Memory allocation error.");
+
+			memset((*input) + read_total, 0, BUFSIZ);
 		}
 	}
 
