@@ -8,10 +8,10 @@
 #ifndef INPUT_H
 #define INPUT_H 1
 
-#define INPUT_GET_MODE_ALL  1
-#define INPUT_GET_MODE_LINE 2
+#include "mods/cJSON/cJSON.h"
 
 int input_get(unsigned char **, size_t *);
 int input_get_line(unsigned char **);
+int input_get_json(cJSON **);
 
 #endif

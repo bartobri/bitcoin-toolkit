@@ -179,33 +179,31 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			r = input_get(&input, &input_len);
-			BTK_CHECK_NEG(r, NULL);
-
-			r = json_init(&json_input, (char *)input, input_len);
-			BTK_CHECK_NEG(r, "Error initializing JSON input.");
-
-			memset(json_str, 0, BUFSIZ);
-			i = 0;
-
-			while(json_get_index(json_str, BUFSIZ, json_input, i++) > 0)
+			while ((r = input_get_json(&json_input)) > 0)
 			{
-				r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
-				BTK_CHECK_NEG(r, NULL);
+				memset(json_str, 0, BUFSIZ);
+				i = 0;
 
-				if (opts->output_stream)
+				while(json_get_index(json_str, BUFSIZ, json_input, i++) > 0)
 				{
-					r = btk_print_output(output, opts);
-					BTK_CHECK_NEG(r, "Error printing output.");
+					r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
+					BTK_CHECK_NEG(r, NULL);
 
-					output_free(output);
-					output = NULL;
+					if (opts->output_stream)
+					{
+						r = btk_print_output(output, opts);
+						BTK_CHECK_NEG(r, "Error printing output.");
+
+						output_free(output);
+						output = NULL;
+					}
+
+					memset(json_str, 0, BUFSIZ);
 				}
 
-				memset(json_str, 0, BUFSIZ);
+				json_free(json_input);
 			}
-
-			json_free(json_input);
+			BTK_CHECK_NEG(r, "Error getting json input.");
 		}
 	}
 	else

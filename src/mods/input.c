@@ -13,6 +13,7 @@
 #include <errno.h>
 #include "mods/input.h"
 #include "mods/error.h"
+#include "mods/cJSON/cJSON.h"
 
 int input_get(unsigned char **input, size_t *len)
 {
@@ -78,10 +79,72 @@ int input_get_line(unsigned char **input)
 		}
 	}
 
+	if (r < 0)
+	{
+		error_log("Input read error. Errno: %i", errno);
+		return -1;
+	}
+
 	if (r == 0 && i == 0)
 	{
 		return 0;
 	}
 
 	return 1;
+}
+
+int input_get_json(cJSON **jobj)
+{
+	ssize_t r;
+	static char *input = NULL;
+	static int input_len = 0;
+	int buffer_len = BUFSIZ;
+	int json_len = 0;
+	const char *parse_end;
+
+	if (input == NULL)
+	{
+		input = malloc(buffer_len + 1);
+		ERROR_CHECK_NULL(input, "Memory allocation error.");
+
+		memset(input, 0, buffer_len + 1);
+	}
+
+	r = read(STDIN_FILENO, input + input_len, buffer_len - input_len);
+	if (r < 0)
+	{
+		error_log("Input read error. Errno: %i", errno);
+		return -1;
+	}
+
+	if (input_len == 0 && r == 0)
+	{
+		free(input);
+		input = NULL;
+
+		return 0;
+	}
+
+	(*jobj) = cJSON_ParseWithLengthOpts(input, buffer_len - input_len, &parse_end, 0);
+    if ((*jobj) == NULL)
+    {
+        error_log("Invalid JSON.");
+        return -1;
+    }
+
+    // Advance parse_end past any white spaces
+    while (isspace(*parse_end))
+    {
+    	parse_end++;
+    }
+
+    json_len = parse_end - input;
+
+    // shift remaining input back to start of pointer
+    memcpy(input, input + json_len, buffer_len - json_len);
+    memset(input + (buffer_len - json_len), 0, json_len);
+
+    input_len = strlen(input);
+
+    return 1;
 }
