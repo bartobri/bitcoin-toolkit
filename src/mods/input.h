@@ -12,5 +12,6 @@
 #define INPUT_GET_MODE_LINE 2
 
 int input_get(unsigned char **, size_t *);
+int input_get_line(unsigned char **);
 
 #endif

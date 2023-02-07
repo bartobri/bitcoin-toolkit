@@ -49,3 +49,39 @@ int input_get(unsigned char **input, size_t *len)
 
 	return 1;
 }
+
+int input_get_line(unsigned char **input)
+{
+	ssize_t r;
+	int i = 0;
+	char c;
+
+	(*input) = malloc(BUFSIZ);
+	ERROR_CHECK_NULL((*input), "Memory allocation error.");
+
+	memset((*input), 0, BUFSIZ);
+
+	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
+	{
+		if (c == '\n')
+		{
+			break;
+		}
+
+		*((*input) + i) = c;
+		i++;
+
+		if (i == BUFSIZ)
+		{
+			error_log("Did not find a new line before buffer filled.");
+			return -1;
+		}
+	}
+
+	if (r == 0 && i == 0)
+	{
+		return 0;
+	}
+
+	return 1;
+}

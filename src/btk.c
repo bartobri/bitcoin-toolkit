@@ -130,18 +130,15 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, NULL);
 	}
 
+	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
+
 	if (input_fp(opts))
 	{
-		r = input_get(&input, &input_len);
-		BTK_CHECK_NEG(r, NULL);
-	}
-
-	if (input)
-	{
-		BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
-
 		if (opts->input_format_binary)
 		{
+			r = input_get(&input, &input_len);
+			BTK_CHECK_NEG(r, NULL);
+
 			r = main_fp(&output, opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
 
@@ -156,12 +153,15 @@ int main(int argc, char *argv[])
 		}
 		else if (opts->input_format_list)
 		{
-			char *tok;
-			char *tok_saveptr;
-			tok = strtok_r((char *)input, "\n", &tok_saveptr);
-			while (tok != NULL)
-			{
-				r = main_fp(&output, opts, (unsigned char *)tok, strlen(tok));
+			while ((r = input_get_line(&input)) > 0)
+			{	
+				// Ignore empty strings
+				if (strlen((char *)input) == 0)
+				{
+					continue;
+				}
+
+				r = main_fp(&output, opts, input, strlen((char *)input));
 				BTK_CHECK_NEG(r, NULL);
 
 				if (opts->output_stream)
@@ -173,11 +173,15 @@ int main(int argc, char *argv[])
 					output = NULL;
 				}
 
-				tok = strtok_r(NULL, "\n", &tok_saveptr);
+				free(input);
 			}
+			BTK_CHECK_NEG(r, NULL);
 		}
 		else
 		{
+			r = input_get(&input, &input_len);
+			BTK_CHECK_NEG(r, NULL);
+
 			r = json_init(&json_input, (char *)input, input_len);
 			BTK_CHECK_NEG(r, "Error initializing JSON input.");
 
@@ -209,7 +213,7 @@ int main(int argc, char *argv[])
 		r = main_fp(&output, opts, NULL, 0);
 		BTK_CHECK_NEG(r, NULL);
 	}
-
+	
 	if (output)
 	{
 		r = btk_print_output(output, opts);
