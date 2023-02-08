@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 #include "mods/json.h"
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
@@ -58,21 +59,32 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
         return 0;
     }
 
-    if (!cJSON_IsString(tmp))
+    if (cJSON_IsNumber(tmp))
     {
-        error_log("JSON array must contain strings only.");
+        if (tmp->valueint == INT_MAX)
+        {
+            error_log("Integer too large. Wrap large numbers in quotes.");
+            return -1;
+        }
+        sprintf(output, "%i", tmp->valueint);
+    }
+    else if (cJSON_IsString(tmp))
+    {
+        if (strlen(tmp->valuestring) > output_len - 1)
+        {
+            error_log("JSON value at index %d too large.", i);
+            return -1;
+        }
+
+        strncpy(output, tmp->valuestring, output_len);
+    }
+    else
+    {
+        error_log("JSON array must contain string or number only.");
         return -1;
     }
 
-    output_len--;
-
-    if (strlen(tmp->valuestring) > output_len)
-    {
-        error_log("JSON value at index %d too large.", i);
-        return -1;
-    }
-
-    strncpy(output, tmp->valuestring, output_len);
+    
 
     return 1;
 }
