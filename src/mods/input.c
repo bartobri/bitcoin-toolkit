@@ -131,6 +131,11 @@ int input_get_json(cJSON **jobj)
         error_log("Invalid JSON.");
         return -1;
     }
+    if (!cJSON_IsArray(*jobj))
+    {
+        error_log("JSON must be an array.");
+        return -1;
+    }
 
     // Advance parse_end past any white spaces
     while (isspace(*parse_end))
