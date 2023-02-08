@@ -10,7 +10,7 @@
 
 #include "mods/cJSON/cJSON.h"
 
-int json_init(cJSON **, char *, size_t);
+int json_init(cJSON **);
 int json_add(cJSON *, char *);
 int json_get_index(char *, size_t, cJSON *, int);
 int json_to_string(char **, cJSON *);

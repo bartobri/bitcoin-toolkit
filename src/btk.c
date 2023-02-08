@@ -276,7 +276,7 @@ int btk_print_output(output_list output, opts_p opts)
 	}
 	else
 	{
-		r = json_init(&json_output, NULL, 0);
+		r = json_init(&json_output);
 		ERROR_CHECK_NEG(r, "Error initializing JSON input.");
 
 		while(output)

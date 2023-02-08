@@ -14,56 +14,14 @@
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
 
-int json_init(cJSON **jobj, char *string, size_t len)
+int json_init(cJSON **jobj)
 {
-    int i, l;
-    char str[BUFSIZ];
-    cJSON *item;
-    cJSON *new_item;
-
-    if (string)
+    *jobj = cJSON_CreateArray();
+    if (*jobj == NULL)
     {
-        *jobj = cJSON_ParseWithLength(string, len);
-        if (*jobj == NULL)
-        {
-            error_log("Invalid JSON.");
-            return -1;
-        }
-
-        if (!cJSON_IsArray(*jobj))
-        {
-            error_log("JSON must be an array.");
-            return -1;
-        }
-
-        l = cJSON_GetArraySize(*jobj);
-        for (i = 0; i < l; i++)
-        {
-            item = cJSON_GetArrayItem(*jobj, i);
-            if (cJSON_IsNumber(item))
-            {
-                memset(str, 0, BUFSIZ);
-                snprintf(str, BUFSIZ-1, "%d", item->valueint);
-                new_item = cJSON_CreateString(str);
-                if (new_item == NULL)
-                {
-                    error_log("Could not convert number to JSON string.");
-                    return -1;
-                }
-                cJSON_ReplaceItemInArray(*jobj, i, new_item);
-            }
-        }
+        error_log("Could not create JSON array object.");
+        return -1;
     }
-    else
-    {
-        *jobj = cJSON_CreateArray();
-        if (*jobj == NULL)
-        {
-            error_log("Could not create JSON array object.");
-            return -1;
-        }
-    }
-    
 
     return 1;
 }
