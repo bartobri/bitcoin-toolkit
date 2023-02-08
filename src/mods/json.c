@@ -55,8 +55,7 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
     tmp = cJSON_GetArrayItem(jobj, i);
     if (tmp == NULL)
     {
-        error_log("Index %d does not exist.", i);
-        return -1;
+        return 0;
     }
 
     if (!cJSON_IsString(tmp))

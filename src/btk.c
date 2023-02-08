@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 				memset(json_str, 0, BUFSIZ);
 				i = 0;
 
-				while(json_get_index(json_str, BUFSIZ, json_input, i++) > 0)
+				while((r = json_get_index(json_str, BUFSIZ, json_input, i++)) > 0)
 				{
 					r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
 					BTK_CHECK_NEG(r, NULL);
@@ -200,6 +200,7 @@ int main(int argc, char *argv[])
 
 					memset(json_str, 0, BUFSIZ);
 				}
+				BTK_CHECK_NEG(r, "Error reading json input.");
 
 				json_free(json_input);
 			}
