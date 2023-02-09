@@ -92,7 +92,7 @@ int json_has_output(cJSON *jobj)
     return 1;
 }
 
-int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
+int json_get_output_index(char *output, size_t output_len, cJSON *jobj, int i)
 {
     cJSON *tmp;
     cJSON *output_arr;
