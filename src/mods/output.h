@@ -19,6 +19,7 @@ output_list output_new(void *, size_t);
 output_list output_append(output_list, output_list);
 output_list output_append_new(output_list, void *, size_t);
 output_list output_append_new_copy(output_list, void *, size_t);
+size_t output_size(output_list list);
 void output_free(output_list);
 
 #endif

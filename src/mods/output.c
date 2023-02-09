@@ -87,6 +87,21 @@ output_list output_append_new_copy(output_list head, void *content, size_t lengt
     return head;
 }
 
+size_t output_size(output_list list)
+{
+    size_t size = 0;
+
+    assert(list);
+
+    while (list != NULL)
+    {
+        size += list->length;
+        list = list->next;
+    }
+
+    return size;
+}
+
 void output_free(output_list list)
 {
     output_list tmp;
