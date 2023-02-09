@@ -29,7 +29,7 @@
 #define BTK_CHECK_FALSE(x, y)       if (!x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 #define BTK_CHECK_TRUE(x, y)        if (x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
-int btk_print_output(output_list, opts_p);
+int btk_print_output(output_list, opts_p, char *, cJSON *);
 
 int main(int argc, char *argv[])
 {
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
 			if (opts->output_stream)
 			{
-				r = btk_print_output(output, opts);
+				r = btk_print_output(output, opts, NULL, NULL);
 				BTK_CHECK_NEG(r, "Error printing output.");
 
 				output_free(output);
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 
 				if (opts->output_stream)
 				{
-					r = btk_print_output(output, opts);
+					r = btk_print_output(output, opts, (char *)input, NULL);
 					BTK_CHECK_NEG(r, "Error printing output.");
 
 					output_free(output);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 
 					if (opts->output_stream)
 					{
-						r = btk_print_output(output, opts);
+						r = btk_print_output(output, opts, NULL, json_input);
 						BTK_CHECK_NEG(r, "Error printing output.");
 
 						output_free(output);
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 	
 	if (output)
 	{
-		r = btk_print_output(output, opts);
+		r = btk_print_output(output, opts, NULL, NULL);
 		BTK_CHECK_NEG(r, "Error printing output.");
 
 		output_free(output);
@@ -224,13 +224,14 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-int btk_print_output(output_list output, opts_p opts)
+int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *input_json)
 {
 	int r;
 	size_t i;
 	char qrcode_str[BUFSIZ];
 	cJSON *json_output;
 	char *json_output_str = NULL;
+	cJSON *tmp = NULL;
 
 	assert(output);
 
@@ -278,11 +279,28 @@ int btk_print_output(output_list output, opts_p opts)
 	else
 	{
 		r = json_init(&json_output);
-		ERROR_CHECK_NEG(r, "Error initializing JSON input.");
+		ERROR_CHECK_NEG(r, "Error initializing JSON output.");
+
+		if (input_json)
+		{
+			r = json_add_input(json_output, input_json);
+			ERROR_CHECK_NEG(r, "Error adding JSON input.");
+		}
+		else if (input_str)
+		{
+			r = json_init(&tmp);
+			ERROR_CHECK_NEG(r, "Error initializing JSON input string.");
+
+			r = json_add_output(tmp, input_str);
+			ERROR_CHECK_NEG(r, "Error adding input string to JSON object.");
+
+			r = json_add_input(json_output, tmp);
+			ERROR_CHECK_NEG(r, "Error adding JSON input.");
+		}
 
 		while(output)
 		{
-			r = json_add(json_output, (char *)(output->content));
+			r = json_add_output(json_output, (char *)(output->content));
 			ERROR_CHECK_NEG(r, "Output handling error.");
 
 			output = output->next;
@@ -292,6 +310,11 @@ int btk_print_output(output_list output, opts_p opts)
 		ERROR_CHECK_NEG(r, "Error converting output to JSON.");
 
 		printf("%s\n", json_output_str);
+
+		if (tmp)
+		{
+			json_free(tmp);
+		}
 
 		free(json_output_str);
 		json_free(json_output);

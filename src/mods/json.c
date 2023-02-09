@@ -15,21 +15,39 @@
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
 
+#define JSON_INPUT_KEY "input"
+#define JSON_OUTPUT_KEY "output"
+
 int json_init(cJSON **jobj)
 {
-    *jobj = cJSON_CreateArray();
+    *jobj = cJSON_CreateObject();
     if (*jobj == NULL)
     {
-        error_log("Could not create JSON array object.");
+        error_log("Could not create JSON object.");
         return -1;
     }
 
     return 1;
 }
 
-int json_add(cJSON *jobj, char *string)
+int json_add_input(cJSON *jobj, cJSON *input)
+{
+    cJSON *tmp;
+
+    assert(jobj);
+    assert(input);
+
+    tmp = cJSON_Duplicate(input, 1);
+
+    cJSON_AddItemToObject(jobj, JSON_INPUT_KEY, tmp);
+
+    return 1;
+}
+
+int json_add_output(cJSON *jobj, char *string)
 {
     cJSON *json_str;
+    cJSON *output_arr;
 
     assert(jobj);
     assert(string);
@@ -37,11 +55,24 @@ int json_add(cJSON *jobj, char *string)
     json_str = cJSON_CreateString(string);
     if (json_str == NULL)
     {
-        error_log("Could not generate JSON string.");
+        error_log("Could not generate JSON output string.");
         return -1;
     }
-    
-    cJSON_AddItemToArray(jobj, json_str);
+
+    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
+    if (output_arr == NULL)
+    {
+        output_arr = cJSON_CreateArray();
+        if (output_arr == NULL)
+        {
+            error_log("Could not generate JSON output array.");
+            return -1;
+        }
+
+        cJSON_AddItemToObject(jobj, JSON_OUTPUT_KEY, output_arr);
+    }
+
+    cJSON_AddItemToArray(output_arr, json_str);
 
     return 1;
 }
@@ -49,11 +80,15 @@ int json_add(cJSON *jobj, char *string)
 int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
 {
     cJSON *tmp;
+    cJSON *output_arr;
 
     assert(output);
     assert(jobj);
 
-    tmp = cJSON_GetArrayItem(jobj, i);
+    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
+    ERROR_CHECK_NULL(output_arr, "Missing output array.")
+
+    tmp = cJSON_GetArrayItem(output_arr, i);
     if (tmp == NULL)
     {
         return 0;
@@ -83,8 +118,6 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
         error_log("JSON array must contain string or number only.");
         return -1;
     }
-
-    
 
     return 1;
 }

@@ -125,15 +125,15 @@ int input_get_json(cJSON **jobj)
 		return 0;
 	}
 
-	(*jobj) = cJSON_ParseWithLengthOpts(input, buffer_len - input_len, &parse_end, 0);
+	(*jobj) = cJSON_ParseWithLengthOpts(input, buffer_len, &parse_end, 0);
     if ((*jobj) == NULL)
     {
         error_log("Invalid JSON.");
         return -1;
     }
-    if (!cJSON_IsArray(*jobj))
+    if (!cJSON_IsObject(*jobj))
     {
-        error_log("JSON must be an array.");
+        error_log("JSON must be an object.");
         return -1;
     }
 
