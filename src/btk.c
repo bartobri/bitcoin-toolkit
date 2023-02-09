@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
 	}
 
 	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
+	BTK_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
 
 	if (input_fp(opts))
 	{
@@ -245,6 +246,15 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	{
 		while(output)
 		{
+			if (opts->output_grep)
+			{
+				if (!strstr((char *)(output->content), opts->output_grep))
+				{
+					output = output->next;
+					continue;
+				}
+			}
+
 			printf("%s\n", (char *)(output->content));
 
 			output = output->next;
@@ -254,6 +264,15 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	{
 		while(output)
 		{
+			if (opts->output_grep)
+			{
+				if (!strstr((char *)(output->content), opts->output_grep))
+				{
+					output = output->next;
+					continue;
+				}
+			}
+
 			memset(qrcode_str, 0, BUFSIZ);
 
 			r = qrcode_from_str(qrcode_str, (char *)(output->content));
@@ -300,16 +319,28 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 
 		while(output)
 		{
+			if (opts->output_grep)
+			{
+				if (!strstr((char *)(output->content), opts->output_grep))
+				{
+					output = output->next;
+					continue;
+				}
+			}
+
 			r = json_add_output(json_output, (char *)(output->content));
 			ERROR_CHECK_NEG(r, "Output handling error.");
 
 			output = output->next;
 		}
 
-		r = json_to_string(&json_output_str, json_output);
-		ERROR_CHECK_NEG(r, "Error converting output to JSON.");
+		if (opts->output_grep == NULL || json_has_output(json_output))
+		{
+			r = json_to_string(&json_output_str, json_output);
+			ERROR_CHECK_NEG(r, "Error converting output to JSON.");
 
-		printf("%s\n", json_output_str);
+			printf("%s\n", json_output_str);
+		}
 
 		if (tmp)
 		{

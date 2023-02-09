@@ -77,6 +77,21 @@ int json_add_output(cJSON *jobj, char *string)
     return 1;
 }
 
+int json_has_output(cJSON *jobj)
+{
+    assert(jobj);
+
+    cJSON *output_arr;
+
+    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
+    if (output_arr == NULL)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
 {
     cJSON *tmp;
@@ -86,7 +101,7 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i)
     assert(jobj);
 
     output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
-    ERROR_CHECK_NULL(output_arr, "Missing output array.")
+    ERROR_CHECK_NULL(output_arr, "Missing output array.");
 
     tmp = cJSON_GetArrayItem(output_arr, i);
     if (tmp == NULL)

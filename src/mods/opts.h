@@ -8,9 +8,9 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:"
-#define OPTS_STRING_PUBKEY                  "lwhLBQCUS"
-#define OPTS_STRING_ADDRESS                 "lwhvLBQPES"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
+#define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
+#define OPTS_STRING_ADDRESS                 "lwhvLBQPESG:"
 #define OPTS_STRING_NODE                    "n:p:T"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"
@@ -38,6 +38,7 @@ struct opts {
     int output_type_p2pkh;
     int output_type_p2wpkh;
     int output_stream;
+    char *output_grep;
     int compression_on;
     int compression_off;
     int network_test;
