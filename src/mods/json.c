@@ -38,9 +38,34 @@ int json_add_input(cJSON *jobj, cJSON *input)
     assert(input);
 
     tmp = cJSON_Duplicate(input, 1);
+    ERROR_CHECK_NULL(tmp, "Could not duplicate json input.");
 
     cJSON_AddItemToObject(jobj, JSON_INPUT_KEY, tmp);
 
+    return 1;
+}
+
+int json_grep_output_index(cJSON *jobj, int index)
+{
+    cJSON *output_arr;
+    cJSON *index_obj;
+    cJSON *new_arr;
+
+    assert(jobj);
+
+    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
+    ERROR_CHECK_NULL(output_arr, "JSON does not have a output object.");
+
+    new_arr = cJSON_CreateArray();
+    ERROR_CHECK_NULL(new_arr, "Could not create new JSON array.");
+
+    index_obj = cJSON_Duplicate(cJSON_GetArrayItem(output_arr, index), 1);
+    ERROR_CHECK_NULL(index_obj, "Could not duplicate JSON item at index.");
+
+    cJSON_AddItemToArray(new_arr, index_obj);
+
+    cJSON_ReplaceItemInObject(jobj, JSON_OUTPUT_KEY, new_arr);
+    
     return 1;
 }
 

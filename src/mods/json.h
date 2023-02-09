@@ -12,6 +12,7 @@
 
 int json_init(cJSON **);
 int json_add_input(cJSON *, cJSON *);
+int json_grep_output_index(cJSON *, int);
 int json_add_output(cJSON *, char *);
 int json_has_output(cJSON *jobj);
 int json_get_output_index(char *, size_t, cJSON *, int);

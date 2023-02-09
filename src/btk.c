@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
 	int (*input_fp)(opts_p) = NULL;
 	cJSON *json_input;
+	cJSON *tmp;
 	output_list output = NULL;
 
 	// Assembling the original command string for logging purposes
@@ -192,8 +193,16 @@ int main(int argc, char *argv[])
 
 					if (opts->output_stream)
 					{
-						r = btk_print_output(output, opts, NULL, json_input);
+						tmp = cJSON_Duplicate(json_input, 1);
+						ERROR_CHECK_NULL(tmp, "Could not duplicate json input.");
+
+						r = json_grep_output_index(tmp, i - 1);
+						BTK_CHECK_NEG(r, "Error grepping input at index.");
+
+						r = btk_print_output(output, opts, NULL, tmp);
 						BTK_CHECK_NEG(r, "Error printing output.");
+
+						json_free(tmp);
 
 						output_free(output);
 						output = NULL;
