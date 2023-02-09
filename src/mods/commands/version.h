@@ -10,15 +10,36 @@
 
 #include <stddef.h>
 
+#define IP_ADDR_FIELD_LEN  16
+#define USER_AGENT_MAX_LEN 1024
+
 #define VERSION_COMMAND "version"
 
 typedef struct Version *Version;
+struct Version
+{
+    uint32_t version;
+    uint64_t services;
+    uint64_t timestamp;
+    uint64_t addr_recv_services;
+    unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
+    uint16_t addr_recv_port;
+    uint64_t addr_trans_services;
+    unsigned char addr_trans_ip_address[IP_ADDR_FIELD_LEN];
+    uint16_t addr_trans_port;
+    uint64_t nonce;
+    uint64_t user_agent_bytes;
+    char     user_agent[USER_AGENT_MAX_LEN];
+    uint32_t start_height;
+    uint8_t  relay;
+};
 
 int version_new(Version);
 int version_serialize(unsigned char *, Version);
 int version_new_serialize(unsigned char *);
 int version_deserialize(Version, unsigned char *, size_t);
 int version_to_json(char *, Version);
+char *version_service_bit_to_str(int);
 size_t version_sizeof(void);
 
 #endif

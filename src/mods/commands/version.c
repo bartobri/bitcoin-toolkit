@@ -23,37 +23,12 @@
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x)  STRINGIFY2(x)
 
-#define IP_ADDR_FIELD_LEN  16
-#define USER_AGENT_MAX_LEN 1024
-
 #define VERSION     70015
 #define SERVICES    0x00
 #define IP_ADDRESS  "00000000000000000000ffff7f000001"
 #define PORT_MAIN   8333
 #define PORT_TEST   18333
 #define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
-
-struct Version
-{
-	uint32_t version;
-	uint64_t services;
-	uint64_t timestamp;
-	uint64_t addr_recv_services;
-	unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
-	uint16_t addr_recv_port;
-	uint64_t addr_trans_services;
-	unsigned char addr_trans_ip_address[IP_ADDR_FIELD_LEN];
-	uint16_t addr_trans_port;
-	uint64_t nonce;
-	uint64_t user_agent_bytes;
-	char     user_agent[USER_AGENT_MAX_LEN];
-	uint32_t start_height;
-	uint8_t  relay;
-};
-
-// Function Prototypes
-static char *version_service_bit_to_str(int bit);
-static int version_services_to_json(char *ptr, uint64_t value);
 
 int version_new(Version v)
 {
@@ -225,87 +200,7 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int version_to_json(char *output, Version v)
-{
-	int i;
-
-	assert(output);
-	assert(v);
-
-	output += sprintf(output, "{\n");
-	output += sprintf(output, "  \"version\": %"PRIu32",\n", v->version);
-	output += sprintf(output, "  \"services\": {\n");
-	output += version_services_to_json(output, v->services);
-	output += sprintf(output, "  },\n");
-	output += sprintf(output, "  \"timestamp\": %"PRIu64",\n", v->timestamp);
-	output += sprintf(output, "  \"addr_recv_services\": {\n");
-	output += version_services_to_json(output, v->addr_recv_services);
-	output += sprintf(output, "  },\n");
-	output += sprintf(output, "  \"addr_recv_ip_address\": \"");
-	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
-	{
-		output += sprintf(output, "%02x", v->addr_recv_ip_address[i]);
-	}
-	output += sprintf(output, "\",\n");
-	output += sprintf(output, "  \"addr_recv_port\": %"PRIu16",\n", v->addr_recv_port);
-	output += sprintf(output, "  \"addr_trans_services\": {\n");
-	output += version_services_to_json(output, v->addr_trans_services);
-	output += sprintf(output, "  },\n");
-	output += sprintf(output, "  \"addr_trans_ip_address\": \"");
-	for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
-	{
-		output += sprintf(output, "%02x", v->addr_trans_ip_address[i]);
-	}
-	output += sprintf(output, "\",\n");
-	output += sprintf(output, "  \"addr_trans_port\": %"PRIu16",\n", v->addr_trans_port);
-	output += sprintf(output, "  \"nonce\": %"PRIu64",\n", v->nonce);
-	output += sprintf(output, "  \"user_agent\": \"");
-	for(i = 0; i < (int)v->user_agent_bytes; ++i)
-	{
-		output += sprintf(output, "%c", v->user_agent[i]);
-	}
-	output += sprintf(output, "\",\n");
-	output += sprintf(output, "  \"start_height\": %"PRIu32",\n", v->start_height);
-	output += sprintf(output, "  \"relay\": %s\n", (v->relay == 0) ? "false" : "true");
-	sprintf(output, "}");
-
-	return 1;
-}
-
-static int version_services_to_json(char *ptr, uint64_t value)
-{
-	int i, c, total;
-	
-	assert(ptr);
-
-	c = total = 0;
-
-	for (i = 0; i < 64; ++i)
-	{
-		if (((value >> i) & 0x0000000000000001) == 1)
-		{
-			c = sprintf(ptr, "    \"bit %d\": ", i + 1);
-			total += c;
-			ptr += c;
-			c = sprintf(ptr, "\"%s\",\n", version_service_bit_to_str(i));
-			total += c;
-			ptr += c;
-		}
-	}
-
-	// removing the trailing comma if we printed a list
-	if (total > 0)
-	{
-		ptr--;
-		ptr--;
-		sprintf(ptr, "\n");
-		total--;
-	}
-
-	return total;
-}
-
-static char *version_service_bit_to_str(int bit)
+char *version_service_bit_to_str(int bit)
 {
 	assert(bit >= 0 && bit < 64);
 

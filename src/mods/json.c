@@ -30,6 +30,55 @@ int json_init(cJSON **jobj)
     return 1;
 }
 
+int json_add_bool(cJSON *jobj, int val, char *key)
+{
+    cJSON *r;
+
+    assert(jobj);
+
+    r = cJSON_AddBoolToObject(jobj, key, val);
+    ERROR_CHECK_NULL(r, "Could not add bool to object.");
+
+    return 1;
+}
+
+int json_add_number(cJSON *jobj, double num, char *key)
+{
+    cJSON *r;
+
+    assert(jobj);
+
+    r = cJSON_AddNumberToObject(jobj, key, num);
+    ERROR_CHECK_NULL(r, "Could not add number to object.");
+
+    return 1;
+}
+
+int json_add_string(cJSON *jobj, char *str, char *key)
+{
+    cJSON *r;
+
+    assert(jobj);
+
+    r = cJSON_AddStringToObject(jobj, key, str);
+    ERROR_CHECK_NULL(r, "Could not add string to object.");
+
+    return 1;
+}
+
+int json_add_object(cJSON *jobj, cJSON *added, char *key)
+{
+    int r;
+
+    assert(jobj);
+
+    r = cJSON_AddItemToObject(jobj, key, added);
+    ERROR_CHECK_FALSE(r, "Error adding item to JSON object.");
+
+    return 1;
+}
+
+
 int json_add_input(cJSON *jobj, cJSON *input)
 {
     cJSON *tmp;

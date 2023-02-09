@@ -8,9 +8,15 @@
 #ifndef JSON_H
 #define JSON_H 1
 
+#include <stddef.h>
 #include "mods/cJSON/cJSON.h"
 
 int json_init(cJSON **);
+int json_add_bool(cJSON *, int, char *);
+int json_add_number(cJSON *, double, char *);
+int json_add_string(cJSON *, char *, char *);
+int json_add_object(cJSON *, cJSON *, char *);
+
 int json_add_input(cJSON *, cJSON *);
 int json_grep_output_index(cJSON *, int);
 int json_add_output(cJSON *, char *);

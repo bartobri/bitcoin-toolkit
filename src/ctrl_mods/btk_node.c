@@ -15,9 +15,11 @@
 #include "mods/message.h"
 #include "mods/output.h"
 #include "mods/opts.h"
+#include "mods/json.h"
 #include "mods/error.h"
 #include "mods/commands/version.h"
 #include "mods/commands/verack.h"
+#include "mods/cJSON/cJSON.h"
 
 #define HOST_PORT_MAIN       8333
 #define HOST_PORT_TEST       18333
@@ -28,6 +30,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 {
 	int i, r;
 	int message_type = MESSAGE_TYPE_VERSION;
+	cJSON *version_json = NULL;
+	cJSON *tmp = NULL;
+	char bitstr[100];
+	char tmpstr[100];
 
 	(void)output;
 
@@ -164,17 +170,127 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			r = version_deserialize(version, payload, payload_len);
 			ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
-			json = malloc(1000);
-			ERROR_CHECK_NULL(json, "Memory allocation error.");
 
-			version_to_json(json, version);
+
+			r = json_init(&version_json);
+			ERROR_CHECK_NEG(r, "Can not initialize json object.");
+
+			r = json_add_number(version_json, version->version, "version");
+			ERROR_CHECK_NEG(r, "Could not add version to json object.");
+
+			{
+				r = json_init(&tmp);
+				ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+				for (i = 0; i < 64; ++i)
+				{
+					if (((version->services >> i) & 0x0000000000000001) == 1)
+					{
+						sprintf(bitstr, "bit %d", i);
+
+						r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+						ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+					}
+				}
+
+				r = json_add_object(version_json, tmp, "services");
+				ERROR_CHECK_NEG(r, "Could not add services to json object.");
+
+			}
+
+			r = json_add_number(version_json, version->timestamp, "timestamp");
+			ERROR_CHECK_NEG(r, "Could not add timestamp to json object.");
+
+			{
+				r = json_init(&tmp);
+				ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+				for (i = 0; i < 64; ++i)
+				{
+					if (((version->addr_recv_services >> i) & 0x0000000000000001) == 1)
+					{
+						sprintf(bitstr, "bit %d", i);
+
+						r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+						ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+					}
+				}
+
+				r = json_add_object(version_json, tmp, "addr_recv_services");
+				ERROR_CHECK_NEG(r, "Could not add addr_recv_services to json object.");
+
+			}
+
+			{
+				for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+				{
+					sprintf(tmpstr + (i*2), "%02x", version->addr_recv_ip_address[i]);
+				}
+
+				r = json_add_string(version_json, tmpstr, "addr_recv_ip_address");
+				ERROR_CHECK_NEG(r, "Could not add addr_recv_ip_address to json object.");
+			}
+
+			r = json_add_number(version_json, version->addr_recv_port, "addr_recv_port");
+			ERROR_CHECK_NEG(r, "Could not add addr_recv_port to json object.");
+
+			{
+				r = json_init(&tmp);
+				ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+				for (i = 0; i < 64; ++i)
+				{
+					if (((version->addr_trans_services >> i) & 0x0000000000000001) == 1)
+					{
+						sprintf(bitstr, "bit %d", i);
+
+						r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+						ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+					}
+				}
+
+				r = json_add_object(version_json, tmp, "addr_trans_services");
+				ERROR_CHECK_NEG(r, "Could not add addr_trans_services to json object.");
+			}
+
+			{
+				for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+				{
+					sprintf(tmpstr + (i*2), "%02x", version->addr_trans_ip_address[i]);
+				}
+
+				r = json_add_string(version_json, tmpstr, "addr_trans_ip_address");
+				ERROR_CHECK_NEG(r, "Could not add addr_trans_ip_address to json object.");
+			}
+
+			r = json_add_number(version_json, version->addr_trans_port, "addr_trans_port");
+			ERROR_CHECK_NEG(r, "Could not add addr_trans_port to json object.");
+
+			r = json_add_number(version_json, version->nonce, "nonce");
+			ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+
+			r = json_add_string(version_json, version->user_agent, "user_agent");
+			ERROR_CHECK_NEG(r, "Could not add user_agent to json object.");
+
+			r = json_add_number(version_json, version->start_height, "start_height");
+			ERROR_CHECK_NEG(r, "Could not add start_height to json object.");
+
+			r = json_add_bool(version_json, version->relay, "relay");
+			ERROR_CHECK_NEG(r, "Could not add relay to json object.");
+
+
+
+			r = json_to_string(&json, version_json);
+			ERROR_CHECK_NEG(r, "Could not convert json to string.");
 
 			printf("%s\n", json);
 
+			json_free(version_json);
+
+			free(json);
 			free(version);
 			free(message);
 			free(payload);
-			free(json);
 			free(node);
 			free(node_data);
 
