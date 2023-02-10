@@ -134,6 +134,12 @@ int main(int argc, char *argv[])
 	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
 	BTK_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
 
+	// Force list format output for node command so it prints json in output obj.
+	if (strcmp(command, "node") == 0)
+	{
+		opts->output_format_list = 1;
+	}
+
 	if (input_fp(opts))
 	{
 		if (opts->input_format_binary)

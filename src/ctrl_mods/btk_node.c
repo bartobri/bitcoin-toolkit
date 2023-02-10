@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
+#include <string.h>
 #include "mods/network.h"
 #include "mods/node.h"
 #include "mods/message.h"
@@ -170,8 +171,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			r = version_deserialize(version, payload, payload_len);
 			ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
-
-
 			r = json_init(&version_json);
 			ERROR_CHECK_NEG(r, "Can not initialize json object.");
 
@@ -278,12 +277,11 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			r = json_add_bool(version_json, version->relay, "relay");
 			ERROR_CHECK_NEG(r, "Could not add relay to json object.");
 
-
-
 			r = json_to_string(&json, version_json);
 			ERROR_CHECK_NEG(r, "Could not convert json to string.");
 
-			printf("%s\n", json);
+			*output = output_append_new_copy(*output, json, strlen(json));
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 			json_free(version_json);
 
