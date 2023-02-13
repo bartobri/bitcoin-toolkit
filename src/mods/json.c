@@ -144,6 +144,39 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i, char *ke
     return 1;
 }
 
+int json_append_string(cJSON *jobj, char *string, char *key)
+{
+    cJSON *json_str;
+    cJSON *output_arr;
+
+    assert(jobj);
+    assert(string);
+
+    json_str = cJSON_CreateString(string);
+    if (json_str == NULL)
+    {
+        error_log("Could not generate JSON output string.");
+        return -1;
+    }
+
+    output_arr = cJSON_GetObjectItem(jobj, key);
+    if (output_arr == NULL)
+    {
+        output_arr = cJSON_CreateArray();
+        if (output_arr == NULL)
+        {
+            error_log("Could not generate JSON output array.");
+            return -1;
+        }
+
+        cJSON_AddItemToObject(jobj, key, output_arr);
+    }
+
+    cJSON_AddItemToArray(output_arr, json_str);
+
+    return 1;
+}
+
 
 
 
@@ -170,39 +203,6 @@ int json_grep_output_index(cJSON *jobj, int index)
 
     cJSON_ReplaceItemInObject(jobj, JSON_OUTPUT_KEY, new_arr);
     
-    return 1;
-}
-
-int json_add_output(cJSON *jobj, char *string)
-{
-    cJSON *json_str;
-    cJSON *output_arr;
-
-    assert(jobj);
-    assert(string);
-
-    json_str = cJSON_CreateString(string);
-    if (json_str == NULL)
-    {
-        error_log("Could not generate JSON output string.");
-        return -1;
-    }
-
-    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
-    if (output_arr == NULL)
-    {
-        output_arr = cJSON_CreateArray();
-        if (output_arr == NULL)
-        {
-            error_log("Could not generate JSON output array.");
-            return -1;
-        }
-
-        cJSON_AddItemToObject(jobj, JSON_OUTPUT_KEY, output_arr);
-    }
-
-    cJSON_AddItemToArray(output_arr, json_str);
-
     return 1;
 }
 

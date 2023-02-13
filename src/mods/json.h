@@ -17,9 +17,9 @@ int json_add_number(cJSON *, double, char *);
 int json_add_string(cJSON *, char *, char *);
 int json_add_object(cJSON *, cJSON *, char *);
 int json_get_index(char *, size_t, cJSON *, int, char *);
+int json_append_string(cJSON *, char *, char *);
 
 int json_grep_output_index(cJSON *, int);
-int json_add_output(cJSON *, char *);
 int json_has_output(cJSON *jobj);
 int json_to_string(char **, cJSON *);
 int json_free(cJSON *);

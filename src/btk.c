@@ -328,7 +328,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 			r = json_init(&tmp);
 			ERROR_CHECK_NEG(r, "Error initializing JSON input string.");
 
-			r = json_add_output(tmp, input_str);
+			r = json_append_string(tmp, input_str, BTK_OUTPUT_KEY);
 			ERROR_CHECK_NEG(r, "Error adding input string to JSON object.");
 
 			r = json_add_object(json_output, tmp, BTK_INPUT_KEY);
@@ -346,7 +346,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 				}
 			}
 
-			r = json_add_output(json_output, (char *)(output->content));
+			r = json_append_string(json_output, (char *)(output->content), BTK_OUTPUT_KEY);
 			ERROR_CHECK_NEG(r, "Output handling error.");
 
 			output = output->next;
