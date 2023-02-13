@@ -229,8 +229,25 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		r = main_fp(&output, opts, NULL, 0);
-		BTK_CHECK_NEG(r, NULL);
+		if (opts->output_stream)
+		{
+			while (1)
+			{
+				r = main_fp(&output, opts, NULL, 0);
+				BTK_CHECK_NEG(r, NULL);
+
+				r = btk_print_output(output, opts, NULL, 0);
+				BTK_CHECK_NEG(r, "Error printing output.");
+
+				output_free(output);
+				output = NULL;
+			}
+		}
+		else
+		{
+			r = main_fp(&output, opts, NULL, 0);
+			BTK_CHECK_NEG(r, NULL);
+		}
 	}
 	
 	if (output)
