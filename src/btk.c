@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <regex.h>
 #include "mods/input.h"
 #include "mods/json.h"
 #include "mods/qrcode.h"
@@ -251,6 +252,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	cJSON *json_output;
 	char *json_output_str = NULL;
 	cJSON *tmp = NULL;
+	regex_t grep;
 
 	assert(output);
 
@@ -266,7 +268,11 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		{
 			if (opts->output_grep)
 			{
-				if (!strstr((char *)(output->content), opts->output_grep))
+				r = regcomp(&grep, opts->output_grep, 0);
+				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
+
+				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
+				if (r == REG_NOMATCH)
 				{
 					output = output->next;
 					continue;
@@ -284,7 +290,11 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		{
 			if (opts->output_grep)
 			{
-				if (!strstr((char *)(output->content), opts->output_grep))
+				r = regcomp(&grep, opts->output_grep, 0);
+				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
+
+				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
+				if (r == REG_NOMATCH)
 				{
 					output = output->next;
 					continue;
@@ -339,7 +349,11 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		{
 			if (opts->output_grep)
 			{
-				if (!strstr((char *)(output->content), opts->output_grep))
+				r = regcomp(&grep, opts->output_grep, 0);
+				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
+
+				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
+				if (r == REG_NOMATCH)
 				{
 					output = output->next;
 					continue;
