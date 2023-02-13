@@ -29,6 +29,7 @@
 #define BTK_CHECK_FALSE(x, y)       if (!x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 #define BTK_CHECK_TRUE(x, y)        if (x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
+#define BTK_INPUT_KEY  "input"
 #define BTK_OUTPUT_KEY "output"
 
 int btk_print_output(output_list, opts_p, char *, cJSON *);
@@ -202,7 +203,7 @@ int main(int argc, char *argv[])
 					if (opts->output_stream)
 					{
 						tmp = cJSON_Duplicate(json_input, 1);
-						ERROR_CHECK_NULL(tmp, "Could not duplicate json input.");
+						BTK_CHECK_NULL(tmp, "Could not duplicate json input.");
 
 						r = json_grep_output_index(tmp, i - 1);
 						BTK_CHECK_NEG(r, "Error grepping input at index.");
@@ -319,7 +320,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 
 		if (input_json)
 		{
-			r = json_add_input(json_output, input_json);
+			r = json_add_object(json_output, input_json, BTK_INPUT_KEY);
 			ERROR_CHECK_NEG(r, "Error adding JSON input.");
 		}
 		else if (input_str)
@@ -330,7 +331,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 			r = json_add_output(tmp, input_str);
 			ERROR_CHECK_NEG(r, "Error adding input string to JSON object.");
 
-			r = json_add_input(json_output, tmp);
+			r = json_add_object(json_output, tmp, BTK_INPUT_KEY);
 			ERROR_CHECK_NEG(r, "Error adding JSON input.");
 		}
 

@@ -69,27 +69,16 @@ int json_add_string(cJSON *jobj, char *str, char *key)
 int json_add_object(cJSON *jobj, cJSON *added, char *key)
 {
     int r;
-
-    assert(jobj);
-
-    r = cJSON_AddItemToObject(jobj, key, added);
-    ERROR_CHECK_FALSE(r, "Error adding item to JSON object.");
-
-    return 1;
-}
-
-
-int json_add_input(cJSON *jobj, cJSON *input)
-{
     cJSON *tmp;
 
     assert(jobj);
-    assert(input);
+    assert(added);
 
-    tmp = cJSON_Duplicate(input, 1);
+    tmp = cJSON_Duplicate(added, 1);
     ERROR_CHECK_NULL(tmp, "Could not duplicate json input.");
 
-    cJSON_AddItemToObject(jobj, JSON_INPUT_KEY, tmp);
+    r = cJSON_AddItemToObject(jobj, key, tmp);
+    ERROR_CHECK_FALSE(r, "Error adding item to JSON object.");
 
     return 1;
 }
@@ -154,6 +143,8 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i, char *ke
 
     return 1;
 }
+
+
 
 
 
