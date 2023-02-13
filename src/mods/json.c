@@ -15,9 +15,6 @@
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
 
-#define JSON_INPUT_KEY "input"
-#define JSON_OUTPUT_KEY "output"
-
 int json_init(cJSON **jobj)
 {
     *jobj = cJSON_CreateObject();
