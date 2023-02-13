@@ -352,7 +352,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 			output = output->next;
 		}
 
-		if (opts->output_grep == NULL || json_has_output(json_output))
+		if (opts->output_grep == NULL || json_key_exists(json_output, BTK_OUTPUT_KEY))
 		{
 			r = json_to_string(&json_output_str, json_output);
 			ERROR_CHECK_NEG(r, "Error converting output to JSON.");

@@ -177,6 +177,21 @@ int json_append_string(cJSON *jobj, char *string, char *key)
     return 1;
 }
 
+int json_key_exists(cJSON *jobj, char *key)
+{
+    assert(jobj);
+
+    cJSON *output_arr;
+
+    output_arr = cJSON_GetObjectItem(jobj, key);
+    if (output_arr == NULL)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 
 
 
@@ -203,21 +218,6 @@ int json_grep_output_index(cJSON *jobj, int index)
 
     cJSON_ReplaceItemInObject(jobj, JSON_OUTPUT_KEY, new_arr);
     
-    return 1;
-}
-
-int json_has_output(cJSON *jobj)
-{
-    assert(jobj);
-
-    cJSON *output_arr;
-
-    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
-    if (output_arr == NULL)
-    {
-        return 0;
-    }
-
     return 1;
 }
 
