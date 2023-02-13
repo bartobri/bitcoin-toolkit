@@ -94,6 +94,70 @@ int json_add_input(cJSON *jobj, cJSON *input)
     return 1;
 }
 
+int json_get_index(char *output, size_t output_len, cJSON *jobj, int i, char *key)
+{
+    cJSON *tmp;
+    cJSON *output_arr;
+
+    assert(output);
+    assert(jobj);
+
+    if (key)
+    {
+        output_arr = cJSON_GetObjectItem(jobj, key);
+        if (output_arr == NULL)
+        {
+            error_log("JSON object does not contain key %s.", key);
+            return -1;
+        }
+    }
+    else
+    {
+        output_arr = jobj;
+    }
+
+    tmp = cJSON_GetArrayItem(output_arr, i);
+    if (tmp == NULL)
+    {
+        return 0;
+    }
+
+    if (cJSON_IsBool(tmp))
+    {
+        // represent bool as an integer (1 or 0)
+        sprintf(output, "%i", tmp->valueint);
+    }
+    else if (cJSON_IsNumber(tmp))
+    {
+        if (tmp->valueint == INT_MAX)
+        {
+            error_log("Integer too large. Wrap large numbers in quotes.");
+            return -1;
+        }
+        sprintf(output, "%i", tmp->valueint);
+    }
+    else if (cJSON_IsString(tmp))
+    {
+        if (strlen(tmp->valuestring) > output_len - 1)
+        {
+            error_log("JSON value at index %d too large.", i);
+            return -1;
+        }
+
+        strncpy(output, tmp->valuestring, output_len);
+    }
+    else
+    {
+        error_log("JSON array did not contain bool, string or number at index %d.", i);
+        return -1;
+    }
+
+    return 1;
+}
+
+
+
+
 int json_grep_output_index(cJSON *jobj, int index)
 {
     cJSON *output_arr;
@@ -161,51 +225,6 @@ int json_has_output(cJSON *jobj)
     if (output_arr == NULL)
     {
         return 0;
-    }
-
-    return 1;
-}
-
-int json_get_output_index(char *output, size_t output_len, cJSON *jobj, int i)
-{
-    cJSON *tmp;
-    cJSON *output_arr;
-
-    assert(output);
-    assert(jobj);
-
-    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
-    ERROR_CHECK_NULL(output_arr, "Missing output array.");
-
-    tmp = cJSON_GetArrayItem(output_arr, i);
-    if (tmp == NULL)
-    {
-        return 0;
-    }
-
-    if (cJSON_IsNumber(tmp))
-    {
-        if (tmp->valueint == INT_MAX)
-        {
-            error_log("Integer too large. Wrap large numbers in quotes.");
-            return -1;
-        }
-        sprintf(output, "%i", tmp->valueint);
-    }
-    else if (cJSON_IsString(tmp))
-    {
-        if (strlen(tmp->valuestring) > output_len - 1)
-        {
-            error_log("JSON value at index %d too large.", i);
-            return -1;
-        }
-
-        strncpy(output, tmp->valuestring, output_len);
-    }
-    else
-    {
-        error_log("JSON array must contain string or number only.");
-        return -1;
     }
 
     return 1;

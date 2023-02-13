@@ -29,6 +29,8 @@
 #define BTK_CHECK_FALSE(x, y)       if (!x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 #define BTK_CHECK_TRUE(x, y)        if (x) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
 
+#define BTK_OUTPUT_KEY "output"
+
 int btk_print_output(output_list, opts_p, char *, cJSON *);
 
 int main(int argc, char *argv[])
@@ -192,7 +194,7 @@ int main(int argc, char *argv[])
 				memset(json_str, 0, BUFSIZ);
 				i = 0;
 
-				while((r = json_get_output_index(json_str, BUFSIZ, json_input, i++)) > 0)
+				while((r = json_get_index(json_str, BUFSIZ, json_input, i++, BTK_OUTPUT_KEY)) > 0)
 				{
 					r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
 					BTK_CHECK_NEG(r, NULL);
