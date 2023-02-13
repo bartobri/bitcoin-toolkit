@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 						tmp = cJSON_Duplicate(json_input, 1);
 						BTK_CHECK_NULL(tmp, "Could not duplicate json input.");
 
-						r = json_grep_output_index(tmp, i - 1);
+						r = json_grep_index(tmp, i - 1, BTK_OUTPUT_KEY);
 						BTK_CHECK_NEG(r, "Error grepping input at index.");
 
 						r = btk_print_output(output, opts, NULL, tmp);

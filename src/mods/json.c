@@ -192,12 +192,7 @@ int json_key_exists(cJSON *jobj, char *key)
     return 1;
 }
 
-
-
-
-
-
-int json_grep_output_index(cJSON *jobj, int index)
+int json_grep_index(cJSON *jobj, int index, char *key)
 {
     cJSON *output_arr;
     cJSON *index_obj;
@@ -205,7 +200,7 @@ int json_grep_output_index(cJSON *jobj, int index)
 
     assert(jobj);
 
-    output_arr = cJSON_GetObjectItem(jobj, JSON_OUTPUT_KEY);
+    output_arr = cJSON_GetObjectItem(jobj, key);
     ERROR_CHECK_NULL(output_arr, "JSON does not have a output object.");
 
     new_arr = cJSON_CreateArray();
@@ -216,7 +211,7 @@ int json_grep_output_index(cJSON *jobj, int index)
 
     cJSON_AddItemToArray(new_arr, index_obj);
 
-    cJSON_ReplaceItemInObject(jobj, JSON_OUTPUT_KEY, new_arr);
+    cJSON_ReplaceItemInObject(jobj, key, new_arr);
     
     return 1;
 }
