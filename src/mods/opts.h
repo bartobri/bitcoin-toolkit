@@ -10,7 +10,7 @@
 
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
-#define OPTS_STRING_ADDRESS                 "lwhvLBQPESG:"
+#define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
 #define OPTS_STRING_NODE                    "n:p:T"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"
@@ -27,7 +27,6 @@ struct opts {
     int input_type_decimal;
     int input_type_binary;
     int input_type_sbd;
-    int input_type_vanity;
     int output_format_list;
     int output_format_qrcode;
     int output_format_binary;

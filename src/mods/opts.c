@@ -25,7 +25,6 @@ int opts_init(opts_p opts)
     opts->input_type_decimal = 0;
     opts->input_type_binary = 0;
     opts->input_type_sbd = 0;
-    opts->input_type_vanity = 0;
     opts->output_format_list = 0;
     opts->output_format_qrcode = 0;
     opts->output_format_binary = 0;
@@ -99,9 +98,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
             case 'x':
                 opts->input_type_sbd = 1;
-                break;
-            case 'v':
-                opts->input_type_vanity = 1;
                 break;
 
             case 'L':
