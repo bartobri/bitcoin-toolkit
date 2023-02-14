@@ -39,9 +39,6 @@ $(OBJ)/$(CTRL)/%.o: $(SRC)/$(CTRL)/%.c | $(OBJ)
 $(OBJ)/$(MODS)/commands/%.o: $(SRC)/$(MODS)/commands/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(OBJ)/$(MODS)/databases/%.o: $(SRC)/$(MODS)/databases/%.c | $(OBJ)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 $(OBJ)/$(MODS)/cJSON/%.o: $(SRC)/$(MODS)/cJSON/%.c | $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
@@ -61,7 +58,6 @@ $(OBJ):
 	mkdir -p $(OBJ)
 	mkdir -p $(OBJ)/$(MODS)
 	mkdir -p $(OBJ)/$(MODS)/commands
-	mkdir -p $(OBJ)/$(MODS)/databases
 	mkdir -p $(OBJ)/$(MODS)/cJSON
 	mkdir -p $(OBJ)/$(MODS)/QRCodeGen
 	mkdir -p $(OBJ)/$(CTRL)
