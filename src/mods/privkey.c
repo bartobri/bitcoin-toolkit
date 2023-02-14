@@ -9,7 +9,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <gmp.h>
 #include <stdbool.h>
 #include <assert.h>
 #include "privkey.h"
@@ -20,6 +19,11 @@
 #include "base58check.h"
 #include "crypto.h"
 #include "error.h"
+#ifdef _USE_GMPLIB
+#include <gmp.h>
+#else
+#include "GMP/mini-gmp.h"
+#endif
 
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF
@@ -128,7 +132,7 @@ int privkey_to_dec(char *str, PrivKey key)
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(d, privkey_hex, 16);
 
-	gmp_sprintf(str, "%Zd", d);
+	mpz_get_str(str, 10, d);
 
 	return 1;
 }

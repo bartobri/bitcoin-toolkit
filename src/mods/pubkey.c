@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <gmp.h>
 #include <ctype.h>
 #include <assert.h>
 #include "pubkey.h"
@@ -19,6 +18,11 @@
 #include "hex.h"
 #include "network.h"
 #include "error.h"
+#ifdef _USE_GMPLIB
+#include <gmp.h>
+#else
+#include "GMP/mini-gmp.h"
+#endif
 
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03

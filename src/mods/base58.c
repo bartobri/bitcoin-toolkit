@@ -7,9 +7,13 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <gmp.h>
 #include <assert.h>
 #include "error.h"
+#ifdef _USE_GMPLIB
+#include <gmp.h>
+#else
+#include "GMP/mini-gmp.h"
+#endif
 
 #define BASE58_CODE_STRING_LENGTH 58
 
