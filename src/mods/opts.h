@@ -11,7 +11,7 @@
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
-#define OPTS_STRING_NODE                    "n:p:T"
+#define OPTS_STRING_NODE                    "n:p:TS"
 #define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_ADDRESSDB               "wscf:F:"
 #define OPTS_STRING_HELP                    ""

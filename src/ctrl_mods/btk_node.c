@@ -58,6 +58,11 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	(void)input;
 	(void)input_len;
 
+	if (!opts->host_name && input)
+	{
+		opts->host_name = (char *)input;
+	}
+
 	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
 
 	if (!opts->host_port)
@@ -158,7 +163,29 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 				}
 			}
 			
-			ERROR_CHECK_NULL(message, "Did not receive response from host before timeout.");
+			if (!message)
+			{
+				r = json_init(&tmp);
+				ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+				r = json_add_string(tmp, opts->host_name, "host");
+				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+
+				r = json_add_string(tmp, "Connection Timeout", "output");
+				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+
+				r = json_to_string(&json, tmp);
+				ERROR_CHECK_NEG(r, "Could not convert json to string.");
+
+				*output = output_append_new_copy(*output, json, strlen(json));
+				ERROR_CHECK_NULL(*output, "Memory allocation error.");
+
+				json_free(tmp);
+
+				free(json);
+
+				break;
+			}
 			
 			payload = malloc(message_get_payload_len(message));
 			ERROR_CHECK_NULL(payload, "Memory allocation error.");
@@ -173,6 +200,9 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 			r = json_init(&version_json);
 			ERROR_CHECK_NEG(r, "Can not initialize json object.");
+
+			r = json_add_string(version_json, opts->host_name, "host");
+			ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
 
 			r = json_add_number(version_json, version->version, "version");
 			ERROR_CHECK_NEG(r, "Could not add version to json object.");
@@ -302,5 +332,10 @@ int btk_node_requires_input(opts_p opts)
 {
     assert(opts);
 
-    return 0;
+    if (opts->host_name)
+    {
+    	return 0;
+    }
+
+    return 1;
 }
