@@ -32,6 +32,12 @@ CLIBS += -lgmp
 undefine GMP_OBJS
 endif
 
+ifeq ($(USE_OPENSSL), 1)
+CFLAGS += -D_USE_OPENSSL
+CLIBS += -lcrypto
+undefine CRYPTO_OBJS
+endif
+
 .PHONY: all test install uninstall clean
 
 EXES = btk

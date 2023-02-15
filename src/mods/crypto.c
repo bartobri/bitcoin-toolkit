@@ -11,8 +11,13 @@
 #include <assert.h>
 #include "crypto.h"
 #include "error.h"
-#include "crypto/rmd160.h"
-#include "crypto/sha256.h"
+#ifdef _USE_OPENSSL
+#  include <openssl/ripemd.h>
+#  include <openssl/sha.h>
+#else
+#  include "crypto/rmd160.h"
+#  include "crypto/sha256.h"
+#endif
 
 int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
 {
