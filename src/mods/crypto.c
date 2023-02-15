@@ -7,79 +7,43 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <gcrypt.h>
+#include <stdlib.h>
 #include <assert.h>
 #include "crypto.h"
 #include "error.h"
-
-static int crypto_init(void)
-{
-	static int isInit = 0;
-
-	if (!isInit)
-	{
-		if (!gcry_check_version(GCRYPT_VERSION))
-		{
-			error_log("Libgcrypt version mismatch.");
-			return -1;
-		}
-		gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
-		gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
-		gcry_control(GCRYCTL_RESUME_SECMEM_WARN);
-		gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
-
-		isInit = 1;
-	}
-
-	return 1;
-}
+#include "crypto/rmd160.h"
+#include "crypto/sha256.h"
 
 int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	gcry_md_hd_t gc;
+	SHA256_CTX sha256;
 	
 	assert(output);
 	assert(input);
 	assert(input_len);
+	
+	SHA256_Init(&sha256);
 
-	if (crypto_init() < 0)
-	{
-		error_log("Could not initialize encryption library.");
-		return -1;
-	}
-	
-	gcry_md_open(&gc, GCRY_MD_SHA256, 0);
-	
-	gcry_md_write(gc, input, input_len);
-	
-	memcpy(output, gcry_md_read(gc, 0), 32);
-	
-	gcry_md_close(gc);
+	SHA256_Update(&sha256, input, input_len);
+
+	SHA256_Final(output, &sha256);
 	
 	return 1;
 }
 
 int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	gcry_md_hd_t gc;
+	RIPEMD160_CTX rmd160;
 	
 	assert(output);
 	assert(input);
 	assert(input_len);
-	
-	if (crypto_init() < 0)
-	{
-		error_log("Could not initialize encryption library.");
-		return -1;
-	}
 
-	gcry_md_open(&gc, GCRY_MD_RMD160, 0);
+	RIPEMD160_Init(&rmd160);
 
-	gcry_md_write(gc, input, input_len);
+	RIPEMD160_Update(&rmd160, input, input_len);
 
-	memcpy(output, gcry_md_read(gc, 0), 20);
-
-	gcry_md_close(gc);
+	RIPEMD160_Final(output, &rmd160);
 
 	return 1;
 }
