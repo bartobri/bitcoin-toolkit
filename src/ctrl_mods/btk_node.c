@@ -24,7 +24,6 @@
 
 #define HOST_PORT_MAIN       8333
 #define HOST_PORT_TEST       18333
-#define TIMEOUT              10
 #define MESSAGE_TYPE_VERSION 1
 
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
@@ -114,21 +113,15 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			free(message);
 			free(message_raw);
 
-			for (i = 0; i < TIMEOUT; ++i)
+			node_data = NULL;
+			node_data_len = 0;
+
+			r = node_read(node, &node_data);
+			ERROR_CHECK_NEG(r, "Could not read message from host.");
+
+			if (r > 0)
 			{
-				node_data = NULL;
-				node_data_len = 0;
-
-				r = node_read(node, &node_data);
-				ERROR_CHECK_NEG(r, "Could not read message from host.");
-
-				if (r > 0)
-				{
-					node_data_len = r;
-					break;
-				}
-
-				sleep(1);
+				node_data_len = r;
 			}
 
 			node_disconnect(node);

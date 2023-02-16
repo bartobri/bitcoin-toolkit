@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <netdb.h>
 #include <errno.h>
 #include <assert.h>
@@ -94,41 +93,45 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 
 int node_read(Node node, unsigned char** buffer)
 {
-	int r, input_len;
+	int r, i;
+	int read_total = 0;
 	
 	assert(node);
 	assert(buffer);
 
-	input_len = 0;
+	*buffer = malloc(BUFSIZ);
+	ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
 
-	r = ioctl(node->sockfd, FIONREAD, &input_len);
+	memset((*buffer), 0, BUFSIZ);
+
+	while ((r = read(node->sockfd, (*buffer) + read_total, BUFSIZ)) > 0)
+	{
+		read_total += r;
+		i++;
+
+		if (r == BUFSIZ)
+		{
+			(*buffer) = realloc((*buffer), BUFSIZ * (i + 1));
+			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
+
+			memset((*buffer) + read_total, 0, BUFSIZ);
+
+			continue;
+		}
+
+		if (r < BUFSIZ)
+		{
+			break;
+		}
+	}
+
 	if (r < 0)
 	{
 		error_log("Unable to read from socket. Errno %i.", errno);
 		return -1;
 	}
-
-	if (input_len > 0)
-	{
-		if (*buffer == NULL)
-		{
-			*buffer = malloc(input_len + 1);
-			if (*buffer == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-		}
-
-		r = read(node->sockfd, *buffer, input_len);
-		if (r < 0)
-		{
-			error_log("Unable to read from socket. Errno %i.", errno);
-			return -1;
-		}
-	}
 	
-	return input_len;
+	return read_total;
 }
 
 void node_disconnect(Node node)
