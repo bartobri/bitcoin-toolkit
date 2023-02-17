@@ -26,7 +26,6 @@ Table of Contents
 2. [Usage](#usage)
 3. [Command Examples](#command-examples)
 4. [License](#license)
-5. [Tips](#tips)
 
 Download and Install
 --------------------
