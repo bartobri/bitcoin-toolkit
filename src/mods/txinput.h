@@ -21,6 +21,6 @@ struct TXInput {
 	uint32_t       sequence;
 };
 
-int txinput_from_raw(TXInput, unsigned char *, size_t);
+int txinput_from_raw(TXInput, unsigned char *);
 
 #endif

@@ -13,13 +13,12 @@
 #include "error.h"
 #include "serialize.h"
 
-int txoutput_from_raw(TXOutput txoutput, unsigned char *input, size_t input_len)
+int txoutput_from_raw(TXOutput txoutput, unsigned char *input)
 {
 	unsigned char *head;
 	
 	assert(txoutput);
 	assert(input);
-	assert(input_len);
 
 	head = input;
 
