@@ -244,3 +244,25 @@ int address_from_str(char *address, char *str)
 
     return 1;
 }
+
+int address_from_hash160(char *address, unsigned char *hash)
+{
+    int r;
+    unsigned char rmd_bit[21];
+
+    if (network_is_main())
+    {
+        rmd_bit[0] = ADDRESS_VERSION_BIT_MAINNET;
+    }
+    else if (network_is_test())
+    {
+        rmd_bit[0] = ADDRESS_VERSION_BIT_TESTNET;
+    }
+
+    memcpy(rmd_bit + 1, hash, 20);
+
+    r = base58check_encode(address, rmd_bit, 21);
+    ERROR_CHECK_NEG(r, "Could not generate address from public key data.");
+
+    return 1;
+}
