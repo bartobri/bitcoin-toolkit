@@ -93,35 +93,28 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 
 int node_read(Node node, unsigned char** buffer)
 {
-	int r, i;
+	int r;
 	int read_total = 0;
+	int buf_size = BUFSIZ;
 	
 	assert(node);
 	assert(buffer);
 
-	*buffer = malloc(BUFSIZ);
+	*buffer = malloc(buf_size);
 	ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
 
-	memset((*buffer), 0, BUFSIZ);
-
-	while ((r = read(node->sockfd, (*buffer) + read_total, BUFSIZ)) > 0)
+	while ((r = read(node->sockfd, (*buffer) + read_total, buf_size - read_total)) > 0)
 	{
 		read_total += r;
-		i++;
 
-		if (r == BUFSIZ)
+		if (read_total == buf_size)
 		{
-			(*buffer) = realloc((*buffer), BUFSIZ * (i + 1));
+			buf_size += BUFSIZ;
+
+			(*buffer) = realloc((*buffer), buf_size);
 			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
 
-			memset((*buffer) + read_total, 0, BUFSIZ);
-
 			continue;
-		}
-
-		if (r < BUFSIZ)
-		{
-			break;
 		}
 	}
 
@@ -130,6 +123,8 @@ int node_read(Node node, unsigned char** buffer)
 		error_log("Unable to read from socket. Errno %i.", errno);
 		return -1;
 	}
+
+	memset((*buffer) + read_total, 0, buf_size - read_total);
 	
 	return read_total;
 }
