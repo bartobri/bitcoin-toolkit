@@ -62,3 +62,37 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 
 	return 1;
 }
+
+void trans_free(Trans trans)
+{
+	uint64_t i;
+
+	assert(trans);
+	assert(trans->inputs);
+	assert(trans->outputs);
+
+	for (i = 0; i < trans->input_count; i++)
+	{
+		assert(trans->inputs[i]);
+		assert(trans->inputs[i]->script_raw);
+
+		free(trans->inputs[i]->script_raw);
+		free(trans->inputs[i]);
+	}
+
+	for (i = 0; i < trans->output_count; i++)
+	{
+		assert(trans->outputs[i]);
+		assert(trans->outputs[i]->script_raw);
+
+		free(trans->outputs[i]->script_raw);
+		free(trans->outputs[i]);
+	}
+
+	free(trans->inputs);
+	free(trans->outputs);
+
+	free(trans);
+
+	return;
+}
