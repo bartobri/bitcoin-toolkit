@@ -97,7 +97,6 @@ unsigned char *serialize_uchar(unsigned char *dest, unsigned char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	dest += len;
@@ -109,7 +108,6 @@ unsigned char *serialize_char(unsigned char *dest, char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	dest += len;
@@ -315,7 +313,6 @@ unsigned char *deserialize_uchar(unsigned char *dest, unsigned char *src, int le
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	src += len;
@@ -327,7 +324,6 @@ unsigned char *deserialize_char(char *dest, unsigned char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	src += len;
