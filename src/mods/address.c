@@ -245,7 +245,7 @@ int address_from_str(char *address, char *str)
     return 1;
 }
 
-int address_from_hash160(char *address, unsigned char *hash)
+int address_from_rmd160(char *address, unsigned char *hash)
 {
     int r;
     unsigned char rmd_bit[21];
@@ -263,6 +263,20 @@ int address_from_hash160(char *address, unsigned char *hash)
 
     r = base58check_encode(address, rmd_bit, 21);
     ERROR_CHECK_NEG(r, "Could not generate address from public key data.");
+
+    return 1;
+}
+
+int address_from_sha256(char *address, unsigned char *hash)
+{
+    int r;
+    unsigned char rmd[20];
+
+    r = crypto_get_rmd160(rmd, hash, 32);
+    ERROR_CHECK_NEG(r, "Could not generate RMD160 hash from public key data.");
+
+    r = address_from_rmd160(address, rmd);
+    ERROR_CHECK_NEG(r, "Could not get address from RMD160 hash.");
 
     return 1;
 }

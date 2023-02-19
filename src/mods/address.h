@@ -14,6 +14,7 @@ int address_get_p2pkh(char *, PubKey);
 int address_get_p2wpkh(char *, PubKey);
 int address_from_wif(char *, char *);
 int address_from_str(char *, char *);
-int address_from_hash160(char *, unsigned char *);
+int address_from_rmd160(char *, unsigned char *);
+int address_from_sha256(char *, unsigned char *);
 
 #endif
