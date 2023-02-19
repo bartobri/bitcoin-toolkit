@@ -17,8 +17,9 @@
 #include "crypto.h"
 #include "error.h"
 
-#define ADDRESS_VERSION_BIT_MAINNET   0x00
-#define ADDRESS_VERSION_BIT_TESTNET   0x6F
+#define ADDRESS_VERSION_BIT_MAINNET      0x00
+#define ADDRESS_VERSION_BIT_MAINNET_P2SH 0x05
+#define ADDRESS_VERSION_BIT_TESTNET      0x6F
 
 int address_get_p2pkh(char *address, PubKey key)
 {
@@ -277,6 +278,21 @@ int address_from_sha256(char *address, unsigned char *hash)
 
     r = address_from_rmd160(address, rmd);
     ERROR_CHECK_NEG(r, "Could not get address from RMD160 hash.");
+
+    return 1;
+}
+
+int address_from_p2sh_script(char *address, unsigned char *script)
+{
+    int r;
+    unsigned char rmd_bit[21];
+
+    rmd_bit[0] = ADDRESS_VERSION_BIT_MAINNET_P2SH;
+
+    memcpy(rmd_bit + 1, script, 20);
+
+    r = base58check_encode(address, rmd_bit, 21);
+    ERROR_CHECK_NEG(r, "Could not generate address from script data.");
 
     return 1;
 }
