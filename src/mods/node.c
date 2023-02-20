@@ -109,7 +109,7 @@ int node_read(Node node, unsigned char** buffer)
 
 		if (read_total == buf_size)
 		{
-			buf_size += BUFSIZ;
+			buf_size = buf_size * 2;
 
 			(*buffer) = realloc((*buffer), buf_size);
 			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
