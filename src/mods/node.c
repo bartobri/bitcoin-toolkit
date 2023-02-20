@@ -66,6 +66,16 @@ int node_connect(Node node, const char *host, const char *service)
 
 	// If we get here, connection succeeded. Set up node struct.
 	node->sockfd = sockfd;
+
+	free(hints);
+
+	// Freeing result (linked list)
+	struct addrinfo *tmp;
+	do {
+		tmp = result->ai_next;
+		free(result);
+		result = tmp;
+	} while(result != NULL);
 	
 	return 1;
 }
