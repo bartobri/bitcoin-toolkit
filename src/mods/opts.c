@@ -41,7 +41,7 @@ int opts_init(opts_p opts)
     opts->network_test = 0;
     opts->rehashes = NULL;
     opts->host_name = NULL;
-    opts->host_port = 0;
+    opts->host_service = NULL;
     opts->create = 0;
     opts->input_path = NULL;
     opts->output_path = NULL;
@@ -157,7 +157,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->host_name = optarg;
                 break;
             case 'p':
-                opts->host_port = atoi(optarg);
+                opts->host_service = optarg;
                 break;
 
             case 'c':

@@ -13,7 +13,7 @@
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
 #define OPTS_STRING_UTXODB                  "f:"
-#define OPTS_STRING_ADDRESSDB               "wscf:F:"
+#define OPTS_STRING_ADDRESSDB               "n:p:wscf:F:"
 #define OPTS_STRING_HELP                    ""
 
 typedef struct opts *opts_p;
@@ -43,7 +43,7 @@ struct opts {
     int network_test;
     char *rehashes;
     char *host_name;
-    int host_port;
+    char *host_service;
     int create;
     char *input_path;
     char *output_path;

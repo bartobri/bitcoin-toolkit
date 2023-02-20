@@ -22,8 +22,8 @@
 #include "mods/commands/verack.h"
 #include "mods/cJSON/cJSON.h"
 
-#define HOST_PORT_MAIN       8333
-#define HOST_PORT_TEST       18333
+#define HOST_PORT_MAIN       "8333"
+#define HOST_PORT_TEST       "18333"
 #define MESSAGE_TYPE_VERSION 1
 
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
@@ -64,15 +64,15 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
 
-	if (!opts->host_port)
+	if (!opts->host_service)
 	{
 		if (opts->network_test)
 		{
-			opts->host_port = HOST_PORT_TEST;
+			opts->host_service = HOST_PORT_TEST;
 		}
 		else
 		{
-			opts->host_port = HOST_PORT_MAIN;
+			opts->host_service = HOST_PORT_MAIN;
 		}
 	}
 	
@@ -82,7 +82,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			node = malloc(node_sizeof());
 			ERROR_CHECK_NULL(node, "Memory allocation error.");
 
-			r = node_connect(node, opts->host_name, opts->host_port);
+			r = node_connect(node, opts->host_name, opts->host_service);
 			ERROR_CHECK_NEG(r, "Could not connect to host.");
 
 			version_string = malloc(version_sizeof());
