@@ -17,7 +17,6 @@
 #define BECH32_PREFIX_MAINNET         "bc"
 #define BECH32_PREFIX_TESTNET         "tb"
 #define BECH32_SEPARATOR              '1'
-#define BECH32_VERSION_BYTE           0
 #define BECH32_CHECKSUM_LENGTH        6
 
 static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk);
@@ -63,14 +62,14 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len, int w
 	*(output++) = BECH32_SEPARATOR;
 
 	// version byte
-	c = base32_get_char(BECH32_VERSION_BYTE);
+	c = base32_get_char(witver);
 	if (c < 0)
 	{
 		error_log("Could not encode version byte to base32.");
 		return -1;
 	}
 	*(output++) = (char)c;
-	chk = bech32_polymod_step(BECH32_VERSION_BYTE, chk);
+	chk = bech32_polymod_step(witver, chk);
 
 	// data
 	r = base32_encode(output, data, data_len);
@@ -133,11 +132,12 @@ static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk)
 	uint32_t gen[5] = {0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3};
 
 	b = (chk >> 25);
-	chk = (chk & 0x1ffffff) << 5 ^ value;
+	chk = (chk & 0x1ffffff) << 5;
 	for (i = 0; i < 5; ++i)
 	{
 		chk ^= ((b >> i) & 1) ? gen[i] : 0;
 	}
+	chk ^= value;
 
 	return chk;
 }
