@@ -29,6 +29,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	input = deserialize_uint32(&(trans->version), input, SERIALIZE_ENDIAN_LIT);
 
 	// checking for witness flag
+	// https://bitcoincore.org/en/segwit_wallet_dev/
 	if (*input == 0x00 && *(input + 1) == 0x01)
 	{
 		witness_flag = 1;
