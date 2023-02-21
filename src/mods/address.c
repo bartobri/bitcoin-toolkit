@@ -100,6 +100,7 @@ int address_get_p2wpkh(char *address, PubKey key)
 {
     int r;
     int data_len;
+    int witver = 0;  // hard coding witness version 0 for now. Note that 1 is taproot.
     unsigned char *data;
     unsigned char sha[32];
     unsigned char rmd[20];
@@ -142,7 +143,7 @@ int address_get_p2wpkh(char *address, PubKey key)
         return -1;
     }
 
-    r = bech32_get_address(address, rmd, 20);
+    r = bech32_get_address(address, rmd, 20, witver);
     if (r < 0)
     {
         error_log("Could not generate bech32 address from public key data.");
@@ -268,11 +269,11 @@ int address_from_rmd160(char *address, unsigned char *hash)
     return 1;
 }
 
-int address_p2wpkh_from_raw(char *address, unsigned char *data, size_t len)
+int address_p2wpkh_from_raw(char *address, unsigned char *data, size_t len, int witver)
 {
     int r;
 
-    r = bech32_get_address(address, data, len);
+    r = bech32_get_address(address, data, len, witver);
     ERROR_CHECK_NEG(r, "Could not generate P2WPKH (bech32) address.");
 
     return 1;
