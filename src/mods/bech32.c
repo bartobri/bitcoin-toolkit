@@ -22,7 +22,7 @@
 
 static uint32_t bech32_polymod_step(uint8_t value, uint32_t chk);
 
-int bech32_get_address(char *output, unsigned char *data, size_t data_len)
+int bech32_get_address(char *output, unsigned char *data, size_t data_len, int witver)
 {
 	int i, l, c, r;
 	char *hrp;
@@ -98,7 +98,14 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len)
 		chk = bech32_polymod_step(0, chk);
 	}
 
-	chk ^= 1;
+	if (witver == 0)
+	{
+		chk ^= 1;
+	}
+	else
+	{
+		chk ^= 0x2bc830a3;
+	}
 
 	// get/append checksum
 	for (i = 0; i < BECH32_CHECKSUM_LENGTH; ++i)
