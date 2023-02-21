@@ -19,6 +19,7 @@
 int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 {
 	int r;
+	int witness_flag = 0;
 	size_t i;
 
 	assert(trans);
@@ -26,6 +27,14 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 	assert(input_len);
 
 	input = deserialize_uint32(&(trans->version), input, SERIALIZE_ENDIAN_LIT);
+
+	// checking for witness flag
+	if (*input == 0x00 && *(input + 1) == 0x01)
+	{
+		witness_flag = 1;
+		input += 2;
+	}
+
 	input = deserialize_compuint(&(trans->input_count), input, SERIALIZE_ENDIAN_LIT);
 
 	trans->inputs = malloc(sizeof(TXInput) * trans->input_count);
@@ -56,6 +65,12 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 		ERROR_CHECK_NEG(r, "Could not parse transaction inputs.");
 
 		input += r;
+	}
+
+	if (witness_flag)
+	{
+		// TODO - collect or pass over witness data.
+		// This makes lock_time wrong, but that is okay for now.
 	}
 
 	input = deserialize_uint32(&(trans->lock_time), input, SERIALIZE_ENDIAN_LIT);
