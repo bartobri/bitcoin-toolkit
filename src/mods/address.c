@@ -268,6 +268,16 @@ int address_from_rmd160(char *address, unsigned char *hash)
     return 1;
 }
 
+int address_p2wpkh_from_raw(char *address, unsigned char *data, size_t len)
+{
+    int r;
+
+    r = bech32_get_address(address, data, len);
+    ERROR_CHECK_NEG(r, "Could not generate P2WPKH (bech32) address.");
+
+    return 1;
+}
+
 int address_from_sha256(char *address, unsigned char *hash)
 {
     int r;
