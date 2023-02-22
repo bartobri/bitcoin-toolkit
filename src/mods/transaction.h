@@ -24,6 +24,6 @@ struct Trans {
 };
 
 int transaction_from_raw(Trans, unsigned char *);
-void trans_free(Trans);
+void transaction_free(Trans);
 
 #endif

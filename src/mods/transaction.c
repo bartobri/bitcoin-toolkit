@@ -86,7 +86,7 @@ int transaction_from_raw(Trans trans, unsigned char *input)
 	return (input - head);
 }
 
-void trans_free(Trans trans)
+void transaction_free(Trans trans)
 {
 	uint64_t i;
 
