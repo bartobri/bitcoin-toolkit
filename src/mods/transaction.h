@@ -23,7 +23,7 @@ struct Trans {
 	uint32_t  lock_time;
 };
 
-int transaction_from_raw(Trans, unsigned char *, size_t);
+int transaction_from_raw(Trans, unsigned char *);
 void trans_free(Trans);
 
 #endif

@@ -18,14 +18,16 @@
 
 #define TRANSACTION_SEGWIT_MARKER 0x00
 
-int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
+int transaction_from_raw(Trans trans, unsigned char *input)
 {
 	int r;
 	size_t i;
+	unsigned char *head;
 
 	assert(trans);
 	assert(input);
-	assert(input_len);
+
+	head = input;
 
 	input = deserialize_uint32(&(trans->version), input, SERIALIZE_ENDIAN_LIT);
 
@@ -81,7 +83,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 
 	input = deserialize_uint32(&(trans->lock_time), input, SERIALIZE_ENDIAN_LIT);
 
-	return 1;
+	return (input - head);
 }
 
 void trans_free(Trans trans)
