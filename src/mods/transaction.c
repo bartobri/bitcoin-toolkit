@@ -21,7 +21,6 @@
 int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 {
 	int r;
-	int witness_flag = 0;
 	size_t i;
 
 	assert(trans);
@@ -74,7 +73,7 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 		input += r;
 	}
 
-	if (witness_flag)
+	if (trans->segwit_flag)
 	{
 		// TODO - collect or pass over witness data.
 		// This makes lock_time wrong, but that is okay for now.
