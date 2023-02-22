@@ -16,6 +16,8 @@
 #include "error.h"
 #include "serialize.h"
 
+#define TRANSACTION_SEGWIT_MARKER 0x00
+
 int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 {
 	int r;
@@ -28,12 +30,16 @@ int transaction_from_raw(Trans trans, unsigned char *input, size_t input_len)
 
 	input = deserialize_uint32(&(trans->version), input, SERIALIZE_ENDIAN_LIT);
 
-	// checking for witness flag
+	// checking for witness marker flag
 	// https://bitcoincore.org/en/segwit_wallet_dev/
-	if (*input == 0x00 && *(input + 1) == 0x01)
+	if (*input == TRANSACTION_SEGWIT_MARKER)
 	{
-		witness_flag = 1;
-		input += 2;
+		input++;
+		input = deserialize_uint8(&(trans->segwit_flag), input, SERIALIZE_ENDIAN_LIT);
+	}
+	else
+	{
+		trans->segwit_flag = 0;
 	}
 
 	input = deserialize_compuint(&(trans->input_count), input, SERIALIZE_ENDIAN_LIT);

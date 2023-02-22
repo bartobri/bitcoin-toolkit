@@ -15,6 +15,7 @@
 typedef struct Trans *Trans;
 struct Trans {
 	uint32_t  version;
+	uint8_t   segwit_flag;
 	uint64_t  input_count;
 	TXInput  *inputs;
 	uint64_t  output_count;
