@@ -21,7 +21,9 @@
 int transaction_from_raw(Trans trans, unsigned char *input)
 {
 	int r;
-	size_t i;
+	size_t i, j;
+	uint64_t segwit_count = 0;
+	uint64_t segwit_size = 0;
 	unsigned char *head;
 
 	assert(trans);
@@ -77,8 +79,17 @@ int transaction_from_raw(Trans trans, unsigned char *input)
 
 	if (trans->segwit_flag)
 	{
-		// TODO - collect or pass over witness data.
-		// This makes lock_time wrong, but that is okay for now.
+		for (i = 0; i < trans->input_count; i++)
+		{
+			input = deserialize_compuint(&segwit_count, input, SERIALIZE_ENDIAN_LIT);
+			for (j = 0; j < segwit_count; j++)
+			{
+				input = deserialize_compuint(&segwit_size, input, SERIALIZE_ENDIAN_LIT);
+
+				// Just skipping past segwit data for now.
+				input += segwit_size;
+			}
+		}
 	}
 
 	input = deserialize_uint32(&(trans->lock_time), input, SERIALIZE_ENDIAN_LIT);
