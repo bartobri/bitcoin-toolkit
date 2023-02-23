@@ -518,7 +518,7 @@ int utxodb_set_value_from_raw(UTXODBValue value, unsigned char *raw_value, size_
         error_log("Unable to allocate memory for output script value.");
         return -1;
     }
-    raw_value = deserialize_uchar(value->script, raw_value, value->script_len);
+    raw_value = deserialize_uchar(value->script, raw_value, value->script_len, SERIALIZE_ENDIAN_BIG);
 
     // pop off the coinbase flag from height.
     value->height = value->height >> 1;
@@ -551,7 +551,7 @@ int utxodb_set_key_from_raw(UTXODBKey key, unsigned char *raw_key, size_t key_le
     }
 
     raw_key = deserialize_uint8(&(key->type), raw_key, SERIALIZE_ENDIAN_BIG);
-    raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXODB_TX_HASH_LENGTH);
+    raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXODB_TX_HASH_LENGTH, SERIALIZE_ENDIAN_LIT);
     raw_key = deserialize_varint(&(key->vout), raw_key);
 
     // Reverse byte order of tx_hash

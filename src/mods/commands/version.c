@@ -178,10 +178,10 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 	input = deserialize_uint64(&(output->services), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint64(&(output->timestamp), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint64(&(output->addr_recv_services), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uchar(output->addr_recv_ip_address, input, IP_ADDR_FIELD_LEN);
+	input = deserialize_uchar(output->addr_recv_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
 	input = deserialize_uint16(&(output->addr_recv_port), input, SERIALIZE_ENDIAN_BIG);
 	input = deserialize_uint64(&(output->addr_trans_services), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uchar(output->addr_trans_ip_address, input, IP_ADDR_FIELD_LEN);
+	input = deserialize_uchar(output->addr_trans_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
 	input = deserialize_uint16(&(output->addr_trans_port), input, SERIALIZE_ENDIAN_BIG);
 	input = deserialize_uint64(&(output->nonce), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_compuint(&(output->user_agent_bytes), input, SERIALIZE_ENDIAN_LIT);

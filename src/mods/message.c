@@ -119,7 +119,7 @@ int message_deserialize(Message output, unsigned char *input, size_t input_len)
 			error_log("Input length (%i) insifficient to create a new message. %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN + output->length);
 			return -1;
 		}
-		input = deserialize_uchar(output->payload, input, output->length);
+		input = deserialize_uchar(output->payload, input, output->length, SERIALIZE_ENDIAN_BIG);
 	}
 	
 	return 12 + MESSAGE_COMMAND_MAXLEN + output->length;

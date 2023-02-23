@@ -22,14 +22,14 @@ int txinput_from_raw(TXInput txinput, unsigned char *input)
 
 	head = input;
 
-	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TXHASH_LENGTH);
+	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TXHASH_LENGTH, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint32(&(txinput->index), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_compuint(&(txinput->script_size), input, SERIALIZE_ENDIAN_LIT);
 
 	(txinput->script_raw) = malloc(txinput->script_size);
 	ERROR_CHECK_NULL((txinput->script_raw), "Memory allocation error.");
 
-	input = deserialize_uchar(txinput->script_raw, input, txinput->script_size);
+	input = deserialize_uchar(txinput->script_raw, input, txinput->script_size, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint32(&(txinput->sequence), input, SERIALIZE_ENDIAN_LIT);
 
 	return (input - head);
