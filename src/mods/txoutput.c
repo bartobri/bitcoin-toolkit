@@ -31,7 +31,7 @@ int txoutput_from_raw(TXOutput txoutput, unsigned char *input)
 	(txoutput->script_raw) = malloc(txoutput->script_size);
 	ERROR_CHECK_NULL((txoutput->script_raw), "Memory allocation error.");
 
-	input = deserialize_uchar(txoutput->script_raw, input, txoutput->script_size, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar(txoutput->script_raw, input, txoutput->script_size, SERIALIZE_ENDIAN_BIG);
 
 	return (input - head);
 }

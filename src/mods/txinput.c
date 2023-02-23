@@ -29,7 +29,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input)
 	(txinput->script_raw) = malloc(txinput->script_size);
 	ERROR_CHECK_NULL((txinput->script_raw), "Memory allocation error.");
 
-	input = deserialize_uchar(txinput->script_raw, input, txinput->script_size, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar(txinput->script_raw, input, txinput->script_size, SERIALIZE_ENDIAN_BIG);
 	input = deserialize_uint32(&(txinput->sequence), input, SERIALIZE_ENDIAN_LIT);
 
 	return (input - head);
