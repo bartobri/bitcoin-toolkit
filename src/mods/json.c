@@ -80,6 +80,57 @@ int json_add_object(cJSON *jobj, cJSON *added, char *key)
     return 1;
 }
 
+int json_get_key_obj(cJSON **output, cJSON *jobj, char *key)
+{
+    assert(output);
+    assert(jobj);
+    assert(key);
+
+    (*output) = cJSON_GetObjectItem(jobj, key);
+    if ((*output) == NULL)
+    {
+        error_log("JSON object does not contain key %s.", key);
+        return -1;
+    }
+
+    return 1;
+}
+
+int json_get_key_string(char **output, cJSON *jobj, char *key)
+{
+    cJSON *tmp;
+
+    assert(output);
+    assert(jobj);
+    assert(key);
+
+    tmp = cJSON_GetObjectItem(jobj, key);
+    if (tmp == NULL)
+    {
+        error_log("JSON object does not contain key %s.", key);
+        return -1;
+    }
+
+    if (!cJSON_IsString(tmp))
+    {
+        error_log("Object not string at key %s.", key);
+        return -1;
+    }
+
+    (*output) = malloc(strlen(tmp->valuestring) + 1);
+    ERROR_CHECK_NULL((*output), "Memory allocation error.");
+
+    memset((*output), 0, strlen(tmp->valuestring) + 1);
+
+    strcpy((*output), tmp->valuestring);
+
+    return 1;
+}
+
+// Future implementations
+//int json_get_key_int(int output, cJSON *jobj, char *key)
+//int json_get_key_bool(int *output, cJSON *jobj, char *key)
+
 int json_get_index(char *output, size_t output_len, cJSON *jobj, int i, char *key)
 {
     cJSON *tmp;
@@ -137,6 +188,50 @@ int json_get_index(char *output, size_t output_len, cJSON *jobj, int i, char *ke
         error_log("JSON array did not contain bool, string or number at index %d.", i);
         return -1;
     }
+
+    return 1;
+}
+
+int json_get_index_object(cJSON **array_obj, cJSON *jobj, int i, char *key)
+{
+    cJSON *tmp;
+    cJSON *array;
+
+    assert(jobj);
+
+    if (key)
+    {
+        array = cJSON_GetObjectItem(jobj, key);
+        if (array == NULL)
+        {
+            error_log("JSON object does not contain key %s.", key);
+            return -1;
+        }
+    }
+    else
+    {
+        array = jobj;
+    }
+
+    if (!cJSON_IsArray(array))
+    {
+        error_log("Json object must be an array.");
+        return -1;
+    }
+
+    tmp = cJSON_GetArrayItem(array, i);
+    if (tmp == NULL)
+    {
+        return 0;
+    }
+
+    if (!cJSON_IsObject(tmp))
+    {
+        error_log("Item at index %i is not a json object.", i);
+        return -1;
+    }
+
+    (*array_obj) = tmp;
 
     return 1;
 }
@@ -221,6 +316,16 @@ int json_to_string(char **output, cJSON *jobj)
         error_log("Could not print JSON string.");
         return -1;
     }
+
+    return 1;
+}
+
+int json_from_string(cJSON **jobj, char *string)
+{
+    assert(string);
+
+    (*jobj) = cJSON_ParseWithOpts(string, NULL, 1);
+    ERROR_CHECK_NULL((*jobj), "String contained invalid JSON.");
 
     return 1;
 }
