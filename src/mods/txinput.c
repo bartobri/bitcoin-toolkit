@@ -22,7 +22,7 @@ int txinput_from_raw(TXInput txinput, unsigned char *input)
 
 	head = input;
 
-	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TSHASH_LENGTH);
+	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TXHASH_LENGTH);
 	input = deserialize_uint32(&(txinput->index), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_compuint(&(txinput->script_size), input, SERIALIZE_ENDIAN_LIT);
 
