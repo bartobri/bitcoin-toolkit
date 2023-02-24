@@ -13,5 +13,7 @@
 
 int btk_balance_main(output_list *, opts_p, unsigned char *, size_t);
 int btk_balance_requires_input(opts_p);
+int btk_balance_init(opts_p);
+int btk_balance_cleanup(opts_p);
 
 #endif

@@ -47,9 +47,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         r = chainstate_open(opts->input_path);
         ERROR_CHECK_NEG(r, "Could not open chainstate database.");
 
-        r = balance_open(opts->output_path, opts->create);
-        ERROR_CHECK_NEG(r, "Could not open address database.");
-
         r = chainstate_seek_start();
         ERROR_CHECK_NEG(r, "Chainstate seek error.");
 
@@ -132,13 +129,9 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         utxovalue_free(value);
 
         chainstate_close();
-        balance_close();
     }
     else
     {
-        r = balance_open(opts->input_path, 0);
-        ERROR_CHECK_NEG(r, "Could not open address database.");
-
         if (opts->input_type_wif)
         {
             memset(address, 0, BUFSIZ);
@@ -163,8 +156,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         r = balance_get(&balance, address);
         ERROR_CHECK_NEG(r, "Could not query address database.");
 
-        balance_close();
-
         memset(output_str, 0, BUFSIZ);
 
         sprintf(output_str, "%ld", balance);
@@ -184,6 +175,27 @@ int btk_balance_requires_input(opts_p opts)
     {
         return 0;
     }
+
+    return 1;
+}
+
+int btk_balance_init(opts_p opts)
+{
+    int r;
+    
+    assert(opts);
+
+    r = balance_open(opts->output_path, opts->create);
+    ERROR_CHECK_NEG(r, "Could not open address database.");
+
+    return 1;
+}
+
+int btk_balance_cleanup(opts_p opts)
+{
+    assert(opts);
+
+    balance_close();
 
     return 1;
 }
