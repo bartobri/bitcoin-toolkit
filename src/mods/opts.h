@@ -11,8 +11,8 @@
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
+#define OPTS_STRING_BALANCE                 "lwsLBQn:p:wscf:F:SG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
-#define OPTS_STRING_BALANCE                 "ln:p:wscf:F:"
 #define OPTS_STRING_HELP                    ""
 
 typedef struct opts *opts_p;
