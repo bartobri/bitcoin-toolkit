@@ -531,9 +531,6 @@ int utxodb_set_value_from_raw(UTXODBValue value, unsigned char *raw_value, size_
 
 int utxodb_set_key_from_raw(UTXODBKey key, unsigned char *raw_key, size_t key_len)
 {
-    int i;
-    unsigned char tmp[UTXODB_TX_HASH_LENGTH];
-
     assert(key);
     assert(raw_key);
     assert(key_len);
@@ -553,16 +550,6 @@ int utxodb_set_key_from_raw(UTXODBKey key, unsigned char *raw_key, size_t key_le
     raw_key = deserialize_uint8(&(key->type), raw_key, SERIALIZE_ENDIAN_BIG);
     raw_key = deserialize_uchar(key->tx_hash, raw_key, UTXODB_TX_HASH_LENGTH, SERIALIZE_ENDIAN_LIT);
     raw_key = deserialize_varint(&(key->vout), raw_key);
-
-    // Reverse byte order of tx_hash
-    for (i = 0; i < UTXODB_TX_HASH_LENGTH; i++)
-    {
-        tmp[i] = key->tx_hash[UTXODB_TX_HASH_LENGTH - 1 - i];
-    }
-    for (i = 0; i < UTXODB_TX_HASH_LENGTH; i++)
-    {
-        key->tx_hash[i] = tmp[i];
-    }
 
     return 1;
 }
