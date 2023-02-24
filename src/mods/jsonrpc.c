@@ -55,6 +55,7 @@ int jsonrpc_init(char *hn, char *serv, char *auth)
         service = JSONRPC_DEFAULT_PORT;
     }
 
+    // auth = base64(username:password)
     auth_str = malloc(strlen(auth) + 1);
     ERROR_CHECK_NULL(auth_str, "Memory allocation error.")
     strcpy(auth_str, auth);
