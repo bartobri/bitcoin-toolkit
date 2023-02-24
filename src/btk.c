@@ -44,11 +44,14 @@ int main(int argc, char *argv[])
 	char json_str[BUFSIZ];
 	opts_p opts = NULL;
 	char *opts_string = NULL;
-	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
-	int (*input_fp)(opts_p) = NULL;
 	cJSON *json_input;
 	cJSON *tmp;
 	output_list output = NULL;
+
+	int (*init_fp)(opts_p) = NULL;
+	int (*input_fp)(opts_p) = NULL;
+	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
+	int (*cleanup_fp)(opts_p) = NULL;
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -94,6 +97,8 @@ int main(int argc, char *argv[])
 		opts_string = OPTS_STRING_BALANCE;
 		main_fp = &btk_balance_main;
 		input_fp = &btk_balance_requires_input;
+		init_fp = &btk_balance_init;
+		cleanup_fp = &btk_balance_cleanup;
 	}
 	else if (strcmp(command, "version") == 0)
 	{
@@ -135,6 +140,12 @@ int main(int argc, char *argv[])
 	if (strcmp(command, "node") == 0)
 	{
 		opts->output_format_list = 1;
+	}
+
+	if (init_fp)
+	{
+		r = init_fp(opts);
+		ERROR_CHECK_NEG(r, "Initialization error.");
 	}
 
 	if (input_fp(opts))
@@ -249,6 +260,12 @@ int main(int argc, char *argv[])
 		BTK_CHECK_NEG(r, "Error printing output.");
 
 		output_free(output);
+	}
+
+	if (cleanup_fp)
+	{
+		r = cleanup_fp(opts);
+		ERROR_CHECK_NEG(r, "Cleanup error.");
 	}
 
 	return EXIT_SUCCESS;
