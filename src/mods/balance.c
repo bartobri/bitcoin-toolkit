@@ -15,20 +15,19 @@
 #include "mods/database.h"
 #include "mods/serialize.h"
 
-#define ADDRESSDB_PATH_SIZE                1000
-#define ADDRESSDB_DEFAULT_PATH             ".bitcoin/address"
+#define BALANCE_DEFAULT_PATH             ".bitcoin/balance"
 
 static DBRef dbref = -1;
 
-int addressdb_open(char *p, bool create)
+int balance_open(char *path, bool create)
 {
     int r;
-    char path[ADDRESSDB_PATH_SIZE];
-
-    memset(path, 0, ADDRESSDB_PATH_SIZE);
-
-    if (p == NULL)
+    
+    if (path == NULL)
     {
+        path = malloc(BUFSIZ);
+        ERROR_CHECK_NULL(path, "Memory allocation error.");
+
         strcpy(path, getenv("HOME"));
         if (*path == 0)
         {
@@ -36,11 +35,7 @@ int addressdb_open(char *p, bool create)
             return -1;
         }
         strcat(path, "/");
-        strcat(path, ADDRESSDB_DEFAULT_PATH);
-    }
-    else
-    {
-        strcpy(path, p);
+        strcat(path, BALANCE_DEFAULT_PATH);
     }
 
     r = database_open(&dbref, path, create);
@@ -53,7 +48,7 @@ int addressdb_open(char *p, bool create)
     return 1;
 }
 
-void addressdb_close(void)
+void balance_close(void)
 {
     if (dbref > -1)
     {
@@ -61,7 +56,7 @@ void addressdb_close(void)
     }
 }
 
-int addressdb_get(uint64_t *sats, char *address)
+int balance_get(uint64_t *sats, char *address)
 {
     int r;
     size_t serialized_value_len = 0;
@@ -83,7 +78,7 @@ int addressdb_get(uint64_t *sats, char *address)
     return 1;
 }
 
-int addressdb_put(char *address, uint64_t sats)
+int balance_put(char *address, uint64_t sats)
 {
     int r;
     unsigned char serialized[sizeof(uint64_t)];

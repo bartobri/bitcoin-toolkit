@@ -5,15 +5,15 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-#ifndef ADDRESSDB_H
-#define ADDRESSDB_H 1
+#ifndef BALANCE_H
+#define BALANCE_H 1
 
 #include <stdint.h>
 #include <stdbool.h>
 
-int addressdb_open(char *, bool);
-void addressdb_close(void);
-int addressdb_get(uint64_t *, char *);
-int addressdb_put(char *, uint64_t);
+int balance_open(char *, bool);
+void balance_close(void);
+int balance_get(uint64_t *, char *);
+int balance_put(char *, uint64_t);
 
 #endif

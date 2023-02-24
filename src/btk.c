@@ -22,7 +22,7 @@
 #include "ctrl_mods/btk_address.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_utxodb.h"
-#include "ctrl_mods/btk_addressdb.h"
+#include "ctrl_mods/btk_balance.h"
 #include "ctrl_mods/btk_version.h"
 
 #define BTK_CHECK_NEG(x, y)         if (x < 0) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
@@ -96,11 +96,11 @@ int main(int argc, char *argv[])
 		main_fp = &btk_utxodb_main;
 		input_fp = &btk_utxodb_requires_input;
 	}
-	else if (strcmp(command, "addressdb") == 0)
+	else if (strcmp(command, "balance") == 0)
 	{
-		opts_string = OPTS_STRING_ADDRESSDB;
-		main_fp = &btk_addressdb_main;
-		input_fp = &btk_addressdb_requires_input;
+		opts_string = OPTS_STRING_BALANCE;
+		main_fp = &btk_balance_main;
+		input_fp = &btk_balance_requires_input;
 	}
 	else if (strcmp(command, "version") == 0)
 	{
