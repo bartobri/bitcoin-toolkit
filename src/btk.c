@@ -21,7 +21,6 @@
 #include "ctrl_mods/btk_pubkey.h"
 #include "ctrl_mods/btk_address.h"
 #include "ctrl_mods/btk_node.h"
-#include "ctrl_mods/btk_utxodb.h"
 #include "ctrl_mods/btk_balance.h"
 #include "ctrl_mods/btk_version.h"
 
@@ -89,12 +88,6 @@ int main(int argc, char *argv[])
 		opts_string = OPTS_STRING_NODE;
 		main_fp = &btk_node_main;
 		input_fp = &btk_node_requires_input;
-	}
-	else if (strcmp(command, "utxodb") == 0)
-	{
-		opts_string = OPTS_STRING_UTXODB;
-		main_fp = &btk_utxodb_main;
-		input_fp = &btk_utxodb_requires_input;
 	}
 	else if (strcmp(command, "balance") == 0)
 	{

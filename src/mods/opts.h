@@ -12,7 +12,6 @@
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
-#define OPTS_STRING_UTXODB                  "f:"
 #define OPTS_STRING_BALANCE                 "ln:p:wscf:F:"
 #define OPTS_STRING_HELP                    ""
 

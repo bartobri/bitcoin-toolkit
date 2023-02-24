@@ -20,7 +20,6 @@ void btk_help_pubkey(void);
 void btk_help_address(void);
 void btk_help_node(void);
 void btk_help_version(void);
-void btk_help_utxodb(void);
 
 int btk_help_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
