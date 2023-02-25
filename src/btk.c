@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "version") == 0)
 	{
+		opts_string = OPTS_STRING_VERSION;
 		main_fp = &btk_version_main;
 		input_fp = &btk_version_requires_input;
 		init_fp = &btk_version_init;
