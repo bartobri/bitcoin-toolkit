@@ -149,11 +149,8 @@ int main(int argc, char *argv[])
 	r = btk_init(opts);
 	BTK_CHECK_NEG(r, "Could not initialize btk.");
 
-	if (init_fp)
-	{
-		r = init_fp(opts);
-		BTK_CHECK_NEG(r, "Initialization error.");
-	}
+	r = init_fp(opts);
+	BTK_CHECK_NEG(r, "Initialization error.");
 
 	if (input_fp(opts))
 	{
@@ -269,11 +266,8 @@ int main(int argc, char *argv[])
 		output_free(output);
 	}
 
-	if (cleanup_fp)
-	{
-		r = cleanup_fp(opts);
-		BTK_CHECK_NEG(r, "Cleanup error.");
-	}
+	r = cleanup_fp(opts);
+	BTK_CHECK_NEG(r, "Cleanup error.");
 
 	r = btk_cleanup(opts);
 	BTK_CHECK_NEG(r, "Could not cleanup btk.");
