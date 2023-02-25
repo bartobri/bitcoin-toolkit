@@ -289,15 +289,18 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	if (opts->output_format_qrcode) { i++; }
 	ERROR_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
 
+	if (opts->output_grep)
+	{
+		r = regcomp(&grep, opts->output_grep, 0);
+		ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
+	}
+
 	if (opts->output_format_list)
 	{
 		while(output)
 		{
 			if (opts->output_grep)
 			{
-				r = regcomp(&grep, opts->output_grep, 0);
-				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
-
 				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
 				if (r == REG_NOMATCH)
 				{
@@ -317,9 +320,6 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		{
 			if (opts->output_grep)
 			{
-				r = regcomp(&grep, opts->output_grep, 0);
-				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
-
 				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
 				if (r == REG_NOMATCH)
 				{
@@ -376,9 +376,6 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		{
 			if (opts->output_grep)
 			{
-				r = regcomp(&grep, opts->output_grep, 0);
-				ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
-
 				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
 				if (r == REG_NOMATCH)
 				{
@@ -408,6 +405,8 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 
 		free(json_output_str);
 		json_free(json_output);
+
+		regfree(&grep);
 	}
 
 	return 1;
