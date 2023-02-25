@@ -406,7 +406,10 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		free(json_output_str);
 		json_free(json_output);
 
-		regfree(&grep);
+		if (opts->output_grep)
+		{
+			regfree(&grep);
+		}
 	}
 
 	return 1;
