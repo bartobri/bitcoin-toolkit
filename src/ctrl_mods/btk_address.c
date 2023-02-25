@@ -115,3 +115,17 @@ int btk_address_requires_input(opts_p opts)
 
     return 1;
 }
+
+int btk_address_init(opts_p opts)
+{
+    assert(opts);
+
+    return 1;
+}
+
+int btk_address_cleanup(opts_p opts)
+{
+    assert(opts);
+    
+    return 1;
+}

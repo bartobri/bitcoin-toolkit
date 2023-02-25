@@ -52,3 +52,17 @@ int btk_help_requires_input(opts_p opts)
 
     return 0;
 }
+
+int btk_help_init(opts_p opts)
+{
+	assert(opts);
+
+	return 1;
+}
+
+int btk_help_cleanup(opts_p opts)
+{
+	assert(opts);
+	
+	return 1;
+}

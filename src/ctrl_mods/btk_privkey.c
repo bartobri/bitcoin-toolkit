@@ -443,3 +443,17 @@ int btk_privkey_requires_input(opts_p opts)
 
 	return 1;
 }
+
+int btk_privkey_init(opts_p opts)
+{
+	assert(opts);
+
+	return 1;
+}
+
+int btk_privkey_cleanup(opts_p opts)
+{
+	assert(opts);
+	
+	return 1;
+}

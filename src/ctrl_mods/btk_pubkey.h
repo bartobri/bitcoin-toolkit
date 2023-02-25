@@ -13,5 +13,7 @@
 
 int btk_pubkey_main(output_list *, opts_p, unsigned char *, size_t);
 int btk_pubkey_requires_input(opts_p);
+int btk_pubkey_init(opts_p);
+int btk_pubkey_cleanup(opts_p);
 
 #endif

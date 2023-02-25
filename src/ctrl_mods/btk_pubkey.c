@@ -125,3 +125,17 @@ int btk_pubkey_requires_input(opts_p opts)
 
 	return 1;
 }
+
+int btk_pubkey_init(opts_p opts)
+{
+	assert(opts);
+
+	return 1;
+}
+
+int btk_pubkey_cleanup(opts_p opts)
+{
+	assert(opts);
+	
+	return 1;
+}

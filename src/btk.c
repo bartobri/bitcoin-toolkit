@@ -77,18 +77,24 @@ int main(int argc, char *argv[])
 		opts_string = OPTS_STRING_PRIVKEY;
 		main_fp = &btk_privkey_main;
 		input_fp = &btk_privkey_requires_input;
+		init_fp = &btk_privkey_init;
+		cleanup_fp = &btk_privkey_cleanup;
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
 		opts_string = OPTS_STRING_PUBKEY;
 		main_fp = &btk_pubkey_main;
 		input_fp = &btk_pubkey_requires_input;
+		init_fp = &btk_pubkey_init;
+		cleanup_fp = &btk_pubkey_cleanup;
 	}
 	else if (strcmp(command, "address") == 0)
 	{
 		opts_string = OPTS_STRING_ADDRESS;
 		main_fp = &btk_address_main;
 		input_fp = &btk_address_requires_input;
+		init_fp = &btk_address_init;
+		cleanup_fp = &btk_address_cleanup;
 	}
 	else if (strcmp(command, "node") == 0)
 	{
@@ -110,12 +116,16 @@ int main(int argc, char *argv[])
 	{
 		main_fp = &btk_version_main;
 		input_fp = &btk_version_requires_input;
+		init_fp = &btk_version_init;
+		cleanup_fp = &btk_version_cleanup;
 	}
 	else if (strcmp(command, "help") == 0)
 	{
 		opts_string = OPTS_STRING_HELP;
 		main_fp = &btk_help_main;
 		input_fp = &btk_help_requires_input;
+		init_fp = &btk_help_init;
+		cleanup_fp = &btk_help_cleanup;
 	}
 	else
 	{

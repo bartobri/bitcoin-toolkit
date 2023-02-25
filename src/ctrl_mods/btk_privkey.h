@@ -13,5 +13,7 @@
 
 int btk_privkey_main(output_list *, opts_p, unsigned char *, size_t);
 int btk_privkey_requires_input(opts_p);
+int btk_privkey_init(opts_p);
+int btk_privkey_cleanup(opts_p);
 
 #endif

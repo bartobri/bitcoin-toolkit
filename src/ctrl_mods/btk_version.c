@@ -39,3 +39,17 @@ int btk_version_requires_input(opts_p opts)
 
     return 0;
 }
+
+int btk_version_init(opts_p opts)
+{
+	assert(opts);
+
+	return 1;
+}
+
+int btk_version_cleanup(opts_p opts)
+{
+	assert(opts);
+	
+	return 1;
+}
