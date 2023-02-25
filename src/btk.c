@@ -135,16 +135,13 @@ int main(int argc, char *argv[])
 	r = opts_get(opts, argc, argv, opts_string);
 	BTK_CHECK_NEG(r, NULL);
 
-	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
-	BTK_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
-
 	r = btk_init(opts);
-	ERROR_CHECK_NEG(r, "Could not initialize btk.");
+	BTK_CHECK_NEG(r, "Could not initialize btk.");
 
 	if (init_fp)
 	{
 		r = init_fp(opts);
-		ERROR_CHECK_NEG(r, "Initialization error.");
+		BTK_CHECK_NEG(r, "Initialization error.");
 	}
 
 	if (input_fp(opts))
@@ -264,18 +261,27 @@ int main(int argc, char *argv[])
 	if (cleanup_fp)
 	{
 		r = cleanup_fp(opts);
-		ERROR_CHECK_NEG(r, "Cleanup error.");
+		BTK_CHECK_NEG(r, "Cleanup error.");
 	}
 
 	r = btk_cleanup(opts);
-	ERROR_CHECK_NEG(r, "Could not cleanup btk.");
+	BTK_CHECK_NEG(r, "Could not cleanup btk.");
 
 	return EXIT_SUCCESS;
 }
 
 int btk_init(opts_p opts)
 {
-	int r;
+	int r, i;
+
+	ERROR_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
+	ERROR_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
+
+	i = 0;
+	if (opts->output_format_binary) { i++; }
+	if (opts->output_format_list) { i++; }
+	if (opts->output_format_qrcode) { i++; }
+	ERROR_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
 
 	if (opts->output_grep)
 	{
@@ -306,12 +312,6 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	cJSON *tmp = NULL;
 
 	assert(output);
-
-	i = 0;
-	if (opts->output_format_binary) { i++; }
-	if (opts->output_format_list) { i++; }
-	if (opts->output_format_qrcode) { i++; }
-	ERROR_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
 
 	if (opts->output_format_list)
 	{
