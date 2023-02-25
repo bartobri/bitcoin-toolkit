@@ -95,6 +95,8 @@ int main(int argc, char *argv[])
 		opts_string = OPTS_STRING_NODE;
 		main_fp = &btk_node_main;
 		input_fp = &btk_node_requires_input;
+		init_fp = &btk_node_init;
+		cleanup_fp = &btk_node_cleanup;
 	}
 	else if (strcmp(command, "balance") == 0)
 	{
@@ -139,12 +141,6 @@ int main(int argc, char *argv[])
 
 	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
 	BTK_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
-
-	// Force list format output for node command so it prints json in output obj.
-	if (strcmp(command, "node") == 0)
-	{
-		opts->output_format_list = 1;
-	}
 
 	r = btk_init(opts);
 	ERROR_CHECK_NEG(r, "Could not initialize btk.");

@@ -13,5 +13,7 @@
 
 int btk_node_main(output_list *, opts_p, unsigned char *, size_t);
 int btk_node_requires_input(opts_p);
+int btk_node_init(opts_p);
+int btk_node_cleanup(opts_p);
 
 #endif

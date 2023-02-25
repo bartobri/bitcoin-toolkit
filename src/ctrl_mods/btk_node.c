@@ -332,3 +332,18 @@ int btk_node_requires_input(opts_p opts)
 
     return 1;
 }
+
+int btk_node_init(opts_p opts)
+{
+	// Force list output format so it prints the json in output obj.
+	opts->output_format_list = 1;
+
+	return 1;
+}
+
+int btk_node_cleanup(opts_p opts)
+{
+	(void)opts;
+	
+	return 1;
+}
