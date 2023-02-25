@@ -132,17 +132,16 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
     }
     else
     {
+        memset(address, 0, BUFSIZ);
+        memset(output_str, 0, BUFSIZ);
+
         if (opts->input_type_wif)
         {
-            memset(address, 0, BUFSIZ);
-
             r = address_from_wif(address, (char *)input);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
         }
         else if (opts->input_type_string)
         {
-            memset(address, 0, BUFSIZ);
-
             r = address_from_str(address, (char *)input);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
         }
@@ -155,8 +154,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         r = balance_get(&balance, address);
         ERROR_CHECK_NEG(r, "Could not query address database.");
-
-        memset(output_str, 0, BUFSIZ);
 
         sprintf(output_str, "%ld", balance);
 
@@ -182,7 +179,7 @@ int btk_balance_requires_input(opts_p opts)
 int btk_balance_init(opts_p opts)
 {
     int r;
-    
+
     assert(opts);
 
     r = balance_open(opts->output_path, opts->create);
