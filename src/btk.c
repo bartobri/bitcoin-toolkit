@@ -34,6 +34,8 @@
 
 static regex_t grep;
 
+int btk_init(opts_p);
+int btk_cleanup(opts_p);
 int btk_print_output(output_list, opts_p, char *, cJSON *);
 
 int main(int argc, char *argv[])
@@ -144,16 +146,13 @@ int main(int argc, char *argv[])
 		opts->output_format_list = 1;
 	}
 
+	r = btk_init(opts);
+	ERROR_CHECK_NEG(r, "Could not initialize btk.");
+
 	if (init_fp)
 	{
 		r = init_fp(opts);
 		ERROR_CHECK_NEG(r, "Initialization error.");
-	}
-
-	if (opts->output_grep)
-	{
-		r = regcomp(&grep, opts->output_grep, 0);
-		ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
 	}
 
 	if (input_fp(opts))
@@ -276,12 +275,33 @@ int main(int argc, char *argv[])
 		ERROR_CHECK_NEG(r, "Cleanup error.");
 	}
 
+	r = btk_cleanup(opts);
+	ERROR_CHECK_NEG(r, "Could not cleanup btk.");
+
+	return EXIT_SUCCESS;
+}
+
+int btk_init(opts_p opts)
+{
+	int r;
+
+	if (opts->output_grep)
+	{
+		r = regcomp(&grep, opts->output_grep, 0);
+		ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
+	}
+
+	return 1;
+}
+
+int btk_cleanup(opts_p opts)
+{
 	if (opts->output_grep)
 	{
 		regfree(&grep);
 	}
 
-	return EXIT_SUCCESS;
+	return 1;
 }
 
 int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *input_json)
