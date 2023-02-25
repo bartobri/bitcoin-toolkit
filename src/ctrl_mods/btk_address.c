@@ -79,13 +79,17 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
 
     if (output_type_p2wpkh)
     {
-        memset(output_str, 0, BUFSIZ);
+        // Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
+        if (pubkey_is_compressed(pubkey) || !opts->output_stream || !output_type_p2pkh)
+        {
+            memset(output_str, 0, BUFSIZ);
 
-        r = address_get_p2wpkh(output_str, pubkey);
-        ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+            r = address_get_p2wpkh(output_str, pubkey);
+            ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
 
-        *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
-        ERROR_CHECK_NULL(*output, "Memory allocation error.");
+            *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+            ERROR_CHECK_NULL(*output, "Memory allocation error.");
+        }
     }
 
     if (output_type_p2pkh)
