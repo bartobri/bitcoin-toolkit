@@ -290,7 +290,7 @@ int btk_init(opts_p opts)
 
 	if (opts->output_grep)
 	{
-		r = regcomp(&grep, opts->output_grep, 0);
+		r = regcomp(&grep, opts->output_grep, REG_ICASE|REG_NOSUB);
 		ERROR_CHECK_TRUE(r, "Could not compile regex for grep option.");
 	}
 
