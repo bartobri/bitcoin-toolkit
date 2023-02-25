@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
 	}
 
 	opts = malloc(sizeof(*opts));
-	if (opts == NULL)
 	BTK_CHECK_NULL(opts, "Memory allocation error.");
 
 	r = opts_init(opts);
