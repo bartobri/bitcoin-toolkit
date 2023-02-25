@@ -5,9 +5,11 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <string.h>
 #include "opts.h"
 #include "error.h"
 #include "assert.h"
@@ -53,6 +55,7 @@ int opts_init(opts_p opts)
 int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
 {
     int r, o;
+    char opt_string_noerror[BUFSIZ];
 
     assert(opts);
     assert(opts_string);
@@ -65,10 +68,12 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
         opts->subcommand = argv[2];
     }
 
-    // Turn off getopt errors. I print my own errors.
-    opterr = 0;
+    // Turn off getopt errors. 
+    memset(opt_string_noerror, 0, BUFSIZ);
+    strcpy(opt_string_noerror, ":");
+    strcat(opt_string_noerror, opts_string);
 
-    while ((o = getopt(argc, argv, opts_string)) != -1)
+    while ((o = getopt(argc, argv, opt_string_noerror)) != -1)
     {
         switch (o)
         {
@@ -171,10 +176,14 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->output_path = optarg;
                 break;
 
+            case ':':
+                error_log("Missing option argument for '-%c'.", optopt);
+                return -1;
+
             case '?':
                 if (isprint(optopt))
                 {
-                    error_log("Invalid option or missing option argument: '-%c'.", optopt);
+                    error_log("Invalid option: '-%c'.", optopt);
                 }
                 else
                 {
