@@ -132,11 +132,8 @@ int main(int argc, char *argv[])
 	r = opts_init(opts);
 	BTK_CHECK_NEG(r, NULL);
 
-	if (opts_string)
-	{
-		r = opts_get(opts, argc, argv, opts_string);
-		BTK_CHECK_NEG(r, NULL);
-	}
+	r = opts_get(opts, argc, argv, opts_string);
+	BTK_CHECK_NEG(r, NULL);
 
 	BTK_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
 	BTK_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
