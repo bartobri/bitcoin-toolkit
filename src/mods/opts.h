@@ -11,7 +11,7 @@
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
-#define OPTS_STRING_BALANCE                 "lwsLBQn:p:wscf:F:SG:"
+#define OPTS_STRING_BALANCE                 "lwsLBQn:p:cf:F:SG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
 #define OPTS_STRING_VERSION                 ""
 #define OPTS_STRING_HELP                    ""
@@ -47,10 +47,11 @@ struct opts {
     int create;
     char *input_path;
     char *output_path;
+    char *command;
     char *subcommand;
 };
 
-int opts_init(opts_p);
+int opts_init(opts_p, char *);
 int opts_get(opts_p, int, char **, char *);
 
 #endif

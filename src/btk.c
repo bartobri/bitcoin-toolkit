@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 	opts = malloc(sizeof(*opts));
 	BTK_CHECK_NULL(opts, "Memory allocation error.");
 
-	r = opts_init(opts);
+	r = opts_init(opts, command);
 	BTK_CHECK_NEG(r, NULL);
 
 	r = opts_get(opts, argc, argv, opts_string);
