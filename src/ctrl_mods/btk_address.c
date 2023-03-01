@@ -37,12 +37,6 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
     if (opts->output_type_p2pkh) { output_type_p2pkh = opts->output_type_p2pkh; }
     if (opts->output_type_p2wpkh) { output_type_p2wpkh = opts->output_type_p2wpkh; }
 
-    if (opts->input_type_wif && opts->input_type_hex)
-    {
-        error_log("Can not use multiple input type options.");
-        return -1;
-    }
-
     // Default to P2PKH
     if (!output_type_p2pkh && !output_type_p2wpkh)
     {

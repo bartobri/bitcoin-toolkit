@@ -405,8 +405,6 @@ int btk_privkey_requires_input(opts_p opts)
 
 int btk_privkey_init(opts_p opts)
 {
-	int i;
-
 	assert(opts);
 
 	if (opts->input_type_wif) { input_type_wif =  opts->input_type_wif; }
@@ -423,20 +421,6 @@ int btk_privkey_init(opts_p opts)
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 	if (opts->rehashes) { rehashes = opts->rehashes; }
-
-	// Enforce only one input type option.
-	i = 0;
-	if (input_type_wif) { i++; }
-	if (input_type_hex) { i++; }
-	if (input_type_raw) { i++; }
-	if (input_type_string) { i++; }
-	if (input_type_decimal) { i++; }
-	if (input_type_sbd) { i++; }
-	if (i > 1)
-	{
-		error_log("Can not use more than one input type option.");
-		return -1;
-	}
 
 	if (output_type_raw && (output_type_wif || output_type_hex || output_type_decimal))
 	{

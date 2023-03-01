@@ -309,6 +309,20 @@ int opts_get(opts_p opts, int argc, char *argv[])
         }
     }
 
+    // Only allow one input type
+    i = 0;
+    if (opts->input_type_wif) { i++; }
+    if (opts->input_type_hex) { i++; }
+    if (opts->input_type_raw) { i++; }
+    if (opts->input_type_string) { i++; }
+    if (opts->input_type_decimal) { i++; }
+    if (opts->input_type_sbd) { i++; }
+    if (i > 1)
+    {
+        error_log("Can not use more than one input type option.");
+        return -1;
+    }
+
     return 1;
 }
 
