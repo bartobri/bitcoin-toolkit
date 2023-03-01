@@ -254,10 +254,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->host_service = optarg;
                 break;
 
-            case 'c':
-                opts->create = 1;
-                break;
-
             case 'f':
                 opts->input_path = optarg;
                 break;
