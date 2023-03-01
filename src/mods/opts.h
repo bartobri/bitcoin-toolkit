@@ -11,8 +11,8 @@
 #define OPTS_STRING_PRIVKEY                 "lbwxrsdcLBQCUWXDRS:G:"
 #define OPTS_STRING_PUBKEY                  "lwxLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwxLBQSG:"
-#define OPTS_STRING_BALANCE                 "lwsLBQn:p:cf:F:SG:"
-#define OPTS_STRING_NODE                    "ln:p:TS"
+#define OPTS_STRING_BALANCE                 "lwsLBQh:p:cf:F:SG:"
+#define OPTS_STRING_NODE                    "lh:p:TS"
 #define OPTS_STRING_VERSION                 ""
 #define OPTS_STRING_HELP                    ""
 

@@ -247,7 +247,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->compression_off = 1;
                 break;
 
-            case 'n':
+            case 'h':
                 opts->host_name = optarg;
                 break;
             case 'p':
