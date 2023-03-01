@@ -251,10 +251,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->network_test = 1;
                 break;
 
-            case 'X':
-                opts->rehashes = optarg;
-                break;
-
             case 'n':
                 opts->host_name = optarg;
                 break;
