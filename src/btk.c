@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
 	char command_str[BUFSIZ];
 	char json_str[BUFSIZ];
 	opts_p opts = NULL;
-	char *opts_string = NULL;
 	cJSON *json_input;
 	cJSON *tmp;
 	output_list output = NULL;
@@ -74,7 +73,6 @@ int main(int argc, char *argv[])
 
 	if (strcmp(command, "privkey") == 0)
 	{
-		opts_string = OPTS_STRING_PRIVKEY;
 		main_fp = &btk_privkey_main;
 		input_fp = &btk_privkey_requires_input;
 		init_fp = &btk_privkey_init;
@@ -82,7 +80,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
-		opts_string = OPTS_STRING_PUBKEY;
 		main_fp = &btk_pubkey_main;
 		input_fp = &btk_pubkey_requires_input;
 		init_fp = &btk_pubkey_init;
@@ -90,7 +87,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "address") == 0)
 	{
-		opts_string = OPTS_STRING_ADDRESS;
 		main_fp = &btk_address_main;
 		input_fp = &btk_address_requires_input;
 		init_fp = &btk_address_init;
@@ -98,7 +94,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "node") == 0)
 	{
-		opts_string = OPTS_STRING_NODE;
 		main_fp = &btk_node_main;
 		input_fp = &btk_node_requires_input;
 		init_fp = &btk_node_init;
@@ -106,7 +101,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "balance") == 0)
 	{
-		opts_string = OPTS_STRING_BALANCE;
 		main_fp = &btk_balance_main;
 		input_fp = &btk_balance_requires_input;
 		init_fp = &btk_balance_init;
@@ -114,7 +108,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "version") == 0)
 	{
-		opts_string = OPTS_STRING_VERSION;
 		main_fp = &btk_version_main;
 		input_fp = &btk_version_requires_input;
 		init_fp = &btk_version_init;
@@ -122,7 +115,6 @@ int main(int argc, char *argv[])
 	}
 	else if (strcmp(command, "help") == 0)
 	{
-		opts_string = OPTS_STRING_HELP;
 		main_fp = &btk_help_main;
 		input_fp = &btk_help_requires_input;
 		init_fp = &btk_help_init;
@@ -143,7 +135,7 @@ int main(int argc, char *argv[])
 	r = opts_init(opts, command);
 	BTK_CHECK_NEG(r, NULL);
 
-	r = opts_get(opts, argc, argv, opts_string);
+	r = opts_get(opts, argc, argv);
 	BTK_CHECK_NEG(r, NULL);
 
 	r = btk_init(opts);

@@ -15,32 +15,36 @@
 #include "error.h"
 #include "assert.h"
 
-#define OPTS_INPUT_FORMAT    "in-format"
-#define OPTS_INPUT_TYPE      "in-type"
-#define OPTS_OUTPUT_FORMAT   "out-format"
-#define OPTS_OUTPUT_TYPE     "out-type"
-#define OPTS_STREAM          "stream"
-#define OPTS_GREP            "grep"
-#define OPTS_COMPRESSED      "compressed"
-#define OPTS_REHASH          "rehash"
-#define OPTS_HOSTNAME        "hostname"
-#define OPTS_PORT            "port"
-#define OPTS_CREATE          "create"
-#define OPTS_INPUT_PATH      "in-path"
-#define OPTS_OUTPUT_PATH     "out-path"
-#define OPTS_BECH32          "bech32"
-#define OPTS_TESTNET         "testnet"
-#define OPTS_ADD(x, y)       longopts[i++] = (struct option){x,  y, NULL, 0};
-#define OPTS_MAX             20
+#define OPTS_INPUT_FORMAT    (struct opt_info){"in-format",  "lbj"}
+#define OPTS_INPUT_TYPE      (struct opt_info){"in-type",    "wxrsd"}
+#define OPTS_OUTPUT_FORMAT   (struct opt_info){"out-format", "LQB"}
+#define OPTS_OUTPUT_TYPE     (struct opt_info){"out-type",   "WXDR"}
+#define OPTS_STREAM          (struct opt_info){"stream",     "S"}
+#define OPTS_GREP            (struct opt_info){"grep",       "G:"}
+#define OPTS_COMPRESSED      (struct opt_info){"compressed", "CU"}
+#define OPTS_REHASH          (struct opt_info){"rehash",     ""}
+#define OPTS_HOSTNAME        (struct opt_info){"hostname",   "h:"}
+#define OPTS_PORT            (struct opt_info){"port",       "p:"}
+#define OPTS_CREATE          (struct opt_info){"create",     ""}
+#define OPTS_INPUT_PATH      (struct opt_info){"in-path",    ""}
+#define OPTS_OUTPUT_PATH     (struct opt_info){"out-path",   ""}
+#define OPTS_BECH32          (struct opt_info){"bech32",     ""}
+#define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
+#define OPTS_MAX             30
+
+struct opt_info {
+    char *longopt;
+    char *shortopt;
+};
 
 static struct option longopts[OPTS_MAX];
+static char shortopts[OPTS_MAX];
 
-int opts_long_set_arg(opts_p, const char *, char *);
+int opts_add(struct opt_info, int);
+int opts_process_long(opts_p, const char *, char *);
 
 int opts_init(opts_p opts, char *command)
 {
-    int i = 0;
-
     assert(opts);
     assert(command);
 
@@ -77,58 +81,59 @@ int opts_init(opts_p opts, char *command)
     opts->subcommand = NULL;
 
     memset(longopts, 0, OPTS_MAX * sizeof(*longopts));
+    memset(shortopts, 0, OPTS_MAX);
 
     if (strcmp(command, "privkey") == 0)
     {
-        OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_INPUT_TYPE, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_TYPE, required_argument);
-        OPTS_ADD(OPTS_CREATE, no_argument);
-        OPTS_ADD(OPTS_COMPRESSED, required_argument);
-        OPTS_ADD(OPTS_STREAM, no_argument);
-        OPTS_ADD(OPTS_REHASH, required_argument);
-        OPTS_ADD(OPTS_GREP, required_argument);
-        OPTS_ADD(OPTS_TESTNET, no_argument);
+        opts_add(OPTS_INPUT_FORMAT, required_argument);
+        opts_add(OPTS_INPUT_TYPE, required_argument);
+        opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+        opts_add(OPTS_OUTPUT_TYPE, required_argument);
+        opts_add(OPTS_CREATE, no_argument);
+        opts_add(OPTS_COMPRESSED, required_argument);
+        opts_add(OPTS_STREAM, no_argument);
+        opts_add(OPTS_REHASH, required_argument);
+        opts_add(OPTS_GREP, required_argument);
+        opts_add(OPTS_TESTNET, no_argument);
     }
     else if (strcmp(command, "pubkey") == 0)
     {
-        OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_INPUT_TYPE, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_COMPRESSED, required_argument);
-        OPTS_ADD(OPTS_STREAM, no_argument);
-        OPTS_ADD(OPTS_GREP, required_argument);
+        opts_add(OPTS_INPUT_FORMAT, required_argument);
+        opts_add(OPTS_INPUT_TYPE, required_argument);
+        opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+        opts_add(OPTS_COMPRESSED, required_argument);
+        opts_add(OPTS_STREAM, no_argument);
+        opts_add(OPTS_GREP, required_argument);
     }
     else if (strcmp(command, "address") == 0)
     {
-        OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_INPUT_TYPE, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_BECH32, no_argument);
-        OPTS_ADD(OPTS_STREAM, no_argument);
-        OPTS_ADD(OPTS_GREP, required_argument);
+        opts_add(OPTS_INPUT_FORMAT, required_argument);
+        opts_add(OPTS_INPUT_TYPE, required_argument);
+        opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+        opts_add(OPTS_BECH32, no_argument);
+        opts_add(OPTS_STREAM, no_argument);
+        opts_add(OPTS_GREP, required_argument);
     }
     else if (strcmp(command, "balance") == 0)
     {
-        OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_INPUT_TYPE, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_HOSTNAME, required_argument);
-        OPTS_ADD(OPTS_PORT, required_argument);
-        OPTS_ADD(OPTS_CREATE, no_argument);
-        OPTS_ADD(OPTS_INPUT_PATH, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_PATH, required_argument);
-        OPTS_ADD(OPTS_STREAM, no_argument);
-        OPTS_ADD(OPTS_GREP, required_argument);
+        opts_add(OPTS_INPUT_FORMAT, required_argument);
+        opts_add(OPTS_INPUT_TYPE, required_argument);
+        opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+        opts_add(OPTS_HOSTNAME, required_argument);
+        opts_add(OPTS_PORT, required_argument);
+        opts_add(OPTS_CREATE, no_argument);
+        opts_add(OPTS_INPUT_PATH, required_argument);
+        opts_add(OPTS_OUTPUT_PATH, required_argument);
+        opts_add(OPTS_STREAM, no_argument);
+        opts_add(OPTS_GREP, required_argument);
     }
     else if (strcmp(command, "node") == 0)
     {
-        OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_HOSTNAME, required_argument);
-        OPTS_ADD(OPTS_PORT, required_argument);
-        OPTS_ADD(OPTS_HOSTNAME, required_argument);
-        OPTS_ADD(OPTS_STREAM, no_argument);
+        opts_add(OPTS_INPUT_FORMAT, required_argument);
+        opts_add(OPTS_HOSTNAME, required_argument);
+        opts_add(OPTS_PORT, required_argument);
+        opts_add(OPTS_HOSTNAME, required_argument);
+        opts_add(OPTS_STREAM, no_argument);
     }
     else if (strcmp(command, "version") == 0)
     {
@@ -147,34 +152,42 @@ int opts_init(opts_p opts, char *command)
     return 1;
 }
 
-int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
+int opts_add(struct opt_info info, int has_arg)
 {
-    int r, o;
+    static int i = 0;
+
+    longopts[i++] = (struct option){info.longopt, has_arg, NULL, 0};
+    strcat(shortopts, info.shortopt);
+
+    return 1;
+}
+
+int opts_get(opts_p opts, int argc, char *argv[])
+{
+    int r, o, i;
     int opt_index = 0;
-    char opt_string_noerror[BUFSIZ];
     const char *optname;
 
     assert(opts);
-    assert(opts_string);
 
     if (argc > 2 && argv[2][0] != '-')
     {
         opts->subcommand = argv[2];
     }
 
-    // Turn off getopt errors. 
-    memset(opt_string_noerror, 0, BUFSIZ);
-    strcpy(opt_string_noerror, ":");
-    strcat(opt_string_noerror, opts_string);
+    // Prepend a colon to turn off getopt errors.
+    for (i = strlen(shortopts); i > 0; i--)
+        shortopts[i] = shortopts[i-1];
+    shortopts[0] = ':';
 
-    while ((o = getopt_long(argc, argv, opt_string_noerror, longopts, &opt_index)) != -1)
+    while ((o = getopt_long(argc, argv, shortopts, longopts, &opt_index)) != -1)
     {
         // Processing long opts
         if (o == 0)
         {
             optname = longopts[opt_index].name;
 
-            r = opts_long_set_arg(opts, optname, optarg);
+            r = opts_process_long(opts, optname, optarg);
             ERROR_CHECK_NEG(r, "Could not set option argument.");
 
             continue;
@@ -288,9 +301,9 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
     return 1;
 }
 
-int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
+int opts_process_long(opts_p opts, const char *optname, char *optarg)
 {
-    if (strcmp(optname, OPTS_INPUT_FORMAT) == 0)
+    if (strcmp(optname, OPTS_INPUT_FORMAT.longopt) == 0)
     {
         if (strcmp(optarg, "list") == 0)        { opts->input_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0) { opts->input_format_binary = 1; opts->input_type_binary = 1; }
@@ -302,7 +315,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, OPTS_INPUT_TYPE) == 0)
+    else if (strcmp(optname, OPTS_INPUT_TYPE.longopt) == 0)
     {
         if (strcmp(optarg, "wif") == 0)            { opts->input_type_wif = 1; }
         else if (strcmp(optarg, "hex") == 0)       { opts->input_type_hex = 1; }
@@ -317,7 +330,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, OPTS_OUTPUT_FORMAT) == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_FORMAT.longopt) == 0)
     {
         if (strcmp(optarg, "list") == 0)            { opts->output_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0)     { opts->output_format_binary = 1; }
@@ -330,7 +343,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, OPTS_OUTPUT_TYPE) == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_TYPE.longopt) == 0)
     {
         if (strcmp(optarg, "wif") == 0)             { opts->output_type_wif = 1; }
         else if (strcmp(optarg, "hex") == 0)        { opts->output_type_hex = 1; }
@@ -345,17 +358,17 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, OPTS_STREAM) == 0)
+    else if (strcmp(optname, OPTS_STREAM.longopt) == 0)
     {
         opts->output_stream = 1;
     }
 
-    else if (strcmp(optname, OPTS_GREP) == 0)
+    else if (strcmp(optname, OPTS_GREP.longopt) == 0)
     {
         opts->output_grep = optarg;
     }
 
-    else if (strcmp(optname, OPTS_COMPRESSED) == 0)
+    else if (strcmp(optname, OPTS_COMPRESSED.longopt) == 0)
     {
         if (strcmp(optarg, "true") == 0)            { opts->compression_on = 1; }
         else if (strcmp(optarg, "false") == 0)      { opts->compression_off = 1; }
@@ -366,42 +379,42 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, OPTS_REHASH) == 0)
+    else if (strcmp(optname, OPTS_REHASH.longopt) == 0)
     {
         opts->rehashes = optarg;    // TODO - change to 'rehash'
     }
 
-    else if (strcmp(optname, OPTS_HOSTNAME) == 0)
+    else if (strcmp(optname, OPTS_HOSTNAME.longopt) == 0)
     {
         opts->host_name = optarg;
     }
 
-    else if (strcmp(optname, OPTS_PORT) == 0)
+    else if (strcmp(optname, OPTS_PORT.longopt) == 0)
     {
         opts->host_service = optarg;
     }
 
-    else if (strcmp(optname, OPTS_CREATE) == 0)
+    else if (strcmp(optname, OPTS_CREATE.longopt) == 0)
     {
         opts->create = 1;
     }
 
-    else if (strcmp(optname, OPTS_INPUT_PATH) == 0)
+    else if (strcmp(optname, OPTS_INPUT_PATH.longopt) == 0)
     {
         opts->input_path = optarg;
     }
 
-    else if (strcmp(optname, OPTS_OUTPUT_PATH) == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_PATH.longopt) == 0)
     {
         opts->output_path = optarg;
     }
 
-    else if (strcmp(optname, OPTS_BECH32) == 0)
+    else if (strcmp(optname, OPTS_BECH32.longopt) == 0)
     {
         opts->output_type_p2wpkh = 1;
     }
 
-    else if (strcmp(optname, OPTS_TESTNET) == 0)
+    else if (strcmp(optname, OPTS_TESTNET.longopt) == 0)
     {
         opts->network_test = 1;
     }

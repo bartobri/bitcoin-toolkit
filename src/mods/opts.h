@@ -8,14 +8,6 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwxrsdLBQCUWXDRSG:"
-#define OPTS_STRING_PUBKEY                  "lwxLBQCUSG:"
-#define OPTS_STRING_ADDRESS                 "lwxLBQSG:"
-#define OPTS_STRING_BALANCE                 "lwsLBQh:p:SG:"
-#define OPTS_STRING_NODE                    "lh:p:TS"
-#define OPTS_STRING_VERSION                 ""
-#define OPTS_STRING_HELP                    ""
-
 typedef struct opts *opts_p;
 struct opts {
     int input_format_list;
@@ -52,6 +44,6 @@ struct opts {
 };
 
 int opts_init(opts_p, char *);
-int opts_get(opts_p, int, char **, char *);
+int opts_get(opts_p, int, char **);
 
 #endif
