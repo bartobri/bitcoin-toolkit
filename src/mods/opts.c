@@ -194,7 +194,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'w':
                 opts->input_type_wif = 1;
                 break;
-            case 'h':
+            case 'x':
                 opts->input_type_hex = 1;
                 break;
             case 'r':
@@ -221,7 +221,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'W':
                 opts->output_type_wif = 1;
                 break;
-            case 'H':
+            case 'X':
                 opts->output_type_hex = 1;
                 break;
             case 'D':

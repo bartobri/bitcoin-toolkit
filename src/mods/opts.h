@@ -8,9 +8,9 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdcLBQCUWHDRS:G:"
-#define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
-#define OPTS_STRING_ADDRESS                 "lwhLBQSG:"
+#define OPTS_STRING_PRIVKEY                 "lbwxrsdcLBQCUWXDRS:G:"
+#define OPTS_STRING_PUBKEY                  "lwxLBQCUSG:"
+#define OPTS_STRING_ADDRESS                 "lwxLBQSG:"
 #define OPTS_STRING_BALANCE                 "lwsLBQn:p:cf:F:SG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
 #define OPTS_STRING_VERSION                 ""
