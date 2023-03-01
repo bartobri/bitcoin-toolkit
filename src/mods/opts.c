@@ -17,7 +17,7 @@
 
 #define OPTS_INPUT_FORMAT    (struct opt_info){"in-format",  "lbj"}
 #define OPTS_INPUT_TYPE      (struct opt_info){"in-type",    "wxrsd"}
-#define OPTS_OUTPUT_FORMAT   (struct opt_info){"out-format", "LQB"}
+#define OPTS_OUTPUT_FORMAT   (struct opt_info){"out-format", "LQBJ"}
 #define OPTS_OUTPUT_TYPE     (struct opt_info){"out-type",   "WXDR"}
 #define OPTS_STREAM          (struct opt_info){"stream",     "S"}
 #define OPTS_GREP            (struct opt_info){"grep",       "G:"}
@@ -50,6 +50,7 @@ int opts_init(opts_p opts, char *command)
 
     opts->input_format_list = 0;
     opts->input_format_binary = 0;
+    opts->input_format_json = 0;
     opts->input_type_wif = 0;
     opts->input_type_hex = 0;
     opts->input_type_raw = 0;
@@ -60,6 +61,7 @@ int opts_init(opts_p opts, char *command)
     opts->output_format_list = 0;
     opts->output_format_qrcode = 0;
     opts->output_format_binary = 0;
+    opts->output_format_json = 0;
     opts->output_type_wif = 0;
     opts->output_type_hex = 0;
     opts->output_type_decimal = 0;
@@ -203,6 +205,9 @@ int opts_get(opts_p opts, int argc, char *argv[])
                 opts->input_format_binary = 1;
                 opts->input_type_binary = 1;  // TODO put this in btk init?
                 break;
+            case 'j':
+                opts->input_format_json = 1;
+                break;
 
             case 'w':
                 opts->input_type_wif = 1;
@@ -229,6 +234,9 @@ int opts_get(opts_p opts, int argc, char *argv[])
                 break;
             case 'B':
                 opts->output_format_binary = 1;
+                break;
+            case 'J':
+                opts->output_format_json = 1;
                 break;
 
             case 'W':
@@ -307,7 +315,7 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     {
         if (strcmp(optarg, "list") == 0)        { opts->input_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0) { opts->input_format_binary = 1; opts->input_type_binary = 1; }
-        else if (strcmp(optarg, "json") == 0)   { }
+        else if (strcmp(optarg, "json") == 0)   { opts->input_format_json = 1; }
         else
         {
             error_log("Invalid argument for option --%s.", optname);
@@ -335,7 +343,7 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
         if (strcmp(optarg, "list") == 0)            { opts->output_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0)     { opts->output_format_binary = 1; }
         else if (strcmp(optarg, "qrcode") == 0)     { opts->output_format_qrcode = 1; }
-        else if (strcmp(optarg, "json") == 0)       { }
+        else if (strcmp(optarg, "json") == 0)       { opts->output_format_json = 1; }
         else
         {
             error_log("Invalid argument for option --%s.", optname);

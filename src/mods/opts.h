@@ -12,6 +12,7 @@ typedef struct opts *opts_p;
 struct opts {
     int input_format_list;
     int input_format_binary;
+    int input_format_json;
     int input_type_wif;
     int input_type_hex;
     int input_type_raw;
@@ -22,6 +23,7 @@ struct opts {
     int output_format_list;
     int output_format_qrcode;
     int output_format_binary;
+    int output_format_json;
     int output_type_wif;
     int output_type_hex;
     int output_type_decimal;

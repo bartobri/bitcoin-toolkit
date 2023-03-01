@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 			}
 			BTK_CHECK_NEG(r, NULL);
 		}
-		else
+		else if (opts->input_format_json)
 		{
 			while ((r = input_get_json(&json_input)) > 0)
 			{
@@ -225,6 +225,12 @@ int main(int argc, char *argv[])
 				json_free(json_input);
 			}
 			BTK_CHECK_NEG(r, "Error getting json input.");
+		}
+		else
+		{
+			// In theory, we shouldn't ever get here. If we do, check that
+			// we are setting the defaults properly in btk_init()
+			BTK_CHECK_NEG(-1, "No input format specified.");
 		}
 	}
 	else
@@ -271,14 +277,32 @@ int btk_init(opts_p opts)
 {
 	int r, i;
 
-	ERROR_CHECK_TRUE(opts->input_format_binary && opts->input_format_list, "Can not use both binary and list input format opts.");
-	ERROR_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
+	// Sanity check the opts
+
+	i = 0;
+	if (opts->input_format_binary) { i++; }
+	if (opts->input_format_list) { i++; }
+	if (opts->input_format_json) { i++; }
+	ERROR_CHECK_TRUE((i > 1), "Can not use multiple input formats.");
+	if (i == 0)
+	{
+		opts->input_format_json = 1;
+	}
 
 	i = 0;
 	if (opts->output_format_binary) { i++; }
 	if (opts->output_format_list) { i++; }
 	if (opts->output_format_qrcode) { i++; }
+	if (opts->output_format_json) { i++; }
 	ERROR_CHECK_TRUE((i > 1), "Can not use multiple output formats.");
+	if (i == 0)
+	{
+		opts->output_format_json = 1;
+	}
+
+	ERROR_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
+
+	// Compile regex for grep here.
 
 	if (opts->output_grep)
 	{
@@ -365,7 +389,7 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 			output = output->next;
 		}
 	}
-	else
+	else if (opts->output_format_json)
 	{
 		r = json_init(&json_output);
 		ERROR_CHECK_NEG(r, "Error initializing JSON output.");
@@ -420,6 +444,11 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 
 		free(json_output_str);
 		json_free(json_output);
+	}
+	else
+	{
+		error_log("No output format specified.");
+		return -1;
 	}
 
 	return 1;
