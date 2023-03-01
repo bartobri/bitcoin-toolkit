@@ -309,6 +309,14 @@ int opts_get(opts_p opts, int argc, char *argv[])
         }
     }
 
+    // Checking for extra non-options.
+    // We pre-increment because the first non-option is the command.
+    if (++optind < argc)
+    {
+        error_log("Unknown option: \"%s\".", argv[optind]);
+        return -1;
+    }
+
     // Only allow one input type
     i = 0;
     if (opts->input_type_wif) { i++; }
