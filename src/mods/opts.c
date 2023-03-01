@@ -206,9 +206,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'd':
                 opts->input_type_decimal = 1;
                 break;
-            case 'x':
-                opts->input_type_sbd = 1;
-                break;
 
             case 'L':
                 opts->output_format_list = 1;

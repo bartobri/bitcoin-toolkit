@@ -8,7 +8,7 @@
 #ifndef OPTS_H
 #define OPTS_H 1
 
-#define OPTS_STRING_PRIVKEY                 "lbwhrsdxcLBQCUTWHDRSX:G:"
+#define OPTS_STRING_PRIVKEY                 "lbwhrsdcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
 #define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
 #define OPTS_STRING_BALANCE                 "lwsLBQn:p:cf:F:SG:"
