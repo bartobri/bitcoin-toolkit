@@ -26,8 +26,8 @@
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
 int btk_privkey_compression_add(output_list *, PrivKey);
-int btk_privkey_process_rehashes(char *);
-int btk_privkey_process_rehashes_comp(const void *, const void *);
+int btk_privkey_process_rehash(char *);
+int btk_privkey_process_rehash_comp(const void *, const void *);
 
 // Defaults
 static int input_type_wif = 0;
@@ -43,7 +43,7 @@ static int output_type_decimal = 0;
 static int output_type_raw = 0;
 static int compression_on = 0;
 static int compression_off = 0;
-static char *rehashes = NULL;
+static char *rehash = NULL;
 
 static int output_hashes_arr_len = 0;
 static long int output_hashes_arr[REHASHES_ARRAY_SIZE];
@@ -81,9 +81,9 @@ int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, siz
 		network_set_main();
 	}
 
-	if (rehashes)
+	if (rehash)
 	{
-		r = btk_privkey_process_rehashes((char *)input);
+		r = btk_privkey_process_rehash((char *)input);
 		ERROR_CHECK_NEG(r, "Error while processing rehash argument.");
 
 		// Perform rehash on key
@@ -275,7 +275,7 @@ int btk_privkey_compression_add(output_list *output, PrivKey key)
 	return 1;
 }
 
-int btk_privkey_process_rehashes(char *input_str)
+int btk_privkey_process_rehash(char *input_str)
 {
 	int i, j;
 	int output_hashes_len = 0;
@@ -285,10 +285,10 @@ int btk_privkey_process_rehashes(char *input_str)
 
 	// Save a pointer to the start of output_hashes so that it can be reset
 	// for list processing.
-	output_hashes_len = strlen(rehashes);
+	output_hashes_len = strlen(rehash);
 
 	i = 0;
-	tok = strtok(rehashes, ",");
+	tok = strtok(rehash, ",");
 	while (tok != NULL)
 	{
 		if (i + 1 > REHASHES_ARRAY_SIZE)
@@ -355,7 +355,7 @@ int btk_privkey_process_rehashes(char *input_str)
 		tok = strtok(NULL, ",");
 	}
 
-	qsort(output_hashes_arr, i, sizeof(long int), btk_privkey_process_rehashes_comp);
+	qsort(output_hashes_arr, i, sizeof(long int), btk_privkey_process_rehash_comp);
 
 	output_hashes_arr_len = i;
 
@@ -377,16 +377,16 @@ int btk_privkey_process_rehashes(char *input_str)
 	// list (if exists).
 	for (i = 0; i < output_hashes_len; i++)
 	{
-		if (rehashes[i] == '\0')
+		if (rehash[i] == '\0')
 		{
-			rehashes[i] = ',';
+			rehash[i] = ',';
 		}
 	}
 
 	return 1;
 }
 
-int btk_privkey_process_rehashes_comp(const void *i, const void *j)
+int btk_privkey_process_rehash_comp(const void *i, const void *j)
 {
 	return (*(long int *)i - *(long int *)j);
 }
@@ -420,7 +420,7 @@ int btk_privkey_init(opts_p opts)
 	if (opts->output_type_raw) { output_type_raw = opts->output_type_raw; }
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
-	if (opts->rehashes) { rehashes = opts->rehashes; }
+	if (opts->rehash) { rehash = opts->rehash; }
 
 	if (output_type_raw && (output_type_wif || output_type_hex || output_type_decimal))
 	{

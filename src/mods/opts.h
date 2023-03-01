@@ -35,7 +35,7 @@ struct opts {
     int compression_on;
     int compression_off;
     int network_test;
-    char *rehashes;
+    char *rehash;
     char *host_name;
     char *host_service;
     int create;

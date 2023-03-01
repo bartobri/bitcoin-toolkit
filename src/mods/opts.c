@@ -73,7 +73,7 @@ int opts_init(opts_p opts, char *command)
     opts->compression_on = 0;
     opts->compression_off = 0;
     opts->network_test = 0;
-    opts->rehashes = NULL;
+    opts->rehash = NULL;
     opts->host_name = NULL;
     opts->host_service = NULL;
     opts->create = 0;
@@ -415,8 +415,8 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 
     else if (strcmp(optname, OPTS_REHASH.longopt) == 0)
     {
-        ERROR_CHECK_TRUE(opts->rehashes, "Can not use rehash option more than once.");
-        opts->rehashes = optarg;    // TODO - change to 'rehash'
+        ERROR_CHECK_TRUE(opts->rehash, "Can not use rehash option more than once.");
+        opts->rehash = optarg;
     }
 
     else if (strcmp(optname, OPTS_HOSTNAME.longopt) == 0)
