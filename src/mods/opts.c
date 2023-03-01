@@ -309,7 +309,7 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
 
 int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
 {
-    if (strcmp(optname, "in-format") == 0)
+    if (strcmp(optname, OPTS_INPUT_FORMAT) == 0)
     {
         if (strcmp(optarg, "list") == 0)        { opts->input_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0) { opts->input_format_binary = 1; opts->input_type_binary = 1; }
@@ -321,7 +321,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "in-type") == 0)
+    else if (strcmp(optname, OPTS_INPUT_TYPE) == 0)
     {
         if (strcmp(optarg, "wif") == 0)            { opts->input_type_wif = 1; }
         else if (strcmp(optarg, "hex") == 0)       { opts->input_type_hex = 1; }
@@ -336,7 +336,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "out-format") == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_FORMAT) == 0)
     {
         if (strcmp(optarg, "list") == 0)            { opts->output_format_list = 1; }
         else if (strcmp(optarg, "binary") == 0)     { opts->output_format_binary = 1; }
@@ -349,7 +349,7 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "out-type") == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_TYPE) == 0)
     {
         if (strcmp(optarg, "wif") == 0)             { opts->output_type_wif = 1; }
         else if (strcmp(optarg, "hex") == 0)        { opts->output_type_hex = 1; }
@@ -364,17 +364,17 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "stream") == 0)
+    else if (strcmp(optname, OPTS_STREAM) == 0)
     {
         opts->output_stream = 1;
     }
 
-    else if (strcmp(optname, "grep") == 0)
+    else if (strcmp(optname, OPTS_GREP) == 0)
     {
         opts->output_grep = optarg;
     }
 
-    else if (strcmp(optname, "compressed") == 0)
+    else if (strcmp(optname, OPTS_COMPRESSED) == 0)
     {
         if (strcmp(optarg, "true") == 0)            { opts->compression_on = 1; }
         else if (strcmp(optarg, "false") == 0)      { opts->compression_off = 1; }
@@ -385,12 +385,12 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "rehash") == 0)
+    else if (strcmp(optname, OPTS_REHASH) == 0)
     {
         opts->rehashes = optarg;    // TODO - change to 'rehash'
     }
 
-    else if (strcmp(optname, "network") == 0)
+    else if (strcmp(optname, OPTS_NETWORK) == 0)
     {
         if (strcmp(optarg, "test") == 0)            { opts->network_test = 1; }
         else if (strcmp(optarg, "main") == 0)       { }
@@ -401,32 +401,32 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         }
     }
 
-    else if (strcmp(optname, "hostname") == 0)
+    else if (strcmp(optname, OPTS_HOSTNAME) == 0)
     {
         opts->host_name = optarg;
     }
 
-    else if (strcmp(optname, "port") == 0)
+    else if (strcmp(optname, OPTS_PORT) == 0)
     {
         opts->host_service = optarg;
     }
 
-    else if (strcmp(optname, "create") == 0)
+    else if (strcmp(optname, OPTS_CREATE) == 0)
     {
         opts->create = 1;
     }
 
-    else if (strcmp(optname, "in-file") == 0)
+    else if (strcmp(optname, OPTS_INPUT_FILE) == 0)
     {
         opts->input_path = optarg;
     }
 
-    else if (strcmp(optname, "out-file") == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_FILE) == 0)
     {
         opts->output_path = optarg;
     }
 
-    else if (strcmp(optname, "bech32") == 0)
+    else if (strcmp(optname, OPTS_BECH32) == 0)
     {
         opts->output_type_p2wpkh = 1;
     }
