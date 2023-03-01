@@ -30,6 +30,7 @@
 #define OPTS_INPUT_FILE      "in-file"
 #define OPTS_OUTPUT_FILE     "out-file"
 #define OPTS_BECH32          "bech32"
+#define OPTS_TESTNET         "testnet"
 #define OPTS_ADD(x, y)       longopts[i++] = (struct option){x,  y, NULL, 0};
 #define OPTS_MAX             20
 
@@ -90,6 +91,7 @@ int opts_init(opts_p opts, char *command)
         OPTS_ADD(OPTS_STREAM, no_argument);
         OPTS_ADD(OPTS_REHASH, required_argument);
         OPTS_ADD(OPTS_GREP, required_argument);
+        OPTS_ADD(OPTS_TESTNET, no_argument);
     }
     else if (strcmp(command, "pubkey") == 0)
     {
@@ -245,10 +247,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 break;
             case 'U':
                 opts->compression_off = 1;
-                break;
-
-            case 'T':
-                opts->network_test = 1;
                 break;
 
             case 'n':
@@ -425,6 +423,11 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_BECH32) == 0)
     {
         opts->output_type_p2wpkh = 1;
+    }
+
+    else if (strcmp(optname, OPTS_TESTNET) == 0)
+    {
+        opts->network_test = 1;
     }
 
     return 1;
