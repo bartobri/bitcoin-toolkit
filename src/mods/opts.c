@@ -23,7 +23,6 @@
 #define OPTS_GREP            "grep"
 #define OPTS_COMPRESSED      "compressed"
 #define OPTS_REHASH          "rehash"
-#define OPTS_NETWORK         "network"
 #define OPTS_HOSTNAME        "hostname"
 #define OPTS_PORT            "port"
 #define OPTS_CREATE          "create"
@@ -87,7 +86,6 @@ int opts_init(opts_p opts, char *command)
         OPTS_ADD(OPTS_OUTPUT_TYPE, required_argument);
         OPTS_ADD(OPTS_CREATE, no_argument);
         OPTS_ADD(OPTS_COMPRESSED, required_argument);
-        OPTS_ADD(OPTS_NETWORK, required_argument);
         OPTS_ADD(OPTS_STREAM, no_argument);
         OPTS_ADD(OPTS_REHASH, required_argument);
         OPTS_ADD(OPTS_GREP, required_argument);
@@ -382,17 +380,6 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_REHASH) == 0)
     {
         opts->rehashes = optarg;    // TODO - change to 'rehash'
-    }
-
-    else if (strcmp(optname, OPTS_NETWORK) == 0)
-    {
-        if (strcmp(optarg, "test") == 0)            { opts->network_test = 1; }
-        else if (strcmp(optarg, "main") == 0)       { }
-        else
-        {
-            error_log("Invalid argument for option --%s.", optname);
-            return -1;
-        }
     }
 
     else if (strcmp(optname, OPTS_HOSTNAME) == 0)
