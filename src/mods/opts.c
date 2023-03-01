@@ -26,8 +26,8 @@
 #define OPTS_HOSTNAME        "hostname"
 #define OPTS_PORT            "port"
 #define OPTS_CREATE          "create"
-#define OPTS_INPUT_FILE      "in-file"
-#define OPTS_OUTPUT_FILE     "out-file"
+#define OPTS_INPUT_PATH      "in-path"
+#define OPTS_OUTPUT_PATH     "out-path"
 #define OPTS_BECH32          "bech32"
 #define OPTS_TESTNET         "testnet"
 #define OPTS_ADD(x, y)       longopts[i++] = (struct option){x,  y, NULL, 0};
@@ -117,8 +117,8 @@ int opts_init(opts_p opts, char *command)
         OPTS_ADD(OPTS_HOSTNAME, required_argument);
         OPTS_ADD(OPTS_PORT, required_argument);
         OPTS_ADD(OPTS_CREATE, no_argument);
-        OPTS_ADD(OPTS_INPUT_FILE, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_FILE, required_argument);
+        OPTS_ADD(OPTS_INPUT_PATH, required_argument);
+        OPTS_ADD(OPTS_OUTPUT_PATH, required_argument);
         OPTS_ADD(OPTS_STREAM, no_argument);
         OPTS_ADD(OPTS_GREP, required_argument);
     }
@@ -254,13 +254,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
                 opts->host_service = optarg;
                 break;
 
-            case 'f':
-                opts->input_path = optarg;
-                break;
-            case 'F':
-                opts->output_path = optarg;
-                break;
-
             case ':':
                 if (optopt == 0)
                 {
@@ -393,12 +386,12 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
         opts->create = 1;
     }
 
-    else if (strcmp(optname, OPTS_INPUT_FILE) == 0)
+    else if (strcmp(optname, OPTS_INPUT_PATH) == 0)
     {
         opts->input_path = optarg;
     }
 
-    else if (strcmp(optname, OPTS_OUTPUT_FILE) == 0)
+    else if (strcmp(optname, OPTS_OUTPUT_PATH) == 0)
     {
         opts->output_path = optarg;
     }
