@@ -258,6 +258,7 @@ int opts_get(opts_p opts, int argc, char *argv[])
                 break;
 
             case 'G':
+                ERROR_CHECK_TRUE(opts->output_grep, "Can not use grep option more than once.");
                 opts->output_grep = optarg;
                 break;
 
@@ -269,9 +270,11 @@ int opts_get(opts_p opts, int argc, char *argv[])
                 break;
 
             case 'h':
+                ERROR_CHECK_TRUE(opts->host_name, "Can not use hostname option more than once.");
                 opts->host_name = optarg;
                 break;
             case 'p':
+                ERROR_CHECK_TRUE(opts->host_service, "Can not use port option more than once.");
                 opts->host_service = optarg;
                 break;
 
@@ -373,6 +376,7 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 
     else if (strcmp(optname, OPTS_GREP.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->output_grep, "Can not use grep option more than once.");
         opts->output_grep = optarg;
     }
 
@@ -389,16 +393,19 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 
     else if (strcmp(optname, OPTS_REHASH.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->rehashes, "Can not use rehash option more than once.");
         opts->rehashes = optarg;    // TODO - change to 'rehash'
     }
 
     else if (strcmp(optname, OPTS_HOSTNAME.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->host_name, "Can not use hostname option more than once.");
         opts->host_name = optarg;
     }
 
     else if (strcmp(optname, OPTS_PORT.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->host_service, "Can not use port option more than once.");
         opts->host_service = optarg;
     }
 
@@ -409,11 +416,13 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 
     else if (strcmp(optname, OPTS_INPUT_PATH.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->input_path, "Can not use input path option more than once.");
         opts->input_path = optarg;
     }
 
     else if (strcmp(optname, OPTS_OUTPUT_PATH.longopt) == 0)
     {
+        ERROR_CHECK_TRUE(opts->output_path, "Can not use output path option more than once.");
         opts->output_path = optarg;
     }
 
