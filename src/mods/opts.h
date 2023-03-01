@@ -10,7 +10,7 @@
 
 #define OPTS_STRING_PRIVKEY                 "lbwhrsdcLBQCUTWHDRSX:G:"
 #define OPTS_STRING_PUBKEY                  "lwhLBQCUSG:"
-#define OPTS_STRING_ADDRESS                 "lwhLBQPESG:"
+#define OPTS_STRING_ADDRESS                 "lwhLBQSG:"
 #define OPTS_STRING_BALANCE                 "lwsLBQn:p:cf:F:SG:"
 #define OPTS_STRING_NODE                    "ln:p:TS"
 #define OPTS_STRING_VERSION                 ""

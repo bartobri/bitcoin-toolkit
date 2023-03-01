@@ -29,6 +29,7 @@
 #define OPTS_CREATE          "create"
 #define OPTS_INPUT_FILE      "in-file"
 #define OPTS_OUTPUT_FILE     "out-file"
+#define OPTS_BECH32          "bech32"
 #define OPTS_ADD(x, y)       longopts[i++] = (struct option){x,  y, NULL, 0};
 #define OPTS_MAX             20
 
@@ -104,7 +105,7 @@ int opts_init(opts_p opts, char *command)
         OPTS_ADD(OPTS_INPUT_FORMAT, required_argument);
         OPTS_ADD(OPTS_INPUT_TYPE, required_argument);
         OPTS_ADD(OPTS_OUTPUT_FORMAT, required_argument);
-        OPTS_ADD(OPTS_OUTPUT_TYPE, required_argument);
+        OPTS_ADD(OPTS_BECH32, no_argument);
         OPTS_ADD(OPTS_STREAM, no_argument);
         OPTS_ADD(OPTS_GREP, required_argument);
     }
@@ -229,12 +230,6 @@ int opts_get(opts_p opts, int argc, char *argv[], char *opts_string)
             case 'R':
                 opts->output_type_raw = 1;
                 opts->output_format_binary = 1;
-                break;
-            case 'P':
-                opts->output_type_p2pkh = 1;
-                break;
-            case 'E':
-                opts->output_type_p2wpkh = 1;
                 break;
 
             case 'S':
@@ -429,6 +424,11 @@ int opts_long_set_arg(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, "out-file") == 0)
     {
         opts->output_path = optarg;
+    }
+
+    else if (strcmp(optname, "bech32") == 0)
+    {
+        opts->output_type_p2wpkh = 1;
     }
 
     return 1;
