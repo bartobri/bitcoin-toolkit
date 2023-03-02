@@ -361,6 +361,7 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
         else if (strcmp(optarg, "raw") == 0)       { opts->input_type_raw = 1; opts->input_format_binary = 1; }
         else if (strcmp(optarg, "string") == 0)    { opts->input_type_string = 1; }
         else if (strcmp(optarg, "decimal") == 0)   { opts->input_type_decimal = 1; }
+        else if (strcmp(optarg, "binary") == 0)    { opts->input_type_binary = 1; opts->input_format_binary = 1; }
         else if (strcmp(optarg, "sbd") == 0)       { opts->input_type_sbd = 1; }
         else
         {
