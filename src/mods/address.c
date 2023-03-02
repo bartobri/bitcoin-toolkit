@@ -93,6 +93,8 @@ int address_get_p2pkh(char *address, PubKey key)
 
     strcpy(address, base58);
 
+    free(data);
+
     return 1;
 }
 
@@ -150,6 +152,8 @@ int address_get_p2wpkh(char *address, PubKey key)
         return -1;
     }
 
+    free(data);
+
     return 1;
 }
 
@@ -197,6 +201,9 @@ int address_from_wif(char *address, char *wif)
         return -1;
     }
 
+    free(privkey);
+    free(pubkey);
+
     return 1;
 }
 
@@ -243,6 +250,9 @@ int address_from_str(char *address, char *str)
         error_log("Could not calculate public key address.");
         return -1;
     }
+
+    free(privkey);
+    free(pubkey);
 
     return 1;
 }
