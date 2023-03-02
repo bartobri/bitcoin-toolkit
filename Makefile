@@ -30,19 +30,19 @@ LEVELDB_OBJS = $(OBJ)/$(MODS)/leveldb/stub.o
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libgmp ), 1)
 CFLAGS += -D_USE_GMPLIB
 CLIBS += -lgmp
-undefine GMP_OBJS
+GMP_OBJS = $()
 endif
 
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
 CFLAGS += -D_USE_OPENSSL
 CLIBS += -lcrypto
-undefine CRYPTO_OBJS
+CRYPTO_OBJS = $()
 endif
 
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libleveldb ), 1)
 CFLAGS += -D_USE_LEVELDB
 CLIBS += -lleveldb
-undefine LEVELDB_OBJS
+LEVELDB_OBJS = $()
 endif
 
 .PHONY: all test install uninstall clean
