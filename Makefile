@@ -26,13 +26,13 @@ QRCODE_OBJS = $(OBJ)/$(MODS)/QRCodeGen/qrcodegen.o
 GMP_OBJS = $(OBJ)/$(MODS)/GMP/mini-gmp.o
 CRYPTO_OBJS = $(OBJ)/$(MODS)/crypto/rmd160.o $(OBJ)/$(MODS)/crypto/sha256.o
 
-ifeq ($(USE_GMPLIB), 1)
+ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libgmp ), 1)
 CFLAGS += -D_USE_GMPLIB
 CLIBS += -lgmp
 undefine GMP_OBJS
 endif
 
-ifeq ($(USE_OPENSSL), 1)
+ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
 CFLAGS += -D_USE_OPENSSL
 CLIBS += -lcrypto
 undefine CRYPTO_OBJS
