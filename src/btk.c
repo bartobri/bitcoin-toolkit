@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <regex.h>
+#include <time.h>
 #include "mods/input.h"
 #include "mods/json.h"
 #include "mods/qrcode.h"
@@ -332,6 +333,8 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 	char *json_output_str = NULL;
 	cJSON *tmp = NULL;
 	static int stream_count = 0;
+	static time_t time_last = 0;
+	static time_t time_cur = 0;
 
 	assert(output);
 
@@ -452,9 +455,16 @@ int btk_print_output(output_list output, opts_p opts, char *input_str, cJSON *in
 		return -1;
 	}
 
+	// Handle stream reporting if option is set.
+	if (time_last == 0)
+	{
+		time_last = time(NULL);
+	}
 	if (opts->output_stream && opts->stream_report && ++stream_count % opts->stream_report == 0)
 	{
-		fprintf(stderr, "Stream count: %i\n", stream_count);
+		time_cur = time(NULL);
+		fprintf(stderr, "Stream count: %i, Seconds: %ld\n", stream_count, time_cur - time_last);
+		time_last = time_cur;
 	}
 
 	return 1;
