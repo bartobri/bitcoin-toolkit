@@ -41,7 +41,7 @@ int balance_open(char *path, bool create)
     r = database_open(&dbref, path, create);
     if (r < 0)
     {
-        error_log("Error while opening address database.");
+        error_log("Could not open the database.");
         return -1;
     }
 

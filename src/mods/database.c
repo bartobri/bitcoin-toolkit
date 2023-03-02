@@ -9,9 +9,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <leveldb/c.h>
 #include "database.h"
 #include "error.h"
+#ifdef _USE_LEVELDB
+#include <leveldb/c.h>
+#else
+#include "leveldb/stub.h"
+#endif
 
 #define DATABASE_MAX_DB_OBJS 2
 
@@ -24,6 +28,12 @@ int database_open(DBRef *ref, char *location, bool create)
     int i;
     char *err = NULL;
     leveldb_options_t *options;
+
+#ifndef _USE_LEVELDB
+    error_log("To fix this, install the leveldb library, then recompile and reinstall this program.");
+    error_log("The leveldb library was not detected at compile time. This feature has been disabled.");
+    return -1;
+#endif
 
     // Next available database reference slot
     for (i = 0; i < DATABASE_MAX_DB_OBJS && database_is_open(i); i++)

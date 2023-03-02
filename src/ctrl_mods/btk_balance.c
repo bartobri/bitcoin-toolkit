@@ -107,7 +107,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
                 balance = 0;
 
                 r = balance_get(&balance, address);
-                ERROR_CHECK_NEG(r, "Could not query address database.");
+                ERROR_CHECK_NEG(r, "Could not query balance database.");
 
                 printf("%s (%ld) <- %ld\n", address, balance, value->amount);
 
@@ -116,7 +116,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
                 if (balance > 0)
                 {
                     r = balance_put(address, balance);
-                    ERROR_CHECK_NEG(r, "Could not create/update record for address database.");
+                    ERROR_CHECK_NEG(r, "Could not create/update record for balance database.");
                 }
             }
 
@@ -153,7 +153,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         balance = 0;
 
         r = balance_get(&balance, address);
-        ERROR_CHECK_NEG(r, "Could not query address database.");
+        ERROR_CHECK_NEG(r, "Could not query balance database.");
 
         sprintf(output_str, "%ld", balance);
 
@@ -183,7 +183,7 @@ int btk_balance_init(opts_p opts)
     assert(opts);
 
     r = balance_open(opts->output_path, opts->create);
-    ERROR_CHECK_NEG(r, "Could not open address database.");
+    ERROR_CHECK_NEG(r, "Could not open balance database.");
 
     return 1;
 }
