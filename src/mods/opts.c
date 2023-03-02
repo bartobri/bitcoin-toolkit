@@ -331,6 +331,7 @@ int opts_get(opts_p opts, int argc, char *argv[])
     if (opts->input_type_string) { i++; }
     if (opts->input_type_decimal) { i++; }
     if (opts->input_type_sbd) { i++; }
+    if (opts->input_type_binary) { i++; }
     if (i > 1)
     {
         error_log("Can not use more than one input type option.");
