@@ -22,9 +22,6 @@
 #include "mods/opts.h"
 #include "mods/error.h"
 
-static int output_type_p2pkh = 0;
-static int output_type_p2wpkh = 0;
-
 int btk_address_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
@@ -33,15 +30,6 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
     PrivKey privkey = NULL;
 
     assert(opts);
-
-    if (opts->output_type_p2pkh) { output_type_p2pkh = opts->output_type_p2pkh; }
-    if (opts->output_type_p2wpkh) { output_type_p2wpkh = opts->output_type_p2wpkh; }
-
-    // Default to P2PKH
-    if (!output_type_p2pkh && !output_type_p2wpkh)
-    {
-        output_type_p2pkh = 1;
-    }
 
     privkey = malloc(privkey_sizeof());
     ERROR_CHECK_NULL(privkey, "Memory allocation error.");
@@ -71,10 +59,10 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
         }
     }
 
-    if (output_type_p2wpkh)
+    if (opts->output_type_p2wpkh)
     {
         // Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
-        if (pubkey_is_compressed(pubkey) || !opts->output_stream || !output_type_p2pkh)
+        if (pubkey_is_compressed(pubkey) || !opts->output_stream || !opts->output_type_p2pkh)
         {
             memset(output_str, 0, BUFSIZ);
 
@@ -86,7 +74,7 @@ int btk_address_main(output_list *output, opts_p opts, unsigned char *input, siz
         }
     }
 
-    if (output_type_p2pkh)
+    if (opts->output_type_p2pkh)
     {
         memset(output_str, 0, BUFSIZ);
 
@@ -113,6 +101,12 @@ int btk_address_requires_input(opts_p opts)
 int btk_address_init(opts_p opts)
 {
     assert(opts);
+
+    // Default to P2PKH
+    if (!opts->output_type_p2pkh && !opts->output_type_p2wpkh)
+    {
+        opts->output_type_p2pkh = 1;
+    }
 
     return 1;
 }
