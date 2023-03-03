@@ -249,8 +249,14 @@ void database_close(DBRef ref)
 {
     if (database_is_open(ref))
     {
-        leveldb_readoptions_destroy(roptions);
-        leveldb_iter_destroy(iter[ref]);
+        if (iter[ref])
+        {
+            leveldb_iter_destroy(iter[ref]);
+        }
+        else
+        {
+            leveldb_readoptions_destroy(roptions);
+        }
         leveldb_close(db[ref]);
 
         db[ref] = NULL;
