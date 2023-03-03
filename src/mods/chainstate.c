@@ -100,7 +100,7 @@ int chainstate_get_next(UTXOKey key, UTXOValue value)
     free(serialized_value);
 
     r = database_iter_next(dbref);
-    ERROR_CHECK_NEG(r, "Could nto set chainstate iter to next record.")
+    ERROR_CHECK_NEG(r, "Could not set chainstate iter to next record.")
     if (r == 0)
     {
         // End of database
