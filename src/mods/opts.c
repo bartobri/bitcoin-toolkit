@@ -27,6 +27,7 @@
 #define OPTS_HOSTNAME        (struct opt_info){"hostname",   "h:"}
 #define OPTS_PORT            (struct opt_info){"port",       "p:"}
 #define OPTS_CREATE          (struct opt_info){"create",     ""}
+#define OPTS_UPDATE          (struct opt_info){"update",     ""}
 #define OPTS_INPUT_PATH      (struct opt_info){"in-path",    ""}
 #define OPTS_OUTPUT_PATH     (struct opt_info){"out-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
@@ -79,6 +80,7 @@ int opts_init(opts_p opts, char *command)
     opts->host_name = NULL;
     opts->host_service = NULL;
     opts->create = 0;
+    opts->update = 0;
     opts->input_path = NULL;
     opts->output_path = NULL;
     opts->command = command;
@@ -129,6 +131,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_HOSTNAME, required_argument);
         opts_add(OPTS_PORT, required_argument);
         opts_add(OPTS_CREATE, no_argument);
+        opts_add(OPTS_UPDATE, no_argument);
         opts_add(OPTS_INPUT_PATH, required_argument);
         opts_add(OPTS_OUTPUT_PATH, required_argument);
         opts_add(OPTS_STREAM, no_argument);
@@ -442,6 +445,11 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_CREATE.longopt) == 0)
     {
         opts->create = 1;
+    }
+
+    else if (strcmp(optname, OPTS_UPDATE.longopt) == 0)
+    {
+        opts->update = 1;
     }
 
     else if (strcmp(optname, OPTS_INPUT_PATH.longopt) == 0)

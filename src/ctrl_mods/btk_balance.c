@@ -130,6 +130,10 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         chainstate_close();
     }
+    else if (opts->update)
+    {
+        // stub
+    }
     else
     {
         memset(address, 0, BUFSIZ);
@@ -168,7 +172,7 @@ int btk_balance_requires_input(opts_p opts)
 {
     assert(opts);
 
-    if (opts->create)
+    if (opts->create || opts->update)
     {
         return 0;
     }

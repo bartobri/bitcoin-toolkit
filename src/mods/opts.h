@@ -40,6 +40,7 @@ struct opts {
     char *host_name;
     char *host_service;
     int create;
+    int update;
     char *input_path;
     char *output_path;
     char *command;
