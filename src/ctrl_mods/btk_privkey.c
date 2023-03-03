@@ -331,13 +331,10 @@ int btk_privkey_process_rehash(char *input_str)
 					tmp = labs(tmp);
 				}
 
-				if (tmp > REHASH_MAX_SIZE)
+				if (tmp <= REHASH_MAX_SIZE)
 				{
-					// Just ignore when found with wildcard.
-					continue;
+					output_hashes_arr[i++] = tmp;
 				}
-
-				output_hashes_arr[i++] = tmp;
 
 				if (*tokend != '\0')
 				{
