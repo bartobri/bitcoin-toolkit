@@ -15,6 +15,7 @@
 #include "hex.h"
 #include "error.h"
 #include "serialize.h"
+#include "crypto.h"
 
 #define TRANSACTION_SEGWIT_MARKER 0x00
 
@@ -22,6 +23,8 @@ int transaction_from_raw(Trans trans, unsigned char *input)
 {
 	int r;
 	size_t i, j;
+	size_t tx_len;
+	unsigned char txid[TRANSACTION_ID_LEN];
 	uint64_t segwit_count = 0;
 	uint64_t segwit_size = 0;
 	unsigned char *head;
@@ -94,7 +97,20 @@ int transaction_from_raw(Trans trans, unsigned char *input)
 
 	input = deserialize_uint32(&(trans->lock_time), input, SERIALIZE_ENDIAN_LIT);
 
-	return (input - head);
+	tx_len = input - head;
+
+	r = crypto_get_sha256(txid, head, tx_len);
+	ERROR_CHECK_NEG(r, "Could not generate tx hash.");
+	r = crypto_get_sha256(txid, txid, TRANSACTION_ID_LEN);
+	ERROR_CHECK_NEG(r, "Could not generate tx hash.");
+
+	for (i = 0; i < TRANSACTION_ID_LEN; i++)
+	{
+		trans->txid[i] = txid[TRANSACTION_ID_LEN - 1 - i];
+	}
+
+
+	return tx_len;
 }
 
 void transaction_free(Trans trans)

@@ -12,8 +12,11 @@
 #include "txinput.h"
 #include "txoutput.h"
 
+#define TRANSACTION_ID_LEN 32
+
 typedef struct Trans *Trans;
 struct Trans {
+	unsigned char txid[TRANSACTION_ID_LEN];
 	uint32_t  version;
 	uint8_t   segwit_flag;
 	uint64_t  input_count;
