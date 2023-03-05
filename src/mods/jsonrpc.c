@@ -80,7 +80,7 @@ int jsonrpc_get_blockcount(int *count)
 
     r = jsonrpc_send_request(&response, json_request);
     ERROR_CHECK_NEG(r, "Could not get json-rpc response.");
-    
+
     r = jsonrpc_parse_response(&jobj, (char *)response);
     ERROR_CHECK_NEG(r, "Could not parse json-rpc response.");
 
