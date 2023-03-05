@@ -14,11 +14,12 @@
 
 typedef struct TXInput *TXInput;
 struct TXInput {
-	unsigned char  tx_hash[TXINPUT_TXHASH_LENGTH];
-	uint32_t       index;
-	uint64_t       script_size;
-	unsigned char* script_raw;
-	uint32_t       sequence;
+    unsigned char  tx_hash[TXINPUT_TXHASH_LENGTH];
+    uint32_t       index;
+    uint64_t       script_size;
+    unsigned char* script_raw;
+    uint32_t       sequence;
+    int            is_coinbase;
 };
 
 int txinput_from_raw(TXInput, unsigned char *);

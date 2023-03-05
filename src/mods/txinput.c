@@ -24,6 +24,16 @@ int txinput_from_raw(TXInput txinput, unsigned char *input)
 
 	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TXHASH_LENGTH, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint32(&(txinput->index), input, SERIALIZE_ENDIAN_LIT);
+
+	if (txinput->index == 0xffffffff)
+	{
+		txinput->is_coinbase = 1;
+	}
+	else
+	{
+		txinput->is_coinbase = 0;
+	}
+
 	input = deserialize_compuint(&(txinput->script_size), input, SERIALIZE_ENDIAN_LIT);
 
 	(txinput->script_raw) = malloc(txinput->script_size);
