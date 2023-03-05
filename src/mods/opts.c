@@ -32,6 +32,7 @@
 #define OPTS_OUTPUT_PATH     (struct opt_info){"out-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
+#define OPTS_RPC_AUTH        (struct opt_info){"rpc-auth",   ""}
 #define OPTS_MAX             30
 
 struct opt_info {
@@ -83,6 +84,7 @@ int opts_init(opts_p opts, char *command)
     opts->update = 0;
     opts->input_path = NULL;
     opts->output_path = NULL;
+    opts->rpc_auth = NULL;
     opts->command = command;
     opts->subcommand = NULL;
 
@@ -137,6 +139,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
+        opts_add(OPTS_RPC_AUTH, required_argument);
     }
     else if (strcmp(command, "node") == 0)
     {
@@ -472,6 +475,12 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_TESTNET.longopt) == 0)
     {
         opts->network_test = 1;
+    }
+
+    else if (strcmp(optname, OPTS_RPC_AUTH.longopt) == 0)
+    {
+        ERROR_CHECK_TRUE(opts->rpc_auth, "Can not use report option more than once.");
+        opts->rpc_auth = optarg;
     }
 
     else if (strcmp(optname, OPTS_STREAM_REPORT.longopt) == 0)

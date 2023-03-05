@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "database.h"
 #include "error.h"
 #ifdef _USE_LEVELDB
@@ -30,7 +31,7 @@ int database_open(DBRef *ref, char *location, bool create)
     leveldb_options_t *options;
 
 #ifndef _USE_LEVELDB
-    error_log("To fix this, install the leveldb library, then recompile and reinstall this program.");
+    error_log("To fix this, install the leveldb development library, then recompile and reinstall this program.");
     error_log("The leveldb library was not detected at compile time. This feature has been disabled.");
     return -1;
 #endif
@@ -132,37 +133,25 @@ int database_iter_next(DBRef ref)
 
 int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **value, size_t *value_len, DBRef ref)
 {
-    const char *output;
+    const char *tmp_key;
+    const char *tmp_value;
 
-    if (iter[ref] == NULL)
-    {
-        error_log("Invalid database reference.");
-        return -1;
-    }
+    assert(iter[ref]);
+    assert(leveldb_iter_valid(iter[ref]));
 
-    if (!leveldb_iter_valid(iter[ref]))
-    {
-        error_log("Invalid database iterator.");
-        return -1;
-    }
+    tmp_key = leveldb_iter_key(iter[ref], key_len);
 
-    output = leveldb_iter_key(iter[ref], key_len);
     *key = malloc(*key_len);
-    if (*key == NULL)
-    {
-        error_log("Memory allocation error.");
-        return -1;
-    }
-    memcpy(*key, output, *key_len);
+    ERROR_CHECK_NULL(*key, "Memory allocation error.");
 
-    output = leveldb_iter_value(iter[ref], value_len);
+    memcpy(*key, tmp_key, *key_len);
+
+    tmp_value = leveldb_iter_value(iter[ref], value_len);
+
     *value = malloc(*value_len);
-    if (*value == NULL)
-    {
-        error_log("Memory allocation error.");
-        return -1;
-    }
-    memcpy(*value, output, *value_len);
+    ERROR_CHECK_NULL(*key, "Memory allocation error.");
+
+    memcpy(*value, tmp_value, *value_len);
 
     return 1;
 }
@@ -171,25 +160,14 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 {
     const char *output;
 
-    if (iter[ref] == NULL)
-    {
-        error_log("Must seek database iterator before getting next value.");
-        return -1;
-    }
-
-    if (!leveldb_iter_valid(iter[ref]))
-    {
-        error_log("Invalid database iterator.");
-        return -1;
-    }
+    assert(iter[ref]);
+    assert(leveldb_iter_valid(iter[ref]));
 
     output = leveldb_iter_value(iter[ref], value_len);
+
     *value = malloc(*value_len);
-    if (*value == NULL)
-    {
-        error_log("Memory allocation error.");
-        return -1;
-    }
+    ERROR_CHECK_NULL(*value, "Memory allocation error.");
+
     memcpy(*value, output, *value_len);
 
     return 1;
@@ -198,6 +176,9 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
+
+    assert(db[ref]);
+    assert(database_is_open(ref));
 
     *output_len = 0;
 
@@ -241,6 +222,28 @@ int database_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *v
         error_log("Unable to put key/value. Database has not been opened.");
         return -1;
     }
+
+    return 1;
+}
+
+int database_delete(DBRef ref, unsigned char *key, size_t key_len)
+{
+    char *err = NULL;
+    leveldb_writeoptions_t *woptions;
+
+    assert(db[ref] != NULL);
+
+    woptions = leveldb_writeoptions_create();
+
+    leveldb_delete(db[ref], woptions, (char *)key, key_len, &err);
+
+    if (err != NULL)
+    {
+        error_log("The database reported the following error: %s.", err);
+        return -1;
+    }
+
+    leveldb_writeoptions_destroy(woptions);
 
     return 1;
 }

@@ -19,7 +19,7 @@ CFLAGS ?= -Wextra -Wall -iquote$(SRC)
 CLIBS ?= -lpthread
 
 CTRL_OBJS = $(OBJ)/$(CTRL)/btk_help.o $(OBJ)/$(CTRL)/btk_privkey.o $(OBJ)/$(CTRL)/btk_pubkey.o $(OBJ)/$(CTRL)/btk_address.o $(OBJ)/$(CTRL)/btk_node.o $(OBJ)/$(CTRL)/btk_balance.o $(OBJ)/$(CTRL)/btk_version.o
-MOD_OBJS = $(OBJ)/$(MODS)/network.o $(OBJ)/$(MODS)/database.o $(OBJ)/$(MODS)/chainstate.o $(OBJ)/$(MODS)/balance.o $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/base32.o $(OBJ)/$(MODS)/bech32.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/camount.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/utxokey.o $(OBJ)/$(MODS)/utxovalue.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/block.o $(OBJ)/$(MODS)/script.o $(OBJ)/$(MODS)/message.o $(OBJ)/$(MODS)/serialize.o $(OBJ)/$(MODS)/json.o $(OBJ)/$(MODS)/jsonrpc.o $(OBJ)/$(MODS)/qrcode.o $(OBJ)/$(MODS)/input.o $(OBJ)/$(MODS)/output.o $(OBJ)/$(MODS)/opts.o $(OBJ)/$(MODS)/error.o
+MOD_OBJS = $(OBJ)/$(MODS)/network.o $(OBJ)/$(MODS)/database.o $(OBJ)/$(MODS)/chainstate.o $(OBJ)/$(MODS)/balance.o $(OBJ)/$(MODS)/txoa.o $(OBJ)/$(MODS)/node.o $(OBJ)/$(MODS)/privkey.o $(OBJ)/$(MODS)/pubkey.o $(OBJ)/$(MODS)/address.o $(OBJ)/$(MODS)/base58check.o $(OBJ)/$(MODS)/crypto.o $(OBJ)/$(MODS)/random.o $(OBJ)/$(MODS)/point.o $(OBJ)/$(MODS)/base58.o $(OBJ)/$(MODS)/base32.o $(OBJ)/$(MODS)/bech32.o $(OBJ)/$(MODS)/hex.o $(OBJ)/$(MODS)/compactuint.o $(OBJ)/$(MODS)/camount.o $(OBJ)/$(MODS)/txinput.o $(OBJ)/$(MODS)/txoutput.o $(OBJ)/$(MODS)/utxokey.o $(OBJ)/$(MODS)/utxovalue.o $(OBJ)/$(MODS)/transaction.o $(OBJ)/$(MODS)/block.o $(OBJ)/$(MODS)/script.o $(OBJ)/$(MODS)/message.o $(OBJ)/$(MODS)/serialize.o $(OBJ)/$(MODS)/json.o $(OBJ)/$(MODS)/jsonrpc.o $(OBJ)/$(MODS)/qrcode.o $(OBJ)/$(MODS)/input.o $(OBJ)/$(MODS)/output.o $(OBJ)/$(MODS)/opts.o $(OBJ)/$(MODS)/error.o
 COM_OBJS = $(OBJ)/$(MODS)/commands/verack.o $(OBJ)/$(MODS)/commands/version.o
 JSON_OBJS = $(OBJ)/$(MODS)/cJSON/cJSON.o
 QRCODE_OBJS = $(OBJ)/$(MODS)/QRCodeGen/qrcodegen.o
@@ -33,6 +33,7 @@ CLIBS += -lgmp
 GMP_OBJS = $()
 endif
 
+## sudo apt install libssl-dev
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
 CFLAGS += -D_USE_OPENSSL
 CLIBS += -lcrypto

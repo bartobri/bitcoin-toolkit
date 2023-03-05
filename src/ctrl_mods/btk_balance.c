@@ -18,121 +18,139 @@
 #include "mods/error.h"
 #include "mods/output.h"
 #include "mods/balance.h"
+#include "mods/txoa.h"
 #include "mods/pubkey.h"
 #include "mods/address.h"
 #include "mods/opts.h"
 #include "mods/script.h"
-#include "mods/chainstate.h"
-#include "mods/utxokey.h"
-#include "mods/utxovalue.h"
+#include "mods/jsonrpc.h"
+#include "mods/block.h"
+#include "mods/hex.h"
+#include "mods/database.h"
+#include "mods/transaction.h"
+#include "mods/serialize.h"
 
 int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     char address[BUFSIZ];
     char output_str[BUFSIZ];
-    PubKey pubkey = NULL;
     uint64_t balance = 0;
 
     assert(opts);
 
-    (void)output;
     (void)input_len;
 
-    if (opts->create)
+    if (opts->create || opts->update)
     {
-        UTXOKey key;
-        UTXOValue value;
+        int i;
+        int blockcount = 0;
+        int last_block = 0;
 
-        r = chainstate_open(opts->input_path);
-        ERROR_CHECK_NEG(r, "Could not open chainstate database.");
-
-        r = chainstate_seek_start();
-        ERROR_CHECK_NEG(r, "Chainstate seek error.");
-
-        key = malloc(sizeof(struct UTXOKey));
-        ERROR_CHECK_NULL(key, "Memory allocation error.");
-
-        value = malloc(sizeof(struct UTXOValue));
-        ERROR_CHECK_NULL(value, "Memory allocation error.");
-
-        while ((r = chainstate_get_next(key, value)) > 0)
+        if (opts->update)
         {
-            memset(address, 0, BUFSIZ);
+            r = txao_get_last_block(&last_block);
+            ERROR_CHECK_NEG(r, "Could not get last block processed.");
+        }
 
-            if (value->n_size == 0x00)
+        r = jsonrpc_init(opts->host_name, opts->host_service, opts->rpc_auth);
+        ERROR_CHECK_NEG(r, "Unable to initialize json rpc.");
+
+        r = jsonrpc_get_blockcount(&blockcount);
+        ERROR_CHECK_NEG(r, "Could not get block count.");
+
+        for (i = last_block + 1; i <= blockcount; i++)
+        {
+            uint64_t j;
+            char blockhash[BUFSIZ];
+            char *block_hex = NULL;
+            unsigned char *block_raw = NULL;
+            Block block;
+
+            memset(blockhash, 0, BUFSIZ);
+
+            r = jsonrpc_get_blockhash(blockhash, i);
+            ERROR_CHECK_NEG(r, "Could not get block hash.");
+
+            r = jsonrpc_get_block(&block_hex, blockhash);
+            ERROR_CHECK_NEG(r, "Could not get block data.");
+
+            block_raw = malloc(strlen(block_hex) / 2);
+            ERROR_CHECK_NULL(block_raw, "Memory allocation error.");
+
+            r = hex_str_to_raw(block_raw, block_hex);
+            ERROR_CHECK_NEG(r, "Could not convert hex block to raw block.");
+
+            block = malloc(sizeof(*block));
+            ERROR_CHECK_NULL(block, "Memory allocation error.");
+
+            r = block_from_raw(block, block_raw);
+            ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
+
+            for (j = 0; j < block->tx_count; j++)
             {
-                r = address_from_rmd160(address, value->script);
-                ERROR_CHECK_NEG(r, "Could not generate address from public key hash.");
-            }
-            else if (value->n_size == 0x01)
-            {
-                r = address_from_p2sh_script(address, value->script);
-                ERROR_CHECK_NEG(r, "Could not generate address from script hash.");
-            }
-            else if (value->n_size == 0x02 || value->n_size == 0x03)
-            {
-                pubkey = malloc(pubkey_sizeof());
+                uint32_t k;
+                char address[BUFSIZ];
 
-                r = pubkey_from_raw(pubkey, value->script, value->script_len);
-                ERROR_CHECK_NEG(r, "Can not get pubkey object from compressed public key.");
-
-                r = address_get_p2pkh(address, pubkey);
-                ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
-
-                free(pubkey);
-            }
-            else if (value->n_size == 0x04 || value->n_size == 0x05)
-            {
-                pubkey = malloc(pubkey_sizeof());
-
-                r = pubkey_from_raw(pubkey, value->script, value->script_len);
-                ERROR_CHECK_NEG(r, "Can not get pubkey object from uncompressed public key.");
-
-                pubkey_uncompress(pubkey);
-
-                r = address_get_p2pkh(address, pubkey);
-                ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
-
-                free(pubkey);
-            }
-            else
-            {
-                r = script_get_output_address(address, value->script, value->script_len, 0);
-                ERROR_CHECK_NEG(r, "Could not get address from chainstate value.");
-            }
-
-            if (*address)
-            {
-                balance = 0;
-
-                r = balance_get(&balance, address);
-                ERROR_CHECK_NEG(r, "Could not query balance database.");
-
-                printf("%s (%ld) <- %ld\n", address, balance, value->amount);
-
-                balance += value->amount;
-
-                if (balance > 0)
+                for (k = 0; k < block->transactions[j]->input_count; k++)
                 {
-                    r = balance_put(address, balance);
-                    ERROR_CHECK_NEG(r, "Could not create/update record for balance database.");
+                    memset(address, 0, BUFSIZ);
+
+                    // Skip coinbase inputs. No deduction for them.
+                    if (block->transactions[j]->inputs[k]->is_coinbase)
+                    {
+                        continue;
+                    }
+
+                    r = txoa_get(address, block->transactions[j]->inputs[k]->tx_hash, block->transactions[j]->inputs[k]->index);
+                    ERROR_CHECK_NEG(r, "Could not get address from txoa database.");
+
+                    if (*address)
+                    {
+                        // Every input is spent 100% (recouped via change address).
+                        // Set all inputs to zero balance.
+
+                        // TODO - Delete address form db instead of setting to zero
+                        r = balance_put(address, 0);
+                        ERROR_CHECK_NEG(r, "Could not update address balance.");
+
+                        r = txoa_delete(block->transactions[j]->inputs[k]->tx_hash, block->transactions[j]->inputs[k]->index);
+                        ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
+                    }
+                }
+
+                for (k = 0; k < block->transactions[j]->output_count; k++)
+                {
+                    memset(address, 0, BUFSIZ);
+
+                    r = script_get_output_address(address,
+                                block->transactions[j]->outputs[k]->script_raw,
+                                block->transactions[j]->outputs[k]->script_size,
+                                block->transactions[j]->version);
+                    ERROR_CHECK_NEG(r, "Could not get address from output script.");
+
+                    if (*address)
+                    {
+                        // TXOA Database
+                        r = txoa_put(block->transactions[j]->txid, k, address);
+                        ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
+
+                        // Balance Database
+                        r = balance_put(address, block->transactions[j]->outputs[k]->amount);
+                        ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
+                    }
                 }
             }
 
-            free(value->script);
-            value->script = NULL;
+            free(block_hex);
+            free(block_raw);
+            block_free(block);
+
+            r = txao_set_last_block(i);
+            ERROR_CHECK_NEG(r, "Could not set last block.");
+
+            printf("Block %i\n", i);
         }
-        ERROR_CHECK_NEG(r, "Could not get next chainstate record.");
-
-        utxokey_free(key);
-        utxovalue_free(value);
-
-        chainstate_close();
-    }
-    else if (opts->update)
-    {
-        // stub
     }
     else
     {
@@ -186,6 +204,17 @@ int btk_balance_init(opts_p opts)
 
     assert(opts);
 
+    if (opts->create || opts->update)
+    {
+        ERROR_CHECK_NULL(opts->host_name, "Missing hostname command option.");
+        ERROR_CHECK_NULL(opts->rpc_auth, "Missing rpc-auth command option.");
+    }
+
+    // TODO - can't use output_path for two different databases. Must fix.
+
+    r = txoa_open(opts->output_path, opts->create);
+    ERROR_CHECK_NEG(r, "Could not open txoa database.");
+
     r = balance_open(opts->output_path, opts->create);
     ERROR_CHECK_NEG(r, "Could not open balance database.");
 
@@ -197,6 +226,7 @@ int btk_balance_cleanup(opts_p opts)
     assert(opts);
 
     balance_close();
+    txoa_close();
 
     return 1;
 }

@@ -15,7 +15,7 @@
 #include "mods/database.h"
 #include "mods/serialize.h"
 
-#define BALANCE_DEFAULT_PATH             ".bitcoin/balance"
+#define BALANCE_DEFAULT_PATH             ".btk/balance"
 
 static DBRef dbref = -1;
 
@@ -39,21 +39,16 @@ int balance_open(char *path, bool create)
     }
 
     r = database_open(&dbref, path, create);
-    if (r < 0)
-    {
-        error_log("Could not open the database.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Could not open the database.");
 
     return 1;
 }
 
 void balance_close(void)
 {
-    if (dbref > -1)
-    {
-        database_close(dbref);
-    }
+    assert(dbref >= 0);
+
+    database_close(dbref);
 }
 
 int balance_get(uint64_t *sats, char *address)
@@ -63,17 +58,16 @@ int balance_get(uint64_t *sats, char *address)
     unsigned char *serialized_value = NULL;
 
     r = database_get(&serialized_value, &serialized_value_len, dbref, (unsigned char *)address, strlen(address));
-    if (r < 0)
+    ERROR_CHECK_NEG(r, "Could not get value from balance database.");
+
+    if (!serialized_value)
     {
-        error_log("Could not get value from address database.");
-        return -1;
+        return 0;
     }
 
-    if (serialized_value != NULL)
-    {
-        deserialize_uint64(sats, serialized_value, SERIALIZE_ENDIAN_BIG);
-        free(serialized_value);
-    }
+    deserialize_uint64(sats, serialized_value, SERIALIZE_ENDIAN_BIG);
+
+    free(serialized_value);
 
     return 1;
 }
@@ -84,16 +78,11 @@ int balance_put(char *address, uint64_t sats)
     unsigned char serialized[sizeof(uint64_t)];
 
     assert(address);
-    assert(sats > 0);
 
     serialize_uint64(serialized, sats, SERIALIZE_ENDIAN_BIG);
 
     r = database_put(dbref, (unsigned char *)address, strlen(address), serialized, sizeof(uint64_t));
-    if (r < 0)
-    {
-        error_log("Can not put new value in the address database.");
-        return -1;
-    }
+    ERROR_CHECK_NEG(r, "Can not put new value in the balance database.");
 
     return 1;
 }

@@ -43,6 +43,7 @@ struct opts {
     int update;
     char *input_path;
     char *output_path;
+    char *rpc_auth;
     char *command;
     char *subcommand;
 };
