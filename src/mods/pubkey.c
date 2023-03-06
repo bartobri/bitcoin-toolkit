@@ -18,10 +18,10 @@
 #include "hex.h"
 #include "network.h"
 #include "error.h"
-#ifdef _USE_GMPLIB
-#include <gmp.h>
-#else
+#ifdef _NO_GMPLIB
 #include "GMP/mini-gmp.h"
+#else
+#include <gmp.h>
 #endif
 
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02

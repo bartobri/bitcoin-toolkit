@@ -9,10 +9,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "error.h"
-#ifdef _USE_GMPLIB
-#include <gmp.h>
-#else
+#ifdef _NO_GMPLIB
 #include "GMP/mini-gmp.h"
+#else
+#include <gmp.h>
 #endif
 
 #define BASE58_CODE_STRING_LENGTH 58

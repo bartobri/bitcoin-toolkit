@@ -19,10 +19,10 @@
 #include "base58check.h"
 #include "crypto.h"
 #include "error.h"
-#ifdef _USE_GMPLIB
-#include <gmp.h>
-#else
+#ifdef _NO_GMPLIB
 #include "GMP/mini-gmp.h"
+#else
+#include <gmp.h>
 #endif
 
 #define MAINNET_PREFIX      0x80

@@ -7,10 +7,10 @@
 
 #include <assert.h>
 #include "point.h"
-#ifdef _USE_GMPLIB
-#include <gmp.h>
-#else
+#ifdef _NO_GMPLIB
 #include "GMP/mini-gmp.h"
+#else
+#include <gmp.h>
 #endif
 
 #define BITCOIN_PRIME             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"

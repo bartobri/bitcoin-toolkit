@@ -12,10 +12,10 @@
 #include <assert.h>
 #include "database.h"
 #include "error.h"
-#ifdef _USE_LEVELDB
-#include <leveldb/c.h>
-#else
+#ifdef _NO_LEVELDB
 #include "leveldb/stub.h"
+#else
+#include <leveldb/c.h>
 #endif
 
 #define DATABASE_MAX_DB_OBJS 2
@@ -30,7 +30,7 @@ int database_open(DBRef *ref, char *location, bool create)
     char *err = NULL;
     leveldb_options_t *options;
 
-#ifndef _USE_LEVELDB
+#ifdef _NO_LEVELDB
     error_log("To fix this, install the leveldb development library, then recompile and reinstall this program.");
     error_log("The leveldb library was not detected at compile time. This feature has been disabled.");
     return -1;

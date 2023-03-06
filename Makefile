@@ -28,22 +28,25 @@ CRYPTO_OBJS = $(OBJ)/$(MODS)/crypto/rmd160.o $(OBJ)/$(MODS)/crypto/sha256.o
 LEVELDB_OBJS = $(OBJ)/$(MODS)/leveldb/stub.o
 
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libgmp ), 1)
-CFLAGS += -D_USE_GMPLIB
 CLIBS += -lgmp
 GMP_OBJS = $()
+else
+CFLAGS += -D_NO_GMPLIB
 endif
 
 ## sudo apt install libssl-dev
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
-CFLAGS += -D_USE_OPENSSL
 CLIBS += -lcrypto
 CRYPTO_OBJS = $()
+else
+CFLAGS += -D_NO_OPENSSL
 endif
 
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libleveldb ), 1)
-CFLAGS += -D_USE_LEVELDB
 CLIBS += -lleveldb
 LEVELDB_OBJS = $()
+else
+CFLAGS += -D_NO_LEVELDB
 endif
 
 .PHONY: all test install uninstall clean

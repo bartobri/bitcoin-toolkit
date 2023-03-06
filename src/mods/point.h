@@ -8,10 +8,10 @@
 #ifndef POINT_H
 #define POINT_H 1
 
-#ifdef _USE_GMPLIB
-#include <gmp.h>
-#else
+#ifdef _NO_GMPLIB
 #include "GMP/mini-gmp.h"
+#else
+#include <gmp.h>
 #endif
 
 typedef struct Point *Point;
