@@ -17,7 +17,7 @@
 
 #define BALANCE_DEFAULT_PATH             ".btk/balance"
 
-static DBRef dbref = -1;
+static DBRef dbref = NULL;
 
 int balance_open(char *path, bool create)
 {
@@ -46,9 +46,12 @@ int balance_open(char *path, bool create)
 
 void balance_close(void)
 {
-    assert(dbref >= 0);
+    assert(dbref);
 
     database_close(dbref);
+    free(dbref);
+
+    dbref = NULL;
 }
 
 int balance_get(uint64_t *sats, char *address)

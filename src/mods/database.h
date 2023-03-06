@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 
-typedef int DBRef;
+typedef struct DBRef *DBRef;
 
 int database_open(DBRef *, char *, bool);
 int database_is_open(DBRef);

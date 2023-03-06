@@ -22,7 +22,7 @@
 #define TXOA_KEY_LEN            TRANSACTION_ID_LEN + sizeof(uint32_t)
 #define TXOA_DEFAULT_PATH       ".btk/txoa"
 
-static DBRef dbref = -1;
+static DBRef dbref = NULL;
 
 int txoa_open(char *path, bool create)
 {
@@ -55,9 +55,12 @@ int txoa_open(char *path, bool create)
 
 void txoa_close(void)
 {
-    assert (dbref >= 0);
+    assert (dbref);
 
     database_close(dbref);
+    free(dbref);
+
+    dbref = NULL;
 }
 
 int txoa_get(char *address, unsigned char *tx_hash, uint32_t index)

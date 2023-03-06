@@ -19,7 +19,7 @@
 #define CHAINSTATE_OFUSCATE_KEY_KEY         "\016\000obfuscate_key"
 #define CHAINSTATE_OFUSCATE_KEY_KEY_LENGTH  15
 
-static DBRef dbref = -1;
+static DBRef dbref = NULL;
 static unsigned char *obfuscate_key = NULL;
 static size_t obfuscate_key_len = 0;
 
@@ -60,7 +60,7 @@ int chainstate_seek_start(void)
 {
     int r;
 
-    assert(dbref >= 0);
+    assert(dbref);
 
     r = database_iter_seek_start(dbref);
     ERROR_CHECK_NEG(r, "Unable to seek to first record in chainstate database.");
@@ -112,8 +112,10 @@ int chainstate_get_next(UTXOKey key, UTXOValue value)
 
 void chainstate_close(void)
 {
-    if (dbref >= 0)
-    {
-        database_close(dbref);
-    }
+    assert(dbref);
+
+    database_close(dbref);
+    free(dbref);
+
+    dbref = NULL;
 }

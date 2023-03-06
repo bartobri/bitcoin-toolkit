@@ -20,15 +20,16 @@
 
 #define DATABASE_MAX_DB_OBJS 2
 
-static leveldb_t *(db[DATABASE_MAX_DB_OBJS]);
-static leveldb_iterator_t *(iter[DATABASE_MAX_DB_OBJS]);
-static leveldb_readoptions_t *roptions;
+struct DBRef {
+    leveldb_t *db;
+    leveldb_iterator_t *db_iter;
+};
 
 int database_open(DBRef *ref, char *location, bool create)
 {
-    int i;
     char *err = NULL;
     leveldb_options_t *options;
+    leveldb_readoptions_t *roptions;
 
 #ifdef _NO_LEVELDB
     error_log("To fix this, install the leveldb development library, then recompile and reinstall this program.");
@@ -36,9 +37,8 @@ int database_open(DBRef *ref, char *location, bool create)
     return -1;
 #endif
 
-    // Next available database reference slot
-    for (i = 0; i < DATABASE_MAX_DB_OBJS && database_is_open(i); i++)
-        ;
+    *ref = malloc(sizeof(struct DBRef));
+    ERROR_CHECK_NULL(*ref, "Memory allocation error.");
 
     options = leveldb_options_create();
 
@@ -55,7 +55,7 @@ int database_open(DBRef *ref, char *location, bool create)
         leveldb_options_set_error_if_exists(options, true);
     }
 
-    db[i] = leveldb_open(options, location, &err);
+    (*ref)->db = leveldb_open(options, location, &err);
 
     if (err != NULL) {
         error_log("Error: %s.", err);
@@ -63,41 +63,27 @@ int database_open(DBRef *ref, char *location, bool create)
     }
 
     roptions = leveldb_readoptions_create();
-    iter[i] = leveldb_create_iterator(db[i], roptions);
-
-    *ref = i;
-
-    return 1;
-}
-
-int database_is_open(DBRef ref)
-{
-    if (db[ref] == NULL)
-    {
-        return 0;
-    }
+    (*ref)->db_iter = leveldb_create_iterator((*ref)->db, roptions);
 
     return 1;
 }
 
 int database_iter_seek_start(DBRef ref)
 {
-    assert(db[ref]);
-    assert(iter[ref]);
+    assert(ref);
 
-    leveldb_iter_seek_to_first(iter[ref]);
+    leveldb_iter_seek_to_first(ref->db_iter);
 
     return 1;
 }
 
 int database_iter_seek_key(DBRef ref, unsigned char *key, size_t key_len)
 {
-    assert(db[ref]);
-    assert(iter[ref]);
+    assert(ref);
 
-    leveldb_iter_seek(iter[ref], (char *)key, key_len);
+    leveldb_iter_seek(ref->db_iter, (char *)key, key_len);
 
-    if (!leveldb_iter_valid(iter[ref]))
+    if (!leveldb_iter_valid(ref->db_iter))
     {
         // End of database. Return zero.
         return 0;
@@ -108,13 +94,12 @@ int database_iter_seek_key(DBRef ref, unsigned char *key, size_t key_len)
 
 int database_iter_next(DBRef ref)
 {
-    assert(db[ref]);
-    assert(iter[ref]);
-    assert(leveldb_iter_valid(iter[ref]));
+    assert(ref);
+    assert(leveldb_iter_valid(ref->db_iter));
 
-    leveldb_iter_next(iter[ref]);
+    leveldb_iter_next(ref->db_iter);
 
-    if (!leveldb_iter_valid(iter[ref]))
+    if (!leveldb_iter_valid(ref->db_iter))
     {
         // Reached end of database. Return zero.
         return 0;
@@ -128,18 +113,17 @@ int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **valu
     const char *tmp_key;
     const char *tmp_value;
 
-    assert(db[ref]);
-    assert(iter[ref]);
-    assert(leveldb_iter_valid(iter[ref]));
+    assert(ref);
+    assert(leveldb_iter_valid(ref->db_iter));
 
-    tmp_key = leveldb_iter_key(iter[ref], key_len);
+    tmp_key = leveldb_iter_key(ref->db_iter, key_len);
 
     *key = malloc(*key_len);
     ERROR_CHECK_NULL(*key, "Memory allocation error.");
 
     memcpy(*key, tmp_key, *key_len);
 
-    tmp_value = leveldb_iter_value(iter[ref], value_len);
+    tmp_value = leveldb_iter_value(ref->db_iter, value_len);
 
     *value = malloc(*value_len);
     ERROR_CHECK_NULL(*key, "Memory allocation error.");
@@ -153,11 +137,10 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 {
     const char *output;
 
-    assert(db[ref]);
-    assert(iter[ref]);
-    assert(leveldb_iter_valid(iter[ref]));
+    assert(ref);
+    assert(leveldb_iter_valid(ref->db_iter));
 
-    output = leveldb_iter_value(iter[ref], value_len);
+    output = leveldb_iter_value(ref->db_iter, value_len);
 
     *value = malloc(*value_len);
     ERROR_CHECK_NULL(*value, "Memory allocation error.");
@@ -170,16 +153,22 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
+    leveldb_readoptions_t *roptions;
 
-    assert(db[ref]);
+    assert(ref);
+    assert(key);
+
+    roptions = leveldb_readoptions_create();
 
     *output_len = 0;
-    *output = (unsigned char *)leveldb_get(db[ref], roptions, (char *)key, key_len, output_len, &err);
+    *output = (unsigned char *)leveldb_get(ref->db, roptions, (char *)key, key_len, output_len, &err);
 
     if (err != NULL) {
         error_log("The database reported the following error: %s.", err);
         return -1;
     }
+
+    leveldb_readoptions_destroy(roptions);
 
     return 1;
 }
@@ -189,10 +178,12 @@ int database_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *v
     char *err = NULL;
     leveldb_writeoptions_t *woptions;
 
-    assert(db[ref]);
+    assert(ref);
+    assert(key);
+    assert(value);
     
     woptions = leveldb_writeoptions_create();
-    leveldb_put(db[ref], woptions, (char *)key, key_len, (char *)value, value_len, &err);
+    leveldb_put(ref->db, woptions, (char *)key, key_len, (char *)value, value_len, &err);
 
     if (err != NULL) {
         error_log("The database reported the following error: %s.", err);
@@ -209,10 +200,11 @@ int database_delete(DBRef ref, unsigned char *key, size_t key_len)
     char *err = NULL;
     leveldb_writeoptions_t *woptions;
 
-    assert(db[ref]);
+    assert(ref);
+    assert(key);
 
     woptions = leveldb_writeoptions_create();
-    leveldb_delete(db[ref], woptions, (char *)key, key_len, &err);
+    leveldb_delete(ref->db, woptions, (char *)key, key_len, &err);
 
     if (err != NULL)
     {
@@ -227,18 +219,8 @@ int database_delete(DBRef ref, unsigned char *key, size_t key_len)
 
 void database_close(DBRef ref)
 {
-    assert(db[ref]);
-    
-    if (iter[ref])
-    {
-        leveldb_iter_destroy(iter[ref]);
-    }
-    else
-    {
-        leveldb_readoptions_destroy(roptions);
-    }
-    leveldb_close(db[ref]);
+    assert(ref);
 
-    db[ref] = NULL;
-    iter[ref] = NULL;
+    leveldb_iter_destroy(ref->db_iter);
+    leveldb_close(ref->db);
 }
