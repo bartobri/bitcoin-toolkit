@@ -41,6 +41,7 @@ void leveldb_iter_next(leveldb_iterator_t*);
 const char* leveldb_iter_key(const leveldb_iterator_t*, size_t* klen);
 const char* leveldb_iter_value(const leveldb_iterator_t*, size_t* vlen);
 char* leveldb_get(leveldb_t* db, const leveldb_readoptions_t* options, const char* key, size_t keylen, size_t* vallen, char** errptr);
+void leveldb_delete(leveldb_t* db, const leveldb_writeoptions_t* options, const char* key, size_t keylen, char** errptr);
 leveldb_writeoptions_t* leveldb_writeoptions_create();
 void leveldb_put(leveldb_t* db, const leveldb_writeoptions_t* options, const char* key, size_t keylen, const char* val, size_t vallen, char** errptr);
 void leveldb_writeoptions_destroy(leveldb_writeoptions_t*);

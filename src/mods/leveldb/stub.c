@@ -106,6 +106,15 @@ char* leveldb_get(leveldb_t* db, const leveldb_readoptions_t* options, const cha
     return NULL;
 }
 
+void leveldb_delete(leveldb_t* db, const leveldb_writeoptions_t* options, const char* key, size_t keylen, char** errptr)
+{
+    (void)db;
+    (void)options;
+    (void)key;
+    (void)keylen;
+    (void)errptr;
+}
+
 leveldb_writeoptions_t* leveldb_writeoptions_create()
 {
     return NULL;
