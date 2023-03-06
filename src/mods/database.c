@@ -82,11 +82,8 @@ int database_is_open(DBRef ref)
 
 int database_iter_seek_start(DBRef ref)
 {
-    if (!database_is_open(ref))
-    {
-        error_log("Database is not open.");
-        return -1;
-    }
+    assert(db[ref]);
+    assert(iter[ref]);
 
     leveldb_iter_seek_to_first(iter[ref]);
 
@@ -95,11 +92,8 @@ int database_iter_seek_start(DBRef ref)
 
 int database_iter_seek_key(DBRef ref, unsigned char *key, size_t key_len)
 {
-    if (!database_is_open(ref))
-    {
-        error_log("Database is not open.");
-        return -1;
-    }
+    assert(db[ref]);
+    assert(iter[ref]);
 
     leveldb_iter_seek(iter[ref], (char *)key, key_len);
 
@@ -114,11 +108,9 @@ int database_iter_seek_key(DBRef ref, unsigned char *key, size_t key_len)
 
 int database_iter_next(DBRef ref)
 {
-    if (!leveldb_iter_valid(iter[ref]))
-    {
-        error_log("Invalid database iterator.");
-        return -1;
-    }
+    assert(db[ref]);
+    assert(iter[ref]);
+    assert(leveldb_iter_valid(iter[ref]));
 
     leveldb_iter_next(iter[ref]);
 
@@ -136,6 +128,7 @@ int database_iter_get(unsigned char **key, size_t *key_len, unsigned char **valu
     const char *tmp_key;
     const char *tmp_value;
 
+    assert(db[ref]);
     assert(iter[ref]);
     assert(leveldb_iter_valid(iter[ref]));
 
@@ -160,6 +153,7 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 {
     const char *output;
 
+    assert(db[ref]);
     assert(iter[ref]);
     assert(leveldb_iter_valid(iter[ref]));
 
@@ -178,22 +172,12 @@ int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned
     char *err = NULL;
 
     assert(db[ref]);
-    assert(database_is_open(ref));
 
     *output_len = 0;
+    *output = (unsigned char *)leveldb_get(db[ref], roptions, (char *)key, key_len, output_len, &err);
 
-    if (database_is_open(ref))
-    {
-        *output = (unsigned char *)leveldb_get(db[ref], roptions, (char *)key, key_len, output_len, &err);
-
-        if (err != NULL) {
-            error_log("The database reported the following error: %s.", err);
-            return -1;
-        }
-    }
-    else
-    {
-        error_log("Unable to get key value. Database has not been opened.");
+    if (err != NULL) {
+        error_log("The database reported the following error: %s.", err);
         return -1;
     }
 
@@ -205,23 +189,17 @@ int database_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *v
     char *err = NULL;
     leveldb_writeoptions_t *woptions;
 
-    if (database_is_open(ref))
-    {
-        woptions = leveldb_writeoptions_create();
-        leveldb_put(db[ref], woptions, (char *)key, key_len, (char *)value, value_len, &err);
+    assert(db[ref]);
+    
+    woptions = leveldb_writeoptions_create();
+    leveldb_put(db[ref], woptions, (char *)key, key_len, (char *)value, value_len, &err);
 
-        if (err != NULL) {
-            error_log("The database reported the following error: %s.", err);
-            return -1;
-        }
-
-        leveldb_writeoptions_destroy(woptions);
-    }
-    else
-    {
-        error_log("Unable to put key/value. Database has not been opened.");
+    if (err != NULL) {
+        error_log("The database reported the following error: %s.", err);
         return -1;
     }
+
+    leveldb_writeoptions_destroy(woptions);
 
     return 1;
 }
@@ -231,10 +209,9 @@ int database_delete(DBRef ref, unsigned char *key, size_t key_len)
     char *err = NULL;
     leveldb_writeoptions_t *woptions;
 
-    assert(db[ref] != NULL);
+    assert(db[ref]);
 
     woptions = leveldb_writeoptions_create();
-
     leveldb_delete(db[ref], woptions, (char *)key, key_len, &err);
 
     if (err != NULL)
@@ -250,19 +227,18 @@ int database_delete(DBRef ref, unsigned char *key, size_t key_len)
 
 void database_close(DBRef ref)
 {
-    if (database_is_open(ref))
+    assert(db[ref]);
+    
+    if (iter[ref])
     {
-        if (iter[ref])
-        {
-            leveldb_iter_destroy(iter[ref]);
-        }
-        else
-        {
-            leveldb_readoptions_destroy(roptions);
-        }
-        leveldb_close(db[ref]);
-
-        db[ref] = NULL;
-        iter[ref] = NULL;
+        leveldb_iter_destroy(iter[ref]);
     }
+    else
+    {
+        leveldb_readoptions_destroy(roptions);
+    }
+    leveldb_close(db[ref]);
+
+    db[ref] = NULL;
+    iter[ref] = NULL;
 }
