@@ -40,7 +40,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	(void)output;
 
 	unsigned char *node_data = NULL;
-	size_t node_data_len = 0;
 
 	Message message;
 	unsigned char *message_raw;
@@ -78,8 +77,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			message_raw = malloc(sizeof(struct Message) + message->length);
 			ERROR_CHECK_NULL(message_raw, "Memory allocation error.");
 
-			r = message_serialize(message_raw, &message_raw_len, message);
+			r = message_to_raw(message_raw, message);
 			ERROR_CHECK_NEG(r, "Could not serialize message data.");
+
+			message_raw_len = r;
 
 			r = node_write(node, message_raw, message_raw_len);
 			ERROR_CHECK_NEG(r, "Could not send message to host.");
@@ -90,12 +91,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			r = node_read(node, &node_data, NODE_READ_BREAK_MESSAGE);
 			ERROR_CHECK_NEG(r, "Could not read message from host.");
 
-			node_data_len = r;
-
 			message = malloc(sizeof(struct Message));
 			ERROR_CHECK_NULL(message, "Memory allocation error.");
 
-			r = message_deserialize(message, node_data, node_data_len);
+			r = message_from_raw(message, node_data);
 			ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
 
 			r = message_is_valid(message);

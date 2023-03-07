@@ -25,12 +25,7 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 	
 	assert(m);
 	assert(command);
-
-	if (strlen(command) > MESSAGE_COMMAND_MAXLEN)
-	{
-		error_log("Command length (%i) can not exceed %i bytes in length.", (int)strlen(command), MESSAGE_COMMAND_MAXLEN);
-		return -1;
-	}
+	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
 
 	if (network_is_main())
 	{
@@ -58,51 +53,49 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 	return 1;
 }
 
-int message_serialize(unsigned char *output, size_t *output_len, Message m)
+int message_to_raw(unsigned char *output, Message message)
 {
+	unsigned char *head;
+
 	assert(output);
-	assert(output_len);
-	assert(m);
+	assert(message);
 
-	output = serialize_uint32(output, m->magic, SERIALIZE_ENDIAN_LIT);
-	output = serialize_char(output, m->command, MESSAGE_COMMAND_MAXLEN);
-	output = serialize_uint32(output, m->length, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint32(output, m->checksum, SERIALIZE_ENDIAN_BIG);
-	if (m->length)
+	head = output;
+
+	output = serialize_uint32(output, message->magic, SERIALIZE_ENDIAN_LIT);
+	output = serialize_char(output, message->command, MESSAGE_COMMAND_MAXLEN);
+	output = serialize_uint32(output, message->length, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint32(output, message->checksum, SERIALIZE_ENDIAN_BIG);
+	if (message->length)
 	{
-		output = serialize_uchar(output, m->payload, m->length);
+		output = serialize_uchar(output, message->payload, message->length);
 	}
-
-	*output_len = 12 + MESSAGE_COMMAND_MAXLEN + m->length;
 	
-	return 1;
+	return output - head;
 }
 
-int message_deserialize(Message output, unsigned char *input, size_t input_len)
+int message_from_raw(Message message, unsigned char *input)
 {
-	assert(output);
+	unsigned char *head;
+
+	assert(message);
 	assert(input);
-	assert(input_len);
 
-	if (input_len < 12 + MESSAGE_COMMAND_MAXLEN)
+	head = input;
+
+	input = deserialize_uint32(&(message->magic), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_char(message->command, input, MESSAGE_COMMAND_MAXLEN);
+	input = deserialize_uint32(&(message->length), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint32(&(message->checksum), input, SERIALIZE_ENDIAN_BIG);
+	if (message->length)
 	{
-		error_log("Input length (%i) insifficient to create a new message. At least %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN);
-		return -1;
+		message->payload = malloc(message->length);
+		ERROR_CHECK_NULL(message->payload, "Memory allocation error.");
+
+		input = deserialize_uchar(message->payload, input, message->length, SERIALIZE_ENDIAN_BIG);
 	}
 
-	input = deserialize_uint32(&(output->magic), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_char(output->command, input, MESSAGE_COMMAND_MAXLEN);
-	input = deserialize_uint32(&(output->length), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint32(&(output->checksum), input, SERIALIZE_ENDIAN_BIG);
-	if (output->length)
-	{
-		output->payload = malloc(output->length);
-		ERROR_CHECK_NULL(output->payload, "Memory allocation error.");
-
-		input = deserialize_uchar(output->payload, input, output->length, SERIALIZE_ENDIAN_BIG);
-	}
-	
-	return 12 + MESSAGE_COMMAND_MAXLEN + output->length;
+	return input - head;
 }
 
 int message_is_valid(Message m)
