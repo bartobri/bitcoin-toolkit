@@ -74,6 +74,11 @@ int version_new(Version *version)
 	
 	if ((*version)->user_agent_bytes)
 	{
+		(*version)->user_agent = malloc((*version)->user_agent_bytes + 1);
+		ERROR_CHECK_NULL((*version)->user_agent, "Memory allocation error.");
+
+		memset((*version)->user_agent, 0, (*version)->user_agent_bytes + 1);
+
 		memcpy((*version)->user_agent, USER_AGENT, strlen(USER_AGENT));
 	}
 
@@ -135,7 +140,11 @@ int version_new_from_raw(Version *version, unsigned char *input, size_t input_le
 	input = deserialize_compuint(&((*version)->user_agent_bytes), input, SERIALIZE_ENDIAN_LIT);
 	if ((*version)->user_agent_bytes > 0)
 	{
-		memset((*version)->user_agent, 0, USER_AGENT_MAX_LEN);
+		(*version)->user_agent = malloc((*version)->user_agent_bytes + 1);
+		ERROR_CHECK_NULL((*version)->user_agent, "Memory allocation error.");
+
+		memset((*version)->user_agent, 0, (*version)->user_agent_bytes + 1);
+
 		input = deserialize_char((*version)->user_agent, input, (*version)->user_agent_bytes);
 	}
 	input = deserialize_uint32(&((*version)->start_height), input, SERIALIZE_ENDIAN_LIT);
@@ -302,5 +311,6 @@ void version_destroy(Version version)
 {
 	assert(version);
 
+	free(version->user_agent);
 	free(version);
 }

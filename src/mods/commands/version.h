@@ -29,7 +29,7 @@ struct Version
     uint16_t addr_trans_port;
     uint64_t nonce;
     uint64_t user_agent_bytes;
-    char     user_agent[USER_AGENT_MAX_LEN];
+    char    *user_agent;
     uint32_t start_height;
     uint8_t  relay;
 };
