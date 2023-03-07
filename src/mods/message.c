@@ -5,6 +5,7 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -24,19 +25,10 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 	
 	assert(m);
 	assert(command);
-	if (payload_len)
-	{
-		assert(payload);
-	}
 
 	if (strlen(command) > MESSAGE_COMMAND_MAXLEN)
 	{
 		error_log("Command length (%i) can not exceed %i bytes in length.", (int)strlen(command), MESSAGE_COMMAND_MAXLEN);
-		return -1;
-	}
-	if (payload_len > MESSAGE_PAYLOAD_MAXLEN)
-	{
-		error_log("Message length (%i) can not exceed %i bytes in length.", payload_len, MESSAGE_PAYLOAD_MAXLEN);
 		return -1;
 	}
 
@@ -51,15 +43,16 @@ int message_new(Message m, const char *command, unsigned char *payload, size_t p
 
 	strncpy(m->command, command, MESSAGE_COMMAND_MAXLEN);
 	m->length = payload_len;
+
 	if (payload_len)
 	{
+		m->payload = malloc(payload_len);
+		ERROR_CHECK_NULL(m->payload, "Memory allocation error.");
+
 		memcpy(m->payload, payload, payload_len);
+
 		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
-		if (r < 0)
-		{
-			error_log("Could not generate checksum for message payload.");
-			return -1;
-		}
+		ERROR_CHECK_NEG(r, "Could not generate checksum for message payload.");
 	}
 
 	return 1;
@@ -103,11 +96,9 @@ int message_deserialize(Message output, unsigned char *input, size_t input_len)
 	input = deserialize_uint32(&(output->checksum), input, SERIALIZE_ENDIAN_BIG);
 	if (output->length)
 	{
-		if (input_len < 12 + MESSAGE_COMMAND_MAXLEN + output->length)
-		{
-			error_log("Input length (%i) insifficient to create a new message. %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN + output->length);
-			return -1;
-		}
+		output->payload = malloc(output->length);
+		ERROR_CHECK_NULL(output->payload, "Memory allocation error.");
+
 		input = deserialize_uchar(output->payload, input, output->length, SERIALIZE_ENDIAN_BIG);
 	}
 	

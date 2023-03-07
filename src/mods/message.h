@@ -11,7 +11,6 @@
 #include <stdint.h>
 
 #define MESSAGE_MIN_SIZE       24
-#define MESSAGE_PAYLOAD_MAXLEN 1024
 #define MESSAGE_COMMAND_MAXLEN 12
 
 typedef struct Message *Message;
@@ -21,7 +20,7 @@ struct Message
     char           command[MESSAGE_COMMAND_MAXLEN];
     uint32_t       length;
     uint32_t       checksum;
-    unsigned char  payload[MESSAGE_PAYLOAD_MAXLEN];
+    unsigned char  *payload;
 };
 
 int message_new(Message, const char *, unsigned char *, size_t);

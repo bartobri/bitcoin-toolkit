@@ -99,9 +99,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 			free(version_string);
 
-			// TODO - should not use struct Message for raw size.
-			// Include size of payload as well.
-			message_raw = malloc(sizeof(struct Message));
+			message_raw = malloc(sizeof(struct Message) + message->length);
 			ERROR_CHECK_NULL(message_raw, "Memory allocation error.");
 
 			r = message_serialize(message_raw, &message_raw_len, message);
