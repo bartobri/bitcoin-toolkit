@@ -218,6 +218,12 @@ char *version_service_bit_to_str(int bit)
 		case 3:
 			return "NODE_WITNESS";
 			break;
+		case 4:
+			return "NODE_XTHIN";
+			break;
+		case 6:
+			return "NODE_COMPACT_FILTERS";
+			break;
 		case 10:
 			return "NODE_NETWORK_LIMITED";
 			break;
