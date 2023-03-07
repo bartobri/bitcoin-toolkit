@@ -76,25 +76,27 @@ int message_to_raw(unsigned char *output, Message message)
 	return output - head;
 }
 
-int message_from_raw(Message message, unsigned char *input)
+int message_new_from_raw(Message *message, unsigned char *input)
 {
 	unsigned char *head;
 
-	assert(message);
 	assert(input);
+
+	*message = malloc(sizeof(struct Message));
+	ERROR_CHECK_NULL(*message, "Memory allocation error.");
 
 	head = input;
 
-	input = deserialize_uint32(&(message->magic), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_char(message->command, input, MESSAGE_COMMAND_MAXLEN);
-	input = deserialize_uint32(&(message->length), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint32(&(message->checksum), input, SERIALIZE_ENDIAN_BIG);
-	if (message->length)
+	input = deserialize_uint32(&((*message)->magic), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_char((*message)->command, input, MESSAGE_COMMAND_MAXLEN);
+	input = deserialize_uint32(&((*message)->length), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint32(&((*message)->checksum), input, SERIALIZE_ENDIAN_BIG);
+	if ((*message)->length)
 	{
-		message->payload = malloc(message->length);
-		ERROR_CHECK_NULL(message->payload, "Memory allocation error.");
+		(*message)->payload = malloc((*message)->length);
+		ERROR_CHECK_NULL((*message)->payload, "Memory allocation error.");
 
-		input = deserialize_uchar(message->payload, input, message->length, SERIALIZE_ENDIAN_BIG);
+		input = deserialize_uchar((*message)->payload, input, (*message)->length, SERIALIZE_ENDIAN_BIG);
 	}
 
 	return input - head;

@@ -28,6 +28,9 @@
 static Node node;
 static char *command;
 
+int btk_node_send(char *, unsigned char *, size_t);
+int btk_node_response(char **, unsigned char **, size_t *);
+
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
@@ -38,16 +41,17 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	unsigned char *node_data = NULL;
 
-	Message message;
-	unsigned char message_raw[BUFSIZ];
-	size_t message_raw_len;
-
+	//Message message;
 	Version version = NULL;
 
-	unsigned char *command_payload;
-	size_t command_payload_len;
+	unsigned char *payload_send;
+	unsigned char *payload_resp;
+	size_t payload_send_len;
+	size_t payload_resp_len;
 
 	char *json = NULL;
+
+	char *command_resp;
 
 	assert(opts);
 
@@ -56,13 +60,13 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	if (strcmp(command, VERSION_COMMAND) == 0)
 	{
-		command_payload = malloc(version_sizeof());
-		ERROR_CHECK_NULL(command_payload, "Memory allocation error.");
+		payload_send = malloc(version_sizeof());
+		ERROR_CHECK_NULL(payload_send, "Memory allocation error.");
 
-		r = version_new_serialize(command_payload);
+		r = version_new_serialize(payload_send);
 		ERROR_CHECK_NEG(r, "Could not serialize version data.");
 
-		command_payload_len = r;
+		payload_send_len = r;
 	}
 	else
 	{
@@ -70,33 +74,16 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		return -1;
 	}
 
-	r = message_new(&message, command, command_payload, command_payload_len);
-	ERROR_CHECK_NEG(r, "Could not create a new message.");
+	r = btk_node_send(command, payload_send, payload_send_len);
+	ERROR_CHECK_NEG(r, "Could not send data.");
 
-	r = message_to_raw(message_raw, message);
-	ERROR_CHECK_NEG(r, "Could not serialize message data.");
+	r = btk_node_response(&command_resp, &payload_resp, &payload_resp_len);
+	ERROR_CHECK_NEG(r, "Could not get node response.");
 
-	message_raw_len = r;
 
-	r = node_write(node, message_raw, message_raw_len);
-	ERROR_CHECK_NEG(r, "Could not send message to host.");
 
-	free(message);
-
-	r = node_read(node, &node_data, NODE_READ_BREAK_MESSAGE);
-	ERROR_CHECK_NEG(r, "Could not read message from host.");
-
-	message = malloc(sizeof(struct Message));
-	ERROR_CHECK_NULL(message, "Memory allocation error.");
-
-	r = message_from_raw(message, node_data);
-	ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
-
-	r = message_is_valid(message);
-	ERROR_CHECK_NEG(r, "Could not validate message from host.");
-	ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
 	
-	if (strncmp(message->command, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) != 0)
+	if (strncmp(command_resp, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) != 0)
 	{
 		r = json_init(&tmp);
 		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
@@ -123,7 +110,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	version = malloc(version_sizeof());
 	ERROR_CHECK_NULL(version, "Memory allocation error.");
 
-	r = version_deserialize(version, message->payload, message->length);
+	r = version_deserialize(version, payload_resp, payload_resp_len);
 	ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
 	r = json_init(&version_json);
@@ -242,12 +229,73 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 	json_free(version_json);
-	message_destroy(message);
 
 	free(json);
 	free(version);
 	free(node_data);
-	free(command_payload);
+	free(payload_send);
+	free(payload_resp);
+	free(command_resp);
+
+	return 1;
+}
+
+int btk_node_send(char *command, unsigned char *payload, size_t payload_len)
+{
+	int r;
+	unsigned char message_raw[BUFSIZ];
+	size_t message_raw_len;
+	Message message;
+
+	r = message_new(&message, command, payload, payload_len);
+	ERROR_CHECK_NEG(r, "Could not create a new message.");
+
+	r = message_to_raw(message_raw, message);
+	ERROR_CHECK_NEG(r, "Could not serialize message data.");
+
+	message_raw_len = r;
+
+	r = node_write(node, message_raw, message_raw_len);
+	ERROR_CHECK_NEG(r, "Could not send message to host.");
+
+	message_destroy(message);
+
+	return 1;
+}
+
+int btk_node_response(char **command, unsigned char **payload, size_t *payload_len)
+{
+	int r;
+	unsigned char *response;
+	Message message;
+
+	r = node_read(node, &response, NODE_READ_BREAK_MESSAGE);
+	ERROR_CHECK_NEG(r, "Could not read message from host.");
+
+	r = message_is_complete(response, (size_t)r);
+	ERROR_CHECK_FALSE(r, "Received incomplete message.");
+
+	r = message_new_from_raw(&message, response);
+	ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
+
+	r = message_is_valid(message);
+	ERROR_CHECK_NEG(r, "Could not validate message from host.");
+	ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
+
+	*command = malloc(MESSAGE_COMMAND_MAXLEN);
+	ERROR_CHECK_NULL(*command, "Memory allocation error.");
+
+	strncpy(*command, message->command, MESSAGE_COMMAND_MAXLEN);
+
+	*payload_len = message->length;
+
+	*payload = malloc(*payload_len);
+	ERROR_CHECK_NULL(*payload, "Memory allocation error.");
+
+	memcpy(*payload, message->payload, *payload_len);
+
+	message_destroy(message);
+	free(response);
 
 	return 1;
 }
