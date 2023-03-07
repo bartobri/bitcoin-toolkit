@@ -38,8 +38,8 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	(void)output;
 
 	Node node;
-	unsigned char *node_data, *node_data_walk;
-	size_t node_data_len;
+	unsigned char *node_data = NULL;
+	size_t node_data_len = 0;
 
 	Message message;
 	unsigned char *message_raw;
@@ -113,47 +113,24 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			free(message);
 			free(message_raw);
 
-			node_data = NULL;
-			node_data_len = 0;
-
 			r = node_read(node, &node_data, NODE_READ_BREAK_MESSAGE);
 			ERROR_CHECK_NEG(r, "Could not read message from host.");
 
-			if (r > 0)
-			{
-				node_data_len = r;
-			}
+			node_data_len = r;
 
 			node_disconnect(node);
 
-			node_data_walk = node_data;
-			message = NULL;
+			message = malloc(sizeof(struct Message));
+			ERROR_CHECK_NULL(message, "Memory allocation error.");
 
-			while (node_data_len > 0)
-			{
-				message = malloc(sizeof(struct Message));
-				ERROR_CHECK_NULL(message, "Memory allocation error.");
+			r = message_deserialize(message, node_data, node_data_len);
+			ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
 
-				r = message_deserialize(message, node_data_walk, node_data_len);
-				ERROR_CHECK_NEG(r, "Could not deserialize message from host.");
-
-				node_data_len -= r;
-				node_data_walk += r;
-
-				r = message_is_valid(message);
-				ERROR_CHECK_NEG(r, "Could not validate message from host.");
-				ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
-
-				if (strncmp(message->command, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) == 0)
-				{
-					break;
-				}
-
-				free(message);
-				message = NULL;
-			}
+			r = message_is_valid(message);
+			ERROR_CHECK_NEG(r, "Could not validate message from host.");
+			ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
 			
-			if (!message)
+			if (strncmp(message->command, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) != 0)
 			{
 				r = json_init(&tmp);
 				ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
