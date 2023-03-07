@@ -10,8 +10,10 @@
 
 #include <stdint.h>
 
-#define MESSAGE_MIN_SIZE       24
-#define MESSAGE_COMMAND_MAXLEN 12
+#define MESSAGE_MIN_SIZE        24
+#define MESSAGE_COMMAND_MAXLEN  12
+
+#define MESSAGE_COMMAND_VERSION 1
 
 typedef struct Message *Message;
 struct Message
