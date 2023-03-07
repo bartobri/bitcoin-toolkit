@@ -26,6 +26,8 @@
 #define HOST_PORT_TEST       "18333"
 #define MESSAGE_TYPE_VERSION 1
 
+static Node node;
+
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
@@ -37,7 +39,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	(void)output;
 
-	Node node;
 	unsigned char *node_data = NULL;
 	size_t node_data_len = 0;
 
@@ -54,35 +55,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	(void)input;
 	(void)input_len;
-
-	if (!opts->host_name && input)
-	{
-		opts->host_name = (char *)input;
-	}
-
-	ERROR_CHECK_NULL(opts->host_name, "Missing hostname argument.");
-
-	if (!opts->host_service)
-	{
-		if (opts->network_test)
-		{
-			opts->host_service = HOST_PORT_TEST;
-		}
-		else
-		{
-			opts->host_service = HOST_PORT_MAIN;
-		}
-	}
 	
 	switch (message_type)
 	{
 		case MESSAGE_TYPE_VERSION:
-			node = malloc(node_sizeof());
-			ERROR_CHECK_NULL(node, "Memory allocation error.");
-
-			r = node_connect(node, opts->host_name, opts->host_service);
-			ERROR_CHECK_NEG(r, "Could not connect to host.");
-
 			version_string = malloc(version_sizeof());
 			ERROR_CHECK_NULL(version_string, "Memory allocation error.");
 
@@ -115,8 +91,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			ERROR_CHECK_NEG(r, "Could not read message from host.");
 
 			node_data_len = r;
-
-			node_disconnect(node);
 
 			message = malloc(sizeof(struct Message));
 			ERROR_CHECK_NULL(message, "Memory allocation error.");
@@ -278,7 +252,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			free(json);
 			free(version);
 			free(message);
-			free(node);
 			free(node_data);
 
 			break;
@@ -291,18 +264,37 @@ int btk_node_requires_input(opts_p opts)
 {
     assert(opts);
 
-    if (opts->host_name)
-    {
-    	return 0;
-    }
-
-    return 1;
+    return 0;
 }
 
 int btk_node_init(opts_p opts)
 {
+	int r;
+
+	ERROR_CHECK_NULL(opts->host_name, "Missing hostname argument.");
+
 	// Force list output format so it prints the json in output obj.
 	opts->output_format_list = 1;
+
+	// Set default service if needed
+	if (!opts->host_service)
+	{
+		if (opts->network_test)
+		{
+			opts->host_service = HOST_PORT_TEST;
+		}
+		else
+		{
+			opts->host_service = HOST_PORT_MAIN;
+		}
+	}
+
+	// Connect to node
+	node = malloc(node_sizeof());
+	ERROR_CHECK_NULL(node, "Memory allocation error.");
+
+	r = node_connect(node, opts->host_name, opts->host_service);
+	ERROR_CHECK_NEG(r, "Could not connect to host.");
 
 	return 1;
 }
@@ -310,6 +302,10 @@ int btk_node_init(opts_p opts)
 int btk_node_cleanup(opts_p opts)
 {
 	(void)opts;
+
+	node_disconnect(node);
+
+	free(node);
 	
 	return 1;
 }
