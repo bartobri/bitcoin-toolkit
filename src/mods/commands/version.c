@@ -18,6 +18,7 @@
 #include "mods/network.h"
 #include "mods/serialize.h"
 #include "mods/hex.h"
+#include "mods/json.h"
 #include "mods/error.h"
 
 #define STRINGIFY2(x) #x
@@ -192,11 +193,139 @@ int version_deserialize(Version output, unsigned char *input, size_t input_len)
 			error_log("Length of input is too short to accommodate the user agent field size.");
 			return -1;
 		}
+		memset(output->user_agent, 0, USER_AGENT_MAX_LEN);
 		input = deserialize_char(output->user_agent, input, output->user_agent_bytes);
 	}
 	input = deserialize_uint32(&(output->start_height), input, SERIALIZE_ENDIAN_LIT);
 	input = deserialize_uint8(&(output->relay), input, SERIALIZE_ENDIAN_LIT);
 	
+	return 1;
+}
+
+size_t version_sizeof(void)
+{
+	return sizeof(struct Version);
+}
+
+int version_to_json(char **output, Version version)
+{
+	int i, r;
+	cJSON *version_json = NULL;
+	cJSON *tmp = NULL;
+	char bitstr[100];
+	char tmpstr[100];
+
+	assert(version);
+
+	r = json_init(&version_json);
+	ERROR_CHECK_NEG(r, "Can not initialize json object.");
+
+	r = json_add_number(version_json, version->version, "version");
+	ERROR_CHECK_NEG(r, "Could not add version to json object.");
+
+	{
+		r = json_init(&tmp);
+		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+		for (i = 0; i < 64; ++i)
+		{
+			if (((version->services >> i) & 0x0000000000000001) == 1)
+			{
+				sprintf(bitstr, "bit %d", i);
+
+				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+			}
+		}
+
+		r = json_add_object(version_json, tmp, "services");
+		ERROR_CHECK_NEG(r, "Could not add services to json object.");
+	}
+
+	r = json_add_number(version_json, version->timestamp, "timestamp");
+	ERROR_CHECK_NEG(r, "Could not add timestamp to json object.");
+
+	{
+		r = json_init(&tmp);
+		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+		for (i = 0; i < 64; ++i)
+		{
+			if (((version->addr_recv_services >> i) & 0x0000000000000001) == 1)
+			{
+				sprintf(bitstr, "bit %d", i);
+
+				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+			}
+		}
+
+		r = json_add_object(version_json, tmp, "addr_recv_services");
+		ERROR_CHECK_NEG(r, "Could not add addr_recv_services to json object.");
+	}
+
+	{
+		for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+		{
+			sprintf(tmpstr + (i*2), "%02x", version->addr_recv_ip_address[i]);
+		}
+
+		r = json_add_string(version_json, tmpstr, "addr_recv_ip_address");
+		ERROR_CHECK_NEG(r, "Could not add addr_recv_ip_address to json object.");
+	}
+
+	r = json_add_number(version_json, version->addr_recv_port, "addr_recv_port");
+	ERROR_CHECK_NEG(r, "Could not add addr_recv_port to json object.");
+
+	{
+		r = json_init(&tmp);
+		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+
+		for (i = 0; i < 64; ++i)
+		{
+			if (((version->addr_trans_services >> i) & 0x0000000000000001) == 1)
+			{
+				sprintf(bitstr, "bit %d", i);
+
+				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
+				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+			}
+		}
+
+		r = json_add_object(version_json, tmp, "addr_trans_services");
+		ERROR_CHECK_NEG(r, "Could not add addr_trans_services to json object.");
+	}
+
+	{
+		for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
+		{
+			sprintf(tmpstr + (i*2), "%02x", version->addr_trans_ip_address[i]);
+		}
+
+		r = json_add_string(version_json, tmpstr, "addr_trans_ip_address");
+		ERROR_CHECK_NEG(r, "Could not add addr_trans_ip_address to json object.");
+	}
+
+	r = json_add_number(version_json, version->addr_trans_port, "addr_trans_port");
+	ERROR_CHECK_NEG(r, "Could not add addr_trans_port to json object.");
+
+	r = json_add_number(version_json, version->nonce, "nonce");
+	ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+
+	r = json_add_string(version_json, version->user_agent, "user_agent");
+	ERROR_CHECK_NEG(r, "Could not add user_agent to json object.");
+
+	r = json_add_number(version_json, version->start_height, "start_height");
+	ERROR_CHECK_NEG(r, "Could not add start_height to json object.");
+
+	r = json_add_bool(version_json, version->relay, "relay");
+	ERROR_CHECK_NEG(r, "Could not add relay to json object.");
+
+	r = json_to_string(output, version_json);
+	ERROR_CHECK_NEG(r, "Could not convert json to string.");
+
+	json_free(version_json);
+
 	return 1;
 }
 
@@ -230,9 +359,4 @@ char *version_service_bit_to_str(int bit)
 	}
 
 	return "UNKNOWN";
-}
-
-size_t version_sizeof(void)
-{
-	return sizeof(struct Version);
 }

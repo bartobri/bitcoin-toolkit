@@ -33,25 +33,14 @@ int btk_node_response(char **, unsigned char **, size_t *);
 
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
-	int i, r;
-	cJSON *version_json = NULL;
-	cJSON *tmp = NULL;
-	char bitstr[100];
-	char tmpstr[100];
-
-	unsigned char *node_data = NULL;
-
-	//Message message;
-	Version version = NULL;
-
+	int r;
 	unsigned char *payload_send;
 	unsigned char *payload_resp;
 	size_t payload_send_len;
 	size_t payload_resp_len;
-
-	char *json = NULL;
-
 	char *command_resp;
+	char *json;
+	Version version = NULL;
 
 	assert(opts);
 
@@ -80,159 +69,29 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	r = btk_node_response(&command_resp, &payload_resp, &payload_resp_len);
 	ERROR_CHECK_NEG(r, "Could not get node response.");
 
-
-
-	
-	if (strncmp(command_resp, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) != 0)
+	if (strcmp(command_resp, VERSION_COMMAND) == 0)
 	{
-		r = json_init(&tmp);
-		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
+		version = malloc(version_sizeof());
+		ERROR_CHECK_NULL(version, "Memory allocation error.");
 
-		r = json_add_string(tmp, opts->host_name, "host");
-		ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+		r = version_deserialize(version, payload_resp, payload_resp_len);
+		ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
-		r = json_add_string(tmp, "Unexpect message returned.", "output");
-		ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
+		r = version_to_json(&json, version);
+		ERROR_CHECK_NEG(r, "Could not convert version response to json.");
 
-		r = json_to_string(&json, tmp);
-		ERROR_CHECK_NEG(r, "Could not convert json to string.");
-
-		*output = output_append_new_copy(*output, json, strlen(json));
-		ERROR_CHECK_NULL(*output, "Memory allocation error.");
-
-		json_free(tmp);
-
-		free(json);
-
-		return 1;
+		free(version);
 	}
-	
-	version = malloc(version_sizeof());
-	ERROR_CHECK_NULL(version, "Memory allocation error.");
-
-	r = version_deserialize(version, payload_resp, payload_resp_len);
-	ERROR_CHECK_NEG(r, "Could not deserialize host response.");
-
-	r = json_init(&version_json);
-	ERROR_CHECK_NEG(r, "Can not initialize json object.");
-
-	r = json_add_string(version_json, opts->host_name, "host");
-	ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
-
-	r = json_add_number(version_json, version->version, "version");
-	ERROR_CHECK_NEG(r, "Could not add version to json object.");
-
+	else
 	{
-		r = json_init(&tmp);
-		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
-
-		for (i = 0; i < 64; ++i)
-		{
-			if (((version->services >> i) & 0x0000000000000001) == 1)
-			{
-				sprintf(bitstr, "bit %d", i);
-
-				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
-				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
-			}
-		}
-
-		r = json_add_object(version_json, tmp, "services");
-		ERROR_CHECK_NEG(r, "Could not add services to json object.");
-
+		error_log("Unknown command response: %s.", command_resp);
+		return -1;
 	}
-
-	r = json_add_number(version_json, version->timestamp, "timestamp");
-	ERROR_CHECK_NEG(r, "Could not add timestamp to json object.");
-
-	{
-		r = json_init(&tmp);
-		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
-
-		for (i = 0; i < 64; ++i)
-		{
-			if (((version->addr_recv_services >> i) & 0x0000000000000001) == 1)
-			{
-				sprintf(bitstr, "bit %d", i);
-
-				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
-				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
-			}
-		}
-
-		r = json_add_object(version_json, tmp, "addr_recv_services");
-		ERROR_CHECK_NEG(r, "Could not add addr_recv_services to json object.");
-
-	}
-
-	{
-		for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
-		{
-			sprintf(tmpstr + (i*2), "%02x", version->addr_recv_ip_address[i]);
-		}
-
-		r = json_add_string(version_json, tmpstr, "addr_recv_ip_address");
-		ERROR_CHECK_NEG(r, "Could not add addr_recv_ip_address to json object.");
-	}
-
-	r = json_add_number(version_json, version->addr_recv_port, "addr_recv_port");
-	ERROR_CHECK_NEG(r, "Could not add addr_recv_port to json object.");
-
-	{
-		r = json_init(&tmp);
-		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
-
-		for (i = 0; i < 64; ++i)
-		{
-			if (((version->addr_trans_services >> i) & 0x0000000000000001) == 1)
-			{
-				sprintf(bitstr, "bit %d", i);
-
-				r = json_add_string(tmp, version_service_bit_to_str(i), bitstr);
-				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
-			}
-		}
-
-		r = json_add_object(version_json, tmp, "addr_trans_services");
-		ERROR_CHECK_NEG(r, "Could not add addr_trans_services to json object.");
-	}
-
-	{
-		for(i = 0; i < IP_ADDR_FIELD_LEN; ++i)
-		{
-			sprintf(tmpstr + (i*2), "%02x", version->addr_trans_ip_address[i]);
-		}
-
-		r = json_add_string(version_json, tmpstr, "addr_trans_ip_address");
-		ERROR_CHECK_NEG(r, "Could not add addr_trans_ip_address to json object.");
-	}
-
-	r = json_add_number(version_json, version->addr_trans_port, "addr_trans_port");
-	ERROR_CHECK_NEG(r, "Could not add addr_trans_port to json object.");
-
-	r = json_add_number(version_json, version->nonce, "nonce");
-	ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
-
-	r = json_add_string(version_json, version->user_agent, "user_agent");
-	ERROR_CHECK_NEG(r, "Could not add user_agent to json object.");
-
-	r = json_add_number(version_json, version->start_height, "start_height");
-	ERROR_CHECK_NEG(r, "Could not add start_height to json object.");
-
-	r = json_add_bool(version_json, version->relay, "relay");
-	ERROR_CHECK_NEG(r, "Could not add relay to json object.");
-
-	r = json_to_string(&json, version_json);
-	ERROR_CHECK_NEG(r, "Could not convert json to string.");
 
 	*output = output_append_new_copy(*output, json, strlen(json));
 	ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
-	json_free(version_json);
-
 	free(json);
-	free(version);
-	free(node_data);
 	free(payload_send);
 	free(payload_resp);
 	free(command_resp);
