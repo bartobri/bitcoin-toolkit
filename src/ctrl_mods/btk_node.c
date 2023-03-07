@@ -144,16 +144,13 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 				ERROR_CHECK_NEG(r, "Could not validate message from host.");
 				ERROR_CHECK_FALSE(r, "The message received from host contains an invalid checksum.");
 
-				r = message_cmp_command(message, VERSION_COMMAND);
-				if (r == 0)
+				if (strncmp(message->command, VERSION_COMMAND, MESSAGE_COMMAND_MAXLEN) == 0)
 				{
 					break;
 				}
-				else
-				{
-					free(message);
-					message = NULL;
-				}
+
+				free(message);
+				message = NULL;
 			}
 			
 			if (!message)

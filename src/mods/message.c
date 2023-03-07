@@ -17,18 +17,6 @@
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
-#define MESSAGE_MIN_SIZE       24
-#define MESSAGE_COMMAND_MAXLEN 12
-#define MESSAGE_PAYLOAD_MAXLEN 1024
-
-struct Message
-{
-	uint32_t       magic;
-	char           command[MESSAGE_COMMAND_MAXLEN];
-	uint32_t       length;
-	uint32_t       checksum;
-	unsigned char  payload[MESSAGE_PAYLOAD_MAXLEN];
-};
 
 int message_new(Message m, const char *command, unsigned char *payload, size_t payload_len)
 {
@@ -124,15 +112,6 @@ int message_deserialize(Message output, unsigned char *input, size_t input_len)
 	}
 	
 	return 12 + MESSAGE_COMMAND_MAXLEN + output->length;
-}
-
-int message_cmp_command(Message m, char *command)
-{
-	assert(m);
-	assert(command);
-	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
-
-	return strncmp(m->command, command, MESSAGE_COMMAND_MAXLEN);
 }
 
 int message_is_valid(Message m)
