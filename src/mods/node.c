@@ -22,17 +22,31 @@
 struct Node
 {
 	int sockfd;
+	char *host;
+	char *service;
 };
 
-int node_connect(Node node, const char *host, const char *service)
+int node_new(Node *node, char *host, char *service)
+{
+	assert(host);
+	assert(service);
+
+	*node = malloc(sizeof(struct Node));
+	ERROR_CHECK_NULL(*node, "Memory allocation error.");
+
+	(*node)->host = host;
+	(*node)->service = service;
+
+	return 1;
+}
+
+int node_connect(Node node)
 {
 	int r, sockfd;
 	struct addrinfo *hints;
 	struct addrinfo *result;
 	
 	assert(node);
-	assert(host);
-	assert(service);
 
 	hints = malloc(sizeof(*hints));
 	ERROR_CHECK_NULL(hints, "Memory allocation error.");
@@ -42,7 +56,7 @@ int node_connect(Node node, const char *host, const char *service)
 	hints->ai_family = AF_INET;
 	hints->ai_socktype = SOCK_STREAM;
 
-	r = getaddrinfo(host, service, hints, &result);
+	r = getaddrinfo(node->host, node->service, hints, &result);
 	if (r > 0)
 	{
 		error_log("Can not get address info. Error code %i.", r);
@@ -61,7 +75,7 @@ int node_connect(Node node, const char *host, const char *service)
 	r = connect(sockfd, result->ai_addr, result->ai_addrlen);
 	if (r < 0)
 	{
-		error_log("Unable to connect to host %s. Errno %i.", host, errno);
+		error_log("Unable to connect to host %s. Errno %i.", node->host, errno);
 		return -1;
 	}
 
@@ -151,7 +165,9 @@ void node_disconnect(Node node)
 	close(node->sockfd);
 }
 
-size_t node_sizeof(void)
+void node_destroy(Node node)
 {
-	return sizeof(struct Node);
+	assert(node);
+
+	free(node);
 }

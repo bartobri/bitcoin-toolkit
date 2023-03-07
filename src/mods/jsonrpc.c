@@ -309,10 +309,10 @@ int jsonrpc_send_request(unsigned char **response, char *json_request)
     assert(auth_str);
     assert(json_request);
 
-    node = malloc(node_sizeof());
-    ERROR_CHECK_NULL(node, "Memory allocation error.");
+    r = node_new(&node, hostname, service);
+    ERROR_CHECK_NEG(r, "Could not get new node object.");
 
-    r = node_connect(node, hostname, service);
+    r = node_connect(node);
     ERROR_CHECK_NEG(r, "Could not connect to host.");
 
     r = node_write(node, (unsigned char*)json_request, strlen(json_request));
@@ -323,7 +323,7 @@ int jsonrpc_send_request(unsigned char **response, char *json_request)
     ERROR_CHECK_FALSE(r, "No data before timeout.");
 
     node_disconnect(node);
-    free(node);
+    node_destroy(node);
 
     return r;
 }

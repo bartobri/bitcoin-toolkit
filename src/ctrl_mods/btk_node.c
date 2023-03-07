@@ -289,10 +289,10 @@ int btk_node_init(opts_p opts)
 	}
 
 	// Connect to node
-	node = malloc(node_sizeof());
-	ERROR_CHECK_NULL(node, "Memory allocation error.");
+	r = node_new(&node, opts->host_name, opts->host_service);
+	ERROR_CHECK_NEG(r, "Could not get new node object.");
 
-	r = node_connect(node, opts->host_name, opts->host_service);
+	r = node_connect(node);
 	ERROR_CHECK_NEG(r, "Could not connect to host.");
 
 	return 1;
@@ -303,8 +303,7 @@ int btk_node_cleanup(opts_p opts)
 	(void)opts;
 
 	node_disconnect(node);
-
-	free(node);
+	node_destroy(node);
 	
 	return 1;
 }
