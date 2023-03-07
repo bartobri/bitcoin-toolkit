@@ -83,82 +83,65 @@ int version_new(Version *version)
 	return 1;
 }
 
-int version_serialize(unsigned char *output, Version v)
+int version_to_raw(unsigned char *output, Version version)
 {
-	int r;
 	unsigned char *head;
 
 	assert(output);
-	assert(v);
+	assert(version);
 
-	r = 0;
 	head = output;
 	
-	output = serialize_uint32(output, v->version, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint64(output, v->services, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint64(output, v->timestamp, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint64(output, v->addr_recv_services, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uchar(output, v->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
-	output = serialize_uint16(output, v->addr_recv_port, SERIALIZE_ENDIAN_BIG);
-	output = serialize_uint64(output, v->addr_trans_services, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uchar(output, v->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
-	output = serialize_uint16(output, v->addr_trans_port, SERIALIZE_ENDIAN_BIG);
-	output = serialize_uint64(output, v->nonce, SERIALIZE_ENDIAN_LIT);
-	output = serialize_compuint(output, v->user_agent_bytes, SERIALIZE_ENDIAN_LIT);	
-	output = serialize_char(output, v->user_agent, strlen(v->user_agent));
-	output = serialize_uint32(output, v->start_height, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint8(output, v->relay, SERIALIZE_ENDIAN_LIT);
-	
-	while (head++ != output)
-	{
-		r++;
-	}
+	output = serialize_uint32(output, version->version, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, version->services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, version->timestamp, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint64(output, version->addr_recv_services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uchar(output, version->addr_recv_ip_address, IP_ADDR_FIELD_LEN);
+	output = serialize_uint16(output, version->addr_recv_port, SERIALIZE_ENDIAN_BIG);
+	output = serialize_uint64(output, version->addr_trans_services, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uchar(output, version->addr_trans_ip_address, IP_ADDR_FIELD_LEN);
+	output = serialize_uint16(output, version->addr_trans_port, SERIALIZE_ENDIAN_BIG);
+	output = serialize_uint64(output, version->nonce, SERIALIZE_ENDIAN_LIT);
+	output = serialize_compuint(output, version->user_agent_bytes, SERIALIZE_ENDIAN_LIT);	
+	output = serialize_char(output, version->user_agent, strlen(version->user_agent));
+	output = serialize_uint32(output, version->start_height, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint8(output, version->relay, SERIALIZE_ENDIAN_LIT);
 
-	return r;
+	return output - head;
 }
 
-int version_deserialize(Version output, unsigned char *input, size_t input_len)
+int version_new_from_raw(Version *version, unsigned char *input, size_t input_len)
 {
-	assert(output);
+	unsigned char *head;
+
 	assert(input);
 	assert(input_len);
 
-	if (input_len < 85)
-	{
-		error_log("Length of input is insufficient to deserialize all data needed for a version command.");
-		return -1;
-	}
-	
-	input = deserialize_uint32(&(output->version), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint64(&(output->services), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint64(&(output->timestamp), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint64(&(output->addr_recv_services), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uchar(output->addr_recv_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
-	input = deserialize_uint16(&(output->addr_recv_port), input, SERIALIZE_ENDIAN_BIG);
-	input = deserialize_uint64(&(output->addr_trans_services), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uchar(output->addr_trans_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
-	input = deserialize_uint16(&(output->addr_trans_port), input, SERIALIZE_ENDIAN_BIG);
-	input = deserialize_uint64(&(output->nonce), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_compuint(&(output->user_agent_bytes), input, SERIALIZE_ENDIAN_LIT);
-	if (output->user_agent_bytes)
-	{
-		if (input_len < 85 + output->user_agent_bytes)
-		{
-			error_log("Length of input is too short to accommodate the user agent field size.");
-			return -1;
-		}
-		memset(output->user_agent, 0, USER_AGENT_MAX_LEN);
-		input = deserialize_char(output->user_agent, input, output->user_agent_bytes);
-	}
-	input = deserialize_uint32(&(output->start_height), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint8(&(output->relay), input, SERIALIZE_ENDIAN_LIT);
-	
-	return 1;
-}
+	head = input;
 
-size_t version_sizeof(void)
-{
-	return sizeof(struct Version);
+	*version = malloc(sizeof(struct Version));
+	ERROR_CHECK_NULL(*version, "Memory allocation error.");
+	
+	input = deserialize_uint32(&((*version)->version), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&((*version)->services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&((*version)->timestamp), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint64(&((*version)->addr_recv_services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar((*version)->addr_recv_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint16(&((*version)->addr_recv_port), input, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint64(&((*version)->addr_trans_services), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uchar((*version)->addr_trans_ip_address, input, IP_ADDR_FIELD_LEN, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint16(&((*version)->addr_trans_port), input, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint64(&((*version)->nonce), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_compuint(&((*version)->user_agent_bytes), input, SERIALIZE_ENDIAN_LIT);
+	if ((*version)->user_agent_bytes > 0)
+	{
+		memset((*version)->user_agent, 0, USER_AGENT_MAX_LEN);
+		input = deserialize_char((*version)->user_agent, input, (*version)->user_agent_bytes);
+	}
+	input = deserialize_uint32(&((*version)->start_height), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint8(&((*version)->relay), input, SERIALIZE_ENDIAN_LIT);
+
+	return input - head;
 }
 
 int version_to_json(char **output, Version version)

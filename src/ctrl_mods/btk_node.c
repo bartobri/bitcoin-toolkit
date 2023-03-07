@@ -52,7 +52,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		r = version_new(&version);
 		ERROR_CHECK_NEG(r, "Could not create new version message.");
 
-		r = version_serialize(payload_send, version);
+		r = version_to_raw(payload_send, version);
 		ERROR_CHECK_NEG(r, "Could not serialize new version message.");
 
 		payload_send_len = r;
@@ -73,10 +73,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	if (strcmp(command_resp, VERSION_COMMAND) == 0)
 	{
-		version = malloc(version_sizeof());
-		ERROR_CHECK_NULL(version, "Memory allocation error.");
-
-		r = version_deserialize(version, payload_resp, payload_resp_len);
+		r = version_new_from_raw(&version, payload_resp, payload_resp_len);
 		ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
 		r = version_to_json(&json, version);

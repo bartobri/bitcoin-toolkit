@@ -35,9 +35,8 @@ struct Version
 };
 
 int version_new(Version *);
-int version_serialize(unsigned char *, Version);
-int version_deserialize(Version, unsigned char *, size_t);
-size_t version_sizeof(void);
+int version_to_raw(unsigned char *, Version);
+int version_new_from_raw(Version *, unsigned char *, size_t);
 int version_to_json(char **, Version);
 char *version_service_bit_to_str(int);
 void version_destroy(Version);
