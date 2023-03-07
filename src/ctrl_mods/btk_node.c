@@ -138,7 +138,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 				r = json_add_string(tmp, opts->host_name, "host");
 				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
 
-				r = json_add_string(tmp, "Connection Timeout", "output");
+				r = json_add_string(tmp, "Unexpect message returned.", "output");
 				ERROR_CHECK_NEG(r, "Could not add nonce to json object.");
 
 				r = json_to_string(&json, tmp);
