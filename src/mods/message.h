@@ -25,10 +25,11 @@ struct Message
     unsigned char  *payload;
 };
 
-int message_new(Message, const char *, unsigned char *, size_t);
+int message_new(Message *, const char *, unsigned char *, size_t);
 int message_to_raw(unsigned char *output, Message message);
 int message_from_raw(Message, unsigned char *);
 int message_is_valid(Message);
 int message_is_complete(unsigned char *, size_t);
+void message_destroy(Message);
 
 #endif

@@ -62,10 +62,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 		version_string_len = r;
 
-		message = malloc(sizeof(struct Message));
-		ERROR_CHECK_NULL(message, "Memory allocation error.");
-
-		r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
+		r = message_new(&message, VERSION_COMMAND, version_string, version_string_len);
 		ERROR_CHECK_NEG(r, "Could not create a new message.");
 
 		free(version_string);
@@ -243,10 +240,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 		json_free(version_json);
+		message_destroy(message);
 
 		free(json);
 		free(version);
-		free(message);
 		free(node_data);
 	}
 

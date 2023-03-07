@@ -19,34 +19,36 @@
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
 
-int message_new(Message m, const char *command, unsigned char *payload, size_t payload_len)
+int message_new(Message *message, const char *command, unsigned char *payload, size_t payload_len)
 {
 	int r;
 	
-	assert(m);
 	assert(command);
 	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
 
+	*message = malloc(sizeof(struct Message));
+	ERROR_CHECK_NULL(*message, "Memory allocation error.");
+
 	if (network_is_main())
 	{
-		m->magic = MESSAGE_MAINNET;
+		(*message)->magic = MESSAGE_MAINNET;
 	}
 	else
 	{
-		m->magic = MESSAGE_TESTNET;
+		(*message)->magic = MESSAGE_TESTNET;
 	}
 
-	strncpy(m->command, command, MESSAGE_COMMAND_MAXLEN);
-	m->length = payload_len;
+	strncpy((*message)->command, command, MESSAGE_COMMAND_MAXLEN);
+	(*message)->length = payload_len;
 
-	if (payload_len)
+	if ((*message)->length)
 	{
-		m->payload = malloc(payload_len);
-		ERROR_CHECK_NULL(m->payload, "Memory allocation error.");
+		(*message)->payload = malloc((*message)->length);
+		ERROR_CHECK_NULL((*message)->payload, "Memory allocation error.");
 
-		memcpy(m->payload, payload, payload_len);
+		memcpy((*message)->payload, payload, (*message)->length);
 
-		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
+		r = crypto_get_checksum(&((*message)->checksum), (*message)->payload, (size_t)(*message)->length);
 		ERROR_CHECK_NEG(r, "Could not generate checksum for message payload.");
 	}
 
@@ -141,4 +143,12 @@ int message_is_complete(unsigned char *raw, size_t len)
 	}
 
 	return 1;
+}
+
+void message_destroy(Message message)
+{
+	assert(message);
+
+	free(message->payload);
+	free(message);
 }
