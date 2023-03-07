@@ -137,28 +137,6 @@ int message_is_valid(Message m)
 	return (checksum == m->checksum);
 }
 
-int message_get_payload(unsigned char *output, Message m)
-{
-	assert(output);
-	assert(m);
-
-	memcpy(output, m->payload, m->length);
-	
-	return (int)m->length;
-}
-
-uint32_t message_get_payload_len(Message m)
-{
-	assert(m);
-
-	return m->length;
-}
-
-size_t message_sizeof(void)
-{
-	return sizeof(struct Message);
-}
-
 int message_is_complete(unsigned char *raw, size_t len)
 {
 	uint32_t payload_len;

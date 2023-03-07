@@ -44,8 +44,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	Message message;
 	unsigned char *message_raw;
 	size_t message_raw_len;
-	unsigned char *payload = NULL;
-	size_t payload_len;
 
 	Version version = NULL;
 	unsigned char *version_string;
@@ -93,7 +91,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 			version_string_len = r;
 
-			message = malloc(message_sizeof());
+			message = malloc(sizeof(struct Message));
 			ERROR_CHECK_NULL(message, "Memory allocation error.");
 
 			r = message_new(message, VERSION_COMMAND, version_string, version_string_len);
@@ -101,7 +99,9 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 			free(version_string);
 
-			message_raw = malloc(message_sizeof());
+			// TODO - should not use struct Message for raw size.
+			// Include size of payload as well.
+			message_raw = malloc(sizeof(struct Message));
 			ERROR_CHECK_NULL(message_raw, "Memory allocation error.");
 
 			r = message_serialize(message_raw, &message_raw_len, message);
@@ -131,7 +131,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 			while (node_data_len > 0)
 			{
-				message = malloc(message_sizeof());
+				message = malloc(sizeof(struct Message));
 				ERROR_CHECK_NULL(message, "Memory allocation error.");
 
 				r = message_deserialize(message, node_data_walk, node_data_len);
@@ -177,15 +177,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 				break;
 			}
 			
-			payload = malloc(message_get_payload_len(message));
-			ERROR_CHECK_NULL(payload, "Memory allocation error.");
-
-			payload_len = message_get_payload(payload, message);
-			
 			version = malloc(version_sizeof());
 			ERROR_CHECK_NULL(version, "Memory allocation error.");
 
-			r = version_deserialize(version, payload, payload_len);
+			r = version_deserialize(version, message->payload, message->length);
 			ERROR_CHECK_NEG(r, "Could not deserialize host response.");
 
 			r = json_init(&version_json);
@@ -308,7 +303,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			free(json);
 			free(version);
 			free(message);
-			free(payload);
 			free(node);
 			free(node_data);
 
