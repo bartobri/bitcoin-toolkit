@@ -140,7 +140,7 @@ int node_read(Node node, unsigned char** buffer, int break_on)
 		}
 
 		// Sometimes we don't get EOF from message exchange, so we need a way
-		// to break out of the read look when we receive a complete message.
+		// to break out of the read loop when we receive a complete message.
 		if (break_on == NODE_READ_BREAK_MESSAGE && message_is_complete(*buffer, (size_t)read_total))
 		{
 			break;
