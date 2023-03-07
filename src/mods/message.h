@@ -20,5 +20,6 @@ int message_is_valid(Message);
 int message_get_payload(unsigned char *output, Message m);
 uint32_t message_get_payload_len(Message m);
 size_t message_sizeof(void);
+int message_is_complete(unsigned char *, size_t);
 
 #endif

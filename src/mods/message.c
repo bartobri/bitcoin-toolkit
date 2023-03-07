@@ -17,6 +17,7 @@
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
+#define MESSAGE_MIN_SIZE       24
 #define MESSAGE_COMMAND_MAXLEN 12
 #define MESSAGE_PAYLOAD_MAXLEN 1024
 
@@ -177,4 +178,26 @@ uint32_t message_get_payload_len(Message m)
 size_t message_sizeof(void)
 {
 	return sizeof(struct Message);
+}
+
+int message_is_complete(unsigned char *raw, size_t len)
+{
+	uint32_t payload_len;
+
+	if (len < MESSAGE_MIN_SIZE)
+	{
+		return 0;
+	}
+
+	raw += sizeof(uint32_t);
+	raw += MESSAGE_COMMAND_MAXLEN;
+
+	deserialize_uint32(&payload_len, raw, SERIALIZE_ENDIAN_LIT);
+
+	if (len < MESSAGE_MIN_SIZE + payload_len)
+	{
+		return 0;
+	}
+
+	return 1;
 }

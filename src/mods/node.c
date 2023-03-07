@@ -15,6 +15,7 @@
 #include <assert.h>
 #include "node.h"
 #include "error.h"
+#include "message.h"
 
 #define MAX_MESSAGE_QUEUE 100
 
@@ -100,7 +101,7 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int node_read(Node node, unsigned char** buffer)
+int node_read(Node node, unsigned char** buffer, int break_on)
 {
 	int r;
 	int read_total = 0;
@@ -122,11 +123,15 @@ int node_read(Node node, unsigned char** buffer)
 
 			(*buffer) = realloc((*buffer), buf_size);
 			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
+		}
 
-			continue;
+		// Sometimes we don't get EOF from message exchange, so we need a way
+		// to break out of the read look when we receive a complete message.
+		if (break_on == NODE_READ_BREAK_MESSAGE && message_is_complete(*buffer, (size_t)read_total))
+		{
+			break;
 		}
 	}
-
 	if (r < 0)
 	{
 		error_log("Unable to read from socket. Errno %i.", errno);

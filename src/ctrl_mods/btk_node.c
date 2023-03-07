@@ -62,7 +62,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		opts->host_name = (char *)input;
 	}
 
-	ERROR_CHECK_NULL(opts->host_name, "Missing host argument.");
+	ERROR_CHECK_NULL(opts->host_name, "Missing hostname argument.");
 
 	if (!opts->host_service)
 	{
@@ -116,7 +116,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 			node_data = NULL;
 			node_data_len = 0;
 
-			r = node_read(node, &node_data);
+			r = node_read(node, &node_data, NODE_READ_BREAK_MESSAGE);
 			ERROR_CHECK_NEG(r, "Could not read message from host.");
 
 			if (r > 0)

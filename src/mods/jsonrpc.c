@@ -318,7 +318,7 @@ int jsonrpc_send_request(unsigned char **response, char *json_request)
     r = node_write(node, (unsigned char*)json_request, strlen(json_request));
     ERROR_CHECK_NEG(r, "Could not send message to host.");
 
-    r = node_read(node, response);
+    r = node_read(node, response, NODE_READ_BREAK_EOF);
     ERROR_CHECK_NEG(r, "Could not read message from host.");
     ERROR_CHECK_FALSE(r, "No data before timeout.");
 
