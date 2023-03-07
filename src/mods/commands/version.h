@@ -34,12 +34,12 @@ struct Version
     uint8_t  relay;
 };
 
-int version_new(Version);
+int version_new(Version *);
 int version_serialize(unsigned char *, Version);
-int version_new_serialize(unsigned char *);
 int version_deserialize(Version, unsigned char *, size_t);
 size_t version_sizeof(void);
 int version_to_json(char **, Version);
 char *version_service_bit_to_str(int);
+void version_destroy(Version);
 
 #endif

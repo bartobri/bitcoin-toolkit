@@ -31,67 +31,54 @@
 #define PORT_TEST   18333
 #define USER_AGENT  "/Bitcoin-Toolkit:" STRINGIFY(BTK_VERSION_MAJOR) "." STRINGIFY(BTK_VERSION_MINOR) "." STRINGIFY(BTK_VERSION_REVISION) "/"
 
-int version_new(Version v)
+int version_new(Version *version)
 {
 	int r;
 
-	assert(v);
+	*version = malloc(sizeof(struct Version));
+	ERROR_CHECK_NULL(*version, "Memory allocation error.");
 	
-	v->version = VERSION;
-	v->services = SERVICES;
-	v->timestamp = time(NULL);
-	v->addr_recv_services = SERVICES;
+	(*version)->version = VERSION;
+	(*version)->services = SERVICES;
+	(*version)->timestamp = time(NULL);
+	(*version)->addr_recv_services = SERVICES;
 
-	if (strlen(IP_ADDRESS) / 2 > IP_ADDR_FIELD_LEN)
-	{
-		error_log("Invalid IP address.");
-		return -1;
-	}
-
-	r = hex_str_to_raw(v->addr_recv_ip_address, IP_ADDRESS);
-	if (r < 0)
-	{
-		error_log("Could not convert hex string to raw data.");
-		return -1;
-	}
+	r = hex_str_to_raw((*version)->addr_recv_ip_address, IP_ADDRESS);
+	ERROR_CHECK_NEG(r, "Could not convert hex string to raw data.");
 	
 	if (network_is_main())
 	{
-		v->addr_recv_port = PORT_MAIN;
+		(*version)->addr_recv_port = PORT_MAIN;
 	}
 	else
 	{
-		v->addr_recv_port = PORT_TEST;
+		(*version)->addr_recv_port = PORT_TEST;
 	}
 
-	v->addr_trans_services = SERVICES;
+	(*version)->addr_trans_services = SERVICES;
 	
-	r = hex_str_to_raw(v->addr_trans_ip_address, IP_ADDRESS);
-	if (r < 0)
-	{
-		error_log("Could not convert hex string to raw data.");
-		return -1;
-	}
+	r = hex_str_to_raw((*version)->addr_trans_ip_address, IP_ADDRESS);
+	ERROR_CHECK_NEG(r, "Could not convert hex string to raw data.");
 	
 	if (network_is_main())
 	{
-		v->addr_trans_port = PORT_MAIN;
+		(*version)->addr_trans_port = PORT_MAIN;
 	}
 	else
 	{
-		v->addr_trans_port = PORT_TEST;
+		(*version)->addr_trans_port = PORT_TEST;
 	}
 
-	v->nonce = 0x00;
-	v->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
+	(*version)->nonce = 0x00;
+	(*version)->user_agent_bytes = (uint64_t)strlen(USER_AGENT);
 	
-	if (v->user_agent_bytes)
+	if ((*version)->user_agent_bytes)
 	{
-		memcpy(v->user_agent, USER_AGENT, strlen(USER_AGENT));
+		memcpy((*version)->user_agent, USER_AGENT, strlen(USER_AGENT));
 	}
 
-	v->start_height = 0x00;
-	v->relay = 0x00;
+	(*version)->start_height = 0x00;
+	(*version)->relay = 0x00;
 	
 	return 1;
 }
@@ -127,39 +114,6 @@ int version_serialize(unsigned char *output, Version v)
 		r++;
 	}
 
-	return r;
-}
-
-int version_new_serialize(unsigned char *output)
-{
-	int r;
-	Version v;
-
-	assert(output);
-
-	v = malloc(sizeof(*v));
-	if (v == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
-
-	r = version_new(v);
-	if (r < 0)
-	{
-		error_log("Could not generate new version message.");
-		return -1;
-	}
-	
-	r = version_serialize(output, v);
-	if (r < 0)
-	{
-		error_log("Could not serialize new version message.");
-		return -1;
-	}
-	
-	free(v);
-	
 	return r;
 }
 
@@ -359,4 +313,11 @@ char *version_service_bit_to_str(int bit)
 	}
 
 	return "UNKNOWN";
+}
+
+void version_destroy(Version version)
+{
+	assert(version);
+
+	free(version);
 }

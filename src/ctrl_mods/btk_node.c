@@ -34,7 +34,7 @@ int btk_node_response(char **, unsigned char **, size_t *);
 int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int r;
-	unsigned char *payload_send;
+	unsigned char payload_send[BUFSIZ];
 	unsigned char *payload_resp;
 	size_t payload_send_len;
 	size_t payload_resp_len;
@@ -49,13 +49,15 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 
 	if (strcmp(command, VERSION_COMMAND) == 0)
 	{
-		payload_send = malloc(version_sizeof());
-		ERROR_CHECK_NULL(payload_send, "Memory allocation error.");
+		r = version_new(&version);
+		ERROR_CHECK_NEG(r, "Could not create new version message.");
 
-		r = version_new_serialize(payload_send);
-		ERROR_CHECK_NEG(r, "Could not serialize version data.");
+		r = version_serialize(payload_send, version);
+		ERROR_CHECK_NEG(r, "Could not serialize new version message.");
 
 		payload_send_len = r;
+
+		version_destroy(version);
 	}
 	else
 	{
@@ -80,7 +82,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		r = version_to_json(&json, version);
 		ERROR_CHECK_NEG(r, "Could not convert version response to json.");
 
-		free(version);
+		version_destroy(version);
 	}
 	else
 	{
@@ -92,7 +94,6 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
 	free(json);
-	free(payload_send);
 	free(payload_resp);
 	free(command_resp);
 
