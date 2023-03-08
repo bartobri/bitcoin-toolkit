@@ -25,7 +25,6 @@ int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_
 	
 	assert(output);
 	assert(input);
-	assert(input_len);
 	
 	SHA256_Init(&sha256);
 
@@ -60,7 +59,6 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 
 	assert(output);
 	assert(data);
-	assert(len);
 
 	sha1 = malloc(32);
 	if (sha1 == NULL)
