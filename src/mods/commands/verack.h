@@ -13,8 +13,12 @@
 #define VERACK_COMMAND "verack"
 
 typedef struct Verack *Verack;
+struct Verack {
+    // nothing here
+};
 
-int verack_new(Verack);
-size_t verack_sizeof(void);
+int verack_new(Verack *);
+int verack_to_raw(unsigned char *, Verack);
+void verack_destroy(Verack);
 
 #endif

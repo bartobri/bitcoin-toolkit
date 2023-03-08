@@ -41,6 +41,7 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 	char *command_resp;
 	char *json;
 	Version version = NULL;
+	Verack verack = NULL;
 
 	assert(opts);
 
@@ -58,6 +59,18 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		payload_send_len = r;
 
 		version_destroy(version);
+	}
+	else if (strcmp(command, VERACK_COMMAND) == 0)
+	{
+		r = verack_new(&verack);
+		ERROR_CHECK_NEG(r, "Could not create new verack message.");
+
+		r = verack_to_raw(payload_send, verack);
+		ERROR_CHECK_NEG(r, "Could not serialize new version message.");
+
+		payload_send_len = r;
+
+		verack_destroy(verack);
 	}
 	else
 	{
@@ -80,6 +93,10 @@ int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t
 		ERROR_CHECK_NEG(r, "Could not convert version response to json.");
 
 		version_destroy(version);
+	}
+	else if (strcmp(command_resp, VERACK_COMMAND) == 0)
+	{
+		// stub for now.
 	}
 	else
 	{

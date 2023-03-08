@@ -47,10 +47,10 @@ int message_new(Message *message, const char *command, unsigned char *payload, s
 		ERROR_CHECK_NULL((*message)->payload, "Memory allocation error.");
 
 		memcpy((*message)->payload, payload, (*message)->length);
-
-		r = crypto_get_checksum(&((*message)->checksum), (*message)->payload, (size_t)(*message)->length);
-		ERROR_CHECK_NEG(r, "Could not generate checksum for message payload.");
 	}
+
+	r = crypto_get_checksum(&((*message)->checksum), (*message)->payload, (size_t)(*message)->length);
+	ERROR_CHECK_NEG(r, "Could not generate checksum for message payload.");
 
 	return 1;
 }
