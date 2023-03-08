@@ -30,6 +30,7 @@ int message_to_raw(unsigned char *output, Message message);
 int message_new_from_raw(Message *, unsigned char *);
 int message_is_valid(Message);
 int message_is_complete(unsigned char *, size_t);
+int message_get_payload_len(uint32_t *, unsigned char *);
 void message_destroy(Message);
 
 #endif

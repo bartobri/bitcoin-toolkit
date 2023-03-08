@@ -115,7 +115,7 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int node_read(Node node, unsigned char** buffer, int break_on)
+int node_read(Node node, unsigned char** buffer)
 {
 	int r;
 	int read_total = 0;
@@ -138,13 +138,6 @@ int node_read(Node node, unsigned char** buffer, int break_on)
 			(*buffer) = realloc((*buffer), buf_size);
 			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
 		}
-
-		// Sometimes we don't get EOF from message exchange, so we need a way
-		// to break out of the read loop when we receive a complete message.
-		if (break_on == NODE_READ_BREAK_MESSAGE && message_is_complete(*buffer, (size_t)read_total))
-		{
-			break;
-		}
 	}
 	if (r < 0)
 	{
@@ -155,6 +148,54 @@ int node_read(Node node, unsigned char** buffer, int break_on)
 	memset((*buffer) + read_total, 0, buf_size - read_total);
 	
 	return read_total;
+}
+
+int node_read_message(unsigned char **message, Node node)
+{
+	int r;
+	uint32_t read_total = 0;
+	uint32_t message_len;
+	uint32_t payload_len;
+
+	assert(node);
+
+	(*message) = malloc(MESSAGE_MIN_SIZE);
+	ERROR_CHECK_NULL((*message), "Memory allocation error.");
+
+	while ((r = read(node->sockfd, (*message) + read_total, MESSAGE_MIN_SIZE - read_total)) > 0)
+	{
+		read_total += r;
+
+		if (read_total == MESSAGE_MIN_SIZE)
+		{
+			break;
+		}
+	}
+	if (r < 0)
+	{
+		error_log("Unable to read from socket. Errno %i.", errno);
+		return -1;
+	}
+
+	r = message_get_payload_len(&payload_len, *message);
+	ERROR_CHECK_NEG(r, "Could not get payload length.");
+
+	message_len = MESSAGE_MIN_SIZE + payload_len;
+
+	(*message) = realloc((*message), message_len);
+	ERROR_CHECK_NULL((*message), "Memory allocation error.");
+
+	while ((r = read(node->sockfd, (*message) + read_total, message_len - read_total)) > 0)
+	{
+		read_total += r;
+
+		if (read_total == message_len)
+		{
+			break;
+		}
+	}
+
+	return (int)read_total;
 }
 
 void node_disconnect(Node node)

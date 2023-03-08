@@ -147,10 +147,23 @@ int message_is_complete(unsigned char *raw, size_t len)
 	return 1;
 }
 
+int message_get_payload_len(uint32_t *len, unsigned char *raw)
+{
+	raw += sizeof(uint32_t);
+	raw += MESSAGE_COMMAND_MAXLEN;
+
+	deserialize_uint32(len, raw, SERIALIZE_ENDIAN_LIT);
+
+	return 1;
+}
+
 void message_destroy(Message message)
 {
 	assert(message);
 
-	free(message->payload);
+	if (message->length > 0)
+	{
+		free(message->payload);
+	}
 	free(message);
 }

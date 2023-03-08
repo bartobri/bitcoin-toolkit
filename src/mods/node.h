@@ -8,15 +8,13 @@
 #ifndef NODE_H
 #define NODE_H 1
 
-#define NODE_READ_BREAK_EOF     0
-#define NODE_READ_BREAK_MESSAGE 1
-
 typedef struct Node *Node;
 
 int node_new(Node *, char *, char *);
 int node_connect(Node);
 int node_write(Node, unsigned char *, size_t);
-int node_read(Node, unsigned char**, int);
+int node_read(Node, unsigned char**);
+int node_read_message(unsigned char **, Node);
 void node_disconnect(Node);
 void node_destroy(Node);
 

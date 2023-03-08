@@ -126,7 +126,7 @@ int btk_node_response(char **command, unsigned char **payload, size_t *payload_l
 	unsigned char *response;
 	Message message;
 
-	r = node_read(node, &response, NODE_READ_BREAK_MESSAGE);
+	r = node_read_message(&response, node);
 	ERROR_CHECK_NEG(r, "Could not read message from host.");
 
 	r = message_is_complete(response, (size_t)r);
@@ -146,10 +146,17 @@ int btk_node_response(char **command, unsigned char **payload, size_t *payload_l
 
 	*payload_len = message->length;
 
-	*payload = malloc(*payload_len);
-	ERROR_CHECK_NULL(*payload, "Memory allocation error.");
+	if (*payload_len > 0)
+	{
+		*payload = malloc(*payload_len);
+		ERROR_CHECK_NULL(*payload, "Memory allocation error.");
 
-	memcpy(*payload, message->payload, *payload_len);
+		memcpy(*payload, message->payload, *payload_len);
+	}
+	else
+	{
+		*payload = NULL;
+	}
 
 	message_destroy(message);
 	free(response);
