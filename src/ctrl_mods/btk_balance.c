@@ -332,8 +332,8 @@ int btk_balance_process(thread_args args)
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
         process_pct = (int)((args->bc_head->block_num / (float)args->block_count) * 100);
-
-        printf("Processed Block %i, Pct complete: %i\n", args->bc_head->block_num, process_pct);
+        printf("Building... [Blocks: %i] [%i%% Complete]\r", args->bc_head->block_num, process_pct);
+        fflush(stdout);
 
         tmp = args->bc_head->next;
         free(args->bc_head->block_hex);
