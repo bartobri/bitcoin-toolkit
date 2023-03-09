@@ -23,7 +23,6 @@ void btktermio_beep(void);
 int btktermio_get_clearscr(void);
 void btktermio_set_clearscr(int);
 void btktermio_set_foregroundcolor(char *);
-int btktermio_get_cursor_row(void);
 
 
 #endif
