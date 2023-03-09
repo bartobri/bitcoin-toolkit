@@ -229,8 +229,6 @@ int btk_balance_download(thread_args args)
         args->bc_tail->block_num = i;
         args->bc_tail->pready = 1;
 
-        printf("Downloaded Block %i\n", i);
-
         while (args->bc_len >= 100)
         {
             sleep(1);
@@ -243,6 +241,7 @@ int btk_balance_download(thread_args args)
 int btk_balance_process(thread_args args)
 {
     int r;
+    int process_pct = 0;
 
     assert(args);
 
@@ -332,7 +331,9 @@ int btk_balance_process(thread_args args)
         r = txao_set_last_block(i);
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
-        printf("Processed Block %i\n", args->bc_head->block_num);
+        process_pct = (int)((args->bc_head->block_num / (float)args->block_count) * 100);
+
+        printf("Processed Block %i, Pct complete: %i\n", args->bc_head->block_num, process_pct);
 
         tmp = args->bc_head->next;
         free(args->bc_head->block_hex);
