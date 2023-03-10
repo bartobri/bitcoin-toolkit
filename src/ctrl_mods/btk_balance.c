@@ -31,9 +31,12 @@
 #include "mods/transaction.h"
 #include "mods/serialize.h"
 
+#define CHAIN_STATUS_READY    1
+#define CHAIN_STATUS_FINAL    2
+
 typedef struct hexchain *hexchain;
 struct hexchain {
-    int pready;
+    int status;
     int block_num;
     char *block_hex;
     hexchain next;
@@ -41,7 +44,7 @@ struct hexchain {
 
 typedef struct blockchain *blockchain;
 struct blockchain {
-    int pready;
+    int status;
     int block_num;
     Block block;
     blockchain next;
@@ -106,6 +109,8 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         r = jsonrpc_get_blockcount(&(args->block_count));
         ERROR_CHECK_NEG(r, "Could not get block count.");
 
+        args->block_count = 2000;
+
         r = pthread_create(&download_thread, NULL, &btk_balance_pthread, args);
         ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
 
@@ -142,7 +147,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             ERROR_CHECK_NEG(r, "Process thread error.");
         }
 
-        printf("Compete\n");
+        printf("\nComplete\n");
     }
     else
     {
@@ -266,7 +271,15 @@ int btk_balance_download(thread_args args)
 
         args->hc_len += 1;
         args->hc_tail->block_num = i;
-        args->hc_tail->pready = 1;
+
+        if (i == args->block_count)
+        {
+            args->hc_tail->status = CHAIN_STATUS_FINAL;
+        }
+        else
+        {
+            args->hc_tail->status = CHAIN_STATUS_READY;
+        }
 
         while (args->hc_len >= 100)
         {
@@ -287,8 +300,9 @@ int btk_balance_deserialize(thread_args args)
     {
         unsigned char *block_raw = NULL;
         hexchain tmp;
+        int status;
 
-        while (args->hc_head == NULL || !args->hc_head->pready)
+        while (args->hc_head == NULL || !args->hc_head->status)
         {
             struct timespec bcsleep;
             bcsleep.tv_sec = 0;
@@ -296,6 +310,8 @@ int btk_balance_deserialize(thread_args args)
 
             nanosleep(&bcsleep, NULL);
         }
+
+        status = args->hc_head->status;
 
         if (args->bc_head == NULL)
         {
@@ -333,7 +349,7 @@ int btk_balance_deserialize(thread_args args)
         ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
 
         args->bc_tail->block_num = args->hc_head->block_num;
-        args->bc_tail->pready = 1;
+        args->bc_tail->status = status;
 
         tmp = args->hc_head;
         args->hc_head = args->hc_head->next;
@@ -350,7 +366,10 @@ int btk_balance_deserialize(thread_args args)
             sleep(1);
         }
 
-        // TODO - Need a way to exit loop.
+        if (status == CHAIN_STATUS_FINAL)
+        {
+            break;
+        }
     }
 
     return 1;
@@ -366,8 +385,9 @@ int btk_balance_process(thread_args args)
         uint64_t i;
         Block block;
         blockchain tmp;
+        int status;
 
-        while (args->bc_head == NULL || !args->bc_head->pready)
+        while (args->bc_head == NULL || !args->bc_head->status)
         {
             struct timespec bcsleep;
             bcsleep.tv_sec = 0;
@@ -376,6 +396,7 @@ int btk_balance_process(thread_args args)
             nanosleep(&bcsleep, NULL);
         }
 
+        status = args->bc_head->status;
         block = args->bc_head->block;
 
         for (i = 0; i < block->tx_count; i++)
@@ -437,7 +458,7 @@ int btk_balance_process(thread_args args)
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
         process_pct = (int)((args->bc_head->block_num / (float)args->block_count) * 100);
-        printf("Building... [Blocks: %i] [%i%% Complete]\r", args->bc_head->block_num, process_pct);
+        printf("\rBuilding... [Blocks: %i] [%i%% Complete]", args->bc_head->block_num, process_pct);
         fflush(stdout);
 
         tmp = args->bc_head;
@@ -447,7 +468,10 @@ int btk_balance_process(thread_args args)
 
         args->bc_len -= 1;
 
-        // TODO - Need a way to exit loop.
+        if (status == CHAIN_STATUS_FINAL)
+        {
+            break;
+        }
     }
 
     return 1;
