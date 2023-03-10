@@ -109,8 +109,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         r = jsonrpc_get_blockcount(&(args->block_count));
         ERROR_CHECK_NEG(r, "Could not get block count.");
 
-        args->block_count = 2000;
-
         r = pthread_create(&download_thread, NULL, &btk_balance_pthread, args);
         ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
 
@@ -125,17 +123,19 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (tr != PTHREAD_CANCELED)
         {
+            printf("\n");
             r = *(int *)tr;
             ERROR_CHECK_NEG(r, "Download thread error.");
         }
 
         r = pthread_join(deserialize_thread, &tr);
-        ERROR_CHECK_TRUE(r > 0, "Could not join process thread.");
+        ERROR_CHECK_TRUE(r > 0, "Could not join deserialize thread.");
 
         if (tr != PTHREAD_CANCELED)
         {
+            printf("\n");
             r = *(int *)tr;
-            ERROR_CHECK_NEG(r, "Process thread error.");
+            ERROR_CHECK_NEG(r, "Deserialize thread error.");
         }
 
         r = pthread_join(process_thread, &tr);
@@ -143,6 +143,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (tr != PTHREAD_CANCELED)
         {
+            printf("\n");
             r = *(int *)tr;
             ERROR_CHECK_NEG(r, "Process thread error.");
         }
