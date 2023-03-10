@@ -31,11 +31,19 @@
 #include "mods/transaction.h"
 #include "mods/serialize.h"
 
+typedef struct hexchain *hexchain;
+struct hexchain {
+    int pready;
+    int block_num;
+    char *block_hex;
+    hexchain next;
+};
+
 typedef struct blockchain *blockchain;
 struct blockchain {
     int pready;
     int block_num;
-    char *block_hex;
+    Block block;
     blockchain next;
 };
 
@@ -43,16 +51,21 @@ typedef struct thread_args *thread_args;
 struct thread_args {
     int last_block;
     int block_count;
+    hexchain hc_head;
+    hexchain hc_tail;
+    int hc_len;
     blockchain bc_head;
     blockchain bc_tail;
     int bc_len;
 };
 
 static pthread_t download_thread;
+static pthread_t deserialize_thread;
 static pthread_t process_thread;
 
 void *btk_balance_pthread(void *);
 int btk_balance_download(thread_args);
+int btk_balance_deserialize(thread_args);
 int btk_balance_process(thread_args);
 
 int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
@@ -76,6 +89,8 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         memset(args, 0, sizeof(*args));
 
+        args->hc_head = NULL;
+        args->hc_tail = NULL;
         args->bc_head = NULL;
         args->bc_tail = NULL;
 
@@ -94,6 +109,9 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         r = pthread_create(&download_thread, NULL, &btk_balance_pthread, args);
         ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
 
+        r = pthread_create(&deserialize_thread, NULL, &btk_balance_pthread, args);
+        ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
+
         r = pthread_create(&process_thread, NULL, &btk_balance_pthread, args);
         ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
 
@@ -104,6 +122,15 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         {
             r = *(int *)tr;
             ERROR_CHECK_NEG(r, "Download thread error.");
+        }
+
+        r = pthread_join(deserialize_thread, &tr);
+        ERROR_CHECK_TRUE(r > 0, "Could not join process thread.");
+
+        if (tr != PTHREAD_CANCELED)
+        {
+            r = *(int *)tr;
+            ERROR_CHECK_NEG(r, "Process thread error.");
         }
 
         r = pthread_join(process_thread, &tr);
@@ -165,8 +192,19 @@ void *btk_balance_pthread(void *args_in)
         rd = btk_balance_download((thread_args)args_in);
         if (rd < 0)
         {
+            pthread_cancel(deserialize_thread);
             pthread_cancel(process_thread);
             return &rd;
+        }
+    }
+    else if (pthread_equal(deserialize_thread, pthread_self()))
+    {
+        rp = btk_balance_deserialize((thread_args)args_in);
+        if (rp < 0)
+        {
+            pthread_cancel(download_thread);
+            pthread_cancel(process_thread);
+            return &rp;
         }
     }
     else if (pthread_equal(process_thread, pthread_self()))
@@ -175,6 +213,7 @@ void *btk_balance_pthread(void *args_in)
         if (rp < 0)
         {
             pthread_cancel(download_thread);
+            pthread_cancel(deserialize_thread);
             return &rp;
         }
     }
@@ -196,8 +235,67 @@ int btk_balance_download(thread_args args)
 
         memset(blockhash, 0, BUFSIZ);
 
+        if (args->hc_head == NULL)
+        {
+            args->hc_head = malloc(sizeof(*(args->hc_head)));
+            ERROR_CHECK_NULL(args->hc_head, "Memory allocation error.");
+
+            memset(args->hc_head, 0, sizeof(*(args->hc_head)));
+
+            args->hc_head->block_hex = NULL;
+            args->hc_tail = args->hc_head;
+            args->hc_tail->next = NULL;
+        }
+        else
+        {
+            args->hc_tail->next = malloc(sizeof(*(args->hc_tail->next)));
+            ERROR_CHECK_NULL(args->hc_tail->next, "Memory allocation error.");
+
+            memset(args->hc_tail->next, 0, sizeof(*(args->hc_tail->next)));
+
+            args->hc_tail->next->block_hex = NULL;
+            args->hc_tail = args->hc_tail->next;
+            args->hc_tail->next = NULL;
+        }
+
         r = jsonrpc_get_blockhash(blockhash, i);
         ERROR_CHECK_NEG(r, "Could not get block hash.");
+
+        r = jsonrpc_get_block(&(args->hc_tail->block_hex), blockhash);
+        ERROR_CHECK_NEG(r, "Could not get block data.");
+
+        args->hc_len += 1;
+        args->hc_tail->block_num = i;
+        args->hc_tail->pready = 1;
+
+        while (args->hc_len >= 100)
+        {
+            sleep(1);
+        }
+    }
+
+    return 1;
+}
+
+int btk_balance_deserialize(thread_args args)
+{
+    int r;
+
+    assert(args);
+
+    while (1)
+    {
+        unsigned char *block_raw = NULL;
+        hexchain tmp;
+
+        while (args->hc_head == NULL || !args->hc_head->pready)
+        {
+            struct timespec bcsleep;
+            bcsleep.tv_sec = 0;
+            bcsleep.tv_nsec = 100000000; // 0.1 seconds
+
+            nanosleep(&bcsleep, NULL);
+        }
 
         if (args->bc_head == NULL)
         {
@@ -206,7 +304,7 @@ int btk_balance_download(thread_args args)
 
             memset(args->bc_head, 0, sizeof(*(args->bc_head)));
 
-            args->bc_head->block_hex = NULL;
+            args->bc_head->block = NULL;
             args->bc_tail = args->bc_head;
             args->bc_tail->next = NULL;
         }
@@ -217,22 +315,42 @@ int btk_balance_download(thread_args args)
 
             memset(args->bc_tail->next, 0, sizeof(*(args->bc_tail->next)));
 
-            args->bc_tail->next->block_hex = NULL;
+            args->bc_tail->next->block = NULL;
             args->bc_tail = args->bc_tail->next;
             args->bc_tail->next = NULL;
         }
 
-        r = jsonrpc_get_block(&(args->bc_tail->block_hex), blockhash);
-        ERROR_CHECK_NEG(r, "Could not get block data.");
+        block_raw = malloc(strlen(args->hc_head->block_hex) / 2);
+        ERROR_CHECK_NULL(block_raw, "Memory allocation error.");
 
-        args->bc_len += 1;
-        args->bc_tail->block_num = i;
+        r = hex_str_to_raw(block_raw, args->hc_head->block_hex);
+        ERROR_CHECK_NEG(r, "Could not convert hex block to raw block.");
+
+        args->bc_tail->block = malloc(sizeof(*(args->bc_tail->block)));
+        ERROR_CHECK_NULL(args->bc_tail->block, "Memory allocation error.");
+
+        r = block_from_raw(args->bc_tail->block, block_raw);
+        ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
+
+        args->bc_tail->block_num = args->hc_head->block_num;
         args->bc_tail->pready = 1;
+
+        tmp = args->hc_head;
+        args->hc_head = args->hc_head->next;
+        free(tmp->block_hex);
+        free(tmp);
+
+        free(block_raw);
+
+        args->hc_len -= 1;
+        args->bc_len += 1;
 
         while (args->bc_len >= 100)
         {
             sleep(1);
         }
+
+        // TODO - Need a way to exit loop.
     }
 
     return 1;
@@ -243,12 +361,9 @@ int btk_balance_process(thread_args args)
     int r;
     int process_pct = 0;
 
-    assert(args);
-
     while (1)
     {
         uint64_t i;
-        unsigned char *block_raw = NULL;
         Block block;
         blockchain tmp;
 
@@ -261,17 +376,7 @@ int btk_balance_process(thread_args args)
             nanosleep(&bcsleep, NULL);
         }
 
-        block_raw = malloc(strlen(args->bc_head->block_hex) / 2);
-        ERROR_CHECK_NULL(block_raw, "Memory allocation error.");
-
-        r = hex_str_to_raw(block_raw, args->bc_head->block_hex);
-        ERROR_CHECK_NEG(r, "Could not convert hex block to raw block.");
-
-        block = malloc(sizeof(*block));
-        ERROR_CHECK_NULL(block, "Memory allocation error.");
-
-        r = block_from_raw(block, block_raw);
-        ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
+        block = args->bc_head->block;
 
         for (i = 0; i < block->tx_count; i++)
         {
@@ -328,22 +433,21 @@ int btk_balance_process(thread_args args)
             }
         }
 
-        r = txao_set_last_block(i);
+        r = txao_set_last_block(args->bc_head->block_num);
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
         process_pct = (int)((args->bc_head->block_num / (float)args->block_count) * 100);
         printf("Building... [Blocks: %i] [%i%% Complete]\r", args->bc_head->block_num, process_pct);
         fflush(stdout);
 
-        tmp = args->bc_head->next;
-        free(args->bc_head->block_hex);
-        free(args->bc_head);
-        args->bc_head = tmp;
+        tmp = args->bc_head;
+        args->bc_head = args->bc_head->next;
+        block_free(block);
+        free(tmp);
 
         args->bc_len -= 1;
 
-        free(block_raw);
-        block_free(block);
+        // TODO - Need a way to exit loop.
     }
 
     return 1;
