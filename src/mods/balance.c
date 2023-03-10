@@ -56,11 +56,21 @@ void balance_close(void)
 
 int balance_get(uint64_t *sats, char *address)
 {
-    int r;
+    int r, i;
+    int len;
+    char address_reverse[BUFSIZ];
     size_t serialized_value_len = 0;
     unsigned char *serialized_value = NULL;
 
-    r = database_get(&serialized_value, &serialized_value_len, dbref, (unsigned char *)address, strlen(address));
+    memset(address_reverse, 0, BUFSIZ);
+
+    len = strlen(address);
+    for (i = 0; i < len; i++)
+    {
+        address_reverse[i] = address[len - 1 - i];
+    }
+
+    r = database_get(&serialized_value, &serialized_value_len, dbref, (unsigned char *)address_reverse, strlen(address_reverse));
     ERROR_CHECK_NEG(r, "Could not get value from balance database.");
 
     if (!serialized_value)
@@ -77,14 +87,24 @@ int balance_get(uint64_t *sats, char *address)
 
 int balance_put(char *address, uint64_t sats)
 {
-    int r;
+    int r, i;
+    int len;
+    char address_reverse[BUFSIZ];
     unsigned char serialized[sizeof(uint64_t)];
 
     assert(address);
 
+    memset(address_reverse, 0, BUFSIZ);
+
+    len = strlen(address);
+    for (i = 0; i < len; i++)
+    {
+        address_reverse[i] = address[len - 1 - i];
+    }
+
     serialize_uint64(serialized, sats, SERIALIZE_ENDIAN_BIG);
 
-    r = database_put(dbref, (unsigned char *)address, strlen(address), serialized, sizeof(uint64_t));
+    r = database_put(dbref, (unsigned char *)address_reverse, strlen(address_reverse), serialized, sizeof(uint64_t));
     ERROR_CHECK_NEG(r, "Can not put new value in the balance database.");
 
     return 1;
