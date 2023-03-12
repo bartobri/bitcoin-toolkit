@@ -442,8 +442,7 @@ int btk_balance_process(thread_args args)
                     // Every input is spent 100% (recouped via change address).
                     // Set all inputs to zero balance.
 
-                    // TODO - Delete address form db instead of setting to zero
-                    r = balance_batch_put(address, 0);
+                    r = balance_batch_delete(address);
                     ERROR_CHECK_NEG(r, "Could not update address balance.");
 
                     r = txoa_batch_delete(block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);

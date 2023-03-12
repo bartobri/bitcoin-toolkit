@@ -85,6 +85,26 @@ int balance_get(uint64_t *sats, char *address)
     return 1;
 }
 
+int balance_delete(char *address)
+{
+    int r, i;
+    int len;
+    char address_reverse[BUFSIZ];
+
+    memset(address_reverse, 0, BUFSIZ);
+
+    len = strlen(address);
+    for (i = 0; i < len; i++)
+    {
+        address_reverse[i] = address[len - 1 - i];
+    }
+
+    r = database_delete(dbref, (unsigned char *)address_reverse, strlen(address_reverse));
+    ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
+
+    return 1;
+}
+
 int balance_put(char *address, uint64_t sats)
 {
     int r, i;
@@ -132,6 +152,26 @@ int balance_batch_put(char *address, uint64_t sats)
     
     r = database_batch_put(dbref, (unsigned char *)address_reverse, strlen(address_reverse), serialized, sizeof(uint64_t));
     ERROR_CHECK_NEG(r, "Could not execute batch put.");
+
+    return 1;
+}
+
+int balance_batch_delete(char *address)
+{
+    int r, i;
+    int len;
+    char address_reverse[BUFSIZ];
+
+    memset(address_reverse, 0, BUFSIZ);
+
+    len = strlen(address);
+    for (i = 0; i < len; i++)
+    {
+        address_reverse[i] = address[len - 1 - i];
+    }
+
+    r = database_batch_delete(dbref, (unsigned char *)address_reverse, strlen(address_reverse));
+    ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
 
     return 1;
 }
