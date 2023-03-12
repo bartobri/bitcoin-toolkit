@@ -227,7 +227,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (tr != PTHREAD_CANCELED)
         {
-            printf("\n");
             r = *(int *)tr;
             ERROR_CHECK_NEG(r, "Download thread error.");
         }
@@ -237,7 +236,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         if (tr != PTHREAD_CANCELED)
         {
-            printf("\n");
             r = *(int *)tr;
             ERROR_CHECK_NEG(r, "Process thread error.");
         }
