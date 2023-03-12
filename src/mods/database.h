@@ -24,4 +24,8 @@ int database_put(DBRef, unsigned char *, size_t, unsigned char *, size_t);
 int database_delete(DBRef, unsigned char *, size_t);
 void database_close(DBRef);
 
+int database_batch_put(DBRef, unsigned char *, size_t, unsigned char *, size_t);
+int database_batch_delete(DBRef, unsigned char *, size_t);
+int database_batch_write(DBRef);
+
 #endif

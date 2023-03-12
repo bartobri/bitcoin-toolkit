@@ -18,18 +18,17 @@
 #include <leveldb/c.h>
 #endif
 
-#define DATABASE_MAX_DB_OBJS 2
-
 struct DBRef {
     leveldb_t *db;
     leveldb_iterator_t *db_iter;
+    leveldb_writebatch_t *batch;
+    leveldb_readoptions_t *roptions;
 };
 
 int database_open(DBRef *ref, char *location, bool create)
 {
     char *err = NULL;
     leveldb_options_t *options;
-    leveldb_readoptions_t *roptions;
 
 #ifdef _NO_LEVELDB
     error_log("To fix this, install the leveldb development library, then recompile and reinstall this program.");
@@ -62,8 +61,9 @@ int database_open(DBRef *ref, char *location, bool create)
         return -1;
     }
 
-    roptions = leveldb_readoptions_create();
-    (*ref)->db_iter = leveldb_create_iterator((*ref)->db, roptions);
+    (*ref)->roptions = leveldb_readoptions_create();
+    (*ref)->db_iter = leveldb_create_iterator((*ref)->db, (*ref)->roptions);
+    (*ref)->batch = leveldb_writebatch_create();
 
     return 1;
 }
@@ -153,22 +153,18 @@ int database_iter_get_value(unsigned char **value, size_t *value_len, DBRef ref)
 int database_get(unsigned char **output, size_t *output_len, DBRef ref, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
-    leveldb_readoptions_t *roptions;
 
     assert(ref);
     assert(key);
 
-    roptions = leveldb_readoptions_create();
-
     *output_len = 0;
-    *output = (unsigned char *)leveldb_get(ref->db, roptions, (char *)key, key_len, output_len, &err);
+
+    *output = (unsigned char *)leveldb_get(ref->db, ref->roptions, (char *)key, key_len, output_len, &err);
 
     if (err != NULL) {
         error_log("The database reported the following error: %s.", err);
         return -1;
     }
-
-    leveldb_readoptions_destroy(roptions);
 
     return 1;
 }
@@ -195,6 +191,40 @@ int database_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *v
     return 1;
 }
 
+int database_batch_put(DBRef ref, unsigned char *key, size_t key_len, unsigned char *value, size_t value_len)
+{
+    assert(ref);
+    assert(key);
+    assert(value);
+    
+    leveldb_writebatch_put(ref->batch, (char *)key, key_len, (char *)value, value_len);
+
+    return 1;
+}
+
+int database_batch_write(DBRef ref)
+{
+    char *err = NULL;
+    leveldb_writeoptions_t *woptions;
+
+    assert(ref);
+    
+    woptions = leveldb_writeoptions_create();
+
+    leveldb_write(ref->db, woptions, ref->batch, &err);
+
+    if (err != NULL) {
+        error_log("The database reported the following error: %s.", err);
+        return -1;
+    }
+
+    leveldb_writeoptions_destroy(woptions);
+
+    leveldb_writebatch_clear(ref->batch);
+
+    return 1;
+}
+
 int database_delete(DBRef ref, unsigned char *key, size_t key_len)
 {
     char *err = NULL;
@@ -217,10 +247,22 @@ int database_delete(DBRef ref, unsigned char *key, size_t key_len)
     return 1;
 }
 
+int database_batch_delete(DBRef ref, unsigned char *key, size_t key_len)
+{
+    assert(ref);
+    assert(key);
+
+    leveldb_writebatch_delete(ref->batch, (char *)key, key_len);
+
+    return 1;
+}
+
 void database_close(DBRef ref)
 {
     assert(ref);
 
     leveldb_iter_destroy(ref->db_iter);
+    leveldb_writebatch_destroy(ref->batch);
+    leveldb_readoptions_destroy(ref->roptions);
     leveldb_close(ref->db);
 }
