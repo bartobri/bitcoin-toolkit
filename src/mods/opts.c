@@ -31,6 +31,7 @@
 #define OPTS_INPUT_PATH      (struct opt_info){"in-path",    ""}
 #define OPTS_OUTPUT_PATH     (struct opt_info){"out-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
+#define OPTS_P2PKH           (struct opt_info){"p2pkh",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
 #define OPTS_RPC_AUTH        (struct opt_info){"rpc-auth",   ""}
 #define OPTS_MAX             30
@@ -121,6 +122,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_INPUT_TYPE, required_argument);
         opts_add(OPTS_OUTPUT_FORMAT, required_argument);
         opts_add(OPTS_BECH32, no_argument);
+        opts_add(OPTS_P2PKH, no_argument);
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
@@ -396,8 +398,6 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
         else if (strcmp(optarg, "hex") == 0)        { opts->output_type_hex = 1; }
         else if (strcmp(optarg, "decimal") == 0)    { opts->output_type_decimal = 1; }
         else if (strcmp(optarg, "raw") == 0)        { opts->output_type_raw = 1; opts->output_format_binary = 1; }
-        else if (strcmp(optarg, "p2pkh") == 0)      { opts->output_type_p2pkh = 1; }
-        else if (strcmp(optarg, "p2wpkh") == 0)     { opts->output_type_p2wpkh = 1; }
         else
         {
             error_log("Invalid argument for option --%s.", optname);
@@ -465,6 +465,11 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     {
         ERROR_CHECK_TRUE(opts->output_path, "Can not use output path option more than once.");
         opts->output_path = optarg;
+    }
+
+    else if (strcmp(optname, OPTS_P2PKH.longopt) == 0)
+    {
+        opts->output_type_p2pkh = 1;
     }
 
     else if (strcmp(optname, OPTS_BECH32.longopt) == 0)
