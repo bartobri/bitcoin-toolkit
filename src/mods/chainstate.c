@@ -81,6 +81,9 @@ int chainstate_get_next(UTXOKey key, UTXOValue value)
     unsigned char *serialized_key = NULL;
     unsigned char *serialized_value = NULL;
 
+    assert(key);
+    assert(value);
+
     r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len, dbref);
     ERROR_CHECK_NEG(r, "Could not get data from database.");
 
@@ -106,6 +109,27 @@ int chainstate_get_next(UTXOKey key, UTXOValue value)
         // End of database
         return 0;
     }
+
+    return 1;
+}
+
+int chainstate_get_record_count(size_t *count)
+{
+    int r;
+    size_t c = 0;
+
+    assert(dbref);
+
+    r = database_iter_seek_start(dbref);
+    ERROR_CHECK_NEG(r, "Unable to seek to first record in chainstate database.");
+
+    while ((r = database_iter_next(dbref)) > 0)
+    {
+        c++;
+    }
+    ERROR_CHECK_NEG(r, "Could not iterate.");
+
+    *count = c;
 
     return 1;
 }

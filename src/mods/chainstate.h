@@ -8,12 +8,14 @@
 #ifndef CHAINSTATE_H
 #define CHAINSTATE_H 1
 
+#include <stdint.h>
 #include "utxokey.h"
 #include "utxovalue.h"
 
 int chainstate_open(char *);
 int chainstate_seek_start(void);
 int chainstate_get_next(UTXOKey, UTXOValue);
+int chainstate_get_record_count(size_t *);
 void chainstate_close(void);
 
 #endif
