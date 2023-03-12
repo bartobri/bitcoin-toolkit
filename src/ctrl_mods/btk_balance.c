@@ -30,17 +30,13 @@
 #include "mods/database.h"
 #include "mods/transaction.h"
 #include "mods/serialize.h"
+#include "mods/utxokey.h"
+#include "mods/utxovalue.h"
+#include "mods/chainstate.h"
+
 
 #define CHAIN_STATUS_READY    1
 #define CHAIN_STATUS_FINAL    2
-
-typedef struct hexchain *hexchain;
-struct hexchain {
-    int status;
-    int block_num;
-    char *block_hex;
-    hexchain next;
-};
 
 typedef struct blockchain *blockchain;
 struct blockchain {
@@ -54,37 +50,153 @@ typedef struct thread_args *thread_args;
 struct thread_args {
     int last_block;
     int block_count;
-    hexchain hc_head;
-    hexchain hc_tail;
-    int hc_len;
     blockchain bc_head;
     blockchain bc_tail;
     int bc_len;
 };
 
 static pthread_t download_thread;
-static pthread_t deserialize_thread;
 static pthread_t process_thread;
 
 void *btk_balance_pthread(void *);
 int btk_balance_download(thread_args);
-int btk_balance_deserialize(thread_args);
 int btk_balance_process(thread_args);
 
 int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
-    void *tr;
-    char address[BUFSIZ];
-    char output_str[BUFSIZ];
-    uint64_t balance = 0;
 
     assert(opts);
 
     (void)input_len;
 
-    if (opts->create || opts->update)
+    if (opts->create)
     {
+        size_t i = 0;
+        size_t record_count = 0;
+        uint64_t block_height = 0;
+        UTXOKey key;
+        UTXOValue value;
+
+        printf("Getting record count...");
+        fflush(stdout);
+
+        r = chainstate_get_record_count(&record_count);
+        ERROR_CHECK_NEG(r, "Could not get chainstate record count.");
+
+        printf("Done.\n");
+        fflush(stdout);
+
+        key = malloc(sizeof(*key));
+        ERROR_CHECK_NULL(key, "Memory allocation error.");
+
+        value = malloc(sizeof(*value));
+        ERROR_CHECK_NULL(key, "Memory allocation error.");
+
+        memset(key, 0, sizeof(*key));
+        memset(value, 0, sizeof(*value));
+
+        r = chainstate_seek_start();
+        ERROR_CHECK_NEG(r, "Could not set chainstate interator.");
+
+        while ((r = chainstate_get_next(key, value)) > 0)
+        {
+            uint64_t balance;
+            char address[BUFSIZ];
+            PubKey pubkey;
+
+            memset(address, 0, BUFSIZ);
+            balance = 0;
+
+            if (value->n_size == 0x00)
+            {
+                r = address_from_rmd160(address, value->script);
+                ERROR_CHECK_NEG(r, "Could not generate address from public key hash.");
+            }
+            else if (value->n_size == 0x01)
+            {
+                r = address_from_p2sh_script(address, value->script);
+                ERROR_CHECK_NEG(r, "Could not generate address from script hash.");
+            }
+            else if (value->n_size == 0x02 || value->n_size == 0x03)
+            {
+                pubkey = malloc(pubkey_sizeof());
+                ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
+
+                r = pubkey_from_raw(pubkey, value->script, value->script_len);
+                ERROR_CHECK_NEG(r, "Can not get pubkey object from compressed public key.");
+
+                r = address_get_p2pkh(address, pubkey);
+                ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
+
+                free(pubkey);
+            }
+            else if (value->n_size == 0x04 || value->n_size == 0x05)
+            {
+                pubkey = malloc(pubkey_sizeof());
+                ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
+
+                r = pubkey_from_raw(pubkey, value->script, value->script_len);
+                ERROR_CHECK_NEG(r, "Can not get pubkey object from uncompressed public key.");
+
+                pubkey_uncompress(pubkey);
+
+                r = address_get_p2pkh(address, pubkey);
+                ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
+
+                free(pubkey);
+            }
+            else
+            {
+                r = script_get_output_address(address, value->script, value->script_len, 0);
+                ERROR_CHECK_NEG(r, "Could not get address from utxo script.");
+            }
+
+            if (*address)
+            {
+                r = balance_get(&balance, address);
+                ERROR_CHECK_NEG(r, "Could not query balance database.");
+
+                balance += value->amount;
+
+                // TXOA Database
+                r = txoa_put(key->tx_hash, key->vout, address);
+                ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
+
+                // Balance Database
+                r = balance_put(address, balance);
+                ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
+            }
+
+            if (value->height > block_height)
+            {
+                block_height = value->height;
+
+                r = txao_set_last_block(block_height);
+                ERROR_CHECK_NEG(r, "Could not set last block.");
+            }
+
+            free(value->script);
+            value->script = NULL;
+            
+            memset(key, 0, sizeof(*key));
+            memset(value, 0, sizeof(*value));
+
+            i++;
+            printf("\rBuilding... [%zu/%zu] [%.2f%% Complete]", i, record_count, ((i / (float)record_count) * 100));
+            fflush(stdout);
+        }
+        ERROR_CHECK_NEG(r, "Could not get chainstate record.");
+
+        printf("\n");
+        printf("Block height: %"PRId64"\n", block_height);
+
+        utxokey_free(key);
+        utxovalue_free(value);
+    }
+    else if (opts->update)
+    {
+        void *tr;
         thread_args args = NULL;
 
         args = malloc(sizeof(*args));
@@ -92,16 +204,11 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
         memset(args, 0, sizeof(*args));
 
-        args->hc_head = NULL;
-        args->hc_tail = NULL;
         args->bc_head = NULL;
         args->bc_tail = NULL;
 
-        if (opts->update)
-        {
-            r = txao_get_last_block(&(args->last_block));
-            ERROR_CHECK_NEG(r, "Could not get last block processed.");
-        }
+        r = txao_get_last_block(&(args->last_block));
+        ERROR_CHECK_NEG(r, "Could not get last block processed.");
 
         r = jsonrpc_init(opts->host_name, opts->host_service, opts->rpc_auth);
         ERROR_CHECK_NEG(r, "Unable to initialize json rpc.");
@@ -110,9 +217,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         ERROR_CHECK_NEG(r, "Could not get block count.");
 
         r = pthread_create(&download_thread, NULL, &btk_balance_pthread, args);
-        ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
-
-        r = pthread_create(&deserialize_thread, NULL, &btk_balance_pthread, args);
         ERROR_CHECK_TRUE(r > 0, "Could not create download thread.");
 
         r = pthread_create(&process_thread, NULL, &btk_balance_pthread, args);
@@ -128,16 +232,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             ERROR_CHECK_NEG(r, "Download thread error.");
         }
 
-        r = pthread_join(deserialize_thread, &tr);
-        ERROR_CHECK_TRUE(r > 0, "Could not join deserialize thread.");
-
-        if (tr != PTHREAD_CANCELED)
-        {
-            printf("\n");
-            r = *(int *)tr;
-            ERROR_CHECK_NEG(r, "Deserialize thread error.");
-        }
-
         r = pthread_join(process_thread, &tr);
         ERROR_CHECK_TRUE(r > 0, "Could not join process thread.");
 
@@ -148,10 +242,16 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             ERROR_CHECK_NEG(r, "Process thread error.");
         }
 
+        free(args);
+
         printf("\nComplete\n");
     }
     else
     {
+        uint64_t balance = 0;
+        char address[BUFSIZ];
+        char output_str[BUFSIZ];
+
         memset(address, 0, BUFSIZ);
         memset(output_str, 0, BUFSIZ);
 
@@ -198,19 +298,8 @@ void *btk_balance_pthread(void *args_in)
         rd = btk_balance_download((thread_args)args_in);
         if (rd < 0)
         {
-            pthread_cancel(deserialize_thread);
             pthread_cancel(process_thread);
             return &rd;
-        }
-    }
-    else if (pthread_equal(deserialize_thread, pthread_self()))
-    {
-        rp = btk_balance_deserialize((thread_args)args_in);
-        if (rp < 0)
-        {
-            pthread_cancel(download_thread);
-            pthread_cancel(process_thread);
-            return &rp;
         }
     }
     else if (pthread_equal(process_thread, pthread_self()))
@@ -219,7 +308,6 @@ void *btk_balance_pthread(void *args_in)
         if (rp < 0)
         {
             pthread_cancel(download_thread);
-            pthread_cancel(deserialize_thread);
             return &rp;
         }
     }
@@ -238,81 +326,10 @@ int btk_balance_download(thread_args args)
     for (i = args->last_block + 1; i <= args->block_count; i++)
     {
         char blockhash[BUFSIZ];
+        char *block_hex;
+        unsigned char *block_raw;
 
         memset(blockhash, 0, BUFSIZ);
-
-        if (args->hc_head == NULL)
-        {
-            args->hc_head = malloc(sizeof(*(args->hc_head)));
-            ERROR_CHECK_NULL(args->hc_head, "Memory allocation error.");
-
-            memset(args->hc_head, 0, sizeof(*(args->hc_head)));
-
-            args->hc_head->block_hex = NULL;
-            args->hc_tail = args->hc_head;
-            args->hc_tail->next = NULL;
-        }
-        else
-        {
-            args->hc_tail->next = malloc(sizeof(*(args->hc_tail->next)));
-            ERROR_CHECK_NULL(args->hc_tail->next, "Memory allocation error.");
-
-            memset(args->hc_tail->next, 0, sizeof(*(args->hc_tail->next)));
-
-            args->hc_tail->next->block_hex = NULL;
-            args->hc_tail = args->hc_tail->next;
-            args->hc_tail->next = NULL;
-        }
-
-        r = jsonrpc_get_blockhash(blockhash, i);
-        ERROR_CHECK_NEG(r, "Could not get block hash.");
-
-        r = jsonrpc_get_block(&(args->hc_tail->block_hex), blockhash);
-        ERROR_CHECK_NEG(r, "Could not get block data.");
-
-        args->hc_len += 1;
-        args->hc_tail->block_num = i;
-
-        if (i == args->block_count)
-        {
-            args->hc_tail->status = CHAIN_STATUS_FINAL;
-        }
-        else
-        {
-            args->hc_tail->status = CHAIN_STATUS_READY;
-        }
-
-        while (args->hc_len >= 100)
-        {
-            sleep(1);
-        }
-    }
-
-    return 1;
-}
-
-int btk_balance_deserialize(thread_args args)
-{
-    int r;
-
-    assert(args);
-
-    while (1)
-    {
-        unsigned char *block_raw = NULL;
-        hexchain tmp;
-        int status;
-
-        while (args->hc_head == NULL || !args->hc_head->status)
-        {
-            struct timespec bcsleep;
-            bcsleep.tv_sec = 0;
-            bcsleep.tv_nsec = 100000000; // 0.1 seconds
-
-            nanosleep(&bcsleep, NULL);
-        }
-
-        status = args->hc_head->status;
 
         if (args->bc_head == NULL)
         {
@@ -337,10 +354,16 @@ int btk_balance_deserialize(thread_args args)
             args->bc_tail->next = NULL;
         }
 
-        block_raw = malloc(strlen(args->hc_head->block_hex) / 2);
+        r = jsonrpc_get_blockhash(blockhash, i);
+        ERROR_CHECK_NEG(r, "Could not get block hash.");
+
+        r = jsonrpc_get_block(&block_hex, blockhash);
+        ERROR_CHECK_NEG(r, "Could not get block data.");
+
+        block_raw = malloc(strlen(block_hex) / 2);
         ERROR_CHECK_NULL(block_raw, "Memory allocation error.");
 
-        r = hex_str_to_raw(block_raw, args->hc_head->block_hex);
+        r = hex_str_to_raw(block_raw, block_hex);
         ERROR_CHECK_NEG(r, "Could not convert hex block to raw block.");
 
         args->bc_tail->block = malloc(sizeof(*(args->bc_tail->block)));
@@ -349,27 +372,24 @@ int btk_balance_deserialize(thread_args args)
         r = block_from_raw(args->bc_tail->block, block_raw);
         ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
 
-        args->bc_tail->block_num = args->hc_head->block_num;
-        args->bc_tail->status = status;
+        args->bc_len += 1;
+        args->bc_tail->block_num = i;
 
-        tmp = args->hc_head;
-        args->hc_head = args->hc_head->next;
-        free(tmp->block_hex);
-        free(tmp);
+        if (i == args->block_count)
+        {
+            args->bc_tail->status = CHAIN_STATUS_FINAL;
+        }
+        else
+        {
+            args->bc_tail->status = CHAIN_STATUS_READY;
+        }
 
         free(block_raw);
-
-        args->hc_len -= 1;
-        args->bc_len += 1;
+        free(block_hex);
 
         while (args->bc_len >= 100)
         {
             sleep(1);
-        }
-
-        if (status == CHAIN_STATUS_FINAL)
-        {
-            break;
         }
     }
 
@@ -379,7 +399,6 @@ int btk_balance_deserialize(thread_args args)
 int btk_balance_process(thread_args args)
 {
     int r;
-    int process_pct = 0;
 
     while (1)
     {
@@ -424,10 +443,10 @@ int btk_balance_process(thread_args args)
                     // Set all inputs to zero balance.
 
                     // TODO - Delete address form db instead of setting to zero
-                    r = balance_put(address, 0);
+                    r = balance_batch_put(address, 0);
                     ERROR_CHECK_NEG(r, "Could not update address balance.");
 
-                    r = txoa_delete(block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);
+                    r = txoa_batch_delete(block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);
                     ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
                 }
             }
@@ -445,21 +464,26 @@ int btk_balance_process(thread_args args)
                 if (*address)
                 {
                     // TXOA Database
-                    r = txoa_put(block->transactions[i]->txid, j, address);
+                    r = txoa_batch_put(block->transactions[i]->txid, j, address);
                     ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
 
                     // Balance Database
-                    r = balance_put(address, block->transactions[i]->outputs[j]->amount);
+                    r = balance_batch_put(address, block->transactions[i]->outputs[j]->amount);
                     ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
                 }
             }
+
+            r = txoa_batch_write();
+            ERROR_CHECK_NEG(r, "Could not batch write txao records.");
+
+            r = balance_batch_write();
+            ERROR_CHECK_NEG(r, "Could not batch write balance records.");
         }
 
         r = txao_set_last_block(args->bc_head->block_num);
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
-        process_pct = (int)((args->bc_head->block_num / (float)args->block_count) * 100);
-        printf("\rBuilding... [Blocks: %i] [%i%% Complete]", args->bc_head->block_num, process_pct);
+        printf("\rUpdating... [Block %i/%i] [%.2f%% Complete]", args->bc_head->block_num, args->block_count, ((args->bc_head->block_num / (float)args->block_count) * 100));
         fflush(stdout);
 
         tmp = args->bc_head;
@@ -496,16 +520,25 @@ int btk_balance_init(opts_p opts)
 
     assert(opts);
 
-    if (opts->create || opts->update)
+    if (opts->update)
     {
         ERROR_CHECK_NULL(opts->host_name, "Missing hostname command option.");
         ERROR_CHECK_NULL(opts->rpc_auth, "Missing rpc-auth command option.");
     }
 
+    if (opts->create)
+    {
+        r = chainstate_open(opts->input_path);
+        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+    }
+
     // TODO - can't use output_path for two different databases. Must fix.
 
-    r = txoa_open(opts->output_path, opts->create);
-    ERROR_CHECK_NEG(r, "Could not open txoa database.");
+    if (opts->create || opts->update)
+    {
+        r = txoa_open(opts->output_path, opts->create);
+        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+    }
 
     r = balance_open(opts->output_path, opts->create);
     ERROR_CHECK_NEG(r, "Could not open balance database.");
@@ -517,8 +550,17 @@ int btk_balance_cleanup(opts_p opts)
 {
     assert(opts);
 
+    if (opts->create)
+    {
+        chainstate_close();
+    }
+
+    if (opts->create || opts->update)
+    {
+        txoa_close();
+    }
+
     balance_close();
-    txoa_close();
 
     return 1;
 }
