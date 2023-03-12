@@ -109,3 +109,41 @@ int balance_put(char *address, uint64_t sats)
 
     return 1;
 }
+
+int balance_batch_put(char *address, uint64_t sats)
+{
+    int r, i;
+    int len;
+    char address_reverse[BUFSIZ];
+    unsigned char serialized[sizeof(uint64_t)];
+
+    assert(address);
+    assert(dbref);
+
+    memset(address_reverse, 0, BUFSIZ);
+
+    len = strlen(address);
+    for (i = 0; i < len; i++)
+    {
+        address_reverse[i] = address[len - 1 - i];
+    }
+
+    serialize_uint64(serialized, sats, SERIALIZE_ENDIAN_BIG);
+    
+    r = database_batch_put(dbref, (unsigned char *)address_reverse, strlen(address_reverse), serialized, sizeof(uint64_t));
+    ERROR_CHECK_NEG(r, "Could not execute batch put.");
+
+    return 1;
+}
+
+int balance_batch_write(void)
+{
+    int r;
+
+    assert(dbref);
+
+    r = database_batch_write(dbref);
+    ERROR_CHECK_NEG(r, "Could not execute batch write.");
+
+    return 1;
+}

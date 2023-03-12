@@ -16,4 +16,7 @@ void balance_close(void);
 int balance_get(uint64_t *, char *);
 int balance_put(char *, uint64_t);
 
+int balance_batch_put(char *, uint64_t);
+int balance_batch_write(void);
+
 #endif
