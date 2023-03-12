@@ -158,3 +158,48 @@ int txao_get_last_block(int *block_num)
 
     return 1;
 }
+
+int txoa_batch_put(unsigned char *tx_hash, uint32_t index, char *address)
+{
+    int r;
+    unsigned char key[TXOA_KEY_LEN];
+
+    assert(tx_hash);
+    assert(address);
+
+    serialize_uchar(key, tx_hash, TRANSACTION_ID_LEN);
+    serialize_uint32(key + TRANSACTION_ID_LEN, index, SERIALIZE_ENDIAN_LIT);
+
+    r = database_batch_put(dbref, key, TXOA_KEY_LEN, (unsigned char *)address, strlen(address));
+    ERROR_CHECK_NEG(r, "Could not add entry to txoa database.");
+
+    return 1;
+}
+
+int txoa_batch_delete(unsigned char *tx_hash, uint32_t index)
+{
+    int r;
+    unsigned char key[TXOA_KEY_LEN];
+
+    assert(tx_hash);
+
+    serialize_uchar(key, tx_hash, TRANSACTION_ID_LEN);
+    serialize_uint32(key + TRANSACTION_ID_LEN, index, SERIALIZE_ENDIAN_LIT);
+
+    r = database_batch_delete(dbref, key, TXOA_KEY_LEN);
+    ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
+
+    return 1;
+}
+
+int txoa_batch_write(void)
+{
+    int r;
+
+    assert(dbref);
+
+    r = database_batch_write(dbref);
+    ERROR_CHECK_NEG(r, "Could not execute batch write.");
+
+    return 1;
+}

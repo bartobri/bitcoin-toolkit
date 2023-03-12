@@ -19,4 +19,8 @@ int txoa_delete(unsigned char *, uint32_t);
 int txao_set_last_block(int);
 int txao_get_last_block(int *);
 
+int txoa_batch_put(unsigned char *, uint32_t, char *);
+int txoa_batch_delete(unsigned char *, uint32_t);
+int txoa_batch_write(void);
+
 #endif
