@@ -41,8 +41,8 @@ struct opts {
     char *host_service;
     int create;
     int update;
-    char *input_path;
-    char *output_path;
+    char *chainstate_path;
+    char *balance_path;
     char *rpc_auth;
     char *command;
     char *subcommand;

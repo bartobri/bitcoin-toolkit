@@ -20,7 +20,7 @@
 
 #define TXAO_LAST_BLOCK_KEY     "__last_block"
 #define TXOA_KEY_LEN            TRANSACTION_ID_LEN + sizeof(uint32_t)
-#define TXOA_DEFAULT_PATH       ".btk/txoa"
+#define TXOA_DEFAULT_PATH       ".btk/balance/txoa"
 
 static DBRef dbref = NULL;
 

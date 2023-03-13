@@ -517,28 +517,42 @@ int btk_balance_init(opts_p opts)
 
     assert(opts);
 
+    r = balance_open(opts->balance_path, opts->create);
+    ERROR_CHECK_NEG(r, "Could not open balance database.");
+
+    if (opts->create)
+    {
+        r = chainstate_open(opts->chainstate_path);
+        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+    }
+
     if (opts->update)
     {
         ERROR_CHECK_NULL(opts->host_name, "Missing hostname command option.");
         ERROR_CHECK_NULL(opts->rpc_auth, "Missing rpc-auth command option.");
     }
 
-    if (opts->create)
-    {
-        r = chainstate_open(opts->input_path);
-        ERROR_CHECK_NEG(r, "Could not open txoa database.");
-    }
-
-    // TODO - can't use output_path for two different databases. Must fix.
-
     if (opts->create || opts->update)
     {
-        r = txoa_open(opts->output_path, opts->create);
-        ERROR_CHECK_NEG(r, "Could not open txoa database.");
-    }
+        char *txoa_path = NULL;
 
-    r = balance_open(opts->output_path, opts->create);
-    ERROR_CHECK_NEG(r, "Could not open balance database.");
+        if (opts->balance_path)
+        {
+            txoa_path = malloc(BUFSIZ);
+            ERROR_CHECK_NULL(txoa_path, "Memory allocation error.");
+
+            strcpy(txoa_path, opts->balance_path);
+            strcat(txoa_path, "/txoa/");
+        }
+
+        r = txoa_open(txoa_path, opts->create);
+        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+
+        if (txoa_path)
+        {
+            free(txoa_path);
+        }
+    }
 
     return 1;
 }

@@ -28,8 +28,8 @@
 #define OPTS_PORT            (struct opt_info){"port",       "p:"}
 #define OPTS_CREATE          (struct opt_info){"create",     ""}
 #define OPTS_UPDATE          (struct opt_info){"update",     ""}
-#define OPTS_INPUT_PATH      (struct opt_info){"in-path",    ""}
-#define OPTS_OUTPUT_PATH     (struct opt_info){"out-path",   ""}
+#define OPTS_CHAINSTATE_PATH (struct opt_info){"chainstate-path",    ""}
+#define OPTS_BALANCE_PATH    (struct opt_info){"balance-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
 #define OPTS_P2PKH           (struct opt_info){"p2pkh",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
@@ -83,8 +83,8 @@ int opts_init(opts_p opts, char *command)
     opts->host_service = NULL;
     opts->create = 0;
     opts->update = 0;
-    opts->input_path = NULL;
-    opts->output_path = NULL;
+    opts->chainstate_path = NULL;
+    opts->balance_path = NULL;
     opts->rpc_auth = NULL;
     opts->command = command;
     opts->subcommand = NULL;
@@ -136,8 +136,8 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_PORT, required_argument);
         opts_add(OPTS_CREATE, no_argument);
         opts_add(OPTS_UPDATE, no_argument);
-        opts_add(OPTS_INPUT_PATH, required_argument);
-        opts_add(OPTS_OUTPUT_PATH, required_argument);
+        opts_add(OPTS_CHAINSTATE_PATH, required_argument);
+        opts_add(OPTS_BALANCE_PATH, required_argument);
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
@@ -455,16 +455,16 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
         opts->update = 1;
     }
 
-    else if (strcmp(optname, OPTS_INPUT_PATH.longopt) == 0)
+    else if (strcmp(optname, OPTS_CHAINSTATE_PATH.longopt) == 0)
     {
-        ERROR_CHECK_TRUE(opts->input_path, "Can not use input path option more than once.");
-        opts->input_path = optarg;
+        ERROR_CHECK_TRUE(opts->chainstate_path, "Can not use input path option more than once.");
+        opts->chainstate_path = optarg;
     }
 
-    else if (strcmp(optname, OPTS_OUTPUT_PATH.longopt) == 0)
+    else if (strcmp(optname, OPTS_BALANCE_PATH.longopt) == 0)
     {
-        ERROR_CHECK_TRUE(opts->output_path, "Can not use output path option more than once.");
-        opts->output_path = optarg;
+        ERROR_CHECK_TRUE(opts->balance_path, "Can not use output path option more than once.");
+        opts->balance_path = optarg;
     }
 
     else if (strcmp(optname, OPTS_P2PKH.longopt) == 0)
