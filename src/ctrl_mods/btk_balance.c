@@ -172,7 +172,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             {
                 block_height = value->height;
 
-                r = txao_set_last_block(block_height);
+                r = txoa_set_last_block(block_height);
                 ERROR_CHECK_NEG(r, "Could not set last block.");
             }
 
@@ -207,7 +207,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         args->bc_head = NULL;
         args->bc_tail = NULL;
 
-        r = txao_get_last_block(&(args->last_block));
+        r = txoa_get_last_block(&(args->last_block));
         ERROR_CHECK_NEG(r, "Could not get last block processed.");
 
         r = jsonrpc_init(opts->host_name, opts->host_service, opts->rpc_auth);
@@ -477,7 +477,7 @@ int btk_balance_process(thread_args args)
             ERROR_CHECK_NEG(r, "Could not batch write balance records.");
         }
 
-        r = txao_set_last_block(args->bc_head->block_num);
+        r = txoa_set_last_block(args->bc_head->block_num);
         ERROR_CHECK_NEG(r, "Could not set last block.");
 
         printf("\rUpdating... [Block %i/%i] [%.2f%% Complete]", args->bc_head->block_num, args->block_count, ((args->bc_head->block_num / (float)args->block_count) * 100));

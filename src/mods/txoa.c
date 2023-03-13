@@ -119,7 +119,7 @@ int txoa_delete(unsigned char *tx_hash, uint32_t index)
     return 1;
 }
 
-int txao_set_last_block(int block_num)
+int txoa_set_last_block(int block_num)
 {
     int r;
     char *key;
@@ -135,7 +135,7 @@ int txao_set_last_block(int block_num)
     return 1;
 }
 
-int txao_get_last_block(int *block_num)
+int txoa_get_last_block(int *block_num)
 {
     int r;
     char *key;
