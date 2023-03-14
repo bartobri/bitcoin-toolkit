@@ -45,6 +45,9 @@ int database_open(DBRef *ref, char *location, bool create)
     // will corrupt the database for bitcoin core.
     leveldb_options_set_compression(options, leveldb_no_compression);
 
+    // Set a bloom filter to speed up random (non-sequential) gets.
+    leveldb_options_set_filter_policy(options, leveldb_filterpolicy_create_bloom(10));
+
     // Set create if missing option
     leveldb_options_set_create_if_missing(options, create);
 
