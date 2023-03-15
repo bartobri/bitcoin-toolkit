@@ -5,11 +5,11 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
- #ifndef CONFIG_H
- #define CONFIG_H 1
+#ifndef CONFIG_H
+#define CONFIG_H 1
 
- #define BTK_VERSION_MAJOR      3
- #define BTK_VERSION_MINOR      0
- #define BTK_VERSION_REVISION   0
+#define BTK_VERSION_MAJOR      3
+#define BTK_VERSION_MINOR      0
+#define BTK_VERSION_REVISION   0
 
- #endif
+#endif
