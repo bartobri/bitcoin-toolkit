@@ -519,13 +519,12 @@ int btk_balance_init(opts_p opts)
 
     assert(opts);
 
-    // tODO can't use update and create opts together.
-
-    if (opts->create && opts->create_from_chainstate)
-    {
-        error_log("Can not use multiple create options. Specify only one.");
-        return -1;
-    }
+    // Option sanity check.
+    int i = 0;
+    if (opts->create) { i++; }
+    if (opts->create_from_chainstate) { i++; }
+    if (opts->update) { i++; }
+    ERROR_CHECK_TRUE((i > 1), "Cannot use more than one create or update option.");
 
     if (opts->create || opts->update)
     {
