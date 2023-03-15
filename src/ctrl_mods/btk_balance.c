@@ -170,9 +170,6 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             if (value->height > block_height)
             {
                 block_height = value->height;
-
-                r = txoa_set_last_block(block_height);
-                ERROR_CHECK_NEG(r, "Could not set last block.");
             }
 
             free(value->script);
@@ -186,6 +183,9 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
             fflush(stdout);
         }
         ERROR_CHECK_NEG(r, "Could not get chainstate record.");
+
+        r = txoa_set_last_block(block_height);
+        ERROR_CHECK_NEG(r, "Could not set last block.");
 
         printf("\n");
         printf("Block height: %"PRId64"\n", block_height);
@@ -210,6 +210,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         {
             r = txoa_get_last_block(&(args->last_block));
             ERROR_CHECK_NEG(r, "Could not get last block processed.");
+            ERROR_CHECK_FALSE(r, "Could not get last block processed. May need to recreate database.");
         }
 
         r = jsonrpc_init(opts->host_name, opts->host_service, opts->rpc_auth);
