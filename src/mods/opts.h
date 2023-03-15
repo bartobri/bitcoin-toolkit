@@ -40,6 +40,7 @@ struct opts {
     char *host_name;
     char *host_service;
     int create;
+    int create_from_chainstate;
     int update;
     char *chainstate_path;
     char *balance_path;

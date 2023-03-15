@@ -27,6 +27,7 @@
 #define OPTS_HOSTNAME        (struct opt_info){"hostname",   "h:"}
 #define OPTS_PORT            (struct opt_info){"port",       "p:"}
 #define OPTS_CREATE          (struct opt_info){"create",     ""}
+#define OPTS_CREATE_CHAINSTATE (struct opt_info){"create-from-chainstate",     ""}
 #define OPTS_UPDATE          (struct opt_info){"update",     ""}
 #define OPTS_CHAINSTATE_PATH (struct opt_info){"chainstate-path",    ""}
 #define OPTS_BALANCE_PATH    (struct opt_info){"balance-path",   ""}
@@ -82,6 +83,7 @@ int opts_init(opts_p opts, char *command)
     opts->host_name = NULL;
     opts->host_service = NULL;
     opts->create = 0;
+    opts->create_from_chainstate = 0;
     opts->update = 0;
     opts->chainstate_path = NULL;
     opts->balance_path = NULL;
@@ -135,6 +137,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_HOSTNAME, required_argument);
         opts_add(OPTS_PORT, required_argument);
         opts_add(OPTS_CREATE, no_argument);
+        opts_add(OPTS_CREATE_CHAINSTATE, no_argument);
         opts_add(OPTS_UPDATE, no_argument);
         opts_add(OPTS_CHAINSTATE_PATH, required_argument);
         opts_add(OPTS_BALANCE_PATH, required_argument);
@@ -448,6 +451,11 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_CREATE.longopt) == 0)
     {
         opts->create = 1;
+    }
+
+    else if (strcmp(optname, OPTS_CREATE_CHAINSTATE.longopt) == 0)
+    {
+        opts->create_from_chainstate = 1;
     }
 
     else if (strcmp(optname, OPTS_UPDATE.longopt) == 0)

@@ -34,7 +34,6 @@
 #include "mods/utxovalue.h"
 #include "mods/chainstate.h"
 
-
 #define CHAIN_STATUS_READY    1
 #define CHAIN_STATUS_FINAL    2
 
@@ -70,7 +69,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
 
     (void)input_len;
 
-    if (opts->create)
+    if (opts->create_from_chainstate)
     {
         size_t i = 0;
         size_t record_count = 0;
@@ -194,7 +193,7 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         utxokey_free(key);
         utxovalue_free(value);
     }
-    else if (opts->update)
+    else if (opts->create || opts->update)
     {
         void *tr;
         thread_args args = NULL;
@@ -207,8 +206,11 @@ int btk_balance_main(output_list *output, opts_p opts, unsigned char *input, siz
         args->bc_head = NULL;
         args->bc_tail = NULL;
 
-        r = txoa_get_last_block(&(args->last_block));
-        ERROR_CHECK_NEG(r, "Could not get last block processed.");
+        if (opts->update)
+        {
+            r = txoa_get_last_block(&(args->last_block));
+            ERROR_CHECK_NEG(r, "Could not get last block processed.");
+        }
 
         r = jsonrpc_init(opts->host_name, opts->host_service, opts->rpc_auth);
         ERROR_CHECK_NEG(r, "Unable to initialize json rpc.");
@@ -503,7 +505,7 @@ int btk_balance_requires_input(opts_p opts)
 {
     assert(opts);
 
-    if (opts->create || opts->update)
+    if (opts->create || opts->create_from_chainstate || opts->update)
     {
         return 0;
     }
@@ -517,22 +519,30 @@ int btk_balance_init(opts_p opts)
 
     assert(opts);
 
-    r = balance_open(opts->balance_path, opts->create);
-    ERROR_CHECK_NEG(r, "Could not open balance database.");
+    // tODO can't use update and create opts together.
 
-    if (opts->create)
+    if (opts->create && opts->create_from_chainstate)
     {
-        r = chainstate_open(opts->chainstate_path);
-        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+        error_log("Can not use multiple create options. Specify only one.");
+        return -1;
     }
 
-    if (opts->update)
+    if (opts->create || opts->update)
     {
         ERROR_CHECK_NULL(opts->host_name, "Missing hostname command option.");
         ERROR_CHECK_NULL(opts->rpc_auth, "Missing rpc-auth command option.");
     }
 
-    if (opts->create || opts->update)
+    if (opts->create_from_chainstate)
+    {
+        r = chainstate_open(opts->chainstate_path);
+        ERROR_CHECK_NEG(r, "Could not open txoa database.");
+    }
+
+    r = balance_open(opts->balance_path, (opts->create || opts->create_from_chainstate));
+    ERROR_CHECK_NEG(r, "Could not open balance database.");
+
+    if (opts->create || opts->create_from_chainstate || opts->update)
     {
         char *txoa_path = NULL;
 
@@ -545,7 +555,7 @@ int btk_balance_init(opts_p opts)
             strcat(txoa_path, "/txoa/");
         }
 
-        r = txoa_open(txoa_path, opts->create);
+        r = txoa_open(txoa_path, (opts->create || opts->create_from_chainstate));
         ERROR_CHECK_NEG(r, "Could not open txoa database.");
 
         if (txoa_path)
@@ -561,7 +571,7 @@ int btk_balance_cleanup(opts_p opts)
 {
     assert(opts);
 
-    if (opts->create)
+    if (opts->create_from_chainstate)
     {
         chainstate_close();
     }
