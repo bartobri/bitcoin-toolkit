@@ -15,6 +15,7 @@
 #include "mods/input.h"
 #include "mods/json.h"
 #include "mods/qrcode.h"
+#include "mods/config.h"
 #include "mods/opts.h"
 #include "mods/error.h"
 #include "ctrl_mods/btk_help.h"
@@ -36,6 +37,7 @@
 
 static regex_t grep;
 
+int btk_set_config_opts(opts_p);
 int btk_init(opts_p);
 int btk_cleanup(opts_p);
 int btk_print_output(output_list, opts_p, char *, cJSON *);
@@ -146,6 +148,9 @@ int main(int argc, char *argv[])
 
 	r = opts_get(opts, argc, argv);
 	BTK_CHECK_NEG(r, NULL);
+
+	r = btk_set_config_opts(opts);
+	ERROR_CHECK_NEG(r, "Could not set opts from config.");
 
 	r = btk_init(opts);
 	BTK_CHECK_NEG(r, "Could not initialize btk.");
@@ -280,6 +285,45 @@ int main(int argc, char *argv[])
 	BTK_CHECK_NEG(r, "Could not cleanup btk.");
 
 	return EXIT_SUCCESS;
+}
+
+int btk_set_config_opts(opts_p opts)
+{
+	int r;
+	char config_path[BUFSIZ];
+	memset(config_path, 0, BUFSIZ);
+
+	r = config_get_path(config_path);
+    ERROR_CHECK_NEG(r, "Could not get config path.");
+
+    r = config_load(config_path);
+    ERROR_CHECK_NEG(r, "Could not load config.");
+
+    // Set opts on a per command basis.
+    if (strcmp(opts->command, "balance") == 0)
+    {
+        if (!opts->host_name && config_exists("rpc-host"))
+        {
+            opts->host_name = malloc(100);
+            ERROR_CHECK_NULL(opts->host_name, "Memory allocation error.");
+
+            r = config_get(opts->host_name, "rpc-host");
+            ERROR_CHECK_NEG(r, "Could not get value from config file.");
+        }
+
+        if (!opts->rpc_auth && config_exists("rpc-auth"))
+        {
+            opts->rpc_auth = malloc(100);
+            ERROR_CHECK_NULL(opts->rpc_auth, "Memory allocation error.");
+
+            r = config_get(opts->rpc_auth, "rpc-auth");
+            ERROR_CHECK_NEG(r, "Could not get value from config file.");
+        }
+    }
+
+    config_unload();
+
+    return 1;
 }
 
 int btk_init(opts_p opts)

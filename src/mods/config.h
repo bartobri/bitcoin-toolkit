@@ -17,7 +17,10 @@ int config_get_path(char *);
 int config_load(char *);
 int config_set(char *, char *);
 int config_unset(char *);
+int config_exists(char *);
+int config_get(char *, char *);
 int config_to_string(char *);
 int config_write(char *);
+int config_unload(void);
 
 #endif

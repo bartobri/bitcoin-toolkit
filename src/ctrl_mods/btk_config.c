@@ -61,7 +61,7 @@ int btk_config_main(output_list *output, opts_p opts, unsigned char *input, size
     else if (opts->unset)
     {
         ERROR_CHECK_FALSE(config_is_valid(opts->unset), "Invalid key.");
-        
+
         r = config_unset(opts->unset);
         ERROR_CHECK_NEG(r, "Could not unset config.");
 
@@ -78,6 +78,8 @@ int btk_config_main(output_list *output, opts_p opts, unsigned char *input, size
 
     *output = output_append_new_copy(*output, output_string, strlen(output_string));
     ERROR_CHECK_NULL(*output, "Memory allocation error.");
+
+    config_unload();
 
     return 1;
 }

@@ -18,7 +18,7 @@
 
 #define CONFIG_DEFAULT_PATH ".btk/btk.conf"
 
-static char *(valid_keys[]) = {"rpc-auth", NULL};
+static char *(valid_keys[]) = {"rpc-auth", "rpc-host", NULL};
 static cJSON *config_json = NULL;
 
 int config_is_valid(char *key)
@@ -120,6 +120,33 @@ int config_unset(char *key)
     return 1;
 }
 
+int config_exists(char *key)
+{
+    assert(key);
+    assert(config_json);
+
+    return json_key_exists(config_json, key);
+}
+
+int config_get(char *value, char *key)
+{
+    int r;
+    char *tmp;
+
+    assert(value);
+    assert(key);
+    assert(config_json);
+
+    r = json_get_key_string(&tmp, config_json, key);
+    ERROR_CHECK_NEG(r, "Could not get key value from config.");
+
+    strcpy(value, tmp);
+
+    free(tmp);
+
+    return 1;
+}
+
 int config_to_string(char *string)
 {
     int r;
@@ -132,6 +159,8 @@ int config_to_string(char *string)
     ERROR_CHECK_NEG(r, "Could not convert json to string.");
 
     strcpy(string, tmp);
+
+    free(tmp);
 
     return 1;
 }
@@ -157,6 +186,15 @@ int config_write(char *config_path)
 
     r = close(config_file);
     ERROR_CHECK_NEG(r, "Could not close config file.");
+
+    return 1;
+}
+
+int config_unload(void)
+{
+    assert(config_json);
+
+    json_free(config_json);
 
     return 1;
 }
