@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	BTK_CHECK_NEG(r, NULL);
 
 	r = btk_set_config_opts(opts);
-	ERROR_CHECK_NEG(r, "Could not set opts from config.");
+	BTK_CHECK_NEG(r, "Could not set opts from config.");
 
 	r = btk_init(opts);
 	BTK_CHECK_NEG(r, "Could not initialize btk.");
