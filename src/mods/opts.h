@@ -45,6 +45,9 @@ struct opts {
     char *chainstate_path;
     char *balance_path;
     char *rpc_auth;
+    char *set;
+    char *unset;
+    int dump;
     char *command;
     char *subcommand;
 };

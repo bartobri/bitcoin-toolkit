@@ -35,6 +35,9 @@
 #define OPTS_P2PKH           (struct opt_info){"p2pkh",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
 #define OPTS_RPC_AUTH        (struct opt_info){"rpc-auth",   ""}
+#define OPTS_SET             (struct opt_info){"set",        ""}
+#define OPTS_UNSET           (struct opt_info){"unset",      ""}
+#define OPTS_DUMP            (struct opt_info){"dump",       ""}
 #define OPTS_MAX             30
 
 struct opt_info {
@@ -88,6 +91,9 @@ int opts_init(opts_p opts, char *command)
     opts->chainstate_path = NULL;
     opts->balance_path = NULL;
     opts->rpc_auth = NULL;
+    opts->set = NULL;
+    opts->unset = NULL;
+    opts->dump = 0;
     opts->command = command;
     opts->subcommand = NULL;
 
@@ -153,6 +159,12 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_PORT, required_argument);
         opts_add(OPTS_HOSTNAME, required_argument);
         opts_add(OPTS_STREAM, no_argument);
+    }
+    else if (strcmp(command, "config") == 0)
+    {
+        opts_add(OPTS_SET, required_argument);
+        opts_add(OPTS_UNSET, required_argument);
+        opts_add(OPTS_DUMP, no_argument);
     }
     else if (strcmp(command, "version") == 0)
     {
@@ -494,6 +506,23 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     {
         ERROR_CHECK_TRUE(opts->rpc_auth, "Can not use report option more than once.");
         opts->rpc_auth = optarg;
+    }
+
+    else if (strcmp(optname, OPTS_SET.longopt) == 0)
+    {
+        ERROR_CHECK_TRUE(opts->set, "Can not use set option more than once.");
+        opts->set = optarg;
+    }
+
+    else if (strcmp(optname, OPTS_UNSET.longopt) == 0)
+    {
+        ERROR_CHECK_TRUE(opts->unset, "Can not use unset option more than once.");
+        opts->unset = optarg;
+    }
+
+    else if (strcmp(optname, OPTS_DUMP.longopt) == 0)
+    {
+        opts->dump = 1;
     }
 
     else if (strcmp(optname, OPTS_STREAM_REPORT.longopt) == 0)

@@ -12,6 +12,7 @@
 #include "mods/cJSON/cJSON.h"
 
 int json_init(cJSON **);
+int json_is_object(cJSON *);
 int json_add_bool(cJSON *, int, char *);
 int json_add_number(cJSON *, double, char *);
 int json_add_string(cJSON *, char *, char *);
@@ -22,6 +23,7 @@ int json_get_index(char *, size_t, cJSON *, int, char *);
 int json_get_index_object(cJSON **, cJSON *, int, char *);
 int json_append_string(cJSON *, char *, char *);
 int json_key_exists(cJSON *jobj, char *);
+int json_delete_key(cJSON *, char *);
 int json_grep_index(cJSON *, int, char *);
 int json_to_string(char **, cJSON *);
 int json_from_string(cJSON **, char *);

@@ -23,6 +23,7 @@
 #include "ctrl_mods/btk_address.h"
 #include "ctrl_mods/btk_node.h"
 #include "ctrl_mods/btk_balance.h"
+#include "ctrl_mods/btk_config.h"
 #include "ctrl_mods/btk_version.h"
 
 #define BTK_CHECK_NEG(x, y)         if (x < 0) { error_log(y); error_log("Error [%s]:", command_str); error_print(); return EXIT_FAILURE; }
@@ -106,6 +107,13 @@ int main(int argc, char *argv[])
 		input_fp = &btk_balance_requires_input;
 		init_fp = &btk_balance_init;
 		cleanup_fp = &btk_balance_cleanup;
+	}
+	else if (strcmp(command, "config") == 0)
+	{
+		main_fp = &btk_config_main;
+		input_fp = &btk_config_requires_input;
+		init_fp = &btk_config_init;
+		cleanup_fp = &btk_config_cleanup;
 	}
 	else if (strcmp(command, "version") == 0)
 	{

@@ -27,6 +27,18 @@ int json_init(cJSON **jobj)
     return 1;
 }
 
+int json_is_object(cJSON *jobj)
+{
+    if (cJSON_IsObject(jobj))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 int json_add_bool(cJSON *jobj, int val, char *key)
 {
     cJSON *r;
@@ -280,6 +292,16 @@ int json_key_exists(cJSON *jobj, char *key)
     {
         return 0;
     }
+
+    return 1;
+}
+
+int json_delete_key(cJSON *jobj, char *key)
+{
+    assert(jobj);
+    assert(key);
+
+    cJSON_DeleteItemFromObject(jobj, key);
 
     return 1;
 }
