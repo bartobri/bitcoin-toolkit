@@ -18,7 +18,23 @@
 
 #define CONFIG_DEFAULT_PATH ".btk/btk.conf"
 
+static char *(valid_keys[]) = {"rpc-auth", NULL};
 static cJSON *config_json = NULL;
+
+int config_is_valid(char *key)
+{
+    assert(key);
+
+    for (int i = 0; valid_keys[i] != NULL; i++)
+    {
+        if (strcmp(key, valid_keys[i]) == 0)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 int config_get_path(char *config_path)
 {

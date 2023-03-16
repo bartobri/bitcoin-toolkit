@@ -48,6 +48,8 @@ int btk_config_main(output_list *output, opts_p opts, unsigned char *input, size
         *value = '\0';
         value++;
 
+        ERROR_CHECK_FALSE(config_is_valid(key), "Invalid key.");
+
         r = config_set(key, value);
         ERROR_CHECK_NEG(r, "Could not set config.");
 
@@ -58,6 +60,8 @@ int btk_config_main(output_list *output, opts_p opts, unsigned char *input, size
     }
     else if (opts->unset)
     {
+        ERROR_CHECK_FALSE(config_is_valid(opts->unset), "Invalid key.");
+        
         r = config_unset(opts->unset);
         ERROR_CHECK_NEG(r, "Could not unset config.");
 

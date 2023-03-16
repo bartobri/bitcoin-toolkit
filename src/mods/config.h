@@ -12,6 +12,7 @@
 #define BTK_VERSION_MINOR      0
 #define BTK_VERSION_REVISION   0
 
+int config_is_valid(char *);
 int config_get_path(char *);
 int config_load(char *);
 int config_set(char *, char *);
