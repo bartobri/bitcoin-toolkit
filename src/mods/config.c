@@ -12,11 +12,12 @@
 #include <fcntl.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 #include "error.h"
 #include "json.h"
 #include "mods/cJSON/cJSON.h"
 
-#define CONFIG_DEFAULT_PATH ".btk/btk.conf"
+#define CONFIG_DEFAULT_FILE ".btk/btk.conf"
 
 static char *(valid_keys[]) = {"rpc-auth", "rpc-host", NULL};
 static cJSON *config_json = NULL;
@@ -38,6 +39,10 @@ int config_is_valid(char *key)
 
 int config_get_path(char *config_path)
 {
+    int r;
+    char *sl;
+    struct stat sb;
+
     assert(config_path);
 
     strcpy(config_path, getenv("HOME"));
@@ -47,7 +52,20 @@ int config_get_path(char *config_path)
         return -1;
     }
     strcat(config_path, "/");
-    strcat(config_path, CONFIG_DEFAULT_PATH);
+    strcat(config_path, CONFIG_DEFAULT_FILE);
+
+    // Create directory hierarchy if necessary.
+    sl = config_path;
+    while ((sl = strstr(++sl, "/")))
+    {
+        *sl = '\0';
+        if (stat(config_path, &sb) == -1)
+        {
+            r = mkdir(config_path, S_IRUSR | S_IWUSR | S_IXUSR);
+            ERROR_CHECK_NEG(r, "Could not create config path.");
+        }
+        *sl = '/';
+    }
 
     return 1;
 }
