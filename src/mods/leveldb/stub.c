@@ -32,6 +32,12 @@ void leveldb_options_set_error_if_exists(leveldb_options_t *stub, unsigned char 
     (void)stub;
 }
 
+void leveldb_options_set_filter_policy(leveldb_options_t *stub, leveldb_filterpolicy_t *filter)
+{
+    (void)stub;
+    (void)filter;
+}
+
 leveldb_t* leveldb_open(const leveldb_options_t* options, const char* name, char** errptr)
 {
     (void)options;
@@ -50,6 +56,13 @@ leveldb_iterator_t* leveldb_create_iterator(leveldb_t* db, const leveldb_readopt
 {
     (void)db;
     (void)options;
+
+    return NULL;
+}
+
+leveldb_filterpolicy_t* leveldb_filterpolicy_create_bloom(int bits_per_key)
+{
+    (void)bits_per_key;
 
     return NULL;
 }
@@ -129,6 +142,45 @@ void leveldb_put(leveldb_t* db, const leveldb_writeoptions_t* options, const cha
     (void)val;
     (void)vallen;
     (void)errptr;
+}
+
+void leveldb_write(leveldb_t* db, const leveldb_writeoptions_t* options, leveldb_writebatch_t* batch, char** errptr)
+{
+    (void)db;
+    (void)options;
+    (void)batch;
+    (void)errptr;
+}
+
+leveldb_writebatch_t* leveldb_writebatch_create(void)
+{
+    return NULL;
+}
+
+void leveldb_writebatch_put(leveldb_writebatch_t *batch, const char* key, size_t klen, const char* val, size_t vlen)
+{
+    (void)batch;
+    (void)key;
+    (void)klen;
+    (void)val;
+    (void)vlen;
+}
+
+void leveldb_writebatch_clear(leveldb_writebatch_t *batch)
+{
+    (void)batch;
+}
+
+void leveldb_writebatch_delete(leveldb_writebatch_t *batch, const char* key, size_t klen)
+{
+    (void)batch;
+    (void)key;
+    (void)klen;
+}
+
+void leveldb_writebatch_destroy(leveldb_writebatch_t *batch)
+{
+    (void)batch;
 }
 
 void leveldb_writeoptions_destroy(leveldb_writeoptions_t* stub)
