@@ -55,10 +55,10 @@ int main(int argc, char *argv[])
 	cJSON *tmp;
 	output_list output = NULL;
 
-	int (*init_fp)(opts_p) = NULL;
-	int (*input_fp)(opts_p) = NULL;
-	int (*main_fp)(output_list *, opts_p, unsigned char *, size_t) = NULL;
-	int (*cleanup_fp)(opts_p) = NULL;
+	int (*command_init)(opts_p) = NULL;
+	int (*command_requires_input)(opts_p) = NULL;
+	int (*command_main)(output_list *, opts_p, unsigned char *, size_t) = NULL;
+	int (*command_cleanup)(opts_p) = NULL;
 
 	// Assembling the original command string for logging purposes
 	memset(command_str, 0, BUFSIZ);
@@ -77,59 +77,59 @@ int main(int argc, char *argv[])
 
 	if (strcmp(command, "privkey") == 0)
 	{
-		main_fp = &btk_privkey_main;
-		input_fp = &btk_privkey_requires_input;
-		init_fp = &btk_privkey_init;
-		cleanup_fp = &btk_privkey_cleanup;
+		command_main = &btk_privkey_main;
+		command_requires_input = &btk_privkey_requires_input;
+		command_init = &btk_privkey_init;
+		command_cleanup = &btk_privkey_cleanup;
 	}
 	else if (strcmp(command, "pubkey") == 0)
 	{
-		main_fp = &btk_pubkey_main;
-		input_fp = &btk_pubkey_requires_input;
-		init_fp = &btk_pubkey_init;
-		cleanup_fp = &btk_pubkey_cleanup;
+		command_main = &btk_pubkey_main;
+		command_requires_input = &btk_pubkey_requires_input;
+		command_init = &btk_pubkey_init;
+		command_cleanup = &btk_pubkey_cleanup;
 	}
 	else if (strcmp(command, "address") == 0)
 	{
-		main_fp = &btk_address_main;
-		input_fp = &btk_address_requires_input;
-		init_fp = &btk_address_init;
-		cleanup_fp = &btk_address_cleanup;
+		command_main = &btk_address_main;
+		command_requires_input = &btk_address_requires_input;
+		command_init = &btk_address_init;
+		command_cleanup = &btk_address_cleanup;
 	}
 	else if (strcmp(command, "node") == 0)
 	{
-		main_fp = &btk_node_main;
-		input_fp = &btk_node_requires_input;
-		init_fp = &btk_node_init;
-		cleanup_fp = &btk_node_cleanup;
+		command_main = &btk_node_main;
+		command_requires_input = &btk_node_requires_input;
+		command_init = &btk_node_init;
+		command_cleanup = &btk_node_cleanup;
 	}
 	else if (strcmp(command, "balance") == 0)
 	{
-		main_fp = &btk_balance_main;
-		input_fp = &btk_balance_requires_input;
-		init_fp = &btk_balance_init;
-		cleanup_fp = &btk_balance_cleanup;
+		command_main = &btk_balance_main;
+		command_requires_input = &btk_balance_requires_input;
+		command_init = &btk_balance_init;
+		command_cleanup = &btk_balance_cleanup;
 	}
 	else if (strcmp(command, "config") == 0)
 	{
-		main_fp = &btk_config_main;
-		input_fp = &btk_config_requires_input;
-		init_fp = &btk_config_init;
-		cleanup_fp = &btk_config_cleanup;
+		command_main = &btk_config_main;
+		command_requires_input = &btk_config_requires_input;
+		command_init = &btk_config_init;
+		command_cleanup = &btk_config_cleanup;
 	}
 	else if (strcmp(command, "version") == 0)
 	{
-		main_fp = &btk_version_main;
-		input_fp = &btk_version_requires_input;
-		init_fp = &btk_version_init;
-		cleanup_fp = &btk_version_cleanup;
+		command_main = &btk_version_main;
+		command_requires_input = &btk_version_requires_input;
+		command_init = &btk_version_init;
+		command_cleanup = &btk_version_cleanup;
 	}
 	else if (strcmp(command, "help") == 0)
 	{
-		main_fp = &btk_help_main;
-		input_fp = &btk_help_requires_input;
-		init_fp = &btk_help_init;
-		cleanup_fp = &btk_help_cleanup;
+		command_main = &btk_help_main;
+		command_requires_input = &btk_help_requires_input;
+		command_init = &btk_help_init;
+		command_cleanup = &btk_help_cleanup;
 	}
 	else
 	{
@@ -155,17 +155,17 @@ int main(int argc, char *argv[])
 	r = btk_init(opts);
 	BTK_CHECK_NEG(r, "Could not initialize btk.");
 
-	r = init_fp(opts);
+	r = command_init(opts);
 	BTK_CHECK_NEG(r, "Initialization error.");
 
-	if (input_fp(opts))
+	if (command_requires_input(opts))
 	{
 		if (opts->input_format_binary)
 		{
 			r = input_get(&input, &input_len);
 			BTK_CHECK_NEG(r, NULL);
 
-			r = main_fp(&output, opts, input, input_len);
+			r = command_main(&output, opts, input, input_len);
 			BTK_CHECK_NEG(r, NULL);
 
 			if (opts->output_stream)
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 					continue;
 				}
 
-				r = main_fp(&output, opts, input, strlen((char *)input));
+				r = command_main(&output, opts, input, strlen((char *)input));
 				BTK_CHECK_NEG(r, NULL);
 
 				if (opts->output_stream)
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
 
 				while((r = json_get_index(json_str, BUFSIZ, json_input, i++, BTK_OUTPUT_KEY)) > 0)
 				{
-					r = main_fp(&output, opts, (unsigned char *)json_str, strlen(json_str));
+					r = command_main(&output, opts, (unsigned char *)json_str, strlen(json_str));
 					BTK_CHECK_NEG(r, NULL);
 
 					if (opts->output_stream)
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		{
 			while (1)
 			{
-				r = main_fp(&output, opts, NULL, 0);
+				r = command_main(&output, opts, NULL, 0);
 				BTK_CHECK_NEG(r, NULL);
 
 				r = btk_print_output(output, opts, NULL, 0);
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			r = main_fp(&output, opts, NULL, 0);
+			r = command_main(&output, opts, NULL, 0);
 			BTK_CHECK_NEG(r, NULL);
 		}
 	}
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 		output_free(output);
 	}
 
-	r = cleanup_fp(opts);
+	r = command_cleanup(opts);
 	BTK_CHECK_NEG(r, "Cleanup error.");
 
 	r = btk_cleanup(opts);
