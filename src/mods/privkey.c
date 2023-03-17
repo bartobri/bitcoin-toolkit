@@ -11,6 +11,10 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 #include "privkey.h"
 #include "network.h"
 #include "random.h"
@@ -19,11 +23,6 @@
 #include "base58check.h"
 #include "crypto.h"
 #include "error.h"
-#ifdef _NO_GMPLIB
-#include "GMP/mini-gmp.h"
-#else
-#include <gmp.h>
-#endif
 
 #define MAINNET_PREFIX      0x80
 #define TESTNET_PREFIX      0xEF

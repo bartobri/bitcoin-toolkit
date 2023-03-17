@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
+#include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 #include "pubkey.h"
 #include "privkey.h"
 #include "point.h"
@@ -18,11 +22,6 @@
 #include "hex.h"
 #include "network.h"
 #include "error.h"
-#ifdef _NO_GMPLIB
-#include "GMP/mini-gmp.h"
-#else
-#include <gmp.h>
-#endif
 
 #define PUBKEY_COMPRESSED_FLAG_EVEN   0x02
 #define PUBKEY_COMPRESSED_FLAG_ODD    0x03

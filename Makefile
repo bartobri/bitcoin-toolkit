@@ -15,7 +15,7 @@ MODS=mods
 CTRL=ctrl_mods
 
 CC ?= gcc
-CFLAGS ?= -Wextra -Wall -iquote$(SRC)
+CFLAGS ?= -Wextra -Wall -iquote$(SRC) -idirafter$(SRC)/missing
 CLIBS ?= -lpthread
 
 CTRL_OBJS = $(OBJ)/$(CTRL)/btk_help.o $(OBJ)/$(CTRL)/btk_privkey.o $(OBJ)/$(CTRL)/btk_pubkey.o $(OBJ)/$(CTRL)/btk_address.o $(OBJ)/$(CTRL)/btk_node.o $(OBJ)/$(CTRL)/btk_balance.o $(OBJ)/$(CTRL)/btk_config.o $(OBJ)/$(CTRL)/btk_version.o
@@ -27,26 +27,19 @@ GMP_OBJS = $(OBJ)/$(MODS)/GMP/mini-gmp.o
 CRYPTO_OBJS = $(OBJ)/$(MODS)/crypto/rmd160.o $(OBJ)/$(MODS)/crypto/sha256.o
 LEVELDB_OBJS = $(OBJ)/$(MODS)/leveldb/stub.o
 
+## Install libgmp and libgmp-dev
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libgmp ), 1)
-CLIBS += -lgmp
-GMP_OBJS = $()
-else
-CFLAGS += -D_NO_GMPLIB
+   CLIBS += -lgmp
 endif
 
-## sudo apt install libssl-dev
+## Install libssl and libssl-dev
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
-CLIBS += -lcrypto
-CRYPTO_OBJS = $()
-else
-CFLAGS += -D_NO_OPENSSL
+   CLIBS += -lcrypto
 endif
 
+## Install libleveldb
 ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libleveldb ), 1)
-CLIBS += -lleveldb
-LEVELDB_OBJS = $()
-else
-CFLAGS += -D_NO_LEVELDB
+   CLIBS += -lleveldb
 endif
 
 .PHONY: all test install uninstall clean

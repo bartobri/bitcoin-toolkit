@@ -1,0 +1,1 @@
+#define GMP_H_MISSING 1

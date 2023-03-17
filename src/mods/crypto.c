@@ -9,24 +9,22 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "crypto.h"
-#include "error.h"
-#ifdef _NO_OPENSSL
+#include <openssl/evp.h>
+#ifdef EVP_H_MISSING
 #  include "crypto/rmd160.h"
 #  include "crypto/sha256.h"
 #else
-#  include <openssl/evp.h>
-#  ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
-#    include <openssl/provider.h>
-#  endif
+#  include <openssl/provider.h>
 #endif
+#include "crypto.h"
+#include "error.h"
 
 int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
 {
 	assert(output);
 	assert(input);
 
-# ifdef _NO_OPENSSL
+# ifdef EVP_H_MISSING
 	SHA256_CTX sha256;
 	SHA256_Init(&sha256);
 	SHA256_Update(&sha256, input, input_len);
@@ -51,7 +49,7 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	assert(input);
 	assert(input_len);
 
-# ifdef _NO_OPENSSL
+# ifdef EVP_H_MISSING
 	RIPEMD160_CTX rmd160;
 	RIPEMD160_Init(&rmd160);
 	RIPEMD160_Update(&rmd160, input, input_len);
@@ -60,7 +58,7 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	int r;
 	EVP_MD_CTX *mdctx;
 	unsigned int output_len;
-#   ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
+#   ifndef PROVIDER_H_MISSING
 		OSSL_PROVIDER *prov = OSSL_PROVIDER_load(NULL, "legacy");
 #   endif
 	mdctx = EVP_MD_CTX_new();
@@ -70,7 +68,7 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	EVP_DigestUpdate(mdctx, input, input_len);
 	EVP_DigestFinal_ex(mdctx, output, &output_len);
 	EVP_MD_CTX_free(mdctx);
-#   ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
+#   ifndef PROVIDER_H_MISSING
 		OSSL_PROVIDER_unload(prov);
 #   endif
 # endif

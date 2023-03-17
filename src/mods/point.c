@@ -6,12 +6,11 @@
  */
 
 #include <assert.h>
-#include "point.h"
-#ifdef _NO_GMPLIB
-#include "GMP/mini-gmp.h"
-#else
 #include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
 #endif
+#include "point.h"
 
 #define BITCOIN_PRIME             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
 #define BITCOIN_GENERATOR_POINT_X "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
