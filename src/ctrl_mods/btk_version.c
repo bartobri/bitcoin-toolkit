@@ -25,7 +25,7 @@ int btk_version_main(output_list *output, opts_p opts, unsigned char *input, siz
 
 	memset(output_str, 0, BUFSIZ);
 
-	sprintf(output_str, "Bitcoin Toolkit Version %d.%d.%d", BTK_VERSION_MAJOR, BTK_VERSION_MINOR, BTK_VERSION_REVISION);
+	sprintf(output_str, "Bitcoin Toolkit Version %d.%d.%d", BTK_VERSION_MAJOR, BTK_VERSION_MINOR, BTK_VERSION_PATCH);
 
 	*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
 	ERROR_CHECK_NULL(*output, "Memory allocation error.");
