@@ -19,7 +19,7 @@
 
 #define CONFIG_DEFAULT_FILE ".btk/btk.conf"
 
-static char *(valid_keys[]) = {"rpc-auth", "rpc-host", NULL};
+static char *(valid_keys[]) = {"rpc-auth", "hostname", NULL};
 static cJSON *config_json = NULL;
 
 int config_is_valid(char *key)

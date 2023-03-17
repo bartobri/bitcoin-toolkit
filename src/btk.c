@@ -302,12 +302,12 @@ int btk_set_config_opts(opts_p opts)
     // Set opts on a per command basis.
     if (strcmp(opts->command, "balance") == 0)
     {
-        if (!opts->host_name && config_exists("rpc-host"))
+        if (!opts->host_name && config_exists("hostname"))
         {
             opts->host_name = malloc(100);
             ERROR_CHECK_NULL(opts->host_name, "Memory allocation error.");
 
-            r = config_get(opts->host_name, "rpc-host");
+            r = config_get(opts->host_name, "hostname");
             ERROR_CHECK_NEG(r, "Could not get value from config file.");
         }
 
