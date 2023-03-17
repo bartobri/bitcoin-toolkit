@@ -47,8 +47,6 @@ int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_
 
 int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	int r;
-
 	assert(output);
 	assert(input);
 	assert(input_len);
@@ -59,11 +57,12 @@ int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_
 	RIPEMD160_Update(&rmd160, input, input_len);
 	RIPEMD160_Final(output, &rmd160);
 # else
+	int r;
+	EVP_MD_CTX *mdctx;
+	unsigned int output_len;
 #   ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
 		OSSL_PROVIDER *prov = OSSL_PROVIDER_load(NULL, "legacy");
 #   endif
-	EVP_MD_CTX *mdctx;
-	unsigned int output_len;
 	mdctx = EVP_MD_CTX_new();
 	ERROR_CHECK_NULL(mdctx, "Memory allocation error.");
 	r = EVP_DigestInit_ex(mdctx, EVP_ripemd160(), NULL);
