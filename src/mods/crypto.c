@@ -15,39 +15,66 @@
 #  include "crypto/rmd160.h"
 #  include "crypto/sha256.h"
 #else
-#  include <openssl/ripemd.h>
-#  include <openssl/sha.h>
+#  include <openssl/evp.h>
+#  ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
+#    include <openssl/provider.h>
+#  endif
 #endif
 
 int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	SHA256_CTX sha256;
-	
 	assert(output);
 	assert(input);
-	
+
+# ifdef _NO_OPENSSL
+	SHA256_CTX sha256;
 	SHA256_Init(&sha256);
-
 	SHA256_Update(&sha256, input, input_len);
-
 	SHA256_Final(output, &sha256);
+# else
+	EVP_MD_CTX *mdctx;
+	unsigned int output_len;
+	mdctx = EVP_MD_CTX_new();
+	ERROR_CHECK_NULL(mdctx, "Memory allocation error.");
+	EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
+	EVP_DigestUpdate(mdctx, input, input_len);
+	EVP_DigestFinal_ex(mdctx, output, &output_len);
+	EVP_MD_CTX_free(mdctx);
+# endif
 	
 	return 1;
 }
 
 int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	RIPEMD160_CTX rmd160;
-	
+	int r;
+
 	assert(output);
 	assert(input);
 	assert(input_len);
 
+# ifdef _NO_OPENSSL
+	RIPEMD160_CTX rmd160;
 	RIPEMD160_Init(&rmd160);
-
 	RIPEMD160_Update(&rmd160, input, input_len);
-
 	RIPEMD160_Final(output, &rmd160);
+# else
+#   ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
+		OSSL_PROVIDER *prov = OSSL_PROVIDER_load(NULL, "legacy");
+#   endif
+	EVP_MD_CTX *mdctx;
+	unsigned int output_len;
+	mdctx = EVP_MD_CTX_new();
+	ERROR_CHECK_NULL(mdctx, "Memory allocation error.");
+	r = EVP_DigestInit_ex(mdctx, EVP_ripemd160(), NULL);
+	ERROR_CHECK_FALSE(r, "Could not initialize rmd digest.");
+	EVP_DigestUpdate(mdctx, input, input_len);
+	EVP_DigestFinal_ex(mdctx, output, &output_len);
+	EVP_MD_CTX_free(mdctx);
+#   ifdef EVP_R_INVALID_PROVIDER_FUNCTIONS
+		OSSL_PROVIDER_unload(prov);
+#   endif
+# endif
 
 	return 1;
 }
