@@ -27,18 +27,18 @@ GMP_OBJS = $(OBJ)/$(MODS)/GMP/mini-gmp.o
 CRYPTO_OBJS = $(OBJ)/$(MODS)/crypto/rmd160.o $(OBJ)/$(MODS)/crypto/sha256.o
 LEVELDB_OBJS = $(OBJ)/$(MODS)/leveldb/stub.o
 
-## Install libgmp and libgmp-dev
-ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libgmp ), 1)
+## Install libgmp-dev
+ifeq ($(shell ld -lgmp -M -o /dev/null 2>/dev/null | grep -c -m 1 libgmp ), 1)
    CLIBS += -lgmp
 endif
 
-## Install libssl and libssl-dev
-ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libcrypto ), 1)
+## Install libssl-dev
+ifeq ($(shell ld -lcrypto -M -o /dev/null 2>/dev/null | grep -c -m 1 libcrypto ), 1)
    CLIBS += -lcrypto
 endif
 
-## Install libleveldb
-ifeq ($(shell ldconfig -v -N 2>/dev/null | grep -c -m 1 libleveldb ), 1)
+## Install libleveldb-dev
+ifeq ($(shell ld -lleveldb -M -o /dev/null 2>/dev/null | grep -c -m 1 libleveldb ), 1)
    CLIBS += -lleveldb
 endif
 
