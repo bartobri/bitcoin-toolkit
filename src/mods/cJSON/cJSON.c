@@ -1569,16 +1569,18 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
         if (output_buffer->format)
         {
             size_t i;
-            output_pointer = ensure(output_buffer, output_buffer->depth);
+            output_pointer = ensure(output_buffer, output_buffer->depth * 2);
             if (output_pointer == NULL)
             {
                 return false;
             }
             for (i = 0; i < output_buffer->depth; i++)
             {
-                *output_pointer++ = '\t';
+                //*output_pointer++ = '\t';
+                *output_pointer++ = ' ';
+                *output_pointer++ = ' ';
             }
-            output_buffer->offset += output_buffer->depth;
+            output_buffer->offset += output_buffer->depth * 2;
         }
 
         if (!print_value(current_element, output_buffer))
@@ -1611,7 +1613,7 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
         current_element = current_element->next;
     }
 
-    output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
+    output_pointer = ensure(output_buffer, output_buffer->format ? ((output_buffer->depth * 2) + 1) : 2);
     if (output_pointer == NULL)
     {
         return false;
@@ -1621,7 +1623,9 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
         size_t i;
         for (i = 0; i < (output_buffer->depth - 1); i++)
         {
-            *output_pointer++ = '\t';
+            //*output_pointer++ = '\t';
+            *output_pointer++ = ' ';
+            *output_pointer++ = ' ';
         }
     }
     *output_pointer++ = ']';
@@ -1777,16 +1781,18 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         if (output_buffer->format)
         {
             size_t i;
-            output_pointer = ensure(output_buffer, output_buffer->depth);
+            output_pointer = ensure(output_buffer, output_buffer->depth * 2);
             if (output_pointer == NULL)
             {
                 return false;
             }
             for (i = 0; i < output_buffer->depth; i++)
             {
-                *output_pointer++ = '\t';
+                //*output_pointer++ = '\t';
+                *output_pointer++ = ' ';
+                *output_pointer++ = ' ';
             }
-            output_buffer->offset += output_buffer->depth;
+            output_buffer->offset += output_buffer->depth * 2;
         }
 
         /* print key */
@@ -1839,7 +1845,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
+    output_pointer = ensure(output_buffer, output_buffer->format ? ((output_buffer->depth * 2) + 1) : 2);
     if (output_pointer == NULL)
     {
         return false;
@@ -1849,7 +1855,9 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         size_t i;
         for (i = 0; i < (output_buffer->depth - 1); i++)
         {
-            *output_pointer++ = '\t';
+            //*output_pointer++ = '\t';
+            *output_pointer++ = ' ';
+            *output_pointer++ = ' ';
         }
     }
     *output_pointer++ = '}';
