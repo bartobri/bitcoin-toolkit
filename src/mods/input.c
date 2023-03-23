@@ -182,17 +182,6 @@ int input_get_json(input_item *input)
     	input_item new_item;
     	input_item tail;
 
-    	/*
-    	if ((*input) != NULL)
-    	{
-    		tail = (*input);
-    		while (tail->next != NULL)
-    		{
-    			tail = tail->next;
-    		}
-    	}
-    	*/
-
     	while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
     	{
     		memset(string, 0, BUFSIZ);
