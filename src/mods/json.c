@@ -15,14 +15,134 @@
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
 
-int json_init(cJSON **jobj)
+int json_init_output(cJSON **jobj)
 {
-    *jobj = cJSON_CreateObject();
-    if (*jobj == NULL)
+    *jobj = cJSON_CreateArray();
+    ERROR_CHECK_NULL(*jobj, "Could not create JSON array.");
+
+    return 1;
+}
+
+int json_init_trace(cJSON **jobj)
+{
+    *jobj = cJSON_CreateArray();
+    ERROR_CHECK_NULL(*jobj, "Could not create JSON array.");
+
+    return 1;
+}
+
+int json_add_output(cJSON *jobj, char *output)
+{
+    cJSON *json_string;
+
+    assert(jobj);
+    assert(output);
+    assert(cJSON_IsArray(jobj));
+
+    json_string = cJSON_CreateString(output);
+    ERROR_CHECK_NULL(json_string, "Could not generate JSON output string.");
+
+    cJSON_AddItemToArray(jobj, json_string);
+
+    return 1;
+}
+
+int json_add_trace(cJSON *jobj, char *trace)
+{
+    cJSON *json_string;
+
+    assert(jobj);
+    assert(trace);
+    assert(cJSON_IsArray(jobj));
+
+    json_string = cJSON_CreateString(trace);
+    ERROR_CHECK_NULL(json_string, "Could not generate JSON trace string.");
+
+    cJSON_AddItemToArray(jobj, json_string);
+
+    return 1;
+}
+
+int json_input_valid(cJSON *jobj)
+{
+    assert(jobj);
+
+    if (!cJSON_IsArray(jobj))
     {
-        error_log("Could not create JSON object.");
+        return 0;
+    }
+
+    return 1;
+}
+
+int json_input_next(char *string, cJSON *jobj)
+{
+    static int i = 0;
+    cJSON *tmp;
+
+    assert(jobj);
+    assert(cJSON_IsArray(jobj));
+
+    tmp = cJSON_GetArrayItem(jobj, i++);
+    if (tmp == NULL)
+    {
+        // reset index in case of streaming
+        i = 0;
+
+        return 0;
+    }
+
+    if (cJSON_IsBool(tmp))
+    {
+        // represent bool as an integer (1 or 0)
+        sprintf(string, "%i", tmp->valueint);
+    }
+    else if (cJSON_IsNumber(tmp))
+    {
+        if (tmp->valueint == INT_MAX)
+        {
+            error_log("Integer too large. Wrap large numbers in quotes.");
+            return -1;
+        }
+
+        sprintf(string, "%i", tmp->valueint);
+    }
+    else if (cJSON_IsString(tmp))
+    {
+        strcpy(string, tmp->valuestring);
+    }
+    else
+    {
+        error_log("JSON array did not contain bool, string or number at index %d.", i);
         return -1;
     }
+
+    return 1;
+}
+
+int json_output_size(cJSON *jobj)
+{
+    assert(jobj);
+    assert(cJSON_IsArray(jobj));
+
+    return cJSON_GetArraySize(jobj);
+}
+
+
+
+
+int json_init_object(cJSON **jobj)
+{
+    *jobj = cJSON_CreateObject();
+    ERROR_CHECK_NULL(*jobj, "Could not create JSON object.");
+
+    return 1;
+}
+
+int json_init_array(cJSON **jobj)
+{
+    *jobj = cJSON_CreateArray();
+    ERROR_CHECK_NULL(*jobj, "Could not create JSON array.");
 
     return 1;
 }

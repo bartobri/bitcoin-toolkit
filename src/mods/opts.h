@@ -48,6 +48,7 @@ struct opts {
     char *set;
     char *unset;
     int dump;
+    int trace;
     char *command;
     char *subcommand;
 };

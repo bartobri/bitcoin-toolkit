@@ -163,14 +163,14 @@ int version_to_json(char **output, Version version)
 
 	assert(version);
 
-	r = json_init(&version_json);
+	r = json_init_object(&version_json);
 	ERROR_CHECK_NEG(r, "Can not initialize json object.");
 
 	r = json_add_number(version_json, version->version, "version");
 	ERROR_CHECK_NEG(r, "Could not add version to json object.");
 
 	{
-		r = json_init(&tmp);
+		r = json_init_object(&tmp);
 		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
 
 		for (i = 0; i < 64; ++i)
@@ -192,7 +192,7 @@ int version_to_json(char **output, Version version)
 	ERROR_CHECK_NEG(r, "Could not add timestamp to json object.");
 
 	{
-		r = json_init(&tmp);
+		r = json_init_object(&tmp);
 		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
 
 		for (i = 0; i < 64; ++i)
@@ -224,7 +224,7 @@ int version_to_json(char **output, Version version)
 	ERROR_CHECK_NEG(r, "Could not add addr_recv_port to json object.");
 
 	{
-		r = json_init(&tmp);
+		r = json_init_object(&tmp);
 		ERROR_CHECK_NEG(r, "Can not initialize json object (tmp).");
 
 		for (i = 0; i < 64; ++i)

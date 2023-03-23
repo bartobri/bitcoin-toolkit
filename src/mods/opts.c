@@ -38,6 +38,7 @@
 #define OPTS_SET             (struct opt_info){"set",        ""}
 #define OPTS_UNSET           (struct opt_info){"unset",      ""}
 #define OPTS_DUMP            (struct opt_info){"dump",       ""}
+#define OPTS_TRACE           (struct opt_info){"trace",      ""}
 #define OPTS_MAX             30
 
 struct opt_info {
@@ -94,6 +95,7 @@ int opts_init(opts_p opts, char *command)
     opts->set = NULL;
     opts->unset = NULL;
     opts->dump = 0;
+    opts->trace = 0;
     opts->command = command;
     opts->subcommand = NULL;
 
@@ -134,6 +136,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
+        opts_add(OPTS_TRACE, no_argument);
     }
     else if (strcmp(command, "balance") == 0)
     {
@@ -523,6 +526,11 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_DUMP.longopt) == 0)
     {
         opts->dump = 1;
+    }
+
+    else if (strcmp(optname, OPTS_TRACE.longopt) == 0)
+    {
+        opts->trace = 1;
     }
 
     else if (strcmp(optname, OPTS_STREAM_REPORT.longopt) == 0)

@@ -10,8 +10,17 @@
 
 #include "mods/cJSON/cJSON.h"
 
-int input_get(unsigned char **, size_t *);
-int input_get_line(unsigned char **);
-int input_get_json(cJSON **);
+typedef struct input_item *input_item;
+struct input_item {
+    unsigned char *data;
+    size_t len;
+    input_item next;
+};
+
+int input_get(input_item *);
+int input_get_line(input_item *);
+int input_get_json(input_item *);
+input_item input_append_item(input_item, input_item);
+void input_free(input_item);
 
 #endif

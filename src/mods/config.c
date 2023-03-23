@@ -96,7 +96,7 @@ int config_load(char *config_path)
     }
     else
     {
-        r = json_init(&config_json);
+        r = json_init_object(&config_json);
         ERROR_CHECK_NEG(r, "Could not initialize config json object.");
     }
 

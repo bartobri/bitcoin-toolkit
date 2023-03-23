@@ -11,7 +11,16 @@
 #include <stddef.h>
 #include "mods/cJSON/cJSON.h"
 
-int json_init(cJSON **);
+int json_init_output(cJSON **);
+int json_init_trace(cJSON **);
+int json_add_output(cJSON *, char *);
+int json_add_trace(cJSON *, char *);
+int json_input_valid(cJSON *);
+int json_input_next(char *, cJSON *);
+int json_output_size(cJSON *);
+
+int json_init_object(cJSON **);
+int json_init_array(cJSON **);
 int json_is_object(cJSON *);
 int json_add_bool(cJSON *, int, char *);
 int json_add_number(cJSON *, double, char *);
