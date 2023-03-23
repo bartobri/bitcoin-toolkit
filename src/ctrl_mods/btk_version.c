@@ -15,7 +15,7 @@
 #include "mods/error.h"
 #include "mods/config.h"
 
-int btk_version_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
+int btk_version_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	char output_str[BUFSIZ];
 

@@ -22,7 +22,7 @@
 #include "mods/opts.h"
 #include "mods/error.h"
 
-int btk_address_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
+int btk_address_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
     char output_str[BUFSIZ];

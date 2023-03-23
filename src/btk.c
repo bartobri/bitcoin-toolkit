@@ -37,7 +37,7 @@ static regex_t grep;
 int btk_set_config_opts(opts_p);
 int btk_init(opts_p);
 int btk_cleanup(opts_p);
-int btk_print_output(output_list, input_item, opts_p);
+int btk_print_output(output_item, input_item, opts_p);
 
 int main(int argc, char *argv[])
 {
@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
 	char *command = NULL;
 	char command_str[BUFSIZ];
 	opts_p opts = NULL;
-	output_list output = NULL;
+	output_item output = NULL;
 	input_item input = NULL;
 	input_item input_list = NULL;
 
 	int (*command_init)(opts_p) = NULL;
 	int (*command_requires_input)(opts_p) = NULL;
-	int (*command_main)(output_list *, opts_p, unsigned char *, size_t) = NULL;
+	int (*command_main)(output_item *, opts_p, unsigned char *, size_t) = NULL;
 	int (*command_cleanup)(opts_p) = NULL;
 
 	// Assembling the original command string for logging purposes
@@ -373,7 +373,7 @@ int btk_cleanup(opts_p opts)
 	return 1;
 }
 
-int btk_print_output(output_list output, input_item input, opts_p opts)
+int btk_print_output(output_item output, input_item input, opts_p opts)
 {
 	int r;
 	size_t i;

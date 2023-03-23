@@ -14,9 +14,9 @@
 #include "mods/output.h"
 #include "mods/error.h"
 
-output_list output_new(void *content, size_t length)
+output_item output_new(void *content, size_t length)
 {
-    output_list item;
+    output_item item;
 
     assert(content);
 
@@ -31,9 +31,9 @@ output_list output_new(void *content, size_t length)
     return item;
 }
 
-output_list output_append(output_list x, output_list y)
+output_item output_append(output_item x, output_item y)
 {
-    output_list head;
+    output_item head;
 
     assert(y);
 
@@ -54,9 +54,9 @@ output_list output_append(output_list x, output_list y)
     return head;
 }
 
-output_list output_append_new(output_list head, void *content, size_t length)
+output_item output_append_new(output_item head, void *content, size_t length)
 {
-    output_list item;
+    output_item item;
 
     item = output_new(content, length);
 
@@ -70,7 +70,7 @@ output_list output_append_new(output_list head, void *content, size_t length)
     return head;
 }
 
-output_list output_append_new_copy(output_list head, void *content, size_t length)
+output_item output_append_new_copy(output_item head, void *content, size_t length)
 {
     void *tmp;
 
@@ -87,7 +87,7 @@ output_list output_append_new_copy(output_list head, void *content, size_t lengt
     return head;
 }
 
-size_t output_size(output_list list)
+size_t output_size(output_item list)
 {
     size_t size = 0;
 
@@ -102,9 +102,9 @@ size_t output_size(output_list list)
     return size;
 }
 
-void output_free(output_list list)
+void output_free(output_item list)
 {
-    output_list tmp;
+    output_item tmp;
 
     if (list == NULL)
     {

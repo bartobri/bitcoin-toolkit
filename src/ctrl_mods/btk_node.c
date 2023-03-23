@@ -31,7 +31,7 @@ static char *command;
 int btk_node_send(char *, unsigned char *, size_t);
 int btk_node_response(char **, unsigned char **, size_t *);
 
-int btk_node_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
+int btk_node_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int r;
 	unsigned char payload_send[BUFSIZ];

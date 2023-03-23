@@ -21,7 +21,7 @@
 static int compression_on = 0;
 static int compression_off = 0;
 
-int btk_pubkey_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
+int btk_pubkey_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int r;
 	char output_str[BUFSIZ];

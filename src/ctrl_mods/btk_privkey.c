@@ -25,7 +25,7 @@
 #define HASH_WILDCARD          "*"
 
 int btk_privkey_get(PrivKey, unsigned char *, size_t);
-int btk_privkey_compression_add(output_list *, PrivKey);
+int btk_privkey_compression_add(output_item *, PrivKey);
 int btk_privkey_process_rehash(char *);
 int btk_privkey_process_rehash_comp(const void *, const void *);
 
@@ -48,7 +48,7 @@ static char *rehash = NULL;
 static int output_hashes_arr_len = 0;
 static long int output_hashes_arr[REHASHES_ARRAY_SIZE];
 
-int btk_privkey_main(output_list *output, opts_p opts, unsigned char *input, size_t input_len)
+int btk_privkey_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int i, r;
 	PrivKey key = NULL;
@@ -189,7 +189,7 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 	return 1;
 }
 
-int btk_privkey_compression_add(output_list *output, PrivKey key)
+int btk_privkey_compression_add(output_item *output, PrivKey key)
 {
 	int r;
 	int comp_on, comp_off;

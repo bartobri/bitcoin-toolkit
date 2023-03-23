@@ -11,7 +11,7 @@
 #include "mods/output.h"
 #include "mods/opts.h"
 
-int btk_address_main(output_list *, opts_p, unsigned char *, size_t);
+int btk_address_main(output_item *, opts_p, unsigned char *, size_t);
 int btk_address_requires_input(opts_p);
 int btk_address_init(opts_p);
 int btk_address_cleanup(opts_p);

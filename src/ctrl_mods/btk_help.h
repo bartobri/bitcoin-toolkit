@@ -11,7 +11,7 @@
 #include "mods/output.h"
 #include "mods/opts.h"
 
-int btk_help_main(output_list *, opts_p, unsigned char *, size_t);
+int btk_help_main(output_item *, opts_p, unsigned char *, size_t);
 int btk_help_requires_input(opts_p);
 int btk_help_init(opts_p);
 int btk_help_cleanup(opts_p);
