@@ -374,9 +374,6 @@ int btk_print_output(output_item output, opts_p opts)
 	char qrcode_str[BUFSIZ];
 	cJSON *json_output = NULL;
 	char *json_output_str = NULL;
-	static int stream_count = 0;
-	static time_t time_last = 0;
-	static time_t time_cur = 0;
 
 	assert(output);
 
@@ -485,18 +482,6 @@ int btk_print_output(output_item output, opts_p opts)
 	{
 		error_log("No output format specified.");
 		return -1;
-	}
-
-	// Handle stream reporting if option is set.
-	if (time_last == 0)
-	{
-		time_last = time(NULL);
-	}
-	if (opts->output_stream && opts->stream_report && ++stream_count % opts->stream_report == 0)
-	{
-		time_cur = time(NULL);
-		fprintf(stderr, "Stream count: %i, Seconds: %ld\n", stream_count, time_cur - time_last);
-		time_last = time_cur;
 	}
 
 	return 1;

@@ -31,7 +31,6 @@ struct opts {
     int output_type_p2pkh;
     int output_type_p2wpkh;
     int output_stream;
-    int stream_report;
     char *output_grep;
     int compression_on;
     int compression_off;

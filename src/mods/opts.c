@@ -20,7 +20,6 @@
 #define OPTS_OUTPUT_FORMAT   (struct opt_info){"out-format", "LQBJ"}
 #define OPTS_OUTPUT_TYPE     (struct opt_info){"out-type",   "WXDR"}
 #define OPTS_STREAM          (struct opt_info){"stream",     "S"}
-#define OPTS_STREAM_REPORT   (struct opt_info){"stream-report", ""}
 #define OPTS_GREP            (struct opt_info){"grep",       "G:"}
 #define OPTS_COMPRESSED      (struct opt_info){"compressed", "CU"}
 #define OPTS_REHASH          (struct opt_info){"rehash",     ""}
@@ -78,7 +77,6 @@ int opts_init(opts_p opts, char *command)
     opts->output_type_p2pkh = 0;
     opts->output_type_p2wpkh = 0;
     opts->output_stream = 0;
-    opts->stream_report = 0;
     opts->output_grep = NULL;
     opts->compression_on = 0;
     opts->compression_off = 0;
@@ -111,7 +109,6 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_CREATE, no_argument);
         opts_add(OPTS_COMPRESSED, required_argument);
         opts_add(OPTS_STREAM, no_argument);
-        opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_REHASH, required_argument);
         opts_add(OPTS_GREP, required_argument);
         opts_add(OPTS_TESTNET, no_argument);
@@ -124,7 +121,6 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_OUTPUT_FORMAT, required_argument);
         opts_add(OPTS_COMPRESSED, required_argument);
         opts_add(OPTS_STREAM, no_argument);
-        opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
     }
     else if (strcmp(command, "address") == 0)
@@ -135,7 +131,6 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_BECH32, no_argument);
         opts_add(OPTS_P2PKH, no_argument);
         opts_add(OPTS_STREAM, no_argument);
-        opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
         opts_add(OPTS_TRACE, no_argument);
     }
@@ -152,7 +147,6 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_CHAINSTATE_PATH, required_argument);
         opts_add(OPTS_BALANCE_PATH, required_argument);
         opts_add(OPTS_STREAM, no_argument);
-        opts_add(OPTS_STREAM_REPORT, required_argument);
         opts_add(OPTS_GREP, required_argument);
         opts_add(OPTS_RPC_AUTH, required_argument);
     }
@@ -532,12 +526,6 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
     else if (strcmp(optname, OPTS_TRACE.longopt) == 0)
     {
         opts->trace = 1;
-    }
-
-    else if (strcmp(optname, OPTS_STREAM_REPORT.longopt) == 0)
-    {
-        ERROR_CHECK_TRUE(opts->stream_report, "Can not use report option more than once.");
-        opts->stream_report = atoi(optarg);
     }
 
     return 1;
