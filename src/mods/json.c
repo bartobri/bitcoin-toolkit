@@ -15,50 +15,59 @@
 #include "mods/error.h"
 #include "mods/cJSON/cJSON.h"
 
-int json_init_output(cJSON **jobj)
+int json_init_output(cJSON **jobj, int trace_flag)
 {
-    *jobj = cJSON_CreateArray();
-    ERROR_CHECK_NULL(*jobj, "Could not create JSON array.");
+    if (trace_flag)
+    {
+        *jobj = cJSON_CreateObject();
+        ERROR_CHECK_NULL(*jobj, "Could not create JSON trace object.");
+    }
+    else
+    {
+        *jobj = cJSON_CreateArray();
+        ERROR_CHECK_NULL(*jobj, "Could not create JSON output array.");
+    }
 
     return 1;
 }
 
-int json_init_trace(cJSON **jobj)
+int json_add_output(cJSON *jobj, char *output, char *input, int trace_flag)
 {
-    *jobj = cJSON_CreateArray();
-    ERROR_CHECK_NULL(*jobj, "Could not create JSON array.");
-
-    return 1;
-}
-
-int json_add_output(cJSON *jobj, char *output)
-{
-    cJSON *json_string;
+    cJSON *json_string_output = NULL;
+    cJSON *json_array_output = NULL;
 
     assert(jobj);
     assert(output);
-    assert(cJSON_IsArray(jobj));
 
-    json_string = cJSON_CreateString(output);
-    ERROR_CHECK_NULL(json_string, "Could not generate JSON output string.");
+    json_string_output = cJSON_CreateString(output);
+    ERROR_CHECK_NULL(json_string_output, "Could not generate JSON output string.");
 
-    cJSON_AddItemToArray(jobj, json_string);
+    if (trace_flag)
+    {
+        assert(input);
+        assert(*input);
+        assert(cJSON_IsObject(jobj));
 
-    return 1;
-}
+        json_array_output = cJSON_GetObjectItem(jobj, input);
+        if (json_array_output)
+        {
+            cJSON_AddItemToArray(json_array_output, json_string_output);
+        }
+        else
+        {
+            json_array_output = cJSON_CreateArray();
+            ERROR_CHECK_NULL(json_array_output, "Could not generate JSON output array.");
 
-int json_add_trace(cJSON *jobj, char *trace)
-{
-    cJSON *json_string;
+            cJSON_AddItemToArray(json_array_output, json_string_output);
+            cJSON_AddItemToObject(jobj, input, json_array_output);
+        }
+    }
+    else
+    {
+        assert(cJSON_IsArray(jobj));
 
-    assert(jobj);
-    assert(trace);
-    assert(cJSON_IsArray(jobj));
-
-    json_string = cJSON_CreateString(trace);
-    ERROR_CHECK_NULL(json_string, "Could not generate JSON trace string.");
-
-    cJSON_AddItemToArray(jobj, json_string);
+        cJSON_AddItemToArray(jobj, json_string_output);
+    }
 
     return 1;
 }
@@ -123,7 +132,7 @@ int json_input_next(char *string, cJSON *jobj)
 int json_output_size(cJSON *jobj)
 {
     assert(jobj);
-    assert(cJSON_IsArray(jobj));
+    assert(cJSON_IsArray(jobj) || cJSON_IsObject(jobj));
 
     return cJSON_GetArraySize(jobj);
 }

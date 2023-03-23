@@ -11,10 +11,8 @@
 #include <stddef.h>
 #include "mods/cJSON/cJSON.h"
 
-int json_init_output(cJSON **);
-int json_init_trace(cJSON **);
-int json_add_output(cJSON *, char *);
-int json_add_trace(cJSON *, char *);
+int json_init_output(cJSON **, int);
+int json_add_output(cJSON *, char *, char *, int);
 int json_input_valid(cJSON *);
 int json_input_next(char *, cJSON *);
 int json_output_size(cJSON *);

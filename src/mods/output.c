@@ -25,6 +25,7 @@ output_item output_new(void *content, size_t length)
     {
         item->content = content;
         item->length = length;
+        item->input = NULL;
         item->next = NULL;
     }
 
@@ -87,6 +88,41 @@ output_item output_append_new_copy(output_item head, void *content, size_t lengt
     return head;
 }
 
+int output_append_input(output_item output, input_item input, int offset)
+{
+    input_item tmp;
+
+    assert(output);
+    assert(input);
+
+    while (output != NULL && offset > 0)
+    {
+        output = output->next;
+        offset--;
+    }
+
+    while (output != NULL)
+    {
+        if (output->input == NULL)
+        {
+            output->input = input;
+        }
+        else
+        {
+            tmp = output->input;
+            while (tmp->next != NULL)
+            {
+                tmp = tmp->next;
+            }
+            tmp->next = input;
+        }
+
+        output = output->next;
+    }
+
+    return 1;
+}
+
 size_t output_size(output_item list)
 {
     size_t size = 0;
@@ -100,6 +136,24 @@ size_t output_size(output_item list)
     }
 
     return size;
+}
+
+size_t output_length(output_item list)
+{
+    size_t len = 0;
+
+    if (list == NULL)
+    {
+        return 0;
+    }
+
+    while (list != NULL)
+    {
+        len++;
+        list = list->next;
+    }
+
+    return len;
 }
 
 void output_free(output_item list)

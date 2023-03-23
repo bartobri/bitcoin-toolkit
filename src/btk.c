@@ -37,7 +37,7 @@ static regex_t grep;
 int btk_set_config_opts(opts_p);
 int btk_init(opts_p);
 int btk_cleanup(opts_p);
-int btk_print_output(output_item, input_item, opts_p);
+int btk_print_output(output_item, opts_p);
 
 int main(int argc, char *argv[])
 {
@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
 	char *command = NULL;
 	char command_str[BUFSIZ];
 	opts_p opts = NULL;
-	output_item output = NULL;
 	input_item input = NULL;
-	input_item input_list = NULL;
+	output_item output = NULL;
+	int output_offset = 0;
 
 	int (*command_init)(opts_p) = NULL;
 	int (*command_requires_input)(opts_p) = NULL;
@@ -162,16 +162,10 @@ int main(int argc, char *argv[])
 			r = command_main(&output, opts, input->data, input->len);
 			BTK_CHECK_NEG(r, NULL);
 
-			input_list = input_append_item(input_list, input);
-
 			if (opts->output_stream)
 			{
-				r = btk_print_output(output, input_list, opts);
+				r = btk_print_output(output, opts);
 				BTK_CHECK_NEG(r, "Error printing output.");
-
-				input_free(input_list);
-				input_list = NULL;
-				input = NULL;
 
 				output_free(output);
 				output = NULL;
@@ -184,23 +178,24 @@ int main(int argc, char *argv[])
 				// Ignore empty strings
 				if (input->len == 0)
 				{
+					free(input);
+					input = NULL;
+
 					continue;
 				}
+
+				output_offset = output_length(output);
 
 				r = command_main(&output, opts, input->data, input->len);
 				BTK_CHECK_NEG(r, NULL);
 
-				input_list = input_append_item(input_list, input);
-				input = NULL;
+				r = output_append_input(output, input, output_offset);
+				ERROR_CHECK_NEG(r, "Coul dnot append input to output list.");
 
 				if (opts->output_stream)
 				{
-					r = btk_print_output(output, input_list, opts);
+					r = btk_print_output(output, opts);
 					BTK_CHECK_NEG(r, "Error printing output.");
-
-					input_free(input_list);
-					input_list = NULL;
-					input = NULL;
 
 					output_free(output);
 					output = NULL;
@@ -212,24 +207,23 @@ int main(int argc, char *argv[])
 		{
 			while ((r = input_get_json(&input)) > 0)
 			{
-				input_list = input_append_item(input_list, input);
-
 				while (input != NULL)
 				{
+					output_offset = output_length(output);
+
 					r = command_main(&output, opts, input->data, input->len);
 					BTK_CHECK_NEG(r, NULL);
+
+					r = output_append_input(output, input, output_offset);
+					ERROR_CHECK_NEG(r, "Coul dnot append input to output list.");
 
 					input = input->next;
 				}
 
 				if (opts->output_stream)
 				{
-					r = btk_print_output(output, input_list, opts);
+					r = btk_print_output(output, opts);
 					BTK_CHECK_NEG(r, "Error printing output.");
-
-					input_free(input_list);
-					input_list = NULL;
-					input = NULL;
 
 					output_free(output);
 					output = NULL;
@@ -253,7 +247,7 @@ int main(int argc, char *argv[])
 				r = command_main(&output, opts, NULL, 0);
 				BTK_CHECK_NEG(r, NULL);
 
-				r = btk_print_output(output, input_list, opts);
+				r = btk_print_output(output, opts);
 				BTK_CHECK_NEG(r, "Error printing output.");
 
 				output_free(output);
@@ -269,7 +263,7 @@ int main(int argc, char *argv[])
 	
 	if (output)
 	{
-		r = btk_print_output(output, input_list, opts);
+		r = btk_print_output(output, opts);
 		BTK_CHECK_NEG(r, "Error printing output.");
 
 		output_free(output);
@@ -373,7 +367,7 @@ int btk_cleanup(opts_p opts)
 	return 1;
 }
 
-int btk_print_output(output_item output, input_item input, opts_p opts)
+int btk_print_output(output_item output, opts_p opts)
 {
 	int r;
 	size_t i;
@@ -443,14 +437,25 @@ int btk_print_output(output_item output, input_item input, opts_p opts)
 	}
 	else if (opts->output_format_json)
 	{
-		r = json_init_output(&json_output);
+		char output_item_str[BUFSIZ];
+		char input_item_str[BUFSIZ];
+
+		r = json_init_output(&json_output, opts->trace);
 		ERROR_CHECK_NEG(r, "Error initializing JSON output.");
 
 		while(output)
 		{
+			memset(output_item_str, 0, BUFSIZ);
+			memset(input_item_str, 0, BUFSIZ);
+			memcpy(output_item_str, output->content, output->length);
+			if (output->input)
+			{
+				memcpy(input_item_str, output->input->data, output->input->len);
+			}
+
 			if (opts->output_grep)
 			{
-				r = regexec(&grep, (char *)(output->content), 0, NULL, 0);
+				r = regexec(&grep, output_item_str, 0, NULL, 0);
 				if (r == REG_NOMATCH)
 				{
 					output = output->next;
@@ -458,30 +463,10 @@ int btk_print_output(output_item output, input_item input, opts_p opts)
 				}
 			}
 
-			r = json_add_output(json_output, (char *)(output->content));
+			r = json_add_output(json_output, output_item_str, input_item_str, opts->trace);
 			ERROR_CHECK_NEG(r, "Output handling error.");
 
 			output = output->next;
-		}
-
-		if (opts->trace)
-		{
-			cJSON *json_trace = NULL;
-			char trace_string[BUFSIZ];
-
-			while (input != NULL)
-			{
-				memset(trace_string, 0, BUFSIZ);
-				memcpy(trace_string, input->data, input->len);
-
-				r = json_init_trace(&json_trace);
-				ERROR_CHECK_NEG(r, "Could not initialize trace JSON object.");
-
-				r = json_add_trace(json_trace, trace_string);
-				ERROR_CHECK_NEG(r, "Could not add trace string to json object.");
-
-				input = input->next;
-			}
 		}
 
 		if (json_output_size(json_output) > 0)

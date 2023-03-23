@@ -115,6 +115,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_REHASH, required_argument);
         opts_add(OPTS_GREP, required_argument);
         opts_add(OPTS_TESTNET, no_argument);
+        opts_add(OPTS_TRACE, no_argument);
     }
     else if (strcmp(command, "pubkey") == 0)
     {
