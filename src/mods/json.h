@@ -15,6 +15,7 @@ int json_init_output(cJSON **, int);
 int json_add_output(cJSON *, char *, char *, int);
 int json_input_valid(cJSON *);
 int json_input_next(char *, cJSON *);
+int json_input_to_string(char *, cJSON *);
 int json_output_size(cJSON *);
 
 int json_init_object(cJSON **);

@@ -129,6 +129,36 @@ int json_input_next(char *string, cJSON *jobj)
     return 1;
 }
 
+int json_input_to_string(char *string, cJSON *item)
+{
+    if (cJSON_IsBool(item))
+    {
+        // represent bool as an integer (1 or 0)
+        sprintf(string, "%i", item->valueint);
+    }
+    else if (cJSON_IsNumber(item))
+    {
+        if (item->valueint == INT_MAX)
+        {
+            error_log("Integer too large. Wrap large numbers in quotes.");
+            return -1;
+        }
+
+        sprintf(string, "%i", item->valueint);
+    }
+    else if (cJSON_IsString(item))
+    {
+        strcpy(string, item->valuestring);
+    }
+    else
+    {
+        error_log("JSON array contained an object of an unsupported type.");
+        return -1;
+    }
+
+    return 1;
+}
+
 int json_output_size(cJSON *jobj)
 {
     assert(jobj);

@@ -14,6 +14,7 @@
 #include <errno.h>
 #include "mods/input.h"
 #include "mods/error.h"
+#include "mods/json.h"
 #include "mods/cJSON/cJSON.h"
 
 int input_get(input_item *input)
@@ -153,7 +154,7 @@ int input_get_json(input_item *input)
         return -1;
     }
 
-    if (!cJSON_IsArray(jobj))
+    if (!cJSON_IsArray(jobj) && !cJSON_IsObject(jobj))
     {
         error_log("Input JSON must be in array format.");
         return -1;
@@ -173,72 +174,82 @@ int input_get_json(input_item *input)
 
     buffer_len = strlen(buffer);
 
-    // Parse json object into input structure.
-    if (cJSON_GetArraySize(jobj) > 0)
-    {
-    	int i = 0;
-    	cJSON *item;
-    	char string[BUFSIZ];
-    	input_item new_item;
-    	input_item tail;
-
-    	while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
-    	{
-    		memset(string, 0, BUFSIZ);
-
-		    if (cJSON_IsBool(item))
-		    {
-		        // represent bool as an integer (1 or 0)
-		        sprintf(string, "%i", item->valueint);
-		    }
-		    else if (cJSON_IsNumber(item))
-		    {
-		        if (item->valueint == INT_MAX)
-		        {
-		            error_log("Integer too large. Wrap large numbers in quotes.");
-		            return -1;
-		        }
-
-		        sprintf(string, "%i", item->valueint);
-		    }
-		    else if (cJSON_IsString(item))
-		    {
-		        strcpy(string, item->valuestring);
-		    }
-		    else
-		    {
-		        error_log("JSON array contained an object of unknown type at index %i.", i);
-		        return -1;
-		    }
-
-		    // Build new input item
-		    new_item = malloc(sizeof(*new_item));
-		    ERROR_CHECK_NULL(new_item, "Memory allocation error");
-
-		    new_item->data = malloc(strlen(string));
-			ERROR_CHECK_NULL(new_item->data, "Memory allocation error");
-
-			memcpy(new_item->data, string, strlen(string));
-			new_item->len = strlen(string);
-			new_item->next = NULL;
-
-			// append new item
-			if ((*input) == NULL)
-			{
-				(*input) = new_item;
-				tail = new_item;
-			}
-			else
-			{
-				tail->next = new_item;
-				tail = tail->next;
-			}
-		}
-	}
+    r = input_parse_from_json(input, jobj);
+    ERROR_CHECK_NEG(r, "Could not parse json input object.");
 
 	cJSON_Delete(jobj);
 
     return 1;
+}
+
+int input_parse_from_json(input_item *input, cJSON *jobj)
+{
+	int r;
+
+	if (cJSON_IsArray(jobj))
+	{
+		int i = 0;
+		char string[BUFSIZ];
+		cJSON *item;
+		input_item new_item;
+
+		while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
+		{
+			new_item = NULL;
+			memset(string, 0, BUFSIZ);
+
+			r = json_input_to_string(string, item);
+			ERROR_CHECK_NEG(r, "Could not convert input item to string.");
+
+			new_item = input_new_item((unsigned char *)string, strlen(string));
+			ERROR_CHECK_NULL(new_item, "Could not create new input item.");
+
+		    (*input) = input_append_item((*input), new_item);
+		}
+	}
+	else if (cJSON_IsObject(jobj))
+	{
+		int i = 0;
+		cJSON *item;
+
+		while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
+		{
+			r = input_parse_from_json(input, item);
+			ERROR_CHECK_NEG(r, "Could not traverse json input object.");
+		}
+	}
+	else
+	{
+		error_log("JSON is not an arry or an object.");
+		return -1;
+	}
+
+	return 1;
+}
+
+input_item input_new_item(unsigned char *data, size_t len)
+{
+	input_item new = NULL;
+
+    new = malloc(sizeof(*new));
+    if (new == NULL)
+    {
+    	error_log("Memory allocation error");
+    	return NULL;
+    }
+
+    new->data = malloc(len);
+    if (new->data == NULL)
+    {
+    	error_log("Memory allocation error");
+    	return NULL;
+    }
+
+	memcpy(new->data, data, len);
+	new->len = len;
+	new->next = NULL;
+
+	return new;
 }
 
 input_item input_append_item(input_item list, input_item item)
