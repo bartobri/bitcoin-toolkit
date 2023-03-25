@@ -313,20 +313,33 @@ input_item input_append_item(input_item list, input_item item)
 	return head;
 }
 
+input_item input_copy_item(input_item item)
+{
+	input_item copy;
+
+	copy = input_new_item(item->data, item->len);
+	if (copy == NULL)
+	{
+		return NULL;
+	}
+
+	if (item->input)
+	{
+		copy->input = input_copy_item(item->input);
+	}
+
+	return copy;
+}
+
 void input_free(input_item list)
 {
-    input_item tmp;
-
     if (list == NULL)
     {
         return;
     }
 
-    while (list)
-    {
-        tmp = list->next;
-        free(list->data);
-        free(list);
-        list = tmp;
-    }
+    input_free(list->input);
+    input_free(list->next);
+    free(list->data);
+    free(list);
 }

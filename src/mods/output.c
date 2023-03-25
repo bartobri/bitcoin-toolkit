@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
+#include "mods/input.h"
 #include "mods/output.h"
 #include "mods/error.h"
 
@@ -90,8 +91,6 @@ output_item output_append_new_copy(output_item head, void *content, size_t lengt
 
 int output_append_input(output_item output, input_item input, int offset)
 {
-    input_item tmp;
-
     assert(output);
     assert(input);
 
@@ -103,19 +102,8 @@ int output_append_input(output_item output, input_item input, int offset)
 
     while (output != NULL)
     {
-        if (output->input == NULL)
-        {
-            output->input = input;
-        }
-        else
-        {
-            tmp = output->input;
-            while (tmp->next != NULL)
-            {
-                tmp = tmp->next;
-            }
-            tmp->next = input;
-        }
+        output->input = input_copy_item(input);
+        ERROR_CHECK_NULL(output->input, "Could not copy input item.");
 
         output = output->next;
     }
@@ -158,18 +146,13 @@ size_t output_length(output_item list)
 
 void output_free(output_item list)
 {
-    output_item tmp;
-
     if (list == NULL)
     {
         return;
     }
 
-    while (list)
-    {
-        tmp = list->next;
-        free(list->content);
-        free(list);
-        list = tmp;
-    }
+    output_free(list->next);
+    input_free(list->input);
+    free(list->content);
+    free(list);
 }

@@ -23,6 +23,7 @@ int input_get_line(input_item *);
 int input_get_json(input_item *);
 int input_parse_from_json(input_item *, cJSON *);
 input_item input_new_item(unsigned char *, size_t);
+input_item input_copy_item(input_item);
 input_item input_append_item(input_item, input_item);
 void input_free(input_item);
 

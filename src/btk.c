@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
 	char *command = NULL;
 	char command_str[BUFSIZ];
 	opts_p opts = NULL;
+	input_item input_head = NULL;
 	input_item input = NULL;
 	output_item output = NULL;
 	int output_offset = 0;
@@ -192,6 +193,10 @@ int main(int argc, char *argv[])
 				r = output_append_input(output, input, output_offset);
 				ERROR_CHECK_NEG(r, "Coul dnot append input to output list.");
 
+				// output_append_input() appends a copy, so we need to free the
+				// input list to prevent a memory leak.
+				input_free(input);
+
 				if (opts->output_stream)
 				{
 					r = btk_print_output(output, opts);
@@ -207,6 +212,8 @@ int main(int argc, char *argv[])
 		{
 			while ((r = input_get_json(&input)) > 0)
 			{
+				input_head = input;
+
 				while (input != NULL)
 				{
 					output_offset = output_length(output);
@@ -219,6 +226,10 @@ int main(int argc, char *argv[])
 
 					input = input->next;
 				}
+
+				// output_append_input() appends a copy, so we need to free the
+				// input list to prevent a memory leak.
+				input_free(input_head);
 
 				if (opts->output_stream)
 				{
@@ -459,18 +470,21 @@ int btk_print_output(output_item output, opts_p opts)
 
 			if (opts->trace && output->input)
 			{
-				while (output->input != NULL)
+				input_item tmp;
+				tmp = output->input;
+
+				while (tmp != NULL)
 				{
 					memset(input_item_str, 0, BUFSIZ);
-					memcpy(input_item_str, output->input->data, output->input->len);
+					memcpy(input_item_str, tmp->data, tmp->len);
 
 					r = json_add_output(json_output, output_item_str, input_item_str);
 					ERROR_CHECK_NEG(r, "Output handling error.");
 
 					memset(output_item_str, 0, BUFSIZ);
-					memcpy(output_item_str, output->input->data, output->input->len);
+					memcpy(output_item_str, tmp->data, tmp->len);
 
-					output->input = output->input->input;
+					tmp = tmp->input;
 				}
 			}
 			else
