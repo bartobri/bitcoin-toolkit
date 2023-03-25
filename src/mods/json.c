@@ -31,40 +31,67 @@ int json_init_output(cJSON **jobj, int trace_flag)
     return 1;
 }
 
-int json_add_output(cJSON *jobj, char *output, char *input, int trace_flag)
+int json_add_output(cJSON *jobj, char *output, char *input)
 {
     cJSON *json_string_output = NULL;
     cJSON *json_array_output = NULL;
+    cJSON *input_object = NULL;
+    cJSON *output_object = NULL;
+    cJSON *output_object_parent = NULL;
 
     assert(jobj);
     assert(output);
 
-    json_string_output = cJSON_CreateString(output);
-    ERROR_CHECK_NULL(json_string_output, "Could not generate JSON output string.");
-
-    if (trace_flag)
+    if (cJSON_GetObjectItem(jobj, output))
     {
         assert(input);
-        assert(*input);
-        assert(cJSON_IsObject(jobj));
 
-        json_array_output = cJSON_GetObjectItem(jobj, input);
-        if (json_array_output)
+        output_object = cJSON_DetachItemFromObject(jobj, output);
+        ERROR_CHECK_NULL(output_object, "Could not detach existing output object.");
+
+        if ((input_object = cJSON_GetObjectItem(jobj, input)))
         {
-            cJSON_AddItemToArray(json_array_output, json_string_output);
+            cJSON_AddItemToObject(input_object, output, output_object);
         }
         else
         {
-            json_array_output = cJSON_CreateArray();
-            ERROR_CHECK_NULL(json_array_output, "Could not generate JSON output array.");
+            output_object_parent = cJSON_CreateObject();
+            ERROR_CHECK_NULL(output_object_parent, "Could not create parent output object.");
 
-            cJSON_AddItemToArray(json_array_output, json_string_output);
-            cJSON_AddItemToObject(jobj, input, json_array_output);
+            cJSON_AddItemToObject(output_object_parent, output, output_object);
+
+            cJSON_AddItemToObject(jobj, input, output_object_parent);
         }
+    }
+    else if (input && (json_array_output = cJSON_GetObjectItem(jobj, input)))
+    {
+        assert(cJSON_IsArray(json_array_output));
+
+        json_string_output = cJSON_CreateString(output);
+        ERROR_CHECK_NULL(json_string_output, "Could not generate JSON output string.");
+
+        cJSON_AddItemToArray(json_array_output, json_string_output);
+    }
+    else if (input)
+    {
+        assert(*input);
+        assert(cJSON_IsObject(jobj));
+
+        json_array_output = cJSON_CreateArray();
+        ERROR_CHECK_NULL(json_array_output, "Could not generate JSON output array.");
+
+        json_string_output = cJSON_CreateString(output);
+        ERROR_CHECK_NULL(json_string_output, "Could not generate JSON output string.");
+
+        cJSON_AddItemToArray(json_array_output, json_string_output);
+        cJSON_AddItemToObject(jobj, input, json_array_output);
     }
     else
     {
         assert(cJSON_IsArray(jobj));
+
+        json_string_output = cJSON_CreateString(output);
+        ERROR_CHECK_NULL(json_string_output, "Could not generate JSON output string.");
 
         cJSON_AddItemToArray(jobj, json_string_output);
     }

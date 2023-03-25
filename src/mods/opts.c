@@ -122,6 +122,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_COMPRESSED, required_argument);
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_GREP, required_argument);
+        opts_add(OPTS_TRACE, no_argument);
     }
     else if (strcmp(command, "address") == 0)
     {
@@ -149,6 +150,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_GREP, required_argument);
         opts_add(OPTS_RPC_AUTH, required_argument);
+        opts_add(OPTS_TRACE, no_argument);
     }
     else if (strcmp(command, "node") == 0)
     {

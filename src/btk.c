@@ -444,11 +444,8 @@ int btk_print_output(output_item output, opts_p opts)
 		{
 			memset(output_item_str, 0, BUFSIZ);
 			memset(input_item_str, 0, BUFSIZ);
+
 			memcpy(output_item_str, output->content, output->length);
-			if (output->input)
-			{
-				memcpy(input_item_str, output->input->data, output->input->len);
-			}
 
 			if (opts->output_grep)
 			{
@@ -460,8 +457,27 @@ int btk_print_output(output_item output, opts_p opts)
 				}
 			}
 
-			r = json_add_output(json_output, output_item_str, input_item_str, opts->trace);
-			ERROR_CHECK_NEG(r, "Output handling error.");
+			if (opts->trace && output->input)
+			{
+				while (output->input != NULL)
+				{
+					memset(input_item_str, 0, BUFSIZ);
+					memcpy(input_item_str, output->input->data, output->input->len);
+
+					r = json_add_output(json_output, output_item_str, input_item_str);
+					ERROR_CHECK_NEG(r, "Output handling error.");
+
+					memset(output_item_str, 0, BUFSIZ);
+					memcpy(output_item_str, output->input->data, output->input->len);
+
+					output->input = output->input->input;
+				}
+			}
+			else
+			{
+				r = json_add_output(json_output, output_item_str, NULL);
+				ERROR_CHECK_NEG(r, "Output handling error.");
+			}
 
 			output = output->next;
 		}

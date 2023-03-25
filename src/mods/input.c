@@ -51,12 +51,10 @@ int input_get(input_item *input)
 
 	if (read_total > 0)
 	{
-		(*input) = malloc(sizeof(struct input_item));
-		ERROR_CHECK_NULL(*input, "Memory allocation error");
+		(*input) = input_new_item(buffer, read_total);
+		ERROR_CHECK_NULL((*input), "Could not create new input item.");
 
-		(*input)->data = buffer;
-		(*input)->len = read_total;
-		(*input)->next = NULL;
+		free(buffer);
 	}
 
 	return 1;
@@ -102,14 +100,10 @@ int input_get_line(input_item *input)
 		return 0;
 	}
 
-	{	
-		(*input) = malloc(sizeof(struct input_item));
-		ERROR_CHECK_NULL(*input, "Memory allocation error");
+	(*input) = input_new_item(buffer, i);
+	ERROR_CHECK_NULL((*input), "Could not create new input item.");
 
-		(*input)->data = buffer;
-		(*input)->len = i;
-		(*input)->next = NULL;
-	}
+	free(buffer);
 
 	return 1;
 }
@@ -177,7 +171,7 @@ int input_get_json(input_item *input)
     r = input_parse_from_json(input, jobj);
     ERROR_CHECK_NEG(r, "Could not parse json input object.");
 
-	cJSON_Delete(jobj);
+	json_free(jobj);
 
     return 1;
 }
@@ -185,37 +179,83 @@ int input_get_json(input_item *input)
 int input_parse_from_json(input_item *input, cJSON *jobj)
 {
 	int r;
+	static int i = 0;
+	static char *(input_list[100]);
 
 	if (cJSON_IsArray(jobj))
 	{
-		int i = 0;
-		char string[BUFSIZ];
+		int j = 0;
 		cJSON *item;
-		input_item new_item;
 
-		while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
+		if (jobj->string)
 		{
-			new_item = NULL;
+			input_list[i++] = jobj->string;
+		}
+
+		while ((item = cJSON_GetArrayItem(jobj, j++)) != NULL)
+		{
+			char string[BUFSIZ];
+			input_item new = NULL;
+			input_item tmp;
+			input_item tmp_head;
+
+			tmp_head = NULL;
+			tmp = NULL;
+
 			memset(string, 0, BUFSIZ);
 
 			r = json_input_to_string(string, item);
 			ERROR_CHECK_NEG(r, "Could not convert input item to string.");
 
-			new_item = input_new_item((unsigned char *)string, strlen(string));
-			ERROR_CHECK_NULL(new_item, "Could not create new input item.");
+			new = input_new_item((unsigned char *)string, strlen(string));
+			ERROR_CHECK_NULL(new, "Could not create new input item.");
 
-		    (*input) = input_append_item((*input), new_item);
+			for (int k = i - 1; k >= 0; k--)
+			{
+				if (tmp == NULL)
+				{
+					tmp = input_new_item((unsigned char *)input_list[k], strlen(input_list[k]));
+					ERROR_CHECK_NULL(tmp, "Could not create new input item.");
+
+					tmp_head = tmp;
+				}
+				else
+				{
+					tmp->input = input_new_item((unsigned char *)input_list[k], strlen(input_list[k]));
+					ERROR_CHECK_NULL(tmp->input, "Could not create new input item.");
+
+					tmp = tmp->input;
+				}
+			}
+			new->input = tmp_head;
+
+		    (*input) = input_append_item((*input), new);
+		}
+
+		if (jobj->string)
+		{
+			i--;
 		}
 	}
 	else if (cJSON_IsObject(jobj))
 	{
-		int i = 0;
+		int j = 0;
 		cJSON *item;
 
-		while ((item = cJSON_GetArrayItem(jobj, i++)) != NULL)
+		if (jobj->string)
+		{
+			input_list[i++] = jobj->string;
+		}
+
+		while ((item = cJSON_GetArrayItem(jobj, j++)) != NULL)
 		{
 			r = input_parse_from_json(input, item);
 			ERROR_CHECK_NEG(r, "Could not traverse json input object.");
+		}
+
+		if (jobj->string)
+		{
+			i--;
 		}
 	}
 	else
@@ -247,6 +287,7 @@ input_item input_new_item(unsigned char *data, size_t len)
 
 	memcpy(new->data, data, len);
 	new->len = len;
+	new->input = NULL;
 	new->next = NULL;
 
 	return new;
