@@ -24,6 +24,7 @@ static int compression_off = 0;
 int btk_pubkey_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
 	int r;
+	char input_str[BUFSIZ];
 	char output_str[BUFSIZ];
 	PubKey pubkey = NULL;
 	PrivKey privkey = NULL;
@@ -33,6 +34,7 @@ int btk_pubkey_main(output_item *output, opts_p opts, unsigned char *input, size
 	if (opts->compression_on) { compression_on = opts->compression_on; }
 	if (opts->compression_off) { compression_off = opts->compression_off; }
 
+	memset(input_str, 0, BUFSIZ);
 	memset(output_str, 0, BUFSIZ);
 
 	privkey = malloc(privkey_sizeof());
@@ -43,14 +45,18 @@ int btk_pubkey_main(output_item *output, opts_p opts, unsigned char *input, size
 
 	if (opts->input_type_wif)
 	{
-		r = privkey_from_wif(privkey, (char *)input);
+		memcpy(input_str, input, input_len);
+
+		r = privkey_from_wif(privkey, input_str);
 		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 		r = pubkey_get(pubkey, privkey);
 		ERROR_CHECK_NEG(r, "Could not calculate public key.");
 	}
 	else if (opts->input_type_hex)
 	{
-		r = pubkey_from_hex(pubkey, (char *)input);
+		memcpy(input_str, input, input_len);
+
+		r = pubkey_from_hex(pubkey, input_str);
 		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
 	}
 	else

@@ -251,24 +251,27 @@ int btk_balance_main(output_item *output, opts_p opts, unsigned char *input, siz
     {
         uint64_t balance = 0;
         char address[BUFSIZ];
+        char input_str[BUFSIZ];
         char output_str[BUFSIZ];
 
         memset(address, 0, BUFSIZ);
+        memset(input_str, 0, BUFSIZ);
+        memcpy(input_str, input, input_len);
         memset(output_str, 0, BUFSIZ);
 
         if (opts->input_type_wif)
         {
-            r = address_from_wif(address, (char *)input);
+            r = address_from_wif(address, input_str);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
         }
         else if (opts->input_type_string)
         {
-            r = address_from_str(address, (char *)input);
+            r = address_from_str(address, input_str);
             ERROR_CHECK_NEG(r, "Could not calculate address from private key.");
         }
         else
         {
-            strcpy(address, (char *)input);
+            strcpy(address, input_str);
         }
 
         balance = 0;

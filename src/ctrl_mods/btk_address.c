@@ -25,11 +25,15 @@
 int btk_address_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
     int r;
+    char input_str[BUFSIZ];
     char output_str[BUFSIZ];
     PubKey pubkey = NULL;
     PrivKey privkey = NULL;
 
     assert(opts);
+
+    memset(input_str, 0, BUFSIZ);
+    memset(output_str, 0, BUFSIZ);
 
     privkey = malloc(privkey_sizeof());
     ERROR_CHECK_NULL(privkey, "Memory allocation error.");
@@ -39,14 +43,18 @@ int btk_address_main(output_item *output, opts_p opts, unsigned char *input, siz
 
     if (opts->input_type_wif)
     {
-         r = privkey_from_wif(privkey, (char *)input);
+        memcpy(input_str, input, input_len);
+
+        r = privkey_from_wif(privkey, input_str);
         ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
         r = pubkey_get(pubkey, privkey);
         ERROR_CHECK_NEG(r, "Could not calculate public key.");
     }
     else if (opts->input_type_hex)
     {
-        r = pubkey_from_hex(pubkey, (char *)input);
+        memcpy(input_str, input, input_len);
+        
+        r = pubkey_from_hex(pubkey, input_str);
         ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
     }
     else
@@ -64,8 +72,6 @@ int btk_address_main(output_item *output, opts_p opts, unsigned char *input, siz
         // Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
         if (pubkey_is_compressed(pubkey) || !opts->output_stream || !opts->output_type_p2pkh)
         {
-            memset(output_str, 0, BUFSIZ);
-
             r = address_get_p2wpkh(output_str, pubkey);
             ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
 
@@ -76,8 +82,6 @@ int btk_address_main(output_item *output, opts_p opts, unsigned char *input, siz
 
     if (opts->output_type_p2pkh)
     {
-        memset(output_str, 0, BUFSIZ);
-
         r = address_get_p2pkh(output_str, pubkey);
         ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
 
