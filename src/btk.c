@@ -224,6 +224,15 @@ int main(int argc, char *argv[])
 					r = output_append_input(output, input, output_offset);
 					ERROR_CHECK_NEG(r, "Coul dnot append input to output list.");
 
+					if (opts->output_stream)
+					{
+						r = btk_print_output(output, opts);
+						BTK_CHECK_NEG(r, "Error printing output.");
+
+						output_free(output);
+						output = NULL;
+					}
+
 					input = input->next;
 				}
 
@@ -231,7 +240,9 @@ int main(int argc, char *argv[])
 				// input list to prevent a memory leak.
 				input_free(input_head);
 
-				if (opts->output_stream)
+				// Always printf outfor for each json input structure.
+				// If output_stream is enabled, output would already be printed.
+				if (output)
 				{
 					r = btk_print_output(output, opts);
 					BTK_CHECK_NEG(r, "Error printing output.");
