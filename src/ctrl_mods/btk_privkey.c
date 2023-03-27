@@ -127,26 +127,30 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 	assert(input);
 
 	memset(input_str, 0, BUFSIZ);
-	memcpy(input_str, input, input_len);
 
 	if (input_type_wif)
 	{
+		memcpy(input_str, input, input_len);
 		r = privkey_from_wif(key, input_str);
 	}
 	else if (input_type_hex)
 	{
+		memcpy(input_str, input, input_len);
 		r = privkey_from_hex(key, input_str);
 	}
 	else if (input_type_string)
 	{
+		memcpy(input_str, input, input_len);
 		r = privkey_from_str(key, input_str);
 	}
 	else if (input_type_decimal)
 	{
+		memcpy(input_str, input, input_len);
 		r = privkey_from_dec(key, input_str);
 	}
 	else if (input_type_sbd)
 	{
+		memcpy(input_str, input, input_len);
 		r = privkey_from_sbd(key, input_str);
 	}
 	else if (input_type_raw)
