@@ -367,6 +367,11 @@ int btk_init(opts_p opts)
 	}
 
 	ERROR_CHECK_TRUE(opts->output_format_binary && opts->output_grep, "Can not grep on binary formatted output.");
+	if (opts->trace)
+	{
+		ERROR_CHECK_FALSE(opts->output_format_json, "Only use trace option with JSON formatted output.")
+		ERROR_CHECK_TRUE(opts->input_format_binary, "Can not use trace option on binary formatted input.");
+	}
 
 	// Compile regex for grep here.
 
