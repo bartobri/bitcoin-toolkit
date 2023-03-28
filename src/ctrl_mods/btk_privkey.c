@@ -183,6 +183,9 @@ int btk_privkey_get(PrivKey key, unsigned char *input, size_t input_len)
 				case PRIVKEY_GUESS_RAW:
 					input_type_raw = 1;
 					break;
+				case PRIVKEY_GUESS_BLOB:
+					input_type_binary = 1;
+					break;
 			}
 		}
 	}

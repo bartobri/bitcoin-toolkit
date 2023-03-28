@@ -155,6 +155,8 @@ int main(int argc, char *argv[])
 
 	if (command_requires_input(opts))
 	{
+		input_formats:
+
 		if (opts->input_format_binary)
 		{
 			r = input_get(&input);
@@ -255,9 +257,26 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			// In theory, we shouldn't ever get here. If we do, check that
-			// we are setting the defaults properly in btk_init()
-			BTK_CHECK_NEG(-1, "No input format specified.");
+			r = input_get_format();
+			BTK_CHECK_NEG(r, "Error getting input.");
+
+			switch (r)
+			{
+				case INPUT_FORMAT_BINARY:
+					opts->input_format_binary = 1;
+					break;
+				case INPUT_FORMAT_LIST:
+					opts->input_format_list = 1;
+					break;
+				case INPUT_FORMAT_JSON:
+					opts->input_format_json = 1;
+					break;
+				default:
+					BTK_CHECK_NEG(-1, "Could not reliably determine input format. Specify input format.");
+					break;
+			}
+
+			goto input_formats;
 		}
 	}
 	else
@@ -350,10 +369,6 @@ int btk_init(opts_p opts)
 	if (opts->input_format_list) { i++; }
 	if (opts->input_format_json) { i++; }
 	ERROR_CHECK_TRUE((i > 1), "Can not use multiple input formats.");
-	if (i == 0)
-	{
-		opts->input_format_json = 1;
-	}
 
 	i = 0;
 	if (opts->output_format_binary) { i++; }

@@ -541,13 +541,29 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		error_clear();
 	}
 
-	// Raw
-	r = privkey_from_raw(key, data, data_len);
-	if (r > 0)
+	if (data_len == PRIVKEY_LENGTH)
 	{
-		return PRIVKEY_GUESS_RAW;
+		// Raw
+		r = privkey_from_raw(key, data, data_len);
+		if (r > 0)
+		{
+			printf("raw\n");
+			return PRIVKEY_GUESS_RAW;
+		}
+		error_clear();
 	}
-	error_clear();
+	else
+	{
+		// blob
+		r = privkey_from_blob(key, data, data_len);
+		if (r > 0)
+		{
+			printf("blob\n");
+			return PRIVKEY_GUESS_BLOB;
+		}
+		error_clear();
+	}
+	
 
 	error_log("Unable to guess input type.");
 	return -1;

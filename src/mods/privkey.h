@@ -16,6 +16,7 @@
 #define PRIVKEY_GUESS_WIF      3
 #define PRIVKEY_GUESS_STRING   4
 #define PRIVKEY_GUESS_RAW      5
+#define PRIVKEY_GUESS_BLOB     6
 
 typedef struct PrivKey *PrivKey;
 

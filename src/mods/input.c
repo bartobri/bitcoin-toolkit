@@ -17,36 +17,54 @@
 #include "mods/json.h"
 #include "mods/cJSON/cJSON.h"
 
+static unsigned char *pre_buffer = NULL;
+static size_t pre_buffer_len = 0;
+
 int input_get(input_item *input)
 {
 	ssize_t r;
+	ssize_t buffer_size = BUFSIZ;
 	size_t read_total = 0;
-	int i = 0;
+	size_t i = 1;
 	unsigned char *buffer;
 
-	buffer = malloc(BUFSIZ);
+	buffer = malloc(buffer_size);
 	ERROR_CHECK_NULL(buffer, "Memory allocation error.");
 
-	memset(buffer, 0, BUFSIZ);
+	memset(buffer, 0, buffer_size);
 
-	while ((r = read(STDIN_FILENO, buffer + read_total, BUFSIZ)) > 0)
+	while ((r = read(STDIN_FILENO, buffer + read_total, buffer_size)) > 0)
 	{
 		read_total += r;
-		i++;
 
-		if (r == BUFSIZ)
+		if (r == buffer_size)
 		{
-			buffer = realloc(buffer, BUFSIZ * (i + 1));
+			i++;
+
+			buffer = realloc(buffer, buffer_size * i);
 			ERROR_CHECK_NULL(buffer, "Memory allocation error.");
 
-			memset(buffer + read_total, 0, BUFSIZ);
+			memset(buffer + read_total, 0, buffer_size);
 		}
 	}
-
 	if (r < 0)
 	{
 		error_log("Input read error. Errno: %i", errno);
 		return -1;
+	}
+
+	if (pre_buffer)
+	{
+		buffer = realloc(buffer, read_total + pre_buffer_len);
+		ERROR_CHECK_NULL(buffer, "Memory allocation error.");
+
+		memmove(buffer + pre_buffer_len, buffer, read_total);
+		memcpy(buffer, pre_buffer, pre_buffer_len);
+
+		read_total += pre_buffer_len;
+
+		free(pre_buffer);
+		pre_buffer = NULL;
 	}
 
 	if (read_total > 0)
@@ -63,7 +81,7 @@ int input_get(input_item *input)
 int input_get_line(input_item *input)
 {
 	ssize_t r;
-	int i = 0;
+	size_t i = 0;
 	char c;
 	unsigned char *buffer;
 
@@ -71,6 +89,23 @@ int input_get_line(input_item *input)
 	ERROR_CHECK_NULL(buffer, "Memory allocation error.");
 
 	memset(buffer, 0, BUFSIZ);
+
+	if (pre_buffer)
+	{
+		// We assume pre buffer contains a full line.
+		if (pre_buffer[pre_buffer_len - 1] == '\n')
+		{
+			pre_buffer_len--;
+		}
+
+		(*input) = input_new_item(pre_buffer, pre_buffer_len);
+		ERROR_CHECK_NULL((*input), "Could not create new input item.");
+
+		free(pre_buffer);
+		pre_buffer = NULL;
+
+		return 1;
+	}
 
 	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
 	{
@@ -124,6 +159,15 @@ int input_get_json(input_item *input)
 		ERROR_CHECK_NULL(buffer, "Memory allocation error.");
 
 		memset(buffer, 0, buffer_max + 1);
+
+		if (pre_buffer)
+		{
+			memcpy(buffer, pre_buffer, pre_buffer_len);
+			buffer_len = pre_buffer_len;
+
+			free(pre_buffer);
+			pre_buffer = NULL;
+		}
 	}
 
 	r = read(STDIN_FILENO, buffer + buffer_len, buffer_max - buffer_len);
@@ -174,6 +218,54 @@ int input_get_json(input_item *input)
 	json_free(jobj);
 
     return 1;
+}
+
+int input_get_format(void)
+{
+	ssize_t r;
+	unsigned char c;
+	int format = 0;
+
+	pre_buffer = malloc(BUFSIZ);
+	ERROR_CHECK_NULL(pre_buffer, "Memory alocation error.");
+
+	pre_buffer_len = 0;
+
+	while ((r = read(STDIN_FILENO, &c, 1)) > 0)
+	{
+		pre_buffer[pre_buffer_len] = c;
+		pre_buffer_len++;
+
+		if (c <= 6 || (c >= 14 && c <= 31) || c >= 126)
+		{
+			format = INPUT_FORMAT_BINARY;
+			break;
+		}
+
+		if (c == '[' || c == '{')
+		{
+			format = INPUT_FORMAT_JSON;
+			break;
+		}
+
+		if (c == '\n')
+		{
+			format = INPUT_FORMAT_LIST;
+			break;
+		}
+	}
+	if (r < 0)
+	{
+		error_log("Input read error. %s.", strerror(errno));
+		return -1;
+	}
+
+	if (!format)
+	{
+		format = INPUT_FORMAT_LIST;
+	}
+
+	return format;
 }
 
 int input_parse_from_json(input_item *input, cJSON *jobj)
