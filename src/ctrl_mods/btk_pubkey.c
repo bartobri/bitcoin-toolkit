@@ -49,6 +49,7 @@ int btk_pubkey_main(output_item *output, opts_p opts, unsigned char *input, size
 
 		r = privkey_from_wif(privkey, input_str);
 		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+
 		r = pubkey_get(pubkey, privkey);
 		ERROR_CHECK_NEG(r, "Could not calculate public key.");
 	}

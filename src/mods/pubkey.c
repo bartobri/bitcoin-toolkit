@@ -45,6 +45,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	assert(privkey);
 	assert(pubkey);
 
+	memset(pubkey->data, 0, PUBKEY_UNCOMPRESSED_LENGTH + 1);
+
 	if (privkey_is_zero(privkey))
 	{
 		error_log("Private key can not be zero.");
