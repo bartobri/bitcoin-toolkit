@@ -93,7 +93,7 @@ $(OBJ):
 	mkdir -p $(OBJ)/$(CTRL)
 
 test:
-	perl test/test_template.pl
+	python3 test/test.py
 
 clean:
 	rm -rf $(BIN)
