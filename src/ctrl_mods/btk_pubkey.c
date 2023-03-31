@@ -131,6 +131,12 @@ int btk_pubkey_init(opts_p opts)
 {
 	assert(opts);
 
+	if (opts->output_type_wif || opts->output_type_decimal || opts->output_type_raw)
+	{
+		error_log("Invalid output type option.");
+		return -1;
+	}
+
 	return 1;
 }
 

@@ -119,6 +119,7 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_INPUT_FORMAT, required_argument);
         opts_add(OPTS_INPUT_TYPE, required_argument);
         opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+        opts_add(OPTS_OUTPUT_TYPE, required_argument);
         opts_add(OPTS_COMPRESSED, required_argument);
         opts_add(OPTS_STREAM, no_argument);
         opts_add(OPTS_GREP, required_argument);
