@@ -3,3 +3,4 @@ obj/*
 notes.txt
 .vs
 *.swp
+__pycache__
