@@ -133,14 +133,26 @@ class Privkey(unittest.TestCase):
     def test_string_0060(self):
         self.io_test(opts=["-s", "-W", "-C"], input="string", output="wif")
 
-    def test_string_0060(self):
+    def test_string_0061(self):
         self.io_test(opts=["-s", "-W", "-U"], input="string", output="wif_u")
+
+    def test_string_0062(self):
+        self.io_test(opts=["-s", "-W", "--compressed=true"], input="string", output="wif")
+
+    def test_string_0063(self):
+        self.io_test(opts=["-s", "-W", "--compressed=false"], input="string", output="wif_u")
 
     def test_string_0070(self):
         self.io_test(opts=["-s", "-X", "-C"], input="string", output="hex_c")
 
-    def test_string_0070(self):
+    def test_string_0071(self):
         self.io_test(opts=["-s", "-X", "-U"], input="string", output="hex_u")
+
+    def test_string_0072(self):
+        self.io_test(opts=["-s", "-X", "--compressed=true"], input="string", output="hex_c")
+
+    def test_string_0073(self):
+        self.io_test(opts=["-s", "-X", "--compressed=false"], input="string", output="hex_u")
 
     def test_string_0080(self):
         self.io_test(opts=["-s", "--test"], input="string", output="wif_test")
@@ -150,6 +162,12 @@ class Privkey(unittest.TestCase):
 
     def test_string_0082(self):
         self.io_test(opts=["-s", "--test", "-U"], input="string", output="wif_test_u")
+
+    def test_string_0083(self):
+        self.io_test(opts=["-s", "--test", "--compressed=true"], input="string", output="wif_test")
+
+    def test_string_0084(self):
+        self.io_test(opts=["-s", "--test", "--compressed=false"], input="string", output="wif_test_u")
 
     def test_string_0090(self):
         self.io_test(opts=["-s", "-W", "--rehash=5"], input="string", output="wif_rehash5")
@@ -188,14 +206,26 @@ class Privkey(unittest.TestCase):
     def test_wif_0060(self):
         self.io_test(opts=["-w", "-W", "-C"], input="wif", output="wif")
 
-    def test_wif_0060(self):
+    def test_wif_0061(self):
         self.io_test(opts=["-w", "-W", "-U"], input="wif", output="wif_u")
+
+    def test_wif_0062(self):
+        self.io_test(opts=["-w", "-W", "--compressed=true"], input="wif", output="wif")
+
+    def test_wif_0063(self):
+        self.io_test(opts=["-w", "-W", "--compressed=false"], input="wif", output="wif_u")
 
     def test_wif_0070(self):
         self.io_test(opts=["-w", "-X", "-C"], input="wif", output="hex_c")
 
-    def test_wif_0070(self):
+    def test_wif_0071(self):
         self.io_test(opts=["-w", "-X", "-U"], input="wif", output="hex_u")
+
+    def test_wif_0072(self):
+        self.io_test(opts=["-w", "-X", "--compressed=true"], input="wif", output="hex_c")
+
+    def test_wif_0073(self):
+        self.io_test(opts=["-w", "-X", "--compressed=false"], input="wif", output="hex_u")
 
     def test_wif_0080(self):
         self.io_test(opts=["-w", "--test"], input="wif", output="wif_test")
@@ -205,6 +235,12 @@ class Privkey(unittest.TestCase):
 
     def test_wif_0082(self):
         self.io_test(opts=["-w", "--test", "-U"], input="wif", output="wif_test_u")
+
+    def test_wif_0083(self):
+        self.io_test(opts=["-w", "--test", "--compressed=true"], input="wif", output="wif_test")
+
+    def test_wif_0084(self):
+        self.io_test(opts=["-w", "--test", "--compressed=false"], input="wif", output="wif_test_u")
 
     def test_wif_0090(self):
         self.io_test(opts=["-w", "-W", "--rehash=5"], input="wif", output="wif_rehash5")
@@ -243,14 +279,26 @@ class Privkey(unittest.TestCase):
     def test_wifu_0060(self):
         self.io_test(opts=["-w", "-W", "-C"], input="wif_u", output="wif")
 
-    def test_wifu_0060(self):
+    def test_wifu_0061(self):
         self.io_test(opts=["-w", "-W", "-U"], input="wif_u", output="wif_u")
+
+    def test_wifu_0062(self):
+        self.io_test(opts=["-w", "-W", "--compressed=true"], input="wif_u", output="wif")
+
+    def test_wifu_0063(self):
+        self.io_test(opts=["-w", "-W", "--compressed=false"], input="wif_u", output="wif_u")
 
     def test_wifu_0070(self):
         self.io_test(opts=["-w", "-X", "-C"], input="wif_u", output="hex_c")
 
-    def test_wifu_0070(self):
+    def test_wifu_0071(self):
         self.io_test(opts=["-w", "-X", "-U"], input="wif_u", output="hex_u")
+
+    def test_wifu_0072(self):
+        self.io_test(opts=["-w", "-X", "--compressed=true"], input="wif_u", output="hex_c")
+
+    def test_wifu_0073(self):
+        self.io_test(opts=["-w", "-X", "--compressed=false"], input="wif_u", output="hex_u")
 
     def test_wifu_0080(self):
         self.io_test(opts=["-w", "--test"], input="wif_u", output="wif_test_u")
@@ -260,6 +308,12 @@ class Privkey(unittest.TestCase):
 
     def test_wifu_0082(self):
         self.io_test(opts=["-w", "--test", "-U"], input="wif_u", output="wif_test_u")
+
+    def test_wifu_0083(self):
+        self.io_test(opts=["-w", "--test", "--compressed=true"], input="wif_u", output="wif_test")
+
+    def test_wifu_0084(self):
+        self.io_test(opts=["-w", "--test", "--compressed=false"], input="wif_u", output="wif_test_u")
 
     ####################
     ## Hex
@@ -295,14 +349,26 @@ class Privkey(unittest.TestCase):
     def test_hex_0060(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex", output="wif")
 
-    def test_hex_0060(self):
+    def test_hex_0061(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex", output="wif_u")
+
+    def test_hex_0062(self):
+        self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex", output="wif")
+
+    def test_hex_0063(self):
+        self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex", output="wif_u")
 
     def test_hex_0070(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex", output="hex_c")
 
-    def test_hex_0070(self):
+    def test_hex_0071(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex", output="hex_u")
+
+    def test_hex_0072(self):
+        self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex", output="hex_c")
+
+    def test_hex_0073(self):
+        self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex", output="hex_u")
 
     def test_hex_0080(self):
         self.io_test(opts=["-x", "--test"], input="hex", output="wif_test")
@@ -312,6 +378,12 @@ class Privkey(unittest.TestCase):
 
     def test_hex_0082(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex", output="wif_test_u")
+
+    def test_hex_0083(self):
+        self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex", output="wif_test")
+
+    def test_hex_0084(self):
+        self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex", output="wif_test_u")
 
     def test_hex_0090(self):
         self.io_test(opts=["-x", "-W", "--rehash=5"], input="hex", output="wif_rehash5")
@@ -350,14 +422,26 @@ class Privkey(unittest.TestCase):
     def test_hexc_0060(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex_c", output="wif")
 
-    def test_hexc_0060(self):
+    def test_hexc_0061(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex_c", output="wif_u")
+
+    def test_hexc_0062(self):
+        self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex_c", output="wif")
+
+    def test_hexc_0063(self):
+        self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex_c", output="wif_u")
 
     def test_hexc_0070(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex_c", output="hex_c")
 
-    def test_hexc_0070(self):
+    def test_hexc_0071(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex_c", output="hex_u")
+
+    def test_hexc_0072(self):
+        self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex_c", output="hex_c")
+
+    def test_hexc_0073(self):
+        self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex_c", output="hex_u")
 
     def test_hexc_0080(self):
         self.io_test(opts=["-x", "--test"], input="hex_c", output="wif_test")
@@ -367,6 +451,12 @@ class Privkey(unittest.TestCase):
 
     def test_hexc_0082(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex_c", output="wif_test_u")
+
+    def test_hexc_0083(self):
+        self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex_c", output="wif_test")
+
+    def test_hexc_0084(self):
+        self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex_c", output="wif_test_u")
 
     def test_hexc_0090(self):
         self.io_test(opts=["-x", "-W", "--rehash=5"], input="hex_c", output="wif_rehash5")
@@ -405,14 +495,26 @@ class Privkey(unittest.TestCase):
     def test_hexu_0060(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex_u", output="wif")
 
-    def test_hexu_0060(self):
+    def test_hexu_0061(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex_u", output="wif_u")
+
+    def test_hexu_0062(self):
+        self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex_u", output="wif")
+
+    def test_hexu_0063(self):
+        self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex_u", output="wif_u")
 
     def test_hexu_0070(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex_u", output="hex_c")
 
-    def test_hexu_0070(self):
+    def test_hexu_0071(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex_u", output="hex_u")
+
+    def test_hexu_0072(self):
+        self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex_u", output="hex_c")
+
+    def test_hexu_0073(self):
+        self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex_u", output="hex_u")
 
     def test_hexu_0080(self):
         self.io_test(opts=["-x", "--test"], input="hex_u", output="wif_test_u")
@@ -422,6 +524,12 @@ class Privkey(unittest.TestCase):
 
     def test_hexu_0082(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex_u", output="wif_test_u")
+
+    def test_hexu_0083(self):
+        self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex_u", output="wif_test")
+
+    def test_hexu_0084(self):
+        self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex_u", output="wif_test_u")
 
     ####################
     ## Dec
@@ -457,14 +565,26 @@ class Privkey(unittest.TestCase):
     def test_dec_0060(self):
         self.io_test(opts=["-W", "-C"], input="dec", output="wif")
 
-    def test_dec_0060(self):
+    def test_dec_0061(self):
         self.io_test(opts=["-W", "-U"], input="dec", output="wif_u")
+
+    def test_dec_0062(self):
+        self.io_test(opts=["-W", "--compressed=true"], input="dec", output="wif")
+
+    def test_dec_0063(self):
+        self.io_test(opts=["-W", "--compressed=false"], input="dec", output="wif_u")
 
     def test_dec_0070(self):
         self.io_test(opts=["-X", "-C"], input="dec", output="hex_c")
 
-    def test_dec_0070(self):
+    def test_dec_0071(self):
         self.io_test(opts=["-X", "-U"], input="dec", output="hex_u")
+
+    def test_dec_0072(self):
+        self.io_test(opts=["-X", "--compressed=true"], input="dec", output="hex_c")
+
+    def test_dec_0073(self):
+        self.io_test(opts=["-X", "--compressed=false"], input="dec", output="hex_u")
 
     def test_dec_0080(self):
         self.io_test(opts=["--test"], input="dec", output="wif_test")
@@ -474,6 +594,12 @@ class Privkey(unittest.TestCase):
 
     def test_dec_0082(self):
         self.io_test(opts=["--test", "-U"], input="dec", output="wif_test_u")
+
+    def test_dec_0083(self):
+        self.io_test(opts=["--test", "--compressed=true"], input="dec", output="wif_test")
+
+    def test_dec_0084(self):
+        self.io_test(opts=["--test", "--compressed=false"], input="dec", output="wif_test_u")
 
     def test_dec_0090(self):
         self.io_test(opts=["-W", "--rehash=5"], input="dec", output="wif_rehash5")
