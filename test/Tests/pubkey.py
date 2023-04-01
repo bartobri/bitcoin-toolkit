@@ -1,3 +1,4 @@
+import sys
 import json
 import unittest
 from .btk import BTK
@@ -329,3 +330,146 @@ class Pubkey(unittest.TestCase):
 
         self.assertTrue(out.returncode == 0)
         self.assertFalse(out.stdout)
+
+    ###############
+    ## Match Tests
+    ###############
+
+    def test_0700(self):
+
+        progress_char = ["-", "\\", "|", "/"]
+
+        for i in range(100):
+
+            print(progress_char[i % 4], end='')
+            sys.stdout.flush()
+
+            # create privkey
+            self.btk.reset("privkey")
+            self.btk.arg("--create")
+            self.btk.arg("-W")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            privkey_json = json.loads(out_text)
+            self.assertTrue(privkey_json[0])
+
+            # create pubkey
+            self.btk.reset("pubkey")
+            self.btk.set_input(privkey_json[0])
+            self.btk.arg("-w")
+            self.btk.arg("-X")
+            self.btk.arg("-C")
+            self.btk.arg("-U")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            pubkey_json1 = json.loads(out_text)
+            self.assertTrue(pubkey_json1[0])
+            self.assertTrue(pubkey_json1[1])
+
+            # create pubkey
+            self.btk.reset()
+            self.btk.set_input(privkey_json[0])
+            self.btk.arg("-w")
+            self.btk.arg("-X")
+            self.btk.arg("-C")
+            self.btk.arg("-U")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            pubkey_json2 = json.loads(out_text)
+            self.assertTrue(pubkey_json2[0])
+            self.assertTrue(pubkey_json2[1])
+
+            # match
+            self.assertTrue(pubkey_json1[0] == pubkey_json2[0])
+            self.assertTrue(pubkey_json1[1] == pubkey_json2[1])
+
+            print("\b", end='')
+
+        sys.stdout.flush()
+
+
+    def test_0710(self):
+
+        progress_char = ["-", "\\", "|", "/"]
+
+        for i in range(100):
+
+            print(progress_char[i % 4], end='')
+            sys.stdout.flush()
+
+            # create privkey
+            self.btk.reset("privkey")
+            self.btk.arg("--create")
+            self.btk.arg("-W")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            privkey_json = json.loads(out_text)
+            self.assertTrue(privkey_json[0])
+
+            # create pubkey
+            self.btk.reset("pubkey")
+            self.btk.set_input(privkey_json[0])
+            self.btk.arg("-w")
+            self.btk.arg("-X")
+            self.btk.arg("-C")
+            self.btk.arg("-U")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            pubkey_json = json.loads(out_text)
+            self.assertTrue(pubkey_json[0])
+            self.assertTrue(pubkey_json[1])
+
+            # create pubkey match 1
+            self.btk.reset()
+            self.btk.set_input(pubkey_json[0])
+            self.btk.arg("-x")
+            self.btk.arg("-X")
+            self.btk.arg("-C")
+            self.btk.arg("-U")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            pubkey_match_json = json.loads(out_text)
+            self.assertTrue(pubkey_match_json[0])
+            self.assertTrue(pubkey_match_json[1])
+            self.assertTrue(pubkey_match_json[0] == pubkey_json[0])
+            self.assertTrue(pubkey_match_json[1] == pubkey_json[1])
+
+            # create pubkey match 2
+            self.btk.reset()
+            self.btk.set_input(pubkey_json[1])
+            self.btk.arg("-x")
+            self.btk.arg("-X")
+            self.btk.arg("-C")
+            self.btk.arg("-U")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            self.assertTrue(out_text)
+            pubkey_match_json2 = json.loads(out_text)
+            self.assertTrue(pubkey_match_json2[0])
+            self.assertTrue(pubkey_match_json2[1])
+            self.assertTrue(pubkey_match_json2[0] == pubkey_json[0])
+            self.assertTrue(pubkey_match_json2[1] == pubkey_json[1])
+
+            print("\b", end='')
+
+        sys.stdout.flush()
