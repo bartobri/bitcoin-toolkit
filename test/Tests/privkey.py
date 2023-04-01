@@ -64,551 +64,551 @@ class Privkey(unittest.TestCase):
     ## Create
     ###########
 
-    def test_create_0010(self):
+    def test_0010(self):
         self.io_test(opts=["--create"], input=None, output=None)
 
     ################
     ## Output Format
     ################
 
-    def test_output_format_0010(self):
+    def test_0020(self):
         self.io_test(opts=["--create", "-J"], input=None, output=None)
 
-    def test_output_format_0020(self):
+    def test_0030(self):
         self.io_test(opts=["--create", "--out-format=json"], input=None, output=None)
 
-    def test_output_format_0030(self):
+    def test_0040(self):
         self.io_test(opts=["--create", "-L"], input=None, output=None, output_json=False)
 
-    def test_output_format_0040(self):
+    def test_0050(self):
         self.io_test(opts=["--create", "--out-format=list"], input=None, output=None, output_json=False)
 
     ################
     ## Input Format
     ################
 
-    def test_input_format_0010(self):
+    def test_0060(self):
         self.io_test(opts=["-l"], input="string", output="wif", input_json=False)
 
-    def test_input_format_0020(self):
+    def test_0070(self):
         self.io_test(opts=["--in-format=list"], input="string", output="wif", input_json=False)
 
-    def test_input_format_0030(self):
+    def test_0080(self):
         self.io_test(opts=["-j"], input="string", output="wif")
 
-    def test_input_format_0040(self):
+    def test_0090(self):
         self.io_test(opts=["--in-format=json"], input="string", output="wif")
 
     ###########
     ## String
     ###########
 
-    def test_string_0010(self):
+    def test_0100(self):
         self.io_test(opts=[], input="string", output="wif")
 
-    def test_string_0011(self):
+    def test_0110(self):
         self.io_test(opts=["-s"], input="string", output="wif")
 
-    def test_string_0012(self):
+    def test_0120(self):
         self.io_test(opts=["--in-type=string"], input="string", output="wif")
 
-    def test_string_0013(self):
+    def test_0130(self):
         self.io_test(opts=["-s", "-W"], input="string", output="wif")
 
-    def test_string_0014(self):
+    def test_0140(self):
         self.io_test(opts=["-s", "--out-type=wif"], input="string", output="wif")
 
-    def test_string_0020(self):
+    def test_0150(self):
         self.io_test(opts=["-s", "-X"], input="string", output="hex")
 
-    def test_string_0030(self):
+    def test_0160(self):
         self.io_test(opts=["-s", "--out-type=hex"], input="string", output="hex")
 
-    def test_string_0040(self):
+    def test_0170(self):
         self.io_test(opts=["-s", "-D"], input="string", output="dec")
 
-    def test_string_0050(self):
+    def test_0180(self):
         self.io_test(opts=["-s", "--out-type=decimal"], input="string", output="dec")
 
-    def test_string_0060(self):
+    def test_0190(self):
         self.io_test(opts=["-s", "-W", "-C"], input="string", output="wif")
 
-    def test_string_0061(self):
+    def test_0200(self):
         self.io_test(opts=["-s", "-W", "-U"], input="string", output="wif_u")
 
-    def test_string_0062(self):
+    def test_0210(self):
         self.io_test(opts=["-s", "-W", "--compressed=true"], input="string", output="wif")
 
-    def test_string_0063(self):
+    def test_0220(self):
         self.io_test(opts=["-s", "-W", "--compressed=false"], input="string", output="wif_u")
 
-    def test_string_0070(self):
+    def test_0230(self):
         self.io_test(opts=["-s", "-X", "-C"], input="string", output="hex_c")
 
-    def test_string_0071(self):
+    def test_0240(self):
         self.io_test(opts=["-s", "-X", "-U"], input="string", output="hex_u")
 
-    def test_string_0072(self):
+    def test_0250(self):
         self.io_test(opts=["-s", "-X", "--compressed=true"], input="string", output="hex_c")
 
-    def test_string_0073(self):
+    def test_0260(self):
         self.io_test(opts=["-s", "-X", "--compressed=false"], input="string", output="hex_u")
 
-    def test_string_0080(self):
+    def test_0270(self):
         self.io_test(opts=["-s", "--test"], input="string", output="wif_test")
 
-    def test_string_0081(self):
+    def test_0280(self):
         self.io_test(opts=["-s", "--test", "-C"], input="string", output="wif_test")
 
-    def test_string_0082(self):
+    def test_0290(self):
         self.io_test(opts=["-s", "--test", "-U"], input="string", output="wif_test_u")
 
-    def test_string_0083(self):
+    def test_0300(self):
         self.io_test(opts=["-s", "--test", "--compressed=true"], input="string", output="wif_test")
 
-    def test_string_0084(self):
+    def test_0310(self):
         self.io_test(opts=["-s", "--test", "--compressed=false"], input="string", output="wif_test_u")
 
-    def test_string_0090(self):
+    def test_0320(self):
         self.io_test(opts=["-s", "-W", "--rehash=5"], input="string", output="wif_rehash5")
 
     ###########
     ## WIF
     ###########
 
-    def test_wif_0010(self):
+    def test_0330(self):
         self.io_test(opts=[], input="wif", output="wif")
 
-    def test_wif_0011(self):
+    def test_0340(self):
         self.io_test(opts=["-w"], input="wif", output="wif")
 
-    def test_wif_0012(self):
+    def test_0350(self):
         self.io_test(opts=["--in-type=wif"], input="wif", output="wif")
 
-    def test_wif_0013(self):
+    def test_0360(self):
         self.io_test(opts=["-w", "-W"], input="wif", output="wif")
 
-    def test_wif_0014(self):
+    def test_0370(self):
         self.io_test(opts=["-w", "--out-type=wif"], input="wif", output="wif")
 
-    def test_wif_0020(self):
+    def test_0380(self):
         self.io_test(opts=["-w", "-X"], input="wif", output="hex")
 
-    def test_wif_0030(self):
+    def test_0390(self):
         self.io_test(opts=["-w", "--out-type=hex"], input="wif", output="hex")
 
-    def test_wif_0040(self):
+    def test_0400(self):
         self.io_test(opts=["-w", "-D"], input="wif", output="dec")
 
-    def test_wif_0050(self):
+    def test_0410(self):
         self.io_test(opts=["-w", "--out-type=decimal"], input="wif", output="dec")
 
-    def test_wif_0060(self):
+    def test_0420(self):
         self.io_test(opts=["-w", "-W", "-C"], input="wif", output="wif")
 
-    def test_wif_0061(self):
+    def test_0430(self):
         self.io_test(opts=["-w", "-W", "-U"], input="wif", output="wif_u")
 
-    def test_wif_0062(self):
+    def test_0440(self):
         self.io_test(opts=["-w", "-W", "--compressed=true"], input="wif", output="wif")
 
-    def test_wif_0063(self):
+    def test_0450(self):
         self.io_test(opts=["-w", "-W", "--compressed=false"], input="wif", output="wif_u")
 
-    def test_wif_0070(self):
+    def test_0460(self):
         self.io_test(opts=["-w", "-X", "-C"], input="wif", output="hex_c")
 
-    def test_wif_0071(self):
+    def test_0470(self):
         self.io_test(opts=["-w", "-X", "-U"], input="wif", output="hex_u")
 
-    def test_wif_0072(self):
+    def test_0480(self):
         self.io_test(opts=["-w", "-X", "--compressed=true"], input="wif", output="hex_c")
 
-    def test_wif_0073(self):
+    def test_0490(self):
         self.io_test(opts=["-w", "-X", "--compressed=false"], input="wif", output="hex_u")
 
-    def test_wif_0080(self):
+    def test_0500(self):
         self.io_test(opts=["-w", "--test"], input="wif", output="wif_test")
 
-    def test_wif_0081(self):
+    def test_0510(self):
         self.io_test(opts=["-w", "--test", "-C"], input="wif", output="wif_test")
 
-    def test_wif_0082(self):
+    def test_0520(self):
         self.io_test(opts=["-w", "--test", "-U"], input="wif", output="wif_test_u")
 
-    def test_wif_0083(self):
+    def test_0530(self):
         self.io_test(opts=["-w", "--test", "--compressed=true"], input="wif", output="wif_test")
 
-    def test_wif_0084(self):
+    def test_0540(self):
         self.io_test(opts=["-w", "--test", "--compressed=false"], input="wif", output="wif_test_u")
 
-    def test_wif_0090(self):
+    def test_0550(self):
         self.io_test(opts=["-w", "-W", "--rehash=5"], input="wif", output="wif_rehash5")
 
     ####################
     ## WIF Uncompressed
     ####################
 
-    def test_wifu_0010(self):
+    def test_0560(self):
         self.io_test(opts=[], input="wif_u", output="wif_u")
 
-    def test_wifu_0011(self):
+    def test_0570(self):
         self.io_test(opts=["-w"], input="wif_u", output="wif_u")
 
-    def test_wifu_0012(self):
+    def test_0580(self):
         self.io_test(opts=["--in-type=wif"], input="wif_u", output="wif_u")
 
-    def test_wifu_0013(self):
+    def test_0590(self):
         self.io_test(opts=["-w", "-W"], input="wif_u", output="wif_u")
 
-    def test_wifu_0014(self):
+    def test_0600(self):
         self.io_test(opts=["-w", "--out-type=wif"], input="wif_u", output="wif_u")
 
-    def test_wifu_0020(self):
+    def test_0610(self):
         self.io_test(opts=["-w", "-X"], input="wif_u", output="hex")
 
-    def test_wifu_0030(self):
+    def test_0620(self):
         self.io_test(opts=["-w", "--out-type=hex"], input="wif_u", output="hex")
 
-    def test_wifu_0040(self):
+    def test_0630(self):
         self.io_test(opts=["-w", "-D"], input="wif_u", output="dec")
 
-    def test_wifu_0050(self):
+    def test_0640(self):
         self.io_test(opts=["-w", "--out-type=decimal"], input="wif_u", output="dec")
 
-    def test_wifu_0060(self):
+    def test_0650(self):
         self.io_test(opts=["-w", "-W", "-C"], input="wif_u", output="wif")
 
-    def test_wifu_0061(self):
+    def test_0660(self):
         self.io_test(opts=["-w", "-W", "-U"], input="wif_u", output="wif_u")
 
-    def test_wifu_0062(self):
+    def test_0670(self):
         self.io_test(opts=["-w", "-W", "--compressed=true"], input="wif_u", output="wif")
 
-    def test_wifu_0063(self):
+    def test_0680(self):
         self.io_test(opts=["-w", "-W", "--compressed=false"], input="wif_u", output="wif_u")
 
-    def test_wifu_0070(self):
+    def test_0690(self):
         self.io_test(opts=["-w", "-X", "-C"], input="wif_u", output="hex_c")
 
-    def test_wifu_0071(self):
+    def test_0700(self):
         self.io_test(opts=["-w", "-X", "-U"], input="wif_u", output="hex_u")
 
-    def test_wifu_0072(self):
+    def test_0710(self):
         self.io_test(opts=["-w", "-X", "--compressed=true"], input="wif_u", output="hex_c")
 
-    def test_wifu_0073(self):
+    def test_0720(self):
         self.io_test(opts=["-w", "-X", "--compressed=false"], input="wif_u", output="hex_u")
 
-    def test_wifu_0080(self):
+    def test_0730(self):
         self.io_test(opts=["-w", "--test"], input="wif_u", output="wif_test_u")
 
-    def test_wifu_0081(self):
+    def test_0740(self):
         self.io_test(opts=["-w", "--test", "-C"], input="wif_u", output="wif_test")
 
-    def test_wifu_0082(self):
+    def test_0750(self):
         self.io_test(opts=["-w", "--test", "-U"], input="wif_u", output="wif_test_u")
 
-    def test_wifu_0083(self):
+    def test_0760(self):
         self.io_test(opts=["-w", "--test", "--compressed=true"], input="wif_u", output="wif_test")
 
-    def test_wifu_0084(self):
+    def test_0770(self):
         self.io_test(opts=["-w", "--test", "--compressed=false"], input="wif_u", output="wif_test_u")
 
     ####################
     ## Hex
     ####################
 
-    def test_hex_0010(self):
+    def test_0780(self):
         self.io_test(opts=[], input="hex", output="wif")
 
-    def test_hex_0011(self):
+    def test_0790(self):
         self.io_test(opts=["-x"], input="hex", output="wif")
 
-    def test_hex_0012(self):
+    def test_0800(self):
         self.io_test(opts=["--in-type=hex"], input="hex", output="wif")
 
-    def test_hex_0013(self):
+    def test_0810(self):
         self.io_test(opts=["-x", "-W"], input="hex", output="wif")
 
-    def test_hex_0014(self):
+    def test_0820(self):
         self.io_test(opts=["-x", "--out-type=wif"], input="hex", output="wif")
 
-    def test_hex_0020(self):
+    def test_0830(self):
         self.io_test(opts=["-x", "-X"], input="hex", output="hex")
 
-    def test_hex_0030(self):
+    def test_0840(self):
         self.io_test(opts=["-x", "--out-type=hex"], input="hex", output="hex")
 
-    def test_hex_0040(self):
+    def test_0850(self):
         self.io_test(opts=["-x", "-D"], input="hex", output="dec")
 
-    def test_hex_0050(self):
+    def test_0860(self):
         self.io_test(opts=["-x", "--out-type=decimal"], input="hex", output="dec")
 
-    def test_hex_0060(self):
+    def test_0870(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex", output="wif")
 
-    def test_hex_0061(self):
+    def test_0880(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex", output="wif_u")
 
-    def test_hex_0062(self):
+    def test_0890(self):
         self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex", output="wif")
 
-    def test_hex_0063(self):
+    def test_0900(self):
         self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex", output="wif_u")
 
-    def test_hex_0070(self):
+    def test_0910(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex", output="hex_c")
 
-    def test_hex_0071(self):
+    def test_0920(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex", output="hex_u")
 
-    def test_hex_0072(self):
+    def test_0930(self):
         self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex", output="hex_c")
 
-    def test_hex_0073(self):
+    def test_0940(self):
         self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex", output="hex_u")
 
-    def test_hex_0080(self):
+    def test_0950(self):
         self.io_test(opts=["-x", "--test"], input="hex", output="wif_test")
 
-    def test_hex_0081(self):
+    def test_0960(self):
         self.io_test(opts=["-x", "--test", "-C"], input="hex", output="wif_test")
 
-    def test_hex_0082(self):
+    def test_0970(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex", output="wif_test_u")
 
-    def test_hex_0083(self):
+    def test_0980(self):
         self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex", output="wif_test")
 
-    def test_hex_0084(self):
+    def test_0990(self):
         self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex", output="wif_test_u")
 
-    def test_hex_0090(self):
+    def test_1000(self):
         self.io_test(opts=["-x", "-W", "--rehash=5"], input="hex", output="wif_rehash5")
 
     ####################
     ## Hex Compressed
     ####################
 
-    def test_hexc_0010(self):
+    def test_1010(self):
         self.io_test(opts=[], input="hex_c", output="wif")
 
-    def test_hexc_0011(self):
+    def test_1020(self):
         self.io_test(opts=["-x"], input="hex_c", output="wif")
 
-    def test_hexc_0012(self):
+    def test_1030(self):
         self.io_test(opts=["--in-type=hex"], input="hex_c", output="wif")
 
-    def test_hexc_0013(self):
+    def test_1040(self):
         self.io_test(opts=["-x", "-W"], input="hex_c", output="wif")
 
-    def test_hexc_0014(self):
+    def test_1050(self):
         self.io_test(opts=["-x", "--out-type=wif"], input="hex_c", output="wif")
 
-    def test_hexc_0020(self):
+    def test_1060(self):
         self.io_test(opts=["-x", "-X"], input="hex_c", output="hex")
 
-    def test_hexc_0030(self):
+    def test_1070(self):
         self.io_test(opts=["-x", "--out-type=hex"], input="hex_c", output="hex")
 
-    def test_hexc_0040(self):
+    def test_1080(self):
         self.io_test(opts=["-x", "-D"], input="hex_c", output="dec")
 
-    def test_hexc_0050(self):
+    def test_1090(self):
         self.io_test(opts=["-x", "--out-type=decimal"], input="hex_c", output="dec")
 
-    def test_hexc_0060(self):
+    def test_1100(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex_c", output="wif")
 
-    def test_hexc_0061(self):
+    def test_1110(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex_c", output="wif_u")
 
-    def test_hexc_0062(self):
+    def test_1120(self):
         self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex_c", output="wif")
 
-    def test_hexc_0063(self):
+    def test_1130(self):
         self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex_c", output="wif_u")
 
-    def test_hexc_0070(self):
+    def test_1140(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex_c", output="hex_c")
 
-    def test_hexc_0071(self):
+    def test_1150(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex_c", output="hex_u")
 
-    def test_hexc_0072(self):
+    def test_1160(self):
         self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex_c", output="hex_c")
 
-    def test_hexc_0073(self):
+    def test_1170(self):
         self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex_c", output="hex_u")
 
-    def test_hexc_0080(self):
+    def test_1180(self):
         self.io_test(opts=["-x", "--test"], input="hex_c", output="wif_test")
 
-    def test_hexc_0081(self):
+    def test_1190(self):
         self.io_test(opts=["-x", "--test", "-C"], input="hex_c", output="wif_test")
 
-    def test_hexc_0082(self):
+    def test_1200(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex_c", output="wif_test_u")
 
-    def test_hexc_0083(self):
+    def test_1210(self):
         self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex_c", output="wif_test")
 
-    def test_hexc_0084(self):
+    def test_1220(self):
         self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex_c", output="wif_test_u")
 
-    def test_hexc_0090(self):
+    def test_1230(self):
         self.io_test(opts=["-x", "-W", "--rehash=5"], input="hex_c", output="wif_rehash5")
 
     ####################
     ## Hex Uncompressed
     ####################
 
-    def test_hexu_0010(self):
+    def test_1240(self):
         self.io_test(opts=[], input="hex_u", output="wif_u")
 
-    def test_hexu_0011(self):
+    def test_1250(self):
         self.io_test(opts=["-x"], input="hex_u", output="wif_u")
 
-    def test_hexu_0012(self):
+    def test_1260(self):
         self.io_test(opts=["--in-type=hex"], input="hex_u", output="wif_u")
 
-    def test_hexu_0013(self):
+    def test_1270(self):
         self.io_test(opts=["-x", "-W"], input="hex_u", output="wif_u")
 
-    def test_hexu_0014(self):
+    def test_1280(self):
         self.io_test(opts=["-x", "--out-type=wif"], input="hex_u", output="wif_u")
 
-    def test_hexu_0020(self):
+    def test_1290(self):
         self.io_test(opts=["-x", "-X"], input="hex_u", output="hex")
 
-    def test_hexu_0030(self):
+    def test_1300(self):
         self.io_test(opts=["-x", "--out-type=hex"], input="hex_u", output="hex")
 
-    def test_hexu_0040(self):
+    def test_1310(self):
         self.io_test(opts=["-x", "-D"], input="hex_u", output="dec")
 
-    def test_hexu_0050(self):
+    def test_1320(self):
         self.io_test(opts=["-x", "--out-type=decimal"], input="hex_u", output="dec")
 
-    def test_hexu_0060(self):
+    def test_1330(self):
         self.io_test(opts=["-x", "-W", "-C"], input="hex_u", output="wif")
 
-    def test_hexu_0061(self):
+    def test_1340(self):
         self.io_test(opts=["-x", "-W", "-U"], input="hex_u", output="wif_u")
 
-    def test_hexu_0062(self):
+    def test_1350(self):
         self.io_test(opts=["-x", "-W", "--compressed=true"], input="hex_u", output="wif")
 
-    def test_hexu_0063(self):
+    def test_1360(self):
         self.io_test(opts=["-x", "-W", "--compressed=false"], input="hex_u", output="wif_u")
 
-    def test_hexu_0070(self):
+    def test_1370(self):
         self.io_test(opts=["-x", "-X", "-C"], input="hex_u", output="hex_c")
 
-    def test_hexu_0071(self):
+    def test_1380(self):
         self.io_test(opts=["-x", "-X", "-U"], input="hex_u", output="hex_u")
 
-    def test_hexu_0072(self):
+    def test_1390(self):
         self.io_test(opts=["-x", "-X", "--compressed=true"], input="hex_u", output="hex_c")
 
-    def test_hexu_0073(self):
+    def test_1400(self):
         self.io_test(opts=["-x", "-X", "--compressed=false"], input="hex_u", output="hex_u")
 
-    def test_hexu_0080(self):
+    def test_1410(self):
         self.io_test(opts=["-x", "--test"], input="hex_u", output="wif_test_u")
 
-    def test_hexu_0081(self):
+    def test_1420(self):
         self.io_test(opts=["-x", "--test", "-C"], input="hex_u", output="wif_test")
 
-    def test_hexu_0082(self):
+    def test_1430(self):
         self.io_test(opts=["-x", "--test", "-U"], input="hex_u", output="wif_test_u")
 
-    def test_hexu_0083(self):
+    def test_1440(self):
         self.io_test(opts=["-x", "--test", "--compressed=true"], input="hex_u", output="wif_test")
 
-    def test_hexu_0084(self):
+    def test_1450(self):
         self.io_test(opts=["-x", "--test", "--compressed=false"], input="hex_u", output="wif_test_u")
 
     ####################
     ## Dec
     ####################
 
-    def test_dec_0010(self):
+    def test_1460(self):
         self.io_test(opts=[], input="dec", output="wif")
 
-    def test_dec_0011(self):
+    def test_1470(self):
         self.io_test(opts=["-d"], input="dec", output="wif")
 
-    def test_dec_0012(self):
+    def test_1480(self):
         self.io_test(opts=["--in-type=decimal"], input="dec", output="wif")
 
-    def test_dec_0013(self):
+    def test_1490(self):
         self.io_test(opts=["-W"], input="dec", output="wif")
 
-    def test_dec_0014(self):
+    def test_1500(self):
         self.io_test(opts=["--out-type=wif"], input="dec", output="wif")
 
-    def test_dec_0020(self):
+    def test_1510(self):
         self.io_test(opts=["-X"], input="dec", output="hex")
 
-    def test_dec_0030(self):
+    def test_1520(self):
         self.io_test(opts=["--out-type=hex"], input="dec", output="hex")
 
-    def test_dec_0040(self):
+    def test_1530(self):
         self.io_test(opts=["-D"], input="dec", output="dec")
 
-    def test_dec_0050(self):
+    def test_1540(self):
         self.io_test(opts=["--out-type=decimal"], input="dec", output="dec")
 
-    def test_dec_0060(self):
+    def test_1550(self):
         self.io_test(opts=["-W", "-C"], input="dec", output="wif")
 
-    def test_dec_0061(self):
+    def test_1560(self):
         self.io_test(opts=["-W", "-U"], input="dec", output="wif_u")
 
-    def test_dec_0062(self):
+    def test_1570(self):
         self.io_test(opts=["-W", "--compressed=true"], input="dec", output="wif")
 
-    def test_dec_0063(self):
+    def test_1580(self):
         self.io_test(opts=["-W", "--compressed=false"], input="dec", output="wif_u")
 
-    def test_dec_0070(self):
+    def test_1590(self):
         self.io_test(opts=["-X", "-C"], input="dec", output="hex_c")
 
-    def test_dec_0071(self):
+    def test_1600(self):
         self.io_test(opts=["-X", "-U"], input="dec", output="hex_u")
 
-    def test_dec_0072(self):
+    def test_1610(self):
         self.io_test(opts=["-X", "--compressed=true"], input="dec", output="hex_c")
 
-    def test_dec_0073(self):
+    def test_1620(self):
         self.io_test(opts=["-X", "--compressed=false"], input="dec", output="hex_u")
 
-    def test_dec_0080(self):
+    def test_1630(self):
         self.io_test(opts=["--test"], input="dec", output="wif_test")
 
-    def test_dec_0081(self):
+    def test_1640(self):
         self.io_test(opts=["--test", "-C"], input="dec", output="wif_test")
 
-    def test_dec_0082(self):
+    def test_1650(self):
         self.io_test(opts=["--test", "-U"], input="dec", output="wif_test_u")
 
-    def test_dec_0083(self):
+    def test_1660(self):
         self.io_test(opts=["--test", "--compressed=true"], input="dec", output="wif_test")
 
-    def test_dec_0084(self):
+    def test_1670(self):
         self.io_test(opts=["--test", "--compressed=false"], input="dec", output="wif_test_u")
 
-    def test_dec_0090(self):
+    def test_1680(self):
         self.io_test(opts=["-W", "--rehash=5"], input="dec", output="wif_rehash5")
 
     ####################
     ## Grep
     ####################
 
-    def test_grep_exists(self):
+    def test_1690(self):
 
         input = inputs[0]["string"]
 
@@ -627,7 +627,7 @@ class Privkey(unittest.TestCase):
 
         self.assertTrue(out_text)
 
-    def test_grep_noexists(self):
+    def test_1700(self):
 
         input = inputs[0]["string"]
 
