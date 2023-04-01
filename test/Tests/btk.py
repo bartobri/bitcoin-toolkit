@@ -19,8 +19,11 @@ class BTK:
         if (value):
             self.args.append(value)
 
-    def reset(self):
-        self.__init__(self.command)
+    def reset(self, command=None):
+        if (command):
+            self.__init__(command)
+        else:
+            self.__init__(self.command)
 
     def run(self):
         command_str = "bin/btk "
