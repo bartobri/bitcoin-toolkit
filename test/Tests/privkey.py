@@ -1,3 +1,4 @@
+import sys
 import json
 import unittest
 from .btk import BTK
@@ -642,5 +643,68 @@ class Privkey(unittest.TestCase):
         self.assertTrue(out.returncode == 0)
         self.assertFalse(out.stdout)
 
+    ###############
+    ## Match Tests
+    ###############
+
+    def test_1710(self):
+
+        progress_char = ["-", "\\", "|", "/"]
+
+        for i in range(100):
+
+            print(progress_char[i % 4], end='')
+            sys.stdout.flush()
+
+            self.btk.reset()
+            self.btk.arg("--create")
+            self.btk.arg("-W")
+            self.btk.arg("-X")
+            self.btk.arg("-D")
+            out = self.btk.run()
+
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+
+            out_text = out.stdout
+
+            self.assertTrue(out_text)
+
+            create_json = json.loads(out_text)
+
+            self.assertTrue(create_json[0])
+            self.assertTrue(create_json[1])
+            self.assertTrue(create_json[2])
+
+            ## wif
+            self.btk.reset()
+            self.btk.set_input(create_json[0])
+            self.btk.arg("-w")
+            self.btk.arg("-W")
+            self.btk.arg("-X")
+            self.btk.arg("-D")
+
+            out = self.btk.run()
+
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+
+            out_text = out.stdout
+
+            self.assertTrue(out_text)
+
+            match_json = json.loads(out_text)
+
+            self.assertTrue(match_json[0])
+            self.assertTrue(match_json[1])
+            self.assertTrue(match_json[2])
+
+            self.assertTrue(create_json[0] == match_json[0])
+            self.assertTrue(create_json[1] == match_json[1])
+            self.assertTrue(create_json[2] == match_json[2])
+
+            print("\b", end='')
+
+        sys.stdout.flush()
 
 
