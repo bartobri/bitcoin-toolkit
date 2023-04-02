@@ -30,9 +30,6 @@ class Address(unittest.TestCase):
     def setUp(self):
         self.btk = BTK("address")
 
-    def test_0010(self):
-        print("address")
-
     def io_test(self, opts, input, output, input_json=True, output_json=True):
 
         for input_group in inputs:
