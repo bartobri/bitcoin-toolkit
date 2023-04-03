@@ -158,7 +158,6 @@ int opts_init(opts_p opts, char *command)
         opts_add(OPTS_INPUT_FORMAT, required_argument);
         opts_add(OPTS_HOSTNAME, required_argument);
         opts_add(OPTS_PORT, required_argument);
-        opts_add(OPTS_HOSTNAME, required_argument);
         opts_add(OPTS_STREAM, no_argument);
     }
     else if (strcmp(command, "config") == 0)
