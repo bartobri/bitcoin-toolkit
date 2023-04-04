@@ -239,6 +239,8 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 		return -1;
 	}
 
+	memset(key->data, 0, PUBKEY_UNCOMPRESSED_LENGTH + 1);
+
 	memcpy(key->data, input, input_len);
 
 	return 1;
@@ -364,6 +366,8 @@ int pubkey_uncompress(PubKey key)
 		error_log("Invalid point values.");
 		return -1;
 	}
+
+	memset(key->data + 33, 0, 32);
 
 	l = (mpz_sizeinbase(point->y, 2) + 7) / 8;
 	mpz_export(key->data + 33 + (32 - l), &i, 1, 1, 1, 0, point->y);
