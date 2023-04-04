@@ -325,7 +325,7 @@ int btk_set_config_opts(opts_p opts)
 	char config_path[BUFSIZ];
 	memset(config_path, 0, BUFSIZ);
 
-	r = config_get_path(config_path);
+	r = config_get_path(config_path, opts->test);
     ERROR_CHECK_NEG(r, "Could not get config path.");
 
     r = config_load(config_path);
