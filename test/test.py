@@ -1,4 +1,4 @@
-from Tests import Privkey, Pubkey, Address, Balance, Node
+from Tests import Privkey, Pubkey, Address, Balance, Node, Config
 
 test = Privkey()
 test.run_test()
@@ -13,4 +13,7 @@ test = Balance()
 test.run_test()
 
 test = Node()
+test.run_test()
+
+test = Config()
 test.run_test()
