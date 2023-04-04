@@ -17,7 +17,8 @@
 #include "json.h"
 #include "mods/cJSON/cJSON.h"
 
-#define CONFIG_DEFAULT_FILE ".btk/btk.conf"
+#define CONFIG_DEFAULT_FILE        ".btk/btk.conf"
+#define CONFIG_DEFAULT_FILE_TEST   "/tmp/.btk/btk_test.conf"
 
 static char *(valid_keys[]) = {"rpc-auth", "hostname", NULL};
 static cJSON *config_json = NULL;
@@ -37,7 +38,7 @@ int config_is_valid(char *key)
     return 0;
 }
 
-int config_get_path(char *config_path)
+int config_get_path(char *config_path, int test_flag)
 {
     int r;
     char *sl;
@@ -45,14 +46,21 @@ int config_get_path(char *config_path)
 
     assert(config_path);
 
-    strcpy(config_path, getenv("HOME"));
-    if (*config_path == 0)
+    if (test_flag)
     {
-        error_log("Unable to determine home directory.");
-        return -1;
+        strcat(config_path, CONFIG_DEFAULT_FILE_TEST);
     }
-    strcat(config_path, "/");
-    strcat(config_path, CONFIG_DEFAULT_FILE);
+    else
+    {
+        strcpy(config_path, getenv("HOME"));
+        if (*config_path == 0)
+        {
+            error_log("Unable to determine home directory.");
+            return -1;
+        }
+        strcat(config_path, "/");
+        strcat(config_path, CONFIG_DEFAULT_FILE);
+    }
 
     // Create directory hierarchy if necessary.
     sl = config_path;

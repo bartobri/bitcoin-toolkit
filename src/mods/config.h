@@ -13,7 +13,7 @@
 #define BTK_VERSION_PATCH      0
 
 int config_is_valid(char *);
-int config_get_path(char *);
+int config_get_path(char *, int);
 int config_load(char *);
 int config_set(char *, char *);
 int config_unset(char *);

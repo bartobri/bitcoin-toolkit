@@ -29,7 +29,7 @@ int btk_config_main(output_item *output, opts_p opts, unsigned char *input, size
     memset(config_path, 0, BUFSIZ);
     memset(output_string, 0, BUFSIZ);
 
-    r = config_get_path(config_path);
+    r = config_get_path(config_path, opts->test);
     ERROR_CHECK_NEG(r, "Could not get config path.");
 
     r = config_load(config_path);
