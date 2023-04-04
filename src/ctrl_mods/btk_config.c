@@ -76,7 +76,7 @@ int btk_config_main(output_item *output, opts_p opts, unsigned char *input, size
         ERROR_CHECK_NEG(r, "Could not convert json config file to string.");
     }
 
-    *output = output_append_new_copy(*output, output_string, strlen(output_string));
+    *output = output_append_new_copy(*output, output_string, strlen(output_string) + 1);
     ERROR_CHECK_NULL(*output, "Memory allocation error.");
 
     config_unload();
