@@ -4,3 +4,4 @@ from .address import Address
 from .balance import Balance
 from .node import Node
 from .config import Config
+from .version import Version
