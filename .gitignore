@@ -4,3 +4,9 @@ notes.txt
 .vs
 *.swp
 __pycache__
+## leveldb stuff for testing
+test/balance/*.log
+test/balance/CURRENT
+test/balance/LOG
+test/balance/LOG.*
+test/balance/MANIFEST*
