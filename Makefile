@@ -30,16 +30,19 @@ LEVELDB_OBJS = $(OBJ)/$(MODS)/leveldb/stub.o
 ## Install libgmp-dev
 ifeq ($(shell ld -lgmp -M -o /dev/null 2>/dev/null | grep -c -m 1 libgmp ), 1)
    CLIBS += -lgmp
+   GMP_OBJS = $()
 endif
 
 ## Install libssl-dev
 ifeq ($(shell ld -lcrypto -M -o /dev/null 2>/dev/null | grep -c -m 1 libcrypto ), 1)
    CLIBS += -lcrypto
+   CRYPTO_OBJS = $()
 endif
 
 ## Install libleveldb-dev
 ifeq ($(shell ld -lleveldb -M -o /dev/null 2>/dev/null | grep -c -m 1 libleveldb ), 1)
    CLIBS += -lleveldb
+   LEVELDB_OBJS = $()
 endif
 
 .PHONY: all test install uninstall clean
