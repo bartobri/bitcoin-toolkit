@@ -105,3 +105,34 @@ class Balance(unittest.TestCase):
 
     def test_0090(self):
         self.io_test(opts=[f"--balance-path={self.balance_path}", "--in-format=list"], input_json=False)
+
+    ########
+    ## Grep
+    ########
+
+    def test_0100(self):
+        for key in inputs[0]:
+            self.btk.reset()
+            self.btk.set_input(key)
+            self.btk.arg(f"--balance-path={self.balance_path}")
+            self.btk.arg(f"--grep={inputs[0][key]}")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertTrue(out.stdout)
+            out_text = out.stdout
+            out_text = out_text.strip()
+            self.assertTrue(out_text)
+            self.assertTrue(out_text[0] == "[" or out_text[0] == "{")
+            out_json = json.loads(out_text)
+            out_text = out_json[0]
+            self.assertTrue(out_text)
+
+    def test_0110(self):
+        for key in inputs[0]:
+            self.btk.reset()
+            self.btk.set_input(key)
+            self.btk.arg(f"--balance-path={self.balance_path}")
+            self.btk.arg(f"--grep=nomatch")
+            out = self.btk.run()
+            self.assertTrue(out.returncode == 0)
+            self.assertFalse(out.stdout)
