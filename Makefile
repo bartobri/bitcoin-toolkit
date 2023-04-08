@@ -103,8 +103,11 @@ clean:
 	rm -rf $(OBJ)
 
 install:
+	install -d $(DESTDIR)$(mandir)/man1
+	install -m644 man/*.1 $(DESTDIR)$(mandir)/man1
 	install -d $(DESTDIR)$(bindir)
 	cd $(BIN) && install $(EXES) $(DESTDIR)$(bindir)
 
 uninstall:
+	rm -f $(DESTDIR)$(mandir)/man1/btk*
 	for exe in $(EXES); do rm $(DESTDIR)$(bindir)/$$exe; done
