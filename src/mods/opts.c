@@ -204,11 +204,6 @@ int opts_get(opts_p opts, int argc, char *argv[])
 
     assert(opts);
 
-    if (argc > 2 && argv[2][0] != '-')
-    {
-        opts->subcommand = argv[2];
-    }
-
     // Prepend a colon to turn off getopt errors.
     for (i = strlen(shortopts); i > 0; i--)
         shortopts[i] = shortopts[i-1];
@@ -345,8 +340,7 @@ int opts_get(opts_p opts, int argc, char *argv[])
     // We pre-increment because the first non-option is the command.
     if (++optind < argc)
     {
-        error_log("Unknown option: \"%s\".", argv[optind]);
-        return -1;
+        opts->subcommand = argv[optind];
     }
 
     // Only allow one input type
