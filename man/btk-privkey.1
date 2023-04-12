@@ -22,157 +22,186 @@ btk-privkey \- Create, modify, and format private keys.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIprivkey\fR [-j | -a | -b ] [-c] [-w | -h | -r | -s | -d] [-A | -J]
-            [-C | -U] [-M | -T] [-W | -H | -D] [-R <rehashes>]
+\fIbtk\fR \fIprivkey\fR [<options>]
 .fi
 .sp
 .SH "DESCRIPTION"
 .sp
-If -c is used, the privkey command creates a new random private key using your local CSPRNG as an input source.
+Create new cryptographically secure bitcoin private keys, transform existing bitcoin private keys, and generate bitcoin private keys from various types of input.
 .sp
-If an input option other than -n is specified, the privkey command will read data from standard input and interpret its format according to the input option. If no input option is specified, the privkey command will read data from standard input and attempt to automatically determine the format if it can be done with a reasonable degree of certainty.
+Input can be a bitcoin private key or other data types such as strings, hexideciaml data, decimal values, and even binary data. All of these data types can be transformed into a bitcoin private key, and visa-versa.
 .sp
-If no output option is specified, the private key will be formatted in the standard Wallet Import Format (WIF) by default. If an output option is specified, the private key will be formatted according to the output option. Private keys will be compressed by default, unless the input data contains a compression flag, in which case it will remain consistent with the input data. If an output option is specified for compression, the private key will be compressed in accordance with that option, which will override any compression flag provided in the input data.
+Change the compression flag of a bitcoin private key, tranforming it from compressed to uncompressed, and visa-versa.
+.sp
+Process single inputs as well as very large lists. In either case, in order to make sure the input is properly understood and processed, all input must adhere to one of the input formats described in the options section below.
+.sp
+Similarly, output also must adhere to one of multiple formats. See the input formats described in the options section below.
 
 .sp
 .SH "OPTIONS"
 
+.sp
+Note that the input/output format options govern how the input/output data is structured. This structure applies to the encapsulation of the data that is to be processed as input or produced as output. It does not apply to the data itself. The input/output type options apply to the encapsulated data to be processed as input and/or produced as output.
+
+.SS "Create"
+
 .PP
-\-c
+--create
 .RS 4
-Create a new random private key from your local CSPRNG.
+Create a random cryptographically secure private key from your local CSPRNG.
 .RE
 
 .SS "Input Format"
 
 .PP
-\-j
+\-j, --in-format=json
 .RS 4
-Input is formatted as a json data structure. This is the default option when no input format option is specified.
+Input is formatted as a list of values contained within a json array. If a valid json object (name/value pairs) is provided as input, the object will be traversed until the first array value is discovered. The values in this array will be processed as input.
 .RE
 
 .PP
-\-a
+\-l, --in-format=list
 .RS 4
-Input is formated as an ascii string.
+Input is formatted as a list of ascii strings delimited by a newline character.
 .RE
 
 .PP
-\-b
+\-b, --in-format=binary
 .RS 4
-Input is in binary data format. This option should be used when contents of a file at used as input. For example:
+Input is a single unstructured blob of binary data.
 .sp
 .RS 4
 cat my-image.jpg | btk privkey -b
-.RE
 .RE
 
 .SS "Input Type"
 
 .PP
-\-w
+\-w, --in-type=wif
 .RS 4
-Treat input as a wallet import formatted (wif) string.
+Input type is a private key in "Wallet Import Format" (wif).
 .RE
 
 .PP
-\-h
+\-x, --in-type=hex
 .RS 4
-Treat input as a hexadecimal formatted string. The string must be at least 64 characters long. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+Input type is a private key represented as a 32 byte hexadecimal string. The string must be at least 64 characters long (two chars for each byte). If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
 .RE
 
 .PP
-\-r
+\-r, --in-type=raw
 .RS 4
-Treat input as raw binary data. Input must be at least 32 bytes long. If a 33rd byte exists, it is interpreted as a compression flag. Any extra data beyond that point is ignored.
+Input type is a private key represented as 32 bytes of raw binary data. Input must be at least 32 bytes long. If a 33rd byte exists, it is interpreted as a compression flag. Any extra data beyond that point is ignored.
 .RE
 
 .PP
-\-s
+\-s, --in-type=string
 .RS 4
-Treat input as an arbitrary ASCII string. ASCII strings are processed through a SHA256 hash algorithm to generate a 32 byte private key.
+Input type is an arbitrary ASCII string. Strings are processed through a SHA256 hash algorithm to generate a 32 byte private key.
 .RE
 
 .PP
-\-d
+\-d, --in-type=decimal
 .RS 4
-Treat input as an ASCII string containing only decimal characters. The decimal value is converted to its 32-byte binary equivalent to generate\ a private key.
-.RE
-
-.PP
-\-x
-.RS 4
-Treat input as \fB"string binary data"\fR. This option reads each byte in the string, from right to left, and sets the corresponding byte in the private key to the same value, from right to left. This means that a string used with this option can not be longer than 32 bytes. When a string is less than 32 bytes, higher order bytes of the private key are padded with null bytes.
+Input is an private key represented as a decminal value. The decimal value is converted to a 32-byte binary equivalent to generate a private key.
 .RE
 
 .SS "Output Format"
 
 .PP
-\-J
+\-J, --out-format=json
 .RS 4
-Format output as a json data structure. This is the default option when no output format option is specified.
+Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
 .RE
 
 .PP
-\-A
+\-L, --out-format=list
 .RS 4
-Format output as an ascii string.
+Format output as an ascii string list delimited by a newline character.
+.RE
+
+.PP
+\-B, --out-format=binary
+.RS 4
+Format output as raw unstructured binary. This is equivelent to applying no format.
+.RE
+
+.PP
+\-Q, --out-format=qrcode
+.RS 4
+Format each element in the output list as a qrcode.
 .RE
 
 .SS "Output Type"
 
 .PP
-\-W
+\-W, --out-type=wif
 .RS 4
-Print the private key as a wallet import formatted (wif) string. This is the default option when no output format option is specified.
+Default. Transform the private key to a "Wallet Import Format" (wif) string.
 .RE
 
 .PP
-\-H
+\-X, --out-type=hex
 .RS 4
-Print the private key as a hexadecimal string. The string will be 66 characters in length representing 33 bytes of data: the 32 byte private key and the 1 byte compression flag.
+Transform the private key to a hexadecimal string. The string will be 64 characters in length. If a compression option is used, an extra pair of hex chars will be added to represent the compression flag, making the length 66 characters.
 .RE
 
 .PP
-\-D
+\-D, --out-type=decimal
 .RS 4
-Print the private key in decimal format. This is the literal decimal equivalent of the 32 byte private key, which will be a very large number.
+Transform the 32 byte private key to its decimal equivalent, which will be a very large number.
 .RE
 
-.SS "Output Compression"
-
-PP
-\-C
+.PP
+\-R, --out-type=raw
 .RS 4
-Compress the private key. Default.
+Transform the private key to 32 bytes of raw binary data. This is only useful when redirecting the output to a file or another program.
 .RE
 
-PP
-\-U
+.SS "Compression"
+
+.PP
+\-C, --compressed=true
 .RS 4
-Unompress the private key.
+Default. Compress the private key. 
 .RE
 
-.SS "Network"
-
-PP
-\-M
+.PP
+\-U, --compressed=false
 .RS 4
-If the output type is set to wif, this option sets the (M)AINNET prefix so the private key can be used on the MAINNET network. This is the default setting when no network option is specified, and the input does not contain a network flag, such as with wif formmatted private keys.
+Uncompress the private key.
 .RE
 
-PP
-\-T
+.SS "Other Options"
+
+.PP
+\--testnet
 .RS 4
-If the output type is set to wif, this option sets the TESTNET prefix so the private key can be used on the TESTNET network.
+Convert the private key for use on the testnet network. This option is only useful when used with the output type option set to "wif". Otherwise, it is ignored.
 .RE
 
-.SS "Rehashing"
-
-PP
-\-R
+.PP
+\--rehash=<count>
 .RS 4
-Reash count. This option requires an integer argument that specifies the number of times to rehash the private key. Rehashing consists of processing the raw private key data through a SHA256 hashing algorithm. Eash rehash generates a new private key. This option provides an extra layer of security when used in combination with input type options such as string or binary.
+Rehash the private key count times. Each rehash processes the raw private key data through a SHA256 hashing algorithm, deriving a new private key.
+.RE
+
+.PP
+\-G, --grep=<regex>
+.RS 4
+Only include output list items that match the regex string.
+.RE
+
+.PP
+\-S, --stream
+.RS 4
+Stream the output. This prints the output as soon as each input item is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last input item in a list is processed.
+.RE
+
+.PP
+\--trace
+.RS 4
+Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

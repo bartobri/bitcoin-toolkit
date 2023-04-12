@@ -22,34 +22,26 @@ btk-node \- Interface with a bitcoin node.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fInode\fR -n <node> [-p <port>] [-T]
+\fIbtk\fR \fInode\fR -h <host> [-p <port>]
 .fi
 .sp
 .SH "DESCRIPTION"
 .sp
-The node command connects to and sends a bitcoin 'version' command to a remote bitcoin node. It then dumps the response data to standard output in JSON format. Bitcoin's version information contains the bitcoin protocol version, available services, current block height, user agent string, and more.
-.sp
-The node command will connect on the standard bitcoin port of 8333. If the -T option is specified it will attempt to connect on port 18333 for TESTNET nodes. If the -p option is specified, the port number that is specified as its argument will override both of these defaults.
+Connect and send a bitcoin 'version' message to a remote bitcoin node and display the resulting verison info. Bitcoin's version information contains the bitcoin protocol version, available services, current block height, user agent string, and more.
 
 .sp
 .SH "OPTIONS"
 
 .PP
-\-n <node>
+\-h <host>, --hostname=<host>
 .RS 4
-Specify the remote node to connect to.
+Specify the hostname or IP of a remote bitcoin node.
 .RE
 
 .PP
-\-p <port>
+\-p <port>, --port=<port>
 .RS 4
-Specify the port number to connect to.
-.RE
-
-.PP
-\-T <port>
-.RS 4
-The node is a TESTNET node.
+Specify the port number or service of a remote bitcoin node. Default is port 8333.
 .RE
 
 .sp

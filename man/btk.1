@@ -22,14 +22,26 @@ btk \- Assortment of bitcoin-related tools.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR <command> [<opts>]
+\fIbtk\fR <command> [<format_opts>] [<command_opts>]
 .fi
 .sp
 .SH "DESCRIPTION"
 .sp
-Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, wallets, nodes, and data contained in the blockchain. There is little in the core bitcoin ecosystem that this toolkit cannot perform some sort of task in relation to.
+Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, wallets, nodes, and data contained in the blockchain.
 .sp
-A JSON standard for structured input and output is utilized by all tools which allows them to easily interact with other software programs, or by using I/O redirection and piping, to be strung together with eachother to execute a variety of complex tasks.
+It is useful to understand that the \fBbtk\fR utility itself handles all input and output as well as the format of input and output, and it dispatches execution, along with the input, to a command-specific function that handles most of the processing legwork. As such, the btk utility has it's own set of options for managing inout/output formats, listed below. These options can be combined with other options that are specific to the command you specify. Format options are described below. Command-specific options are described in their respective man pages. See below for a list of commands. A command man page can be accessed via the help command: \fBbtk help <command>\fR
+.sp
+Btk works with both ascii and binary data for both input and output. Ascii data can be formatted as a list, and btk is happy to processes long lists of data fast and efficiently, one list item at a time.
+.sp
+There are three input and output formats to be aware of, 1) json, 2) list, and 3) binary. Json is used by default for both input and output when no option is specified, with the exception that the input format can be auto-determined as a list or binary, without being specified as such, if it is reasonable to make such a determination. Input and output formats can be specified independently. You can, for example, specify json input and list output.
+.sp
+\fBjson\fR - When the input format option is specified as json, input is interpreted as a json structure. Nonconforming input will produce an error. When the output format is specified as json, output will be formatted as a json structure. This helps btk become more interoperable with other programs and systems using the json standard.
+.sp
+\fBlist\fR - When the input format option is specified as a list, input is interpreted as a plain ascii list delimited by a newline character. A list of one item, such as a plain string with no newline character, is considered valid input. When the output format option is specified as a list, output is will be formatted as an ascii list using the newline character as the delimiter if necessary.
+.sp
+\fBbinary\fR - When the input format option is specified as binary, input will be interpreted as raw unstructured binary data and will be understood to be a single input rather than a list or json structure which can contain multiple inputs. This is generally useful when working with binary files as input. When the output format option is specified as binary, output will be formatted raw and unstructured binary. This is generlaly useful for non-ascii output that can be redirected to a file or piped to another command.
+.sp
+Btk doesn't try to hold your hand or protect you form yourself. So it usually doesn't place any restructions on the combination of input and output formats you choose to use. You can, for example, specify the binary output option for ascii data, and bk is happy to print the data as an ascii blob rather than a structured list or json object.
 .sp
 .SH "COMMANDS"
 .PP
@@ -48,25 +60,69 @@ Calculate and format public keys from private keys.
 Generate and format an address from a public key.
 .RE
 .PP
+\fBbalance\fR
+.RS 4
+Query any address balance.
+.RE
+.PP
 \fBnode\fR
 .RS 4
 Interface with a bitcoin node.
 .RE
 .PP
-\fButxodb\fR
+\fBconfig\fR
 .RS 4
-Query utxo data from bitcoin core.
+Configure command option default values/settings.
 .RE
 .PP
-\fBaddressdb\fR
+\fBhelp\fR
 .RS 4
-Create database to store/query address balances.
+Display help info an dman pages.
 .RE
 .PP
 \fBversion\fR
 .RS 4
 Print btk version info.
 .RE
+.sp
+.SH "FORMAT OPTIONS"
+
+.PP
+\-j, --in-format=json
+.RS 4
+Treat input contained within a json structured object.
+.RE
+
+.PP
+\-l, --in-format=list
+.RS 4
+Treat input as an ascii list delimited by a newline character. Plain ascii strings are also valid (i.e. list of one).
+.RE
+
+.PP
+\-b, --in-format=binary
+.RS 4
+Treat input as a single unstructured blob of binary data.
+.RE
+
+.PP
+\-J, --out-format=json
+.RS 4
+Print output contained within a json structured object.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Print output as an ascii list delimited by a newline character.
+.RE
+
+.PP
+\-B, --out-format=binary
+.RS 4
+Print output as unstructured binary data.
+.RE
+
 .sp
 .SH "COMMAND OPTIONS"
 .sp

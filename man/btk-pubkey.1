@@ -22,82 +22,101 @@ btk-pubkey \- Calculate, format, compress public keys.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIpubkey\fR [-j | -a ] [-w | -h ] [-C | -U]
+\fIbtk\fR \fIpubkey\fR [<options>]
 .fi
 .sp
 .SH "DESCRIPTION"
 .sp
-The pubkey command generates the corresponding public key from a given private key. Input data can be a private key in the wif (wallet import format) format, or a public key in raw binary or hexidecimal format.
-.sp
-The pubkey command will read data from standard input and interpret the format according to the input option specified. If no input option is specified, the pubkey command will read data from standard input and attempt to automatically determine the format if it can be done with a reasonable degree of certainty.
-.sp
-The pubkey command will calculate a public key from the provided input data and print it in the format specified by the output option. If no output option is specified, the public key will be formatted as a hexidecimal string. The public key will be compressed by default, unless the input data contains a compression flag, in which case it will remain consistent with the input data. If an output option is specified for compression, the public key will be compressed in accordance with that option, which will override any compression flag provided in the input data.
+Generate the corresponding public key from a private key, and compress/uncompress existing public keys. Process single inputs as well as large lists.
 
 .sp
 .SH "OPTIONS"
 
+.sp
+Note that the input/output format options govern how the input/output data is structured. This structure applies to the encapsulation of the data that is to be processed as input or produced as output. It does not apply to the data itself. The input/output type options apply to the encapsulated data to be processed as input and/or produced as output.
+
 .SS "Input Format"
 
 .PP
-\-j
+\-j, --in-format=json
 .RS 4
-Input is formatted as a json data structure. This is the default option when no input format option is specified.
+Input is formatted as a list of values contained within a json array. If a valid json object (name/value pairs) is provided as input, the object will be traversed until the first array value is discovered. The values in this array will be processed as input.
 .RE
 
 .PP
-\-a
+\-l, --in-format=list
 .RS 4
-Input is formated as an ascii string.
+Input is formatted as a list of ascii strings delimited by a newline character.
 .RE
 
 .SS "Input Type"
 
 .PP
-\-w
+\-w, --in-type=wif
 .RS 4
-Treat input as a wallet import formatted (wif) string.
+Input type is a private key in "Wallet Import Format" (wif).
 .RE
 
 .PP
-\-h
+\-x, --in-type=hex
 .RS 4
-Treat input as a hexadecimal formatted string. The string must be at least 64 characters long. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+Input type is a public key represented as a 33 (copressed) or 65 (uncompressed) byte byte hexadecimal string.
 .RE
 
 .SS "Output Format"
 
 .PP
-\-J
+\-J, --out-format=json
 .RS 4
-Format output as a json data structure. This is the default option when no output format option is specified.
+Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
 .RE
 
 .PP
-\-A
+\-L, --out-format=list
 .RS 4
-Format output as an ascii string.
+Format output as an ascii string list delimited by a newline character.
 .RE
 
 .SS "Output Type"
 
 .PP
-\-H
+\-X, --out-type=hex
 .RS 4
-Default. Print the private key as a hexadecimal string. The string will be 66 characters in length representing 33 bytes of data: the 32 byte private key and the 1 byte compression flag.
+Default. Transform the private key to a hexadecimal string. The string will be 64 characters in length. If a compression option is used, an extra pair of hex chars will be added to represent the compression flag, making the length 66 characters.
 .RE
 
-.SS "Output Compression"
+.SS "Compression"
 
-PP
-\-C
+.PP
+\-C, --compressed=true
 .RS 4
-Compress the private key. Default.
+Default. Compress the private key. 
 .RE
 
-PP
-\-U
+.PP
+\-U, --compressed=false
 .RS 4
-Unompress the private key.
+Uncompress the private key.
+.RE
+
+.SS "Other Options"
+
+.PP
+\-G, --grep=<regex>
+.RS 4
+Only include output list items that match the regex string.
+.RE
+
+.PP
+\-S, --stream
+.RS 4
+Stream the output. This prints the output as soon as each input item is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last input item in a list is processed.
+.RE
+
+.PP
+\--trace
+.RS 4
+Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

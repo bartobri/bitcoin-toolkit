@@ -1,0 +1,63 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-config \- Configure command option default values/settings.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIbalance\fR [--set <option_key>=<option_val>] [--unset <option_key>] [--dump]
+.fi
+
+.sp
+.SH "DESCRIPTION"
+
+.sp
+Set default values for certain command options so that they do not need to be specified for each time a command is executed.
+.sp
+Currently this is limited to just the --hostname and --rpc-auth options to help simplify the balance command when creating and updating the balance database. Future releases will expand on the number of options available.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+--set <option_key>=<option_val>
+.RS 4
+Set a default value for option_key. The option_key is equivilent of the long opt verison of an option without the preceeding double-hyphens (i.e. the key for --hostname is "hostname"). When a command is executed requiring this option, the value will be set automatically. You can still override the default value from the command line.
+.sp
+Valid keys are currently limited to "hostname" and "rpc-auth" (--hostname and --rpc-auth options respectively).
+.RE
+
+.PP
+--unset <option_key>
+.RS 4
+Remove the default value for option_key.
+.RE
+
+.PP
+--dump
+.RS 4
+Dump all configuration keys and values.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-privkey\fR(1), \fBbtk-address\fR(1), \fBbtk-balance\fR(1)
