@@ -171,7 +171,7 @@ int opts_init(opts_p opts, char *command)
     }
     else if (strcmp(command, "version") == 0)
     {
-        // No options
+        opts_add(OPTS_OUTPUT_FORMAT, required_argument);
     }
     else if (strcmp(command, "help") == 0)
     {
