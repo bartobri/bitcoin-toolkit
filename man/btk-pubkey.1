@@ -18,24 +18,25 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-btk-pubkey \- Calculate, format, compress public keys.
+btk-pubkey \- Generate or modify public keys.
 .SH "SYNOPSIS"
 .sp
 .nf
 \fIbtk\fR \fIpubkey\fR [<options>]
 .fi
+
 .sp
 .SH "DESCRIPTION"
+
 .sp
-Generate the corresponding public key from a private key, and compress/uncompress existing public keys. Process single inputs as well as large lists.
+Generate the corresponding public key from a private key, or compress/uncompress existing public keys.
+.sp
+Public keys are represented in hexidecimal format only.
 
 .sp
 .SH "OPTIONS"
 
-.sp
-Note that the input/output format options govern how the input/output data is structured. This structure applies to the encapsulation of the data that is to be processed as input or produced as output. It does not apply to the data itself. The input/output type options apply to the encapsulated data to be processed as input and/or produced as output.
-
-.SS "Input Format"
+.SS "Input/Output Format"
 
 .PP
 \-j, --in-format=json
@@ -47,6 +48,18 @@ Input is formatted as a list of values contained within a json array. If a valid
 \-l, --in-format=list
 .RS 4
 Input is formatted as a list of ascii strings delimited by a newline character.
+.RE
+
+.PP
+\-J, --out-format=json
+.RS 4
+Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format output as an ascii string list delimited by a newline character.
 .RE
 
 .SS "Input Type"
@@ -63,46 +76,24 @@ Input type is a private key in "Wallet Import Format" (wif).
 Input type is a public key represented as a 33 (copressed) or 65 (uncompressed) byte byte hexadecimal string.
 .RE
 
-.SS "Output Format"
-
-.PP
-\-J, --out-format=json
-.RS 4
-Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
-.RE
-
-.PP
-\-L, --out-format=list
-.RS 4
-Format output as an ascii string list delimited by a newline character.
-.RE
-
-.SS "Output Type"
-
-.PP
-\-X, --out-type=hex
-.RS 4
-Default. Transform the private key to a hexadecimal string. The string will be 64 characters in length. If a compression option is used, an extra pair of hex chars will be added to represent the compression flag, making the length 66 characters.
-.RE
-
 .SS "Compression"
 
 .PP
 \-C, --compressed=true
 .RS 4
-Default. Compress the private key. 
+Default. Compress the public key. 
 .RE
 
 .PP
 \-U, --compressed=false
 .RS 4
-Uncompress the private key.
+Uncompress the public key.
 .RE
 
-.SS "Other Options"
+.SS "Misc"
 
 .PP
-\-G, --grep=<regex>
+\-G <regex>, --grep=<regex>
 .RS 4
 Only include output list items that match the regex string.
 .RE
@@ -110,13 +101,13 @@ Only include output list items that match the regex string.
 .PP
 \-S, --stream
 .RS 4
-Stream the output. This prints the output as soon as each input item is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last input item in a list is processed.
+Stream the output. This prints the output as soon as each input item in a list is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last item is processed.
 .RE
 
 .PP
 \--trace
 .RS 4
-Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
+When output is formatted as json, include the input string in the output json data structure. The input string will be set as a json object key, and the value will be the normal output array. This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

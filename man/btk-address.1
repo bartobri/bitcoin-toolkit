@@ -18,7 +18,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-btk-address \- Generate and format an address.
+btk-address \- Generate addresses from a public keys.
 .SH "SYNOPSIS"
 .sp
 .nf
@@ -27,15 +27,22 @@ btk-address \- Generate and format an address.
 .sp
 .SH "DESCRIPTION"
 .sp
-Generate an address from a public key, or directly from a private key. An address can be encoded as a legacy P2PKH address, or a newer P2WPKH bech32 address.
+Generate an address from a public key, or directly from a private key.
+.sp
+Input can be one of two types, specified by the "Input Type" options:
+.sp
+.RS 4
+1) A public key in hexidecimal format.
+.sp
+2) A private keys in WIF (Wallet Import Format) format.
+.RE
+.sp
+For each input provided, whether singular or a list, this command will produce an address, encoded as a legacy P2PKH or newer P2WPKH bech32. See the "Address Encoding" options for more info.
 
 .sp
 .SH "OPTIONS"
 
-.sp
-Note that the input/output format options govern how the input/output data is structured. This structure applies to the encapsulation of the data that is to be processed as input or produced as output. It does not apply to the data itself. The input/output type options apply to the encapsulated data to be processed as input and/or produced as output.
-
-.SS "Input Format"
+.SS "Input/Output Format"
 
 .PP
 \-j, --in-format=json
@@ -49,6 +56,18 @@ Input is formatted as a list of values contained within a json array. If a valid
 Input is formatted as a list of ascii strings delimited by a newline character.
 .RE
 
+.PP
+\-J, --out-format=json
+.RS 4
+Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format output as an ascii string list delimited by a newline character.
+.RE
+
 .SS "Input Type"
 
 .PP
@@ -60,21 +79,7 @@ Input type is a private key in "Wallet Import Format" (wif).
 .PP
 \-x, --in-type=hex
 .RS 4
-Input type is a public key represented as a 33 (copressed) or 65 (uncompressed) byte byte hexadecimal string.
-.RE
-
-.SS "Output Format"
-
-.PP
-\-J, --out-format=json
-.RS 4
-Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
-.RE
-
-.PP
-\-L, --out-format=list
-.RS 4
-Format output as an ascii string list delimited by a newline character.
+Input type is a public key represented as a 33 (copressed) or 65 (uncompressed) byte hexadecimal string.
 .RE
 
 .SS "Address Encoding"
@@ -91,10 +96,10 @@ Default. Encode the address using legacy Pay-to-PubKey-Hash encoding.
 Encode the address using newer Pay-to-Witness-PubKey-Hash bech32 encoding.
 .RE
 
-.SS "Other Options"
+.SS "Misc"
 
 .PP
-\-G, --grep=<regex>
+\-G <regex>, --grep=<regex>
 .RS 4
 Only include output list items that match the regex string.
 .RE
@@ -108,7 +113,7 @@ Stream the output. This prints the output as soon as each input item is processe
 .PP
 \--trace
 .RS 4
-Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
+When output is formatted as json, include the input string in the output json data structure. The input string will be set as a json object key, and the value will be the normal output array. This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

@@ -18,7 +18,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-btk-privkey \- Create, modify, and format private keys.
+btk-privkey \- Create or modify private keys.
 .SH "SYNOPSIS"
 .sp
 .nf
@@ -27,31 +27,16 @@ btk-privkey \- Create, modify, and format private keys.
 .sp
 .SH "DESCRIPTION"
 .sp
-Create new cryptographically secure bitcoin private keys, transform existing bitcoin private keys, and generate bitcoin private keys from various types of input.
+Create new cryptographically secure bitcoin private keys, transform existing bitcoin private keys, or generate bitcoin private keys from various types of alternative input such as passphrases or jpegs.
 .sp
-Input can be a bitcoin private key or other data types such as strings, hexideciaml data, decimal values, and even binary data. All of these data types can be transformed into a bitcoin private key, and visa-versa.
+Key transformations can ocure between WIF (Wallet Import Format), hexideciaml, decimal, or raw binary. You can also change the compression flag to make a key compressed or uncompressed.
 .sp
-Change the compression flag of a bitcoin private key, tranforming it from compressed to uncompressed, and visa-versa.
-.sp
-Process single inputs as well as very large lists. In either case, in order to make sure the input is properly understood and processed, all input must adhere to one of the input formats described in the options section below.
-.sp
-Similarly, output also must adhere to one of multiple formats. See the input formats described in the options section below.
+You can generate private keys from alternative inputs such as plain asci text (such as a passphrase) or binary data (such as a jpeg file).
 
 .sp
 .SH "OPTIONS"
 
-.sp
-Note that the input/output format options govern how the input/output data is structured. This structure applies to the encapsulation of the data that is to be processed as input or produced as output. It does not apply to the data itself. The input/output type options apply to the encapsulated data to be processed as input and/or produced as output.
-
-.SS "Create"
-
-.PP
---create
-.RS 4
-Create a random cryptographically secure private key from your local CSPRNG.
-.RE
-
-.SS "Input Format"
+.SS "Input/Output Format"
 
 .PP
 \-j, --in-format=json
@@ -71,10 +56,35 @@ Input is formatted as a list of ascii strings delimited by a newline character.
 Input is a single unstructured blob of binary data.
 .sp
 .RS 4
-cat my-image.jpg | btk privkey -b
+$ cat my-image.jpg | btk privkey -b
+.RE
 .RE
 
-.SS "Input Type"
+.PP
+\-J, --out-format=json
+.RS 4
+Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format output as an ascii string list delimited by a newline character.
+.RE
+
+.PP
+\-B, --out-format=binary
+.RS 4
+Format output as raw unstructured binary. This is equivelent to applying no format.
+.RE
+
+.PP
+\-Q, --out-format=qrcode
+.RS 4
+Format each element in the output list as a qrcode.
+.RE
+
+.SS "Input/Output Type"
 
 .PP
 \-w, --in-type=wif
@@ -106,34 +116,6 @@ Input type is an arbitrary ASCII string. Strings are processed through a SHA256 
 Input is an private key represented as a decminal value. The decimal value is converted to a 32-byte binary equivalent to generate a private key.
 .RE
 
-.SS "Output Format"
-
-.PP
-\-J, --out-format=json
-.RS 4
-Default. Format output as a json data structure. This is usually a json array, but it can sometimes be a key/value object when other options are applied.
-.RE
-
-.PP
-\-L, --out-format=list
-.RS 4
-Format output as an ascii string list delimited by a newline character.
-.RE
-
-.PP
-\-B, --out-format=binary
-.RS 4
-Format output as raw unstructured binary. This is equivelent to applying no format.
-.RE
-
-.PP
-\-Q, --out-format=qrcode
-.RS 4
-Format each element in the output list as a qrcode.
-.RE
-
-.SS "Output Type"
-
 .PP
 \-W, --out-type=wif
 .RS 4
@@ -158,6 +140,14 @@ Transform the 32 byte private key to its decimal equivalent, which will be a ver
 Transform the private key to 32 bytes of raw binary data. This is only useful when redirecting the output to a file or another program.
 .RE
 
+.SS "Create"
+
+.PP
+--create
+.RS 4
+Create a random cryptographically secure private key from your local CSPRNG.
+.RE
+
 .SS "Compression"
 
 .PP
@@ -172,7 +162,7 @@ Default. Compress the private key.
 Uncompress the private key.
 .RE
 
-.SS "Other Options"
+.SS "Misc"
 
 .PP
 \--testnet
@@ -187,7 +177,7 @@ Rehash the private key count times. Each rehash processes the raw private key da
 .RE
 
 .PP
-\-G, --grep=<regex>
+\-G <regex>, --grep=<regex>
 .RS 4
 Only include output list items that match the regex string.
 .RE
@@ -195,13 +185,13 @@ Only include output list items that match the regex string.
 .PP
 \-S, --stream
 .RS 4
-Stream the output. This prints the output as soon as each input item is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last input item in a list is processed.
+Stream the output. This prints the output as soon as each input item in a list is processed. Useful for large list processing. When this option is not used (default), all output is printed to stdout when the last item is processed.
 .RE
 
 .PP
 \--trace
 .RS 4
-Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
+When output is formatted as json, include the input string in the output json data structure. The input string will be set as a json object key, and the value will be the normal output array. This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

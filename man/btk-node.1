@@ -18,7 +18,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-btk-node \- Interface with a bitcoin node.
+btk-node \- Query data from a bitcoin node.
 .SH "SYNOPSIS"
 .sp
 .nf
@@ -27,7 +27,9 @@ btk-node \- Interface with a bitcoin node.
 .sp
 .SH "DESCRIPTION"
 .sp
-Connect and send a bitcoin 'version' message to a remote bitcoin node and display the resulting verison info. Bitcoin's version information contains the bitcoin protocol version, available services, current block height, user agent string, and more.
+Connect to a remote bitcoin node and send/receive bitcoin protocol commands.
+.sp
+Currently, only one command is supported: version. The verison command is the first command in a node handshake process where nodes exchange data about their current state. This includes the protocol version, available services, current block height, user agent string, and more. This is a useful command to get basic information form any node on the bitcoin network.
 
 .sp
 .SH "OPTIONS"

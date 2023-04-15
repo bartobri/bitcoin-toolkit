@@ -29,16 +29,20 @@ btk-balance \- Query any address balance.
 .SH "DESCRIPTION"
 
 .sp
-Query an address balance. Query the balance of lists of addresses. Query thousands of addresses in seconds.
+Generate a local database of all address balances in the blockchain and query balance of any address in near-real-time. Query the balance of thousands of addresses in less than a second.
 .sp
-Before you can query an address balance you must create the balance database. This is built from a bitcoin core full node with a full copy of the blockchain. It can be built remotely using json-rpc over a local area network, or it can be built using a copy the bitcoin core node chainstate database. See "Database Creation" options below.
+Input is an address, or a list of addresses, that you wish to query the balance of.
 .sp
-Once built, the balance database can be updated periodically via json-rpc as new blocks arrive. See "Database Update" options below.
+Output is the address balance, represeted in satoshies as a decimal string (i.e. "100000000"), for each input provided.
+.sp
+The address balance database must be initially built from a bitcoin core full node that has a full copy of the blockchain. You must have administrative access to this node. The database can be built remotely using json-rpc over a local area network, or it can be built directly from the node database files on the same machine as the node itself. See "Database Creation" options below.
+.sp
+The balance database is built in such a way that it can be easily and quickly updated as new blocks arrive at your full node. See "Database Update" options below.
 
 .sp
 .SH "OPTIONS"
 
-.SS "Input Format"
+.SS "Input/Output Format"
 
 .PP
 \-j, --in-format=json
@@ -51,8 +55,6 @@ Input is formatted as a list of values contained within a json array. If a valid
 .RS 4
 Input is formatted as a list of ascii strings delimited by a newline character.
 .RE
-
-.SS "Output Format"
 
 .PP
 \-J, --out-format=json
@@ -71,17 +73,13 @@ Format output as an ascii string list delimited by a newline character.
 .PP
 \--create
 .RS 4
-Create the balance database using json-rpc to a remote bitcoin node. The remote node must have json-rpc open and available on the network. Options --hostname and --rpc-auth are required (see below).
-.sp
-By default, the balance database is stored at ~/.btk/balance. You can optionally use the option --balance-path to specify a location other than default.
+Create the balance database using json-rpc to a remote bitcoin node. The remote node must have the json-rpc service open and available on the network. Options --hostname and --rpc-auth are required (see below).
 .RE
 
 .PP
 \--create-from-chainstate
 .RS 4
 Create the balance database using the bitcoin core node chainstate database. This does not require json-rpc access to a remote bitcoin core node, but it does require a copy of its chainstate database. You can either copy it from a remote bitcoin node, or if the bitcoin node is running on the same machine, you can use it in it's default location, but you must shut down bitcoin core while the balance database is building. You can specify the location of the chainstate database using option --chainstate-path.
-.sp
-By default, the balance database is stored at ~/.btk/balance. You can optionally use the option --balance-path to specify a location other than default.
 .RE
 
 .PP
@@ -99,7 +97,7 @@ If other than the default path of ~/.bitcoin/chainstate, this specifies path of 
 .PP
 \--update
 .RS 4
-Update the balance database to account for new blocks that have arrived at your bitcoin core full node. This option requires json-rpc access to a bitcoin full node with a full copy of the blockchain. Options --hostname and --rpc-auth are required (see below).
+Update the balance database to account for new blocks that have arrived at your bitcoin core full node. This option requires json-rpc access to your node with a full copy of the blockchain. Unlike the initial creation of the balance database, you cannot update the database directly from the full node database files due the nature in which it stores UTXO data. Options --hostname and --rpc-auth are required for json-rpc updates (see below).
 .RE
 
 .SS "Node Connection"
@@ -113,19 +111,21 @@ Specify the hostname of a bitcoin full node.
 .PP
 \-p <port>, --port=<port>
 .RS 4
-Specify the json-rpc port of a bitcoin full node.
+Specify the json-rpc port of a bitcoin full node. 8332 by default.
 .RE
 
 .PP
 \--rpc-auth=<auth_string>
 .RS 4
-Specify the json-rpc auth string used to authenticate to the json-rpc service of a bitcoin core full node. See the bitcoin core json-rpc auth documentation for setting up a new rpc auth user and password. The auth string is formatted as a base64 string containing the username, then a colon, then the password. The password is usually also encoded as base 64 seperately. In pseudo code, the auth string looks something like this: base64(username:base64(password))
+Specify the json-rpc auth string used to authenticate to the json-rpc service of your bitcoin core full node. See the bitcoin core json-rpc auth documentation for setting up a new rpc auth user and password. The auth string is formatted as a base64 string containing the username, then a colon, then the password. The password is usually also encoded as base 64 seperately. In pseudo code, the auth string looks something like this:
+.sp
+base64(username:base64(password))
 .RE
 
 .SS "Other"
 
 .PP
-\-G, --grep=<regex>
+\-G <regex>, --grep=<regex>
 .RS 4
 Only include output list items that match the regex string.
 .RE
@@ -139,7 +139,7 @@ Stream the output. This prints the output as soon as each input item is processe
 .PP
 \--trace
 .RS 4
-Set the input as the json key and the output as the array value. This cna only be used when the output format is set to "json". This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
+When output is formatted as json, include the input string in the output json data structure. The input string will be set as a json object key, and the value will be the normal output array. This is useful when you want to preserve all the inputs used in a string of commands so that they are all represented in the final outout.
 .RE
 
 .sp

@@ -18,11 +18,13 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-btk-config \- Configure command option default values/settings.
+btk-config \- Configure command option default values.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIbalance\fR [--set <option_key>=<option_val>] [--unset <option_key>] [--dump]
+\fIbtk\fR \fIconfig\fR [--set <option_key>=<option_val>]
+           [--unset <option_key>]
+           [--dump]
 .fi
 
 .sp
@@ -39,7 +41,7 @@ Currently this is limited to just the --hostname and --rpc-auth options to help 
 .PP
 --set <option_key>=<option_val>
 .RS 4
-Set a default value for option_key. The option_key is equivilent of the long opt verison of an option without the preceeding double-hyphens (i.e. the key for --hostname is "hostname"). When a command is executed requiring this option, the value will be set automatically. You can still override the default value from the command line.
+Set a default value for option_key. The option_key is equivilent of the "long opt" verison of an option without the preceeding double-hyphens (i.e. the key for --hostname is "hostname"). When a command is executed requiring this option, the value will be set automatically. You can still override the default value from the command line.
 .sp
 Valid keys are currently limited to "hostname" and "rpc-auth" (--hostname and --rpc-auth options respectively).
 .RE
