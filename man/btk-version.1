@@ -6,7 +6,7 @@
 .\"    Source: Bitcoin Toolkit 3.0.0
 .\"  Language: English
 .\"
-.TH "BTK" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.TH "BTK-VERSION" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
 .\" -----------------------------------------------------------------
 .\" * set default formatting
 .\" -----------------------------------------------------------------
@@ -33,19 +33,19 @@ Print btk version information.
 .SH "OPTIONS"
 
 .PP
-\-J, --out-format=json
+\-L, --out-format=list
 .RS 4
-Default. Format output as a json array data structure.
+Format the output as a list of ascii strings delimited by a newline character.
 .RE
 
 .PP
-\-L, --out-format=list
+\-J, --out-format=json
 .RS 4
-Format output as an ascii string list delimited by a newline character.
+Format the output as a list of ascii strings contained within a json array. This is the default output format when no other is specified.
 .RE
 
 .sp
 .SH "SEE ALSO"
 
 .sp
-\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)
+\fBbtk\fR(1)
