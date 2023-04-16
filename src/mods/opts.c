@@ -97,7 +97,8 @@ int opts_init(opts_p opts, char *command)
     opts->trace = 0;
     opts->test = 0;
     opts->command = command;
-    opts->subcommand = NULL;
+    opts->input = NULL;
+    opts->input_count = 0;
 
     memset(longopts, 0, OPTS_MAX * sizeof(*longopts));
     memset(shortopts, 0, OPTS_MAX);
@@ -336,11 +337,17 @@ int opts_get(opts_p opts, int argc, char *argv[])
         }
     }
 
-    // Checking for extra non-options.
+    // Storing non-options in input array.
     // We pre-increment because the first non-option is the command.
-    if (++optind < argc)
+    optind++;
+    for (int i = 0; optind < argc; i++, optind++)
     {
-        opts->subcommand = argv[optind];
+        opts->input_count++;
+
+        opts->input = realloc(opts->input, sizeof(char *) * opts->input_count);
+        ERROR_CHECK_NULL(opts->input, "Memory allocation error.");
+
+        opts->input[i] = argv[optind];
     }
 
     // Only allow one input type

@@ -50,7 +50,8 @@ struct opts {
     int trace;
     int test;
     char *command;
-    char *subcommand;
+    char **input;
+    int input_count;
 };
 
 int opts_init(opts_p, char *);

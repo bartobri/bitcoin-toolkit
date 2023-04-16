@@ -157,7 +157,36 @@ int main(int argc, char *argv[])
 	{
 		input_formats:
 
-		if (opts->input_format_binary)
+		if (opts->input_count > 0)
+		{
+			for (i = 0; i < opts->input_count; i++)
+			{
+				input = input_new_item((unsigned char *)opts->input[i], strlen(opts->input[i]));
+				ERROR_CHECK_NULL(input, "Could not create new input item.");
+
+				output_offset = output_length(output);
+
+				r = command_main(&output, opts, input->data, input->len);
+				BTK_CHECK_NEG(r, NULL);
+
+				r = output_append_input(output, input, output_offset);
+				ERROR_CHECK_NEG(r, "Could not append input to output list.");
+
+				// output_append_input() appends a copy, so we need to free the
+				// input list to prevent a memory leak.
+				input_free(input);
+
+				if (opts->output_stream)
+				{
+					r = btk_print_output(output, opts);
+					BTK_CHECK_NEG(r, "Error printing output.");
+
+					output_free(output);
+					output = NULL;
+				}
+			}
+		}
+		else if (opts->input_format_binary)
 		{
 			r = input_get(&input);
 			BTK_CHECK_NEG(r, NULL);
@@ -193,7 +222,7 @@ int main(int argc, char *argv[])
 				BTK_CHECK_NEG(r, NULL);
 
 				r = output_append_input(output, input, output_offset);
-				ERROR_CHECK_NEG(r, "Coul dnot append input to output list.");
+				ERROR_CHECK_NEG(r, "Could not append input to output list.");
 
 				// output_append_input() appends a copy, so we need to free the
 				// input list to prevent a memory leak.
