@@ -22,7 +22,7 @@ btk-balance \- Query any address balance.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIbalance\fR [<options>]
+\fIbtk\fR \fIbalance\fR [<option>...] [<input_item>...]
 .fi
 
 .sp
@@ -95,7 +95,7 @@ base64(username:base64(password))
 .RE
 
 .PP
-The input/output format options tell btk the format of the list that the items are contained within.
+The input/output format options tell btk the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
 .RE
 
 .PP

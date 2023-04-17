@@ -22,7 +22,7 @@ btk-pubkey \- Generate or modify public keys.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIpubkey\fR [<options>]
+\fIbtk\fR \fIpubkey\fR [<option>...] [<input_item>...]
 .fi
 
 .sp
@@ -75,7 +75,7 @@ Input is a public key represented as a 66-character (compressed) or 130-characte
 .RE
 
 .PP
-The input/output format options tell btk the format of the list that the items are contained within.
+The input/output format options tell btk the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
 .RE
 
 .PP

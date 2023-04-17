@@ -22,7 +22,7 @@ btk-privkey \- Create or transform private keys.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR \fIprivkey\fR [<options>]
+\fIbtk\fR \fIprivkey\fR [<option>...] [<input_item>...]
 .fi
 .sp
 .SH "DESCRIPTION"
@@ -139,7 +139,7 @@ Input is arbitrary binary data. Data is processed through a SHA256 hash algorith
 .RE
 
 .PP
-Btk works with both binary and ascii data, and the input/output format options tell btk which of these two it is working with. In the case of ascii data, they also specify the format of the list that the items are contained within.
+Btk works with both binary and ascii data, and the input/output format options tell btk which of these it is working with. In the case of ascii data, they also specify the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
 .RE
 
 .PP

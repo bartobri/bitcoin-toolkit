@@ -22,7 +22,7 @@ btk \- Assortment of bitcoin-related command-line tools.
 .SH "SYNOPSIS"
 .sp
 .nf
-\fIbtk\fR <command> [<command_opts>]
+\fIbtk\fR <command> [<command_opts>] [<input_item> ...]
 .fi
 
 .sp
@@ -31,7 +31,7 @@ btk \- Assortment of bitcoin-related command-line tools.
 .sp
 Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, addresses, nodes, and blockchain data.
 .sp
-Input, when required, can be a single item or a list of items, and is generally expected to conform to one of three formats: 1) a json array, 2) an ascii list delimited by a newline char, or 3) unstructured binary data. Btk will auto-determine the input format without you specifying it with a command option if it can be determined with a reasonable degree of certainty. However, command options to tell btk which input format to use are available and sometimes necessary. Some commands, due to their nature, limit the input format options.
+Input, when required, can be a single item or a list of items. Input items can be supplied as a command arguments or with input redirection (i.e. pipe). In the case of command arguments, all non-option arguments after the \fIcommand\fR argument are considered to be input items. In the case where input is supplied with input redirection, in order to properly parse multiple input items, input is expected to conform to one of three formats: 1) an ascii list delimited by a newline char, 2) a json array, or 3) unstructured binary data. There are command options available that specify which format your input conforms to. However, btk will auto-determine the input format without a command option if it can be determined with a reasonable degree of certainty.
 .sp
 One or more output items is usually produced for each input item, and like input, it usually conforms to the same three formats. By default, output will be formatted as a json array unless otherwise specified with a command option, or if the nature of the command you use necessitates an override of this default behavior. Further, some commands have extra output format options, such as representing the output item(s) as a qrcode.
 .sp
