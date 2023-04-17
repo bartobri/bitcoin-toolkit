@@ -8,3 +8,5 @@ __pycache__
 test/balance/*.log
 test/balance/LOG
 test/balance/LOG.*
+test/balance/CURRENT
+test/balance/MANIFEST*
