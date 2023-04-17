@@ -30,13 +30,15 @@ class Address(unittest.TestCase):
     def setUp(self):
         self.btk = BTK("address")
 
-    def io_test(self, opts, input, output, input_json=True, output_json=True):
+    def io_test(self, opts, input, output, input_json=True, input_arg=False, output_json=True):
 
         for input_group in inputs:
             self.btk.reset()
 
             if (input):
-                if (input_json):
+                if (input_arg):
+                    self.btk.arg(input_group[input])
+                elif (input_json):
                     self.btk.set_input(f"[\n\"{input_group[input]}\"\n]")
                 else:
                     self.btk.set_input(input_group[input])
@@ -84,17 +86,20 @@ class Address(unittest.TestCase):
     ## Input Format
     ################
 
+    def test_0045(self):
+        self.io_test(opts=["-w"], input="wif", output="p2pkh", input_arg=True)
+
     def test_0050(self):
-        self.io_test(opts=["-w", "-l"], input="wif", output=None, input_json=False)
+        self.io_test(opts=["-w", "-l"], input="wif", output="p2pkh", input_json=False)
 
     def test_0060(self):
-        self.io_test(opts=["-w", "--in-format=list"], input="wif", output=None, input_json=False)
+        self.io_test(opts=["-w", "--in-format=list"], input="wif", output="p2pkh", input_json=False)
 
     def test_0070(self):
-        self.io_test(opts=["-w", "-j"], input="wif", output=None)
+        self.io_test(opts=["-w", "-j"], input="wif", output="p2pkh")
 
     def test_0080(self):
-        self.io_test(opts=["-w", "--in-format=json"], input="wif", output=None)
+        self.io_test(opts=["-w", "--in-format=json"], input="wif", output="p2pkh")
 
     ###########
     ## WIF

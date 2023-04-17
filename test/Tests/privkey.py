@@ -27,19 +27,21 @@ class Privkey(unittest.TestCase):
     def setUp(self):
         self.btk = BTK("privkey")
 
-    def io_test(self, opts, input, output, input_json=True, output_json=True):
+    def io_test(self, opts, input, output, input_json=True, input_arg=False, output_json=True):
 
         for input_group in inputs:
             self.btk.reset()
 
+            for opt in opts:
+                self.btk.arg(opt)
+
             if (input):
-                if (input_json):
+                if (input_arg):
+                    self.btk.arg(input_group[input])
+                elif (input_json):
                     self.btk.set_input(f"[\n\"{input_group[input]}\"\n]")
                 else:
                     self.btk.set_input(input_group[input])
-
-            for opt in opts:
-                self.btk.arg(opt)
 
             out = self.btk.run()
 
@@ -88,6 +90,9 @@ class Privkey(unittest.TestCase):
     ## Input Format
     ################
 
+    def test_0055(self):
+        self.io_test(opts=[], input="string", output="wif", input_arg=True)
+
     def test_0060(self):
         self.io_test(opts=["-l"], input="string", output="wif", input_json=False)
 
@@ -99,6 +104,7 @@ class Privkey(unittest.TestCase):
 
     def test_0090(self):
         self.io_test(opts=["--in-format=json"], input="string", output="wif")
+
 
     ###########
     ## String

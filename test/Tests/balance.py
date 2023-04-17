@@ -32,13 +32,15 @@ class Balance(unittest.TestCase):
         self.btk = BTK("balance")
         self.balance_path = pathlib.Path(__file__).parent.parent.joinpath('balance').resolve()
 
-    def io_test(self, opts, input_json=True, output_json=True):
+    def io_test(self, opts, input_json=True, input_arg=False, output_json=True):
 
         for input_group in inputs:
             for key in input_group.keys():
                 self.btk.reset()
 
-                if (input_json):
+                if (input_arg):
+                    self.btk.arg(key)
+                elif (input_json):
                     self.btk.set_input(f"[\n\"{key}\"\n]")
                 else:
                     self.btk.set_input(key)
@@ -93,6 +95,9 @@ class Balance(unittest.TestCase):
     ################
     ## Input Format
     ################
+
+    def test_0055(self):
+        self.io_test(opts=[f"--balance-path={self.balance_path}"], input_arg=True)
 
     def test_0060(self):
         self.io_test(opts=[f"--balance-path={self.balance_path}", "-j"])
