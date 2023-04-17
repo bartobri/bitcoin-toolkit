@@ -355,36 +355,36 @@ int btk_set_config_opts(opts_p opts)
 	memset(config_path, 0, BUFSIZ);
 
 	r = config_get_path(config_path, opts->test);
-    ERROR_CHECK_NEG(r, "Could not get config path.");
+	ERROR_CHECK_NEG(r, "Could not get config path.");
 
-    r = config_load(config_path);
-    ERROR_CHECK_NEG(r, "Could not load config.");
+	r = config_load(config_path);
+	ERROR_CHECK_NEG(r, "Could not load config.");
 
-    // Set opts on a per command basis.
-    if (strcmp(opts->command, "balance") == 0)
-    {
-        if (!opts->host_name && config_exists("hostname"))
-        {
-            opts->host_name = malloc(100);
-            ERROR_CHECK_NULL(opts->host_name, "Memory allocation error.");
+	// Set opts on a per command basis.
+	if (strcmp(opts->command, "balance") == 0)
+	{
+		if (!opts->host_name && config_exists("hostname"))
+		{
+			opts->host_name = malloc(100);
+			ERROR_CHECK_NULL(opts->host_name, "Memory allocation error.");
 
-            r = config_get(opts->host_name, "hostname");
-            ERROR_CHECK_NEG(r, "Could not get value from config file.");
-        }
+			r = config_get(opts->host_name, "hostname");
+			ERROR_CHECK_NEG(r, "Could not get value from config file.");
+		}
 
-        if (!opts->rpc_auth && config_exists("rpc-auth"))
-        {
-            opts->rpc_auth = malloc(100);
-            ERROR_CHECK_NULL(opts->rpc_auth, "Memory allocation error.");
+		if (!opts->rpc_auth && config_exists("rpc-auth"))
+		{
+			opts->rpc_auth = malloc(100);
+			ERROR_CHECK_NULL(opts->rpc_auth, "Memory allocation error.");
 
-            r = config_get(opts->rpc_auth, "rpc-auth");
-            ERROR_CHECK_NEG(r, "Could not get value from config file.");
-        }
-    }
+			r = config_get(opts->rpc_auth, "rpc-auth");
+			ERROR_CHECK_NEG(r, "Could not get value from config file.");
+		}
+	}
 
-    config_unload();
+	config_unload();
 
-    return 1;
+	return 1;
 }
 
 int btk_init(opts_p opts)

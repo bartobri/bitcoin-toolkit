@@ -56,14 +56,14 @@ int btk_help_main(output_item *output, opts_p opts, unsigned char *input, size_t
 
 int btk_help_requires_input(opts_p opts)
 {
-    assert(opts);
+	assert(opts);
 
-    if (opts->input_count > 0)
-    {
-    	return 1;
-    }
+	if (opts->input_count > 0)
+	{
+		return 1;
+	}
 
-    return 0;
+	return 0;
 }
 
 int btk_help_init(opts_p opts)

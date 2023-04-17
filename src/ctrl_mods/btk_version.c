@@ -35,9 +35,9 @@ int btk_version_main(output_item *output, opts_p opts, unsigned char *input, siz
 
 int btk_version_requires_input(opts_p opts)
 {
-    assert(opts);
+	assert(opts);
 
-    return 0;
+	return 0;
 }
 
 int btk_version_init(opts_p opts)

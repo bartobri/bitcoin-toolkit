@@ -24,100 +24,100 @@
 
 int btk_address_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
-    int r;
-    char input_str[BUFSIZ];
-    char output_str[BUFSIZ];
-    PubKey pubkey = NULL;
-    PrivKey privkey = NULL;
+	int r;
+	char input_str[BUFSIZ];
+	char output_str[BUFSIZ];
+	PubKey pubkey = NULL;
+	PrivKey privkey = NULL;
 
-    assert(opts);
+	assert(opts);
 
-    memset(input_str, 0, BUFSIZ);
-    memset(output_str, 0, BUFSIZ);
+	memset(input_str, 0, BUFSIZ);
+	memset(output_str, 0, BUFSIZ);
 
-    privkey = malloc(privkey_sizeof());
-    ERROR_CHECK_NULL(privkey, "Memory allocation error.");
+	privkey = malloc(privkey_sizeof());
+	ERROR_CHECK_NULL(privkey, "Memory allocation error.");
 
-    pubkey = malloc(pubkey_sizeof());
-    ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
+	pubkey = malloc(pubkey_sizeof());
+	ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
-    if (opts->input_type_wif)
-    {
-        memcpy(input_str, input, input_len);
+	if (opts->input_type_wif)
+	{
+		memcpy(input_str, input, input_len);
 
-        r = privkey_from_wif(privkey, input_str);
-        ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
-        r = pubkey_get(pubkey, privkey);
-        ERROR_CHECK_NEG(r, "Could not calculate public key.");
-    }
-    else if (opts->input_type_hex)
-    {
-        memcpy(input_str, input, input_len);
-        
-        r = pubkey_from_hex(pubkey, input_str);
-        ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
-    }
-    else
-    {
-        r = pubkey_from_guess(pubkey, input, input_len);
-        if (r < 0)
-        {
-            error_clear();
-            ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
-        }
-    }
+		r = privkey_from_wif(privkey, input_str);
+		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+		r = pubkey_get(pubkey, privkey);
+		ERROR_CHECK_NEG(r, "Could not calculate public key.");
+	}
+	else if (opts->input_type_hex)
+	{
+		memcpy(input_str, input, input_len);
+		
+		r = pubkey_from_hex(pubkey, input_str);
+		ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
+	}
+	else
+	{
+		r = pubkey_from_guess(pubkey, input, input_len);
+		if (r < 0)
+		{
+			error_clear();
+			ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
+		}
+	}
 
-    if (opts->output_type_p2wpkh)
-    {
-        // Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
-        if (pubkey_is_compressed(pubkey) || !opts->output_stream || !opts->output_type_p2pkh)
-        {
-            r = address_get_p2wpkh(output_str, pubkey);
-            ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+	if (opts->output_type_p2wpkh)
+	{
+		// Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
+		if (pubkey_is_compressed(pubkey) || !opts->output_stream || !opts->output_type_p2pkh)
+		{
+			r = address_get_p2wpkh(output_str, pubkey);
+			ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
 
-            *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
-            ERROR_CHECK_NULL(*output, "Memory allocation error.");
-        }
-    }
+			*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
+		}
+	}
 
-    if (opts->output_type_p2pkh)
-    {
-        r = address_get_p2pkh(output_str, pubkey);
-        ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+	if (opts->output_type_p2pkh)
+	{
+		r = address_get_p2pkh(output_str, pubkey);
+		ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
 
-        *output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
-        ERROR_CHECK_NULL(*output, "Memory allocation error.");
-    }
+		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		ERROR_CHECK_NULL(*output, "Memory allocation error.");
+	}
 
-    free(pubkey);
-    free(privkey);
+	free(pubkey);
+	free(privkey);
 
-    return 1;
+	return 1;
 }
 
 int btk_address_requires_input(opts_p opts)
 {
-    assert(opts);
+	assert(opts);
 
-    return 1;
+	return 1;
 }
 
 int btk_address_init(opts_p opts)
 {
-    assert(opts);
+	assert(opts);
 
-    // Default to P2PKH
-    if (!opts->output_type_p2pkh && !opts->output_type_p2wpkh)
-    {
-        opts->output_type_p2pkh = 1;
-    }
+	// Default to P2PKH
+	if (!opts->output_type_p2pkh && !opts->output_type_p2wpkh)
+	{
+		opts->output_type_p2pkh = 1;
+	}
 
-    return 1;
+	return 1;
 }
 
 int btk_address_cleanup(opts_p opts)
 {
-    assert(opts);
-    
-    return 1;
+	assert(opts);
+	
+	return 1;
 }

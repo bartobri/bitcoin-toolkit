@@ -183,9 +183,9 @@ int btk_node_response(char **command, unsigned char **payload, size_t *payload_l
 
 int btk_node_requires_input(opts_p opts)
 {
-    assert(opts);
+	assert(opts);
 
-    return 0;
+	return 0;
 }
 
 int btk_node_init(opts_p opts)
