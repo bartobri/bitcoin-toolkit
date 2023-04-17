@@ -18,11 +18,11 @@
 typedef struct Message *Message;
 struct Message
 {
-    uint32_t       magic;
-    char           command[MESSAGE_COMMAND_MAXLEN];
-    uint32_t       length;
-    uint32_t       checksum;
-    unsigned char  *payload;
+	uint32_t       magic;
+	char           command[MESSAGE_COMMAND_MAXLEN];
+	uint32_t       length;
+	uint32_t       checksum;
+	unsigned char  *payload;
 };
 
 int message_new(Message *, const char *, unsigned char *, size_t);

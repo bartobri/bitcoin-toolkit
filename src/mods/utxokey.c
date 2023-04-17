@@ -13,21 +13,21 @@
 
 int utxokey_from_raw(UTXOKey key, unsigned char *input)
 {
-    unsigned char *head;
+	unsigned char *head;
 
-    assert(key);
-    assert(input);
+	assert(key);
+	assert(input);
 
-    head = input;
+	head = input;
 
-    input = deserialize_uint8(&(key->type), input, SERIALIZE_ENDIAN_BIG);
-    input = deserialize_uchar(key->tx_hash, input, UTXOKEY_TX_HASH_LENGTH, SERIALIZE_ENDIAN_LIT);
-    input = deserialize_varint(&(key->vout), input);
+	input = deserialize_uint8(&(key->type), input, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uchar(key->tx_hash, input, UTXOKEY_TX_HASH_LENGTH, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_varint(&(key->vout), input);
 
-    return (input - head);
+	return (input - head);
 }
 
 void utxokey_free(UTXOKey key)
 {
-    free(key);
+	free(key);
 }

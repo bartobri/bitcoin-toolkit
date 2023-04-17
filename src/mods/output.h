@@ -12,10 +12,10 @@
 
 typedef struct output_item *output_item;
 struct output_item {
-    void *content;
-    size_t length;
-    input_item input;
-    output_item next;
+	void *content;
+	size_t length;
+	input_item input;
+	output_item next;
 };
 
 output_item output_new(void *, size_t);

@@ -95,7 +95,7 @@ void btktermio_restore_terminal(void) {
 int btktermio_get_rows(void) {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+	
 	return w.ws_row;
 }
 
@@ -105,7 +105,7 @@ int btktermio_get_rows(void) {
 int btktermio_get_cols(void) {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+	
 	return w.ws_col;
 }
 

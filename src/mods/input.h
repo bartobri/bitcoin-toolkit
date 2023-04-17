@@ -16,10 +16,10 @@
 
 typedef struct input_item *input_item;
 struct input_item {
-    unsigned char *data;
-    size_t len;
-    input_item input;
-    input_item next;
+	unsigned char *data;
+	size_t len;
+	input_item input;
+	input_item next;
 };
 
 int input_get(input_item *);

@@ -13,11 +13,11 @@
 typedef struct UTXOValue *UTXOValue;
 struct UTXOValue
 {
-    uint64_t       height;
-    uint64_t       amount;
-    uint64_t       n_size;
-    size_t         script_len;
-    unsigned char *script;
+	uint64_t       height;
+	uint64_t       amount;
+	uint64_t       n_size;
+	size_t         script_len;
+	unsigned char *script;
 };
 
 int utxovalue_from_raw(UTXOValue, unsigned char *);

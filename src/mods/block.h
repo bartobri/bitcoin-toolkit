@@ -16,14 +16,14 @@
 
 typedef struct Block *Block;
 struct Block {
-    uint32_t version;
-    unsigned char prev_block[BLOCK_PREV_LEN];
-    unsigned char merkel_root[BLOCK_MERKEL_ROOT_LEN];
-    uint32_t timestamp;
-    uint32_t bits;
-    uint32_t nonce;
-    uint64_t tx_count;
-    Trans *transactions;
+	uint32_t version;
+	unsigned char prev_block[BLOCK_PREV_LEN];
+	unsigned char merkel_root[BLOCK_MERKEL_ROOT_LEN];
+	uint32_t timestamp;
+	uint32_t bits;
+	uint32_t nonce;
+	uint64_t tx_count;
+	Trans *transactions;
 };
 
 int block_from_raw(Block, unsigned char *);

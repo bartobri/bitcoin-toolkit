@@ -15,9 +15,9 @@
 typedef struct UTXOKey *UTXOKey;
 struct UTXOKey
 {
-    uint8_t        type;
-    unsigned char  tx_hash[UTXOKEY_TX_HASH_LENGTH];
-    uint64_t       vout;
+	uint8_t        type;
+	unsigned char  tx_hash[UTXOKEY_TX_HASH_LENGTH];
+	uint64_t       vout;
 };
 
 int utxokey_from_raw(UTXOKey, unsigned char *);

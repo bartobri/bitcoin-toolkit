@@ -186,38 +186,38 @@ int input_get_json(input_item *input)
 	}
 
 	jobj = cJSON_ParseWithLengthOpts(buffer, buffer_max, &parse_end, 0);
-    if (jobj == NULL)
-    {
-        error_log("Invalid JSON.");
-        return -1;
-    }
+	if (jobj == NULL)
+	{
+		error_log("Invalid JSON.");
+		return -1;
+	}
 
-    if (!cJSON_IsArray(jobj) && !cJSON_IsObject(jobj))
-    {
-        error_log("Input JSON must be in array format.");
-        return -1;
-    }
+	if (!cJSON_IsArray(jobj) && !cJSON_IsObject(jobj))
+	{
+		error_log("Input JSON must be in array format.");
+		return -1;
+	}
 
-    // Advance parse_end past any white spaces
-    while (isspace(*parse_end))
-    {
-    	parse_end++;
-    }
+	// Advance parse_end past any white spaces
+	while (isspace(*parse_end))
+	{
+		parse_end++;
+	}
 
-    json_len = parse_end - buffer;
+	json_len = parse_end - buffer;
 
-    // shift remaining buffer back to start of pointer
-    memcpy(buffer, buffer + json_len, buffer_max - json_len);
-    memset(buffer + (buffer_max - json_len), 0, json_len);
+	// shift remaining buffer back to start of pointer
+	memcpy(buffer, buffer + json_len, buffer_max - json_len);
+	memset(buffer + (buffer_max - json_len), 0, json_len);
 
-    buffer_len = strlen(buffer);
+	buffer_len = strlen(buffer);
 
-    r = input_parse_from_json(input, jobj);
-    ERROR_CHECK_NEG(r, "Could not parse json input object.");
+	r = input_parse_from_json(input, jobj);
+	ERROR_CHECK_NEG(r, "Could not parse json input object.");
 
 	json_free(jobj);
 
-    return 1;
+	return 1;
 }
 
 int input_get_format(void)
@@ -321,7 +321,7 @@ int input_parse_from_json(input_item *input, cJSON *jobj)
 			}
 			new->input = tmp_head;
 
-		    (*input) = input_append_item((*input), new);
+			(*input) = input_append_item((*input), new);
 		}
 
 		if (jobj->string)
@@ -363,19 +363,19 @@ input_item input_new_item(unsigned char *data, size_t len)
 {
 	input_item new = NULL;
 
-    new = malloc(sizeof(*new));
-    if (new == NULL)
-    {
-    	error_log("Memory allocation error");
-    	return NULL;
-    }
+	new = malloc(sizeof(*new));
+	if (new == NULL)
+	{
+		error_log("Memory allocation error");
+		return NULL;
+	}
 
-    new->data = malloc(len);
-    if (new->data == NULL)
-    {
-    	error_log("Memory allocation error");
-    	return NULL;
-    }
+	new->data = malloc(len);
+	if (new->data == NULL)
+	{
+		error_log("Memory allocation error");
+		return NULL;
+	}
 
 	memcpy(new->data, data, len);
 	new->len = len;
@@ -425,13 +425,13 @@ input_item input_copy_item(input_item item)
 
 void input_free(input_item list)
 {
-    if (list == NULL)
-    {
-        return;
-    }
+	if (list == NULL)
+	{
+		return;
+	}
 
-    input_free(list->input);
-    input_free(list->next);
-    free(list->data);
-    free(list);
+	input_free(list->input);
+	input_free(list->next);
+	free(list->data);
+	free(list);
 }
