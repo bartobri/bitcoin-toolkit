@@ -14,7 +14,7 @@
 
 typedef struct Verack *Verack;
 struct Verack {
-    // nothing here
+	// nothing here
 };
 
 int verack_new(Verack *);

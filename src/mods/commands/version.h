@@ -18,20 +18,20 @@
 typedef struct Version *Version;
 struct Version
 {
-    uint32_t version;
-    uint64_t services;
-    uint64_t timestamp;
-    uint64_t addr_recv_services;
-    unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
-    uint16_t addr_recv_port;
-    uint64_t addr_trans_services;
-    unsigned char addr_trans_ip_address[IP_ADDR_FIELD_LEN];
-    uint16_t addr_trans_port;
-    uint64_t nonce;
-    uint64_t user_agent_bytes;
-    char    *user_agent;
-    uint32_t start_height;
-    uint8_t  relay;
+	uint32_t version;
+	uint64_t services;
+	uint64_t timestamp;
+	uint64_t addr_recv_services;
+	unsigned char addr_recv_ip_address[IP_ADDR_FIELD_LEN];
+	uint16_t addr_recv_port;
+	uint64_t addr_trans_services;
+	unsigned char addr_trans_ip_address[IP_ADDR_FIELD_LEN];
+	uint16_t addr_trans_port;
+	uint64_t nonce;
+	uint64_t user_agent_bytes;
+	char    *user_agent;
+	uint32_t start_height;
+	uint8_t  relay;
 };
 
 int version_new(Version *);

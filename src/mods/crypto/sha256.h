@@ -15,15 +15,15 @@
 #define SHA_LBLOCK      16
 #define SHA256_DIGEST_LENGTH    32
 #define SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
-                                        * contiguous array of 32 bit wide
-                                        * big-endian values. */
+										* contiguous array of 32 bit wide
+										* big-endian values. */
 
 typedef struct SHA256state_st {
-    unsigned int h[8];
-    unsigned int Nl, Nh;
-    unsigned int data[SHA_LBLOCK];
-    unsigned int num;
-    unsigned int md_len;
+	unsigned int h[8];
+	unsigned int Nl, Nh;
+	unsigned int data[SHA_LBLOCK];
+	unsigned int num;
+	unsigned int md_len;
 } SHA256_CTX;
 
 

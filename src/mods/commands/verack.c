@@ -17,14 +17,14 @@ int verack_new(Verack *verack) {
 
 int verack_to_raw(unsigned char *payload_send, Verack verack)
 {
-    assert(payload_send);
-    
-    (void)verack;
+	assert(payload_send);
+	
+	(void)verack;
 
-    return 0;
+	return 0;
 }
 
 void verack_destroy(Verack verack)
 {
-    (void)verack;
+	(void)verack;
 }
