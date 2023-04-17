@@ -15,7 +15,61 @@ inputs = [
         "hex_c": "678e82d907d3e6e71f81d5cf3ddacc3671dc618c38a1b7a9f9393a83d025b29601",
         "hex_u": "678e82d907d3e6e71f81d5cf3ddacc3671dc618c38a1b7a9f9393a83d025b29600",
         "dec": "46840018765432835575846246602607830865213402427381122709315538919381702914710"
-    }
+    },
+    {
+        "wif": "KyqWNV7VzbrzsyhuDQAzo2qPv3YuiJk5Rp9QwRS2m3ThdMudb5fs",
+        "wif_u": "5JQgHCMWE3v1syM9CsZdCnjEMB6RBGMBX6F99Fbfv2TtoJgSb4p",
+        "wif_test": "cQCVqQ7MRfZG3RBAboz8AMLTYGrKNkqmVrHt3qtYGA7ht71xfmTK",
+        "wif_test_u": "92BJrwB3pGz9r2rRqDTY5PHBzqT8LRtNs376DsxBFmCwaNoc4Px",
+    },
+    {
+        "wif": "KxKDsiQBjoyq84AnzKf82Xk5GSPzeHbJB489AZcDnQzGfr3mNfUn",
+        "wif_u": "5J4gAgHahWgA6DxEbHTmBmaKe2gCFLcs7MeR45DWda5NDwFxuSg",
+        "wif_test": "cNgDLdQ3Asg6HVe4NjUFPrF8tfhQJjgzF6GcGz4jHXeGvb6nmDZx",
+        "wif_test_u": "91qJkR78HjkJ4HTXDdMg4N8HHh2uQWA4TJWN8ha1yJpQzv4P3vk",
+    },
+    {
+        "wif": "Kz2PvtUtw52z7yLxpXUNftHU6mzBg1VTd5cAGSX7xyVmy1xWRuyK",
+        "wif_u": "5JT9NGk2LxHmD15XKUJ5TUw2cHzMzmyHuafn9Uz81uDs4gnbFAG",
+        "wif_test": "cQPPPoUkN8jFHQpECwHW3CnXj1HbLTb9h7kdNrydU69nDm2edv2V",
+        "wif_test_u": "92Dmx1ZZwBMuB4aowpBzL5UzFxM59wWVFXXjE7LdMdxuqh8bDXF",
+    },
+    {
+        "wif": "L2VtEHPMEp9nLLpwWHRHX19xi1N1inMna231WqL1noXLdpvNSVeo",
+        "wif_u": "5K1etVdnNFm8Z2KZjtJHRvWDd2Sc4874ysXpF1XbAUJkRDthjy8",
+        "wif_test": "cSrshCPCfsr3VnJCthEQtKf2LEfRPETUe4BUdFnXHvBLta5Fuk7K",
+        "wif_test_u": "92nHUETKxUqGX5prNECCJX4BGgoKDHeGKpPmKdt6WD3oCG7qmvT",
+    },
+    {
+        "wif": "L4EZ2ismHBC8KtCDbdQwsNiYRNkHiPpRaDtDzv3hodDWsDpPfLpV",
+        "wif_u": "5KQTjz4oHMSBGcALcwUBAbpvnrLKjukNRkFKoer6cwRaxMUYaxc",
+        "wif_test": "cUbYVdsciEtPVKfUz3E5EhDc3c3hNqv7eG2h7LWDJjsX7xxu5J3y",
+        "wif_test_u": "93B6KitLsaWKEffdFHN63CNtSWh2u5HZmh7GtHCbxgAdjUHMFuD",
+    },
+    {
+        "wif": "L1Kc4zFKB5bqghB2SoufWA18ct9BNqMAE1XqBbfzs9dKz7Gxi5JX",
+        "wif_u": "5JkBfWjfZC1eK4DEvRg7upohhJUgWR6UTxraaDPRth1ys6aewwT",
+        "wif_test": "cRgbXuFAc9J6r8eHqDinsUWCF7Sb3HSrJ3gJJ28WNGHLErMczhta",
+        "wif_test_u": "92WpFFZD9R5nH7iXYma2nRMfLxqPfadfouiXeqjwERm2eB3MWAc",
+    },
+    {
+        "wif": "L2u8RxPt7EnzMLgnK5UrXVyUh8JnCVLuGJeVN83uGxCSBHKfqEaP",
+        "wif_u": "5K6vLheMeDBsby7kLxPd9GdMmtVx6mwMT8ArUScYnJVRHT6Xirh",
+        "wif_test": "cTG7tsPjYJVFWnA3hVHytpUYKMcBrwSbLLnxUYWQn4rSS2NZffk3",
+        "wif_test_u": "92sYvSTuESG1a2d2yJHY1sBKRYrfFwUYo52oZ4y483EU4UB8uw4",
+    },
+    {
+        "wif": "L4ZkzcBhWuEhkJQ5xcfiBzZ6einm27bKFtiC5aBjvHTQMmkbxcse",
+        "wif_u": "5KUp8ALBzXQwzqoTxCFfLFrQwK5UeQhQAid4sRjmAMVe1ivq6pR",
+        "wif_test": "cUvkTXBYwxvxujsMM2UqZK4AGx6AgZh1KvrfBzeFRQ7QcWqirMJc",
+        "wif_test_u": "93FShu9jakV5xuJkaY9aCrQNaySBoaEbWfV1x46GW6Egnkh2WRp",
+    },
+    {
+        "wif": "KzZpAtMLUCMXdsGUa9ZXXGN655H7fa9ddrPv5AfiBuNqN7yY8K2g",
+        "wif_u": "5JaGDfNNdXDMY1WnfmzDMT8x56W2WanuhyWD2Q2yTVBPHbDjWQ1",
+        "wif_test": "cQvodoMBuG3noJjjxZNetas9hJaXL2FKhtYPBb8Dh22qcsAcacYk",
+        "wif_test_u": "92LtoQBvDkHVW525J7t8E3guikrjfkL73vNA72PUoDvS4gyPGnS",
+    },
 ]
 
 class Privkey(unittest.TestCase):
@@ -36,12 +90,15 @@ class Privkey(unittest.TestCase):
                 self.btk.arg(opt)
 
             if (input):
-                if (input_arg):
-                    self.btk.arg(input_group[input])
-                elif (input_json):
-                    self.btk.set_input(f"[\n\"{input_group[input]}\"\n]")
+                if (input in input_group):
+                    if (input_arg):
+                        self.btk.arg(input_group[input])
+                    elif (input_json):
+                        self.btk.set_input(f"[\n\"{input_group[input]}\"\n]")
+                    else:
+                        self.btk.set_input(input_group[input])
                 else:
-                    self.btk.set_input(input_group[input])
+                    continue
 
             out = self.btk.run()
 
@@ -61,7 +118,8 @@ class Privkey(unittest.TestCase):
                 self.assertTrue(out_text[0] != "[" and out_text[0] != "{")
 
             if (output):
-                self.assertTrue(out_text == input_group[output])
+                if (output in input_group):
+                    self.assertTrue(out_text == input_group[output])
 
     ###########
     ## Create

@@ -5,13 +5,85 @@ from .btk import BTK
 
 inputs = [
     {
-        "wif": "Kzh1d5pXSZLtwsgENakrfCjuGy9txPEb3aEb2y8yyZo65qDs8bTu",
-        "wif_u": "5JbtoEnCt6yAWCUvKwKYeCitigTV5qzTHtwHKa7Lhuk4sYDnTpP",
-        "wif_test": "cR415zpNsd3A7K9VkzZz2XExuCTJcqLH7cP49PbVUgT6LaJiWb1Q",
-        "wif_test_u": "92NXNybkUL3JUFzCxHDTWoGrNLpCF1XedqoEQCTr3eV7ebgGHp5",
-        "hex": "039927c7c042cfcd668b6e1abbb83b60591966047c7de2b15f5154982e5cf10fa6",
-        "hex_u": "049927c7c042cfcd668b6e1abbb83b60591966047c7de2b15f5154982e5cf10fa67487f3b6e3b2c4b5ab067b2cc910270276ddef5ad8392c97a9c6039d1467bedf",
-    }
+        "wif": "KwZyzjLqrxTdMBUXV1pNsF53jmatRNSZn7t5x8sx735rzAbz4Cpa",
+        "wif_u": "5HtsyacJsHeJJG4X1ukMpBSPNUKZ3MGJrC5Ko2LFJEAFxC1Quux",
+        "wif_test": "cMvyTeLhJ29tWcwnsRdWEZa7MztJ5pYFrA2Z4ZLTc9jsEuiM9R3d",
+        "wif_test_u": "91fWZKRrTWiSGKZoeFeGgmzM28gGCWoWC8wGsegkdxuJj9F5Ju6",
+        "hex": "03aeed4c495e665e8f81d503edb3972f9605d467e39bdf4e807846ef2b8faf7de6",
+        "hex_u": "04aeed4c495e665e8f81d503edb3972f9605d467e39bdf4e807846ef2b8faf7de61b8daa3aa7f4e706d48b902556560376760cd1a65b657e5bc2f5f278b6d62321",
+    },
+    {
+        "wif": "KyqWNV7VzbrzsyhuDQAzo2qPv3YuiJk5Rp9QwRS2m3ThdMudb5fs",
+        "wif_u": "5JQgHCMWE3v1syM9CsZdCnjEMB6RBGMBX6F99Fbfv2TtoJgSb4p",
+        "wif_test": "cQCVqQ7MRfZG3RBAboz8AMLTYGrKNkqmVrHt3qtYGA7ht71xfmTK",
+        "wif_test_u": "92BJrwB3pGz9r2rRqDTY5PHBzqT8LRtNs376DsxBFmCwaNoc4Px",
+        "hex": "03c4bccbc63026e871efdeec3a1a398da8e14a218c5a4b79be06ad74a681baa528",
+        "hex_u": "04c4bccbc63026e871efdeec3a1a398da8e14a218c5a4b79be06ad74a681baa528bb79438075570a8beb290e1d606fcefea5f5b29077066fbfe62d2119242a9173",
+    },
+    {
+        "wif": "KxKDsiQBjoyq84AnzKf82Xk5GSPzeHbJB489AZcDnQzGfr3mNfUn",
+        "wif_u": "5J4gAgHahWgA6DxEbHTmBmaKe2gCFLcs7MeR45DWda5NDwFxuSg",
+        "wif_test": "cNgDLdQ3Asg6HVe4NjUFPrF8tfhQJjgzF6GcGz4jHXeGvb6nmDZx",
+        "wif_test_u": "91qJkR78HjkJ4HTXDdMg4N8HHh2uQWA4TJWN8ha1yJpQzv4P3vk",
+        "hex": "031b2f91ff071133bcd57f2b91d18773b2858b8f90472c2324f2d64a96d9f118b7",
+        "hex_u": "041b2f91ff071133bcd57f2b91d18773b2858b8f90472c2324f2d64a96d9f118b7e1be546bd75d5cdc539ead9611f3128cfe3b1143b2ac8a3fc5cf21e93c2893b1",
+    },
+    {
+        "wif": "Kz2PvtUtw52z7yLxpXUNftHU6mzBg1VTd5cAGSX7xyVmy1xWRuyK",
+        "wif_u": "5JT9NGk2LxHmD15XKUJ5TUw2cHzMzmyHuafn9Uz81uDs4gnbFAG",
+        "wif_test": "cQPPPoUkN8jFHQpECwHW3CnXj1HbLTb9h7kdNrydU69nDm2edv2V",
+        "wif_test_u": "92Dmx1ZZwBMuB4aowpBzL5UzFxM59wWVFXXjE7LdMdxuqh8bDXF",
+        "hex": "03d788d2fd66c4a9db40482014637aa8e81dfc3937bd2a98517ca9564d0013bec0",
+        "hex_u": "04d788d2fd66c4a9db40482014637aa8e81dfc3937bd2a98517ca9564d0013bec0670c97a9b3bb8f93f248f755db87da6ff09f5d0d3ed581b6fa44016e6000f71b",
+    },
+    {
+        "wif": "L2VtEHPMEp9nLLpwWHRHX19xi1N1inMna231WqL1noXLdpvNSVeo",
+        "wif_u": "5K1etVdnNFm8Z2KZjtJHRvWDd2Sc4874ysXpF1XbAUJkRDthjy8",
+        "wif_test": "cSrshCPCfsr3VnJCthEQtKf2LEfRPETUe4BUdFnXHvBLta5Fuk7K",
+        "wif_test_u": "92nHUETKxUqGX5prNECCJX4BGgoKDHeGKpPmKdt6WD3oCG7qmvT",
+        "hex": "0333ec67e454b6a8cf7b7cfa4f0939a9fce934114911f2516b5042d178e8a9850d",
+        "hex_u": "0433ec67e454b6a8cf7b7cfa4f0939a9fce934114911f2516b5042d178e8a9850d8829c71f9ee15d1b1fa01f0fd0383c6a5c91da0507402a03bfc4f1db70d929bd",
+    },
+    {
+        "wif": "L4EZ2ismHBC8KtCDbdQwsNiYRNkHiPpRaDtDzv3hodDWsDpPfLpV",
+        "wif_u": "5KQTjz4oHMSBGcALcwUBAbpvnrLKjukNRkFKoer6cwRaxMUYaxc",
+        "wif_test": "cUbYVdsciEtPVKfUz3E5EhDc3c3hNqv7eG2h7LWDJjsX7xxu5J3y",
+        "wif_test_u": "93B6KitLsaWKEffdFHN63CNtSWh2u5HZmh7GtHCbxgAdjUHMFuD",
+        "hex": "03f46c9e6d1c63ff6a36cc16c758ae62dbe9b1d5038846be9f542ccc99f8e4cc9f",
+        "hex_u": "04f46c9e6d1c63ff6a36cc16c758ae62dbe9b1d5038846be9f542ccc99f8e4cc9fa512b61823d2758d0262c0d1661bf0c546b04a580eaf95a02fcf93bc59519801",
+    },
+    {
+        "wif": "L1Kc4zFKB5bqghB2SoufWA18ct9BNqMAE1XqBbfzs9dKz7Gxi5JX",
+        "wif_u": "5JkBfWjfZC1eK4DEvRg7upohhJUgWR6UTxraaDPRth1ys6aewwT",
+        "wif_test": "cRgbXuFAc9J6r8eHqDinsUWCF7Sb3HSrJ3gJJ28WNGHLErMczhta",
+        "wif_test_u": "92WpFFZD9R5nH7iXYma2nRMfLxqPfadfouiXeqjwERm2eB3MWAc",
+        "hex": "0393597b520f59edc837f712f045986333f2c07a2ee6f5090822c5670b9d3f4882",
+        "hex_u": "0493597b520f59edc837f712f045986333f2c07a2ee6f5090822c5670b9d3f4882311360e4e2ca12d79f64e0af318680e76a6ac549a2db7a15c68c42e3c600a6e7",
+    },
+    {
+        "wif": "L2u8RxPt7EnzMLgnK5UrXVyUh8JnCVLuGJeVN83uGxCSBHKfqEaP",
+        "wif_u": "5K6vLheMeDBsby7kLxPd9GdMmtVx6mwMT8ArUScYnJVRHT6Xirh",
+        "wif_test": "cTG7tsPjYJVFWnA3hVHytpUYKMcBrwSbLLnxUYWQn4rSS2NZffk3",
+        "wif_test_u": "92sYvSTuESG1a2d2yJHY1sBKRYrfFwUYo52oZ4y483EU4UB8uw4",
+        "hex": "039b628957a23699ac4fc01c24b870ef281fe58e2c4f380fc49606333ee13d1c85",
+        "hex_u": "049b628957a23699ac4fc01c24b870ef281fe58e2c4f380fc49606333ee13d1c85143a8dec32b8c98619c2d1bdfc7af8623b2dbe1b2c296cc0a6e8aa2526a02a59",
+    },
+    {
+        "wif": "L4ZkzcBhWuEhkJQ5xcfiBzZ6einm27bKFtiC5aBjvHTQMmkbxcse",
+        "wif_u": "5KUp8ALBzXQwzqoTxCFfLFrQwK5UeQhQAid4sRjmAMVe1ivq6pR",
+        "wif_test": "cUvkTXBYwxvxujsMM2UqZK4AGx6AgZh1KvrfBzeFRQ7QcWqirMJc",
+        "wif_test_u": "93FShu9jakV5xuJkaY9aCrQNaySBoaEbWfV1x46GW6Egnkh2WRp",
+        "hex": "0271b67404b57c70234ab89f92465dfb6aca0087e27471398237452e60fb5313a5",
+        "hex_u": "0471b67404b57c70234ab89f92465dfb6aca0087e27471398237452e60fb5313a55a34b0213e49fd123ab9dfb3eedfbb9ee416f275bb903660d0fe06e5366b575c",
+    },
+    {
+        "wif": "KzZpAtMLUCMXdsGUa9ZXXGN655H7fa9ddrPv5AfiBuNqN7yY8K2g",
+        "wif_u": "5JaGDfNNdXDMY1WnfmzDMT8x56W2WanuhyWD2Q2yTVBPHbDjWQ1",
+        "wif_test": "cQvodoMBuG3noJjjxZNetas9hJaXL2FKhtYPBb8Dh22qcsAcacYk",
+        "wif_test_u": "92LtoQBvDkHVW525J7t8E3guikrjfkL73vNA72PUoDvS4gyPGnS",
+        "hex": "022a25f34f58846f738a2aa309ab387beafca0a410a31deed06a21bca1b420f8d1",
+        "hex_u": "042a25f34f58846f738a2aa309ab387beafca0a410a31deed06a21bca1b420f8d17b4ab7383ca39bf0b2d24c244872070f25df5fb1ab88bb59502d70708aae78c2",
+    },
 ]
 
 class Pubkey(unittest.TestCase):
@@ -310,7 +382,7 @@ class Pubkey(unittest.TestCase):
         self.btk.set_input(f"[\n\"{input}\"\n]")
         self.btk.arg("-w")
         self.btk.arg("-X")
-        self.btk.arg("--grep=\"039927c7\"")
+        self.btk.arg("--grep=\"03aeed4c\"")
 
         out = self.btk.run()
 
