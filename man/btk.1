@@ -29,13 +29,29 @@ btk \- Assortment of bitcoin-related command-line tools.
 .SH "DESCRIPTION"
 
 .sp
-Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, addresses, nodes, and blockchain data.
+Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, addresses, nodes, and blockchain data. These tasks are generally things that traditional bitcoin software, such as bitcoin core, won't allow you to do. Some tasks can be executed independently (without any other resources) and some tasks require access to a bitcoin core full node. See the COMMANDS section below for a list of btk commands and what tasks can be performed with them.
 .sp
-Input, when required, can be a single item or a list of items. Input items can be supplied as a command arguments or with input redirection (i.e. pipe). In the case of command arguments, all non-option arguments after the \fIcommand\fR argument are considered to be input items. In the case where input is supplied with input redirection, in order to properly parse multiple input items, input is expected to conform to one of three formats: 1) an ascii list delimited by a newline char, 2) a json array, or 3) unstructured binary data. There are command options available that specify which format your input conforms to. However, btk will auto-determine the input format without a command option if it can be determined with a reasonable degree of certainty.
+When required, input can be a single item or a list of items. Input items can be supplied as command arguments or with input redirection (i.e. pipe). In the case of command arguments, all non-option arguments after the \fIcommand\fR argument are considered to be input items. In the case where input is supplied with input redirection, input is expected to conform to one of three formats: 1) a single string or a list of strings delimited by a newline char, 2) a json array containing one or more strings, or 3) unstructured binary data. Btk will auto-determine the input format if it can be determined with a reasonable degree of certainty. If not, you can supply a command option to explicitly state the input format.
 .sp
-One or more output items is usually produced for each input item, and like input, it usually conforms to the same three formats. By default, output will be formatted as a json array unless otherwise specified with a command option, or if the nature of the command you use necessitates an override of this default behavior. Further, some commands have extra output format options, such as representing the output item(s) as a qrcode.
+One or more output items is usually produced for each input item, and like input, it usually conforms to the same three formats. By default, output will be formatted as a json array. Json formatted output is intended to help interoperability with other systems, scripts, or btk commands via pipe.
+
 .sp
-Example (single input item):
+.SH "EXAMPLES"
+
+.sp
+Input as a command argument:
+.sp
+.RS 4
+.nf
+$ btk privkey "my secret passphrase"
+[
+  "L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD"
+]
+.fi
+.RE
+
+.sp
+Input from a pipe:
 .sp
 .RS 4
 .nf
@@ -45,8 +61,9 @@ $ printf "my secret passphrase" | btk privkey
 ]
 .fi
 .RE
+
 .sp
-Example (list of input items):
+List of inputs from a pipe:
 .sp
 .RS 4
 .nf
@@ -59,44 +76,33 @@ $ cat passphrase_list.txt | btk privkey
 ]
 .fi
 .RE
+
 .sp
-Example (output format as ascii list):
-.sp
-.RS 4
-.nf
-$ cat passphrase_list.txt | btk privkey --out-format=list
-L1B8jRcmEm7qgmpmryHbeBBWhwMAJesbKwbi4oTtfuGgPFrUTZfr
-KwX7VV1UQYKcv3Rs177bk6ffS4MfJCZ1xV4f3ceKQWLLhsCCLRne
-L1z4qTatDPz2w8sqjXY2ZqFd5ryQswwFULgXxn4uyPoebs7RYBaY
-...
-.fi
-.RE
-.sp
-Implementing these structured input/output formats enables you to chain (i.e. pipe) together multiple btk commands to perform complex functions and increase the utility of Bitcoin Toolkit.
-.RE
-.sp
-Example:
+Chaining commands together:
 .sp
 .RS 4
 .nf
-$ cat passphrase_list.txt | btk privkey | btk address | btk balance --trace
-{
-  "1HCbgzea8BXHAJJuxKe5XnfhxfvGbkuASJ": [
-    "0"
-  ],
-  "1KpCwHYGioA1VLcxsbbQTW2fPhkcPZuU1E": [
-    "0"
-  ],
-  "1HQzYdUaTXbZjaQ2BV4Z6CXy7XCjs8m1un": [
-    "0"
-  ],
+$ cat passphrase_list.txt | btk privkey | btk address
+[
+  "1C3SRNvp85oMTVAcSddKBY1XhNMZJa2Nrt",
+  "1B5k9bdWLionkZmEujHZQHUSSqnXLw21iE",
+  "1GaodUqS3MFkzAX8mcXFoZr5fzjvQt2vRr"
   ...
-}
+]
 .fi
 .RE
 
 .sp
-See "COMMANDS" for a list of btk commands you can use. Run \fIbtk help\fR <command> to view the usage information and see what command options are available.
+Specifying an output format:
+.sp
+.RS 4
+.nf
+$ cat passphrase_list.txt | btk privkey | btk address --out-format=list
+1C3SRNvp85oMTVAcSddKBY1XhNMZJa2Nrt
+1B5k9bdWLionkZmEujHZQHUSSqnXLw21iE
+1GaodUqS3MFkzAX8mcXFoZr5fzjvQt2vRr
+.fi
+.RE
 
 .sp
 .SH "COMMANDS"
@@ -104,7 +110,7 @@ See "COMMANDS" for a list of btk commands you can use. Run \fIbtk help\fR <comma
 .PP
 \fBprivkey\fR
 .RS 4
-Create or transform private keys.
+Create, modify, or transform private keys.
 .RE
 
 .PP
