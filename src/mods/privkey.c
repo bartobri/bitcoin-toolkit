@@ -547,7 +547,6 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_raw(key, data, data_len);
 		if (r > 0)
 		{
-			printf("raw\n");
 			return PRIVKEY_GUESS_RAW;
 		}
 		error_clear();
@@ -558,7 +557,6 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_blob(key, data, data_len);
 		if (r > 0)
 		{
-			printf("blob\n");
 			return PRIVKEY_GUESS_BLOB;
 		}
 		error_clear();
