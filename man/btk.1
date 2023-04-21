@@ -29,16 +29,16 @@ btk \- Assortment of bitcoin-related command-line tools.
 .SH "DESCRIPTION"
 
 .sp
-Bitcoin Toolkit is a collection of command line tools that allow you to perform a variety of useful bitcoin tasks relating to keys, addresses, nodes, and blockchain data. 
+Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include creating and generating and manipulating public and private keys, generating addresses, querying info from remote bitcoin nodes, and mining blockchain data.
 .sp
 The first argument to btk is considered to be the command. All arguments following the command are a mix of command options and input items. Command options are preceded with a hyphen. Any non-option argument is considered to be an input item. See the COMMANDS section below for a list of btk commands and a brief overview. See \fIbtk help\fR <command> for more detailed info on a specific command.
 .sp
 When required, input can be a single item or a list of items. Input items can be supplied as command arguments or with input redirection (i.e. pipe). In the case of command arguments, all non-option arguments after the \fIcommand\fR argument are considered to be input items. In the case where input is supplied with input redirection, input is expected to conform to one of three formats: 1) a single string or a list of strings delimited by a newline char, 2) a json array containing one or more strings, or 3) unstructured binary data. Btk will auto-determine the input format if it can be determined with a reasonable degree of certainty. If not, you can supply a command option to explicitly state the input format.
 .sp
-One or more output items is usually produced for each input item, and like input, it usually conforms to the same three formats. By default, output will be formatted as a json array. Json formatted output is intended to help interoperability with other systems, scripts, or btk commands via pipe.
+One or more output items are usually produced for each input item, and like input, it usually conforms to the same three formats. By default, output will be formatted as a json array. Json formatted output is intended to help interoperability with other systems, scripts, or btk commands via pipe.
 
 .sp
-.SH "EXAMPLES"
+.SH "INPUT EXAMPLES"
 
 .sp
 Input as a command argument:
@@ -65,16 +65,13 @@ $ printf "my secret passphrase" | btk privkey
 .RE
 
 .sp
-List of inputs from a pipe:
+Input as JSON from a pipe:
 .sp
 .RS 4
 .nf
-$ cat passphrase_list.txt | btk privkey
+$ printf "[\\"my secret passphrase\\"]" | btk privkey
 [
-  "L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD",
-  "L12xigvnJMRgxNWvJjgGC8ATHh4oEp3waU1c2u8LoZQt7Xnm8Phu",
-  "L254oBcMRVFXzBpuNmNQjjyXb1fxXSxkDhbvGYcqYfER4keM3wpF",
-  ...
+  "L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD"
 ]
 .fi
 .RE
@@ -84,25 +81,49 @@ Chaining commands together:
 .sp
 .RS 4
 .nf
-$ cat passphrase_list.txt | btk privkey | btk address
+$ printf "my secret passphrase" | btk privkey | btk address --bech32
 [
-  "1C3SRNvp85oMTVAcSddKBY1XhNMZJa2Nrt",
-  "1B5k9bdWLionkZmEujHZQHUSSqnXLw21iE",
-  "1GaodUqS3MFkzAX8mcXFoZr5fzjvQt2vRr"
-  ...
+  "bc1qkxechfwttmynv92jczzjs0vrgnzlajjemmxndw"
 ]
 .fi
 .RE
 
 .sp
-Specifying an output format:
+.SH "OUTPUT EXAMPLES"
+
+.sp
+Single output as JSON:
 .sp
 .RS 4
 .nf
-$ cat passphrase_list.txt | btk privkey | btk address --out-format=list
-1C3SRNvp85oMTVAcSddKBY1XhNMZJa2Nrt
-1B5k9bdWLionkZmEujHZQHUSSqnXLw21iE
-1GaodUqS3MFkzAX8mcXFoZr5fzjvQt2vRr
+$ btk privkey "my secret passphrase"
+[
+  "L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD"
+]
+.fi
+.RE
+
+.sp
+Multiple outputs as JSON:
+.sp
+.RS 4
+.nf
+$ btk privkey --compressed=true --compressed=false "my secret passphrase"
+[
+  "L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD",
+  "5K6EYmKXFCsEdYJQkfGKvj11tVakpdJiaV6QLGRdACf3fGzgvqC"
+]
+.fi
+.RE
+
+.sp
+Multiple outputs as list:
+.sp
+.RS 4
+.nf
+$ $ btk privkey --compressed=true --compressed=false --out-format=list "my secret passphrase"
+L2r6oCckVhNjAH9qqhteY8P4vH9zRDFCWnzqz35gbcSvjmoroFmD
+5K6EYmKXFCsEdYJQkfGKvj11tVakpdJiaV6QLGRdACf3fGzgvqC
 .fi
 .RE
 
