@@ -5,13 +5,11 @@ Like this project? Consider sponsoring me: [https://github.com/sponsors/bartobri
 Bitcoin Toolkit
 ===============
 
-Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. The capabilities of the tools include creating and manipulating public or private keys, generating addresses, querying state info from remote bitcoin nodes, and mining blockchain data.
+Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include creating and generating and manipulating public and private keys, generating addresses, querying info from remote bitcoin nodes, and mining blockchain data.
 
 Bitcoin Toolkit supports JSON-formatted input and output making it useful for developers who want to build custom Bitcoin applications or integrate Bitcoin functionality into existing applications.
 
-See the [Usage](#usage) section for a quick introduction on the basics of Bitcoin Toolkit.
-
-Once installed, there is a comprehensive set of man pages you can accress for more detailed information. You can run `btk help` or `btk help <command>` to access them.
+See the [Usage](#usage) section for a quick introduction on the basics of Bitcoin Toolkit and how to use the help command to get more info.
 
 Table of Contents
 -----------------
@@ -22,7 +20,7 @@ Table of Contents
 
 Download and Install
 --------------------
-The following instructions are for unix and linux systems. Windows 10 users can install this project from within the linux subsystem.
+The following instructions are for unix and linux systems.
 
 Bitcoin Toolkit was built to be installed without any dependencies. However, there are speed and functionality advantages to having certain libraries installed. The following libraries are optional but recommended.
 
@@ -37,18 +35,23 @@ sudo apt-get install libgcrypt20-dev
 sudo apt-get install libleveldb-dev
 ```
 
-You will also need basic build tools like `gcc` and `make`. You can install them with the following command:
+You will also need basic build tools:
 
 ```
 sudo apt-get install build-essential
 ```
 
-Next, follow these instructions:
-
 #### Install:
+
+Download the [latest release](https://github.com/bartobri/bitcoin-toolkit/releases/latest) or use git to clone the master repo:
+
 ```
 $ git clone https://github.com/bartobri/bitcoin-toolkit.git
-$ cd ./bitcoin-toolkit
+```
+
+Next run the make and install commands inside the project folder:
+```
+$ cd bitcoin-toolkit
 $ make
 $ sudo make install
 ```
@@ -64,15 +67,7 @@ Usage
 
 #### Synopsis
 
-`btk <command> [<command_opts>] [<input_item> ...]`
-
-#### Help and Man Pages
-
-Use the 'help' command to access the man pages.
-
-See `btk help` to learn about available comands and basic usage.
-
-See `btk help <command>` to learn more about a specific command as well as the options that are available.
+`btk <command> [<option> ...] [<input> ...]`
 
 #### Basic Examples
 
@@ -127,6 +122,8 @@ $ btk address --bech32 0237b921b35555af8d6c27017ec2a4c524eac53011d0a45dba227f149
 ```
 
 Generate an address from a public key in qrcode format:
+
+Note that the horizontal spaces in this example are an artifact of github's markdown styling. Actual command output does not have these spaces.
 ```
 $ btk address --bech32 -Q 0237b921b35555af8d6c27017ec2a4c524eac53011d0a45dba227f14937a17cf3b
 
@@ -203,6 +200,12 @@ $ btk node --hostname=seed.bitcoin.sipa.be
   "relay": true
 }
 ```
+
+#### Help and Man Pages
+
+See `btk help` to learn about available commands and basic usage.
+
+See `btk help <command>` to learn more about a command and its options.
 
 License
 -------
