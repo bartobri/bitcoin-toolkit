@@ -5,7 +5,7 @@ Like this project? Consider sponsoring me: [https://github.com/sponsors/bartobri
 Bitcoin Toolkit
 ===============
 
-Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include creating and generating and manipulating public and private keys, generating addresses, querying info from remote bitcoin nodes, and mining blockchain data.
+Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include creating and manipulating public and private keys, generating addresses, querying info from remote bitcoin nodes, and mining blockchain data.
 
 Bitcoin Toolkit supports JSON-formatted input and output making it useful for developers who want to build custom Bitcoin applications or integrate Bitcoin functionality into existing applications.
 
@@ -22,7 +22,7 @@ Download and Install
 --------------------
 The following instructions are for unix and linux systems.
 
-Bitcoin Toolkit was built to be installed without any dependencies. However, there are speed and functionality advantages to having certain libraries installed. The following libraries are optional but recommended.
+Bitcoin Toolkit was built to be installed without any dependencies. However, there are speed and functionality advantages to having the following libraries installed. They are optional but recommended.
 
 1. libgmp
 2. libgcrypt
@@ -49,7 +49,7 @@ Download the [latest release](https://github.com/bartobri/bitcoin-toolkit/releas
 $ git clone https://github.com/bartobri/bitcoin-toolkit.git
 ```
 
-Next run the make and install commands inside the project folder:
+Unzip/tar the release download and/or run the make commands inside the project folder:
 ```
 $ cd bitcoin-toolkit
 $ make
@@ -69,9 +69,11 @@ Usage
 
 `btk <command> [<option> ...] [<input> ...]`
 
+For details about commands and options see the [Help and Man Pages](#help-and-man-pages) section below.
+
 #### Basic Examples
 
-Bitcoin Toolkit can do a lot of useful and complex operations, but to get a very basic sense of how it works and what it can do, here are some common use cases:
+Bitcoin Toolkit can do a lot of useful and complex operations, but to get a very basic sense of how it works and what it can do, here are some simple use cases:
 
 Create a new private key:
 ```
@@ -121,9 +123,7 @@ $ btk address --bech32 0237b921b35555af8d6c27017ec2a4c524eac53011d0a45dba227f149
 ]
 ```
 
-Generate an address from a public key in qrcode format:
-
-Note that the horizontal spaces in this example are an artifact of github's markdown styling. Actual command output does not have these spaces.
+Generate an address in qrcode format from a public key:
 ```
 $ btk address --bech32 -Q 0237b921b35555af8d6c27017ec2a4c524eac53011d0a45dba227f14937a17cf3b
 
@@ -156,7 +156,7 @@ $ btk privkey --create | btk address --bech32 --trace
 
 Generate a vanity address:
 ```
-$ btk privkey --create --stream | btk address --grep="^1bri"
+$ btk privkey --create --stream | btk address --trace --grep="^1bri"
 {
   "L3UqmMR9F3pTRpJxFw6k2jCsoQkiRAkLGc7enEiThxjpKVo6ZeGA": [
     "1BRiFm93hjdkEz4GPMTfyxQcbR4dPBTJcz"
