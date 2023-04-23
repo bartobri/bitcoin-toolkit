@@ -60,6 +60,7 @@ static pthread_t process_thread;
 void *btk_balance_pthread(void *);
 int btk_balance_download(thread_args);
 int btk_balance_process(thread_args);
+void btk_balance_sleep(void);
 
 int btk_balance_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
@@ -205,6 +206,7 @@ int btk_balance_main(output_item *output, opts_p opts, unsigned char *input, siz
 
 		args->bc_head = NULL;
 		args->bc_tail = NULL;
+		args->bc_len = 0;
 
 		if (opts->update)
 		{
@@ -324,18 +326,22 @@ int btk_balance_download(thread_args args)
 {
 	int i;
 	int r;
+	int first;
 
 	assert(args);
 
-	for (i = args->last_block + 1; i <= args->block_count; i++)
+	first = args->last_block + 1;
+
+	for (i = first; i <= args->block_count; i++)
 	{
 		char blockhash[BUFSIZ];
 		char *block_hex;
 		unsigned char *block_raw;
+		Block block;
 
 		memset(blockhash, 0, BUFSIZ);
 
-		if (args->bc_head == NULL)
+		if (i == first)
 		{
 			args->bc_head = malloc(sizeof(*(args->bc_head)));
 			ERROR_CHECK_NULL(args->bc_head, "Memory allocation error.");
@@ -345,6 +351,7 @@ int btk_balance_download(thread_args args)
 			args->bc_head->block = NULL;
 			args->bc_tail = args->bc_head;
 			args->bc_tail->next = NULL;
+			args->bc_tail->status = 0;
 		}
 		else
 		{
@@ -356,6 +363,7 @@ int btk_balance_download(thread_args args)
 			args->bc_tail->next->block = NULL;
 			args->bc_tail = args->bc_tail->next;
 			args->bc_tail->next = NULL;
+			args->bc_tail->status = 0;
 		}
 
 		r = jsonrpc_get_blockhash(blockhash, i);
@@ -370,14 +378,15 @@ int btk_balance_download(thread_args args)
 		r = hex_str_to_raw(block_raw, block_hex);
 		ERROR_CHECK_NEG(r, "Could not convert hex block to raw block.");
 
-		args->bc_tail->block = malloc(sizeof(*(args->bc_tail->block)));
-		ERROR_CHECK_NULL(args->bc_tail->block, "Memory allocation error.");
+		block = malloc(sizeof(*block));
+		ERROR_CHECK_NULL(block, "Memory allocation error.");
 
-		r = block_from_raw(args->bc_tail->block, block_raw);
+		r = block_from_raw(block, block_raw);
 		ERROR_CHECK_NEG(r, "Could not deserialize raw block data.");
 
 		args->bc_len += 1;
 		args->bc_tail->block_num = i;
+		args->bc_tail->block = block;
 
 		if (i == args->block_count)
 		{
@@ -410,18 +419,16 @@ int btk_balance_process(thread_args args)
 		Block block;
 		blockchain tmp;
 		int status;
+		int block_num;
 
 		while (args->bc_head == NULL || !args->bc_head->status)
 		{
-			struct timespec bcsleep;
-			bcsleep.tv_sec = 0;
-			bcsleep.tv_nsec = 100000000; // 0.1 seconds
-
-			nanosleep(&bcsleep, NULL);
+			btk_balance_sleep();
 		}
 
 		status = args->bc_head->status;
 		block = args->bc_head->block;
+		block_num = args->bc_head->block_num;
 
 		for (i = 0; i < block->tx_count; i++)
 		{
@@ -483,26 +490,40 @@ int btk_balance_process(thread_args args)
 			ERROR_CHECK_NEG(r, "Could not batch write balance records.");
 		}
 
-		r = txoa_set_last_block(args->bc_head->block_num);
+		r = txoa_set_last_block(block_num);
 		ERROR_CHECK_NEG(r, "Could not set last block.");
-
-		printf("\rUpdating... [Block %i/%i] [%.2f%% Complete]", args->bc_head->block_num, args->block_count, ((args->bc_head->block_num / (float)args->block_count) * 100));
-		fflush(stdout);
-
-		tmp = args->bc_head;
-		args->bc_head = args->bc_head->next;
-		block_free(block);
-		free(tmp);
-
-		args->bc_len -= 1;
 
 		if (status == CHAIN_STATUS_FINAL)
 		{
 			break;
 		}
+
+		args->bc_len -= 1;
+
+		printf("\rUpdating... [Block %i/%i] [%.2f%% Complete]", block_num, args->block_count, ((args->bc_head->block_num / (float)args->block_count) * 100));
+		fflush(stdout);
+
+		while(args->bc_head->next == NULL)
+		{
+			btk_balance_sleep();
+		}
+
+		tmp = args->bc_head;
+		args->bc_head = args->bc_head->next;
+		block_free(tmp->block);
+		free(tmp);
 	}
 
 	return 1;
+}
+
+void btk_balance_sleep(void)
+{
+	struct timespec bcsleep;
+	bcsleep.tv_sec = 0;
+	bcsleep.tv_nsec = 100000000; // 0.1 seconds
+
+	nanosleep(&bcsleep, NULL);
 }
 
 int btk_balance_requires_input(opts_p opts)
