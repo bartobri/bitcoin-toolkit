@@ -1,9 +1,7 @@
 ![Version](https://img.shields.io/badge/Version-3.0.0-green.svg)
 [![Twitter](https://img.shields.io/twitter/follow/bartobri78?label=Follow%20@bartobri78)](https://twitter.com/intent/follow?screen_name=bartobri78)
 
-<h1 align="center">
-  <img src="/bartobri/bitcoin-toolkit/blob/master/assets/demo-3-0.gif?raw=true" alt="demo-3-0.gif" width="900" style="border-radius: 15px">
-</h1>
+![Demo](https://github.com/bartobri/bitcoin-toolkit/blob/master/assets/demo-3-0.gif?raw=true)
 
 Bitcoin Toolkit
 ===============
