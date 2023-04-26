@@ -10,235 +10,114 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <assert.h>
 #include "mods/privkey.h"
 #include "mods/pubkey.h"
 #include "mods/address.h"
 #include "mods/input.h"
+#include "mods/base58.h"
+#include "mods/base32.h"
+#include "mods/output.h"
+#include "mods/opts.h"
 #include "mods/error.h"
 
-#define INPUT_WIF               1
-#define INPUT_HEX               2
-#define INPUT_RAW               3
-#define INPUT_GUESS             4
-#define OUTPUT_P2PKH            1   // Legacy Address
-#define OUTPUT_P2WPKH           2   // Segwit (Bech32) Address
-#define TRUE                    1
-#define FALSE                   0
-#define OUTPUT_BUFFER           150
-
-#define INPUT_SET(x)            if (input_format == FALSE) { input_format = x; } else { error_log("Cannot use multiple input format flags."); return -1; }
-#define OUTPUT_SET(x)           if (output_format == FALSE) { output_format = x; } else { error_log("Cannot use multiple output format flags."); return -1; }
-
-static int input_format         = FALSE;
-static int output_format        = FALSE;
-
-int btk_address_init(int argc, char *argv[])
+int btk_address_main(output_item *output, opts_p opts, unsigned char *input, size_t input_len)
 {
-    int o;
-    char *command = NULL;
+	int r;
+	char input_str[BUFSIZ];
+	char output_str[BUFSIZ];
+	PubKey pubkey = NULL;
+	PrivKey privkey = NULL;
 
-    command = argv[1];
+	assert(opts);
 
-    while ((o = getopt(argc, argv, "whrPW")) != -1)
-    {
-        switch (o)
-        {
-            // Input format
-            case 'w':
-                INPUT_SET(INPUT_WIF)
-                break;
-            case 'h':
-                INPUT_SET(INPUT_HEX)
-                break;
-            case 'r':
-                INPUT_SET(INPUT_RAW);
-                break;
+	memset(input_str, 0, BUFSIZ);
+	memset(output_str, 0, BUFSIZ);
 
-            // Output format
-            case 'P':
-                OUTPUT_SET(OUTPUT_P2PKH);
-                break;
-            case 'W':
-                OUTPUT_SET(OUTPUT_P2WPKH);
-                break;
+	privkey = malloc(privkey_sizeof());
+	ERROR_CHECK_NULL(privkey, "Memory allocation error.");
 
-            // Unknown option
-            case '?':
-                error_log("See 'btk help %s' to read about available argument options.", command);
-                if (isprint(optopt))
-                {
-                    error_log("Invalid command option or argument required: '-%c'.", optopt);
-                }
-                else
-                {
-                    error_log("Invalid command option character '\\x%x'.", optopt);
-                }
-                return -1;
-        }
-    }
+	pubkey = malloc(pubkey_sizeof());
+	ERROR_CHECK_NULL(pubkey, "Memory allocation error.");
 
-    if (input_format == FALSE)
-    {
-        input_format = INPUT_GUESS;
-    }
+	if (opts->input_type_wif)
+	{
+		memcpy(input_str, input, input_len);
 
-    if (output_format == FALSE)
-    {
-        output_format = OUTPUT_P2PKH;
-    }
+		r = privkey_from_wif(privkey, input_str);
+		ERROR_CHECK_NEG(r, "Could not calculate private key from input.");
+		r = pubkey_get(pubkey, privkey);
+		ERROR_CHECK_NEG(r, "Could not calculate public key.");
+	}
+	else if (opts->input_type_hex)
+	{
+		memcpy(input_str, input, input_len);
+		
+		r = pubkey_from_hex(pubkey, input_str);
+		ERROR_CHECK_NEG(r, "Could not calculate public key from input.");
+	}
+	else
+	{
+		r = pubkey_from_guess(pubkey, input, input_len);
+		if (r < 0)
+		{
+			error_clear();
+			ERROR_CHECK_NEG(r, "Invalid or missing input type specified.");
+		}
+	}
 
-    return 1;
+	if (opts->output_type_p2wpkh)
+	{
+		// Avoid uncompressed pubkey error if we are streaming and p2pkh is specified.
+		if (pubkey_is_compressed(pubkey) || !opts->output_stream || !opts->output_type_p2pkh)
+		{
+			r = address_get_p2wpkh(output_str, pubkey);
+			ERROR_CHECK_NEG(r, "Could not calculate P2WPKH address.");
+
+			*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+			ERROR_CHECK_NULL(*output, "Memory allocation error.");
+		}
+	}
+
+	if (opts->output_type_p2pkh)
+	{
+		r = address_get_p2pkh(output_str, pubkey);
+		ERROR_CHECK_NEG(r, "Could not calculate P2PKH address.");
+
+		*output = output_append_new_copy(*output, output_str, strlen(output_str) + 1);
+		ERROR_CHECK_NULL(*output, "Memory allocation error.");
+	}
+
+	free(pubkey);
+	free(privkey);
+
+	return 1;
 }
 
-int btk_address_main(void)
+int btk_address_requires_input(opts_p opts)
 {
-    int r;
-    char *input_sc;
-    unsigned char *input_uc;
-    char output[OUTPUT_BUFFER];
-    PubKey pubkey = NULL;
-    PrivKey privkey = NULL;
+	assert(opts);
 
-    pubkey = malloc(pubkey_sizeof());
-    if (pubkey == NULL)
-    {
-        error_log("Memory allocation error");
-        return -1;
-    }
-
-    privkey = malloc(privkey_sizeof());
-    if (privkey == NULL)
-    {
-        error_log("Memory allocation error");
-        return -1;
-    }
-
-    switch (input_format)
-    {
-        case INPUT_WIF:
-            r = input_get_str(&input_sc, NULL);
-            if (r < 0)
-            {
-                error_log("Could not get input.");
-                return -1;
-            }
-
-            r = privkey_from_wif(privkey, input_sc);
-            if (r < 0)
-            {
-                error_log("Could not calculate private key from input.");
-                return -1;
-            }
-
-            if (privkey_is_zero(privkey))
-            {
-                error_log("Private key decimal value cannot be zero.");
-                return -1;
-            }
-
-            r = pubkey_get(pubkey, privkey);
-            if (r < 0)
-            {
-                error_log("Could not calculate public key.");
-                return -1;
-            }
-
-            free(input_sc);
-            break;
-
-        case INPUT_HEX:
-            r = input_get_str(&input_sc, NULL);
-            if (r < 0)
-            {
-                error_log("Could not get input.");
-                return -1;
-            }
-
-            r = pubkey_from_hex(pubkey, input_sc);
-            if (r < 0)
-            {
-                error_log("Could not calculate private key from input.");
-                return -1;
-            }
-
-            free(input_sc);
-            break;
-
-        case INPUT_RAW:
-            r = input_get_from_pipe(&input_uc);
-            if (r < 0)
-            {
-                error_log("Could not get input.");
-                return -1;
-            }
-
-            r = pubkey_from_raw(pubkey, input_uc, r);
-            if (r < 0)
-            {
-                error_log("Could not get public key from input.");
-                return -1;
-            }
-
-            free(input_uc);
-            break;
-
-        case INPUT_GUESS:
-            r = input_get(&input_uc, NULL, INPUT_GET_MODE_ALL);
-            if (r < 0)
-            {
-                error_log("Could not get input.");
-                return -1;
-            }
-
-            r = pubkey_from_guess(pubkey, input_uc, r);
-            if (r < 0)
-            {
-                error_log("Could not get public key from input.");
-                return -1;
-            }
-
-            free(input_uc);
-            break;
-    }
-
-    if (!pubkey)
-    {
-        error_log("Could not get public key from input.");
-        return -1;
-    }
-
-    memset(output, 0, OUTPUT_BUFFER);
-
-    switch (output_format)
-    {
-        case OUTPUT_P2PKH:
-            r = address_get_p2pkh(output, pubkey);
-            if (r < 0)
-            {
-                error_log("Could not calculate P2PKH address.");
-                return -1;
-            }
-            printf("%s\n", output);
-            break;
-
-        case OUTPUT_P2WPKH:
-            r = address_get_p2wpkh(output, pubkey);
-            if (r < 0)
-            {
-                error_log("Could not calculate P2WPKH address.");
-                return -1;
-            }
-            printf("%s\n", output);
-            break;
-    }
-
-    free(pubkey);
-    free(privkey);
-
-    return 1;
+	return 1;
 }
 
-int btk_address_cleanup(void)
+int btk_address_init(opts_p opts)
 {
-    return 1;
+	assert(opts);
+
+	// Default to P2PKH
+	if (!opts->output_type_p2pkh && !opts->output_type_p2wpkh)
+	{
+		opts->output_type_p2pkh = 1;
+	}
+
+	return 1;
+}
+
+int btk_address_cleanup(opts_p opts)
+{
+	assert(opts);
+	
+	return 1;
 }

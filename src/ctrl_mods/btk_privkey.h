@@ -8,8 +8,12 @@
 #ifndef BTK_PRIVKEY_H
 #define BTK_PRIVKEY_H 1
 
-int btk_privkey_init(int argc, char *argv[]);
-int btk_privkey_main(void);
-int btk_privkey_cleanup(void);
+#include "mods/output.h"
+#include "mods/opts.h"
+
+int btk_privkey_main(output_item *, opts_p, unsigned char *, size_t);
+int btk_privkey_requires_input(opts_p);
+int btk_privkey_init(opts_p);
+int btk_privkey_cleanup(opts_p);
 
 #endif

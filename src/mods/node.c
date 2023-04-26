@@ -10,64 +10,87 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <netdb.h>
 #include <errno.h>
 #include <assert.h>
 #include "node.h"
 #include "error.h"
+#include "message.h"
 
 #define MAX_MESSAGE_QUEUE 100
 
 struct Node
 {
 	int sockfd;
+	char *host;
+	char *service;
 };
 
-int node_connect(Node node, const char *host, int port)
+int node_new(Node *node, char *host, char *service)
+{
+	assert(host);
+	assert(service);
+
+	*node = malloc(sizeof(struct Node));
+	ERROR_CHECK_NULL(*node, "Memory allocation error.");
+
+	(*node)->host = host;
+	(*node)->service = service;
+
+	return 1;
+}
+
+int node_connect(Node node)
 {
 	int r, sockfd;
-	struct hostent *server;
-	struct sockaddr_in serv_addr;
+	struct addrinfo *hints;
+	struct addrinfo *result;
 	
 	assert(node);
-	assert(host);
-	assert(port);
-	
-	// Set up a socket in the AF_INET domain (Internet Protocol v4 addresses)
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	hints = malloc(sizeof(*hints));
+	ERROR_CHECK_NULL(hints, "Memory allocation error.");
+
+	memset(hints, 0, sizeof(*hints));
+
+	hints->ai_family = AF_INET;
+	hints->ai_socktype = SOCK_STREAM;
+
+	r = getaddrinfo(node->host, node->service, hints, &result);
+	if (r > 0)
+	{
+		error_log("Can not get address info. Error code %i.", r);
+		return -1;
+	}
+
+	// Set up a socket
+	sockfd = socket(result->ai_family, result->ai_socktype, 0);
 	if (sockfd < 0)
 	{
 		error_log("Unable to create new socket. Errno %i.", errno);
 		return -1;
 	}
-	
-	// Get a pointer to 'hostent' containing info about host.
-	server = gethostbyname(host);
-	if (!server)
-	{
-		error_log("Unable to lookup host %s. Errno %i.", host, h_errno);
-		return -1;
-	}
-	
-	// Initializing serv_addr memory footprint to all integer zeros ('\0')
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	
-	// Setting up our serv_addr structure
-	serv_addr.sin_family = AF_INET;       // Internet Protocol v4 addresses
-	memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-	serv_addr.sin_port = htons(port);     // Convert port byte order to 'network byte order'
-	
-	// Connect to server.
-	r = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+
+	// Connect to server
+	r = connect(sockfd, result->ai_addr, result->ai_addrlen);
 	if (r < 0)
 	{
-		error_log("Unable to connect to host %s. Errno %i.", host, errno);
+		error_log("Unable to connect to host %s. Errno %i.", node->host, errno);
 		return -1;
 	}
 
 	// If we get here, connection succeeded. Set up node struct.
 	node->sockfd = sockfd;
+
+	free(hints);
+
+	// Freeing result (linked list)
+	struct addrinfo *tmp;
+	do {
+		tmp = result->ai_next;
+		free(result);
+		result = tmp;
+	} while(result != NULL);
 	
 	return 1;
 }
@@ -94,41 +117,85 @@ int node_write(Node node, unsigned char *input, size_t input_len)
 
 int node_read(Node node, unsigned char** buffer)
 {
-	int r, input_len;
+	int r;
+	int read_total = 0;
+	int buf_size = BUFSIZ;
 	
 	assert(node);
 	assert(buffer);
 
-	input_len = 0;
+	*buffer = malloc(buf_size);
+	ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
 
-	r = ioctl(node->sockfd, FIONREAD, &input_len);
+	while ((r = read(node->sockfd, (*buffer) + read_total, buf_size - read_total)) > 0)
+	{
+		read_total += r;
+
+		if (read_total == buf_size)
+		{
+			buf_size = buf_size * 2;
+
+			(*buffer) = realloc((*buffer), buf_size);
+			ERROR_CHECK_NULL((*buffer), "Memory allocation error.");
+		}
+	}
 	if (r < 0)
 	{
 		error_log("Unable to read from socket. Errno %i.", errno);
 		return -1;
 	}
 
-	if (input_len > 0)
-	{
-		if (*buffer == NULL)
-		{
-			*buffer = malloc(input_len + 1);
-			if (*buffer == NULL)
-			{
-				error_log("Memory allocation error.");
-				return -1;
-			}
-		}
+	memset((*buffer) + read_total, 0, buf_size - read_total);
+	
+	return read_total;
+}
 
-		r = read(node->sockfd, *buffer, input_len);
-		if (r < 0)
+int node_read_message(unsigned char **message, Node node)
+{
+	int r;
+	uint32_t read_total = 0;
+	uint32_t message_len;
+	uint32_t payload_len;
+
+	assert(node);
+
+	(*message) = malloc(MESSAGE_MIN_SIZE);
+	ERROR_CHECK_NULL((*message), "Memory allocation error.");
+
+	while ((r = read(node->sockfd, (*message) + read_total, MESSAGE_MIN_SIZE - read_total)) > 0)
+	{
+		read_total += r;
+
+		if (read_total == MESSAGE_MIN_SIZE)
 		{
-			error_log("Unable to read from socket. Errno %i.", errno);
-			return -1;
+			break;
 		}
 	}
-	
-	return input_len;
+	if (r < 0)
+	{
+		error_log("Unable to read from socket. Errno %i.", errno);
+		return -1;
+	}
+
+	r = message_get_payload_len(&payload_len, *message);
+	ERROR_CHECK_NEG(r, "Could not get payload length.");
+
+	message_len = MESSAGE_MIN_SIZE + payload_len;
+
+	(*message) = realloc((*message), message_len);
+	ERROR_CHECK_NULL((*message), "Memory allocation error.");
+
+	while ((r = read(node->sockfd, (*message) + read_total, message_len - read_total)) > 0)
+	{
+		read_total += r;
+
+		if (read_total == message_len)
+		{
+			break;
+		}
+	}
+
+	return (int)read_total;
 }
 
 void node_disconnect(Node node)
@@ -139,7 +206,9 @@ void node_disconnect(Node node)
 	close(node->sockfd);
 }
 
-size_t node_sizeof(void)
+void node_destroy(Node node)
 {
-	return sizeof(struct Node);
+	assert(node);
+
+	free(node);
 }

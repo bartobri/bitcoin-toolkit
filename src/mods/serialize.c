@@ -97,7 +97,6 @@ unsigned char *serialize_uchar(unsigned char *dest, unsigned char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	dest += len;
@@ -109,7 +108,6 @@ unsigned char *serialize_char(unsigned char *dest, char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	dest += len;
@@ -311,13 +309,26 @@ unsigned char *deserialize_uint64(uint64_t *dest, unsigned char *src, int endian
 	return src;
 }
 
-unsigned char *deserialize_uchar(unsigned char *dest, unsigned char *src, int len)
+unsigned char *deserialize_uchar(unsigned char *dest, unsigned char *src, int len, int endian)
 {
+	int i;
+
 	assert(dest);
 	assert(src);
-	assert(len);
-	
-	memcpy(dest, src, len);
+	assert(endian == SERIALIZE_ENDIAN_BIG || endian == SERIALIZE_ENDIAN_LIT);
+
+	if (endian == SERIALIZE_ENDIAN_LIT)
+	{
+		for (i = 0; i < len; i++)
+		{
+			dest[i] = src[len - 1 - i];
+		}
+	}
+	else
+	{
+		memcpy(dest, src, len);
+	}
+
 	src += len;
 	
 	return src;
@@ -327,7 +338,6 @@ unsigned char *deserialize_char(char *dest, unsigned char *src, int len)
 {
 	assert(dest);
 	assert(src);
-	assert(len);
 	
 	memcpy(dest, src, len);
 	src += len;

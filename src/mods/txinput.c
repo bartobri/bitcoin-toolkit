@@ -10,88 +10,37 @@
 #include <assert.h>
 #include "txinput.h"
 #include "hex.h"
-#include "compactuint.h"
 #include "error.h"
+#include "serialize.h"
 
-int txinput_from_raw(TXInput txinput, unsigned char *input, size_t input_len)
+int txinput_from_raw(TXInput txinput, unsigned char *input)
 {
-	int r;
-	size_t i, j, c;
+	unsigned char *head;
 
 	assert(txinput);
 	assert(input);
-	assert(input_len);
-	
-	c = 0;
-	
-	// Transaction hash being spent
-	for (i = 0; i < 32; ++i, ++input, --input_len, ++c)
+
+	head = input;
+
+	input = deserialize_uchar(txinput->tx_hash, input, TXINPUT_TXHASH_LENGTH, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint32(&(txinput->index), input, SERIALIZE_ENDIAN_LIT);
+
+	if (txinput->index == 0xffffffff)
 	{
-		if (input_len == 0)
-		{
-			error_log("Transaction input data is incomplete.");
-			return -1;
-		}
-		txinput->tx_hash[31-i] = *input;
+		txinput->is_coinbase = 1;
 	}
-	
-	// Output index of transcaction hash
-	for (i = 0; i < sizeof(txinput->index); ++i, ++input, --input_len, ++c)
+	else
 	{
-		if (input_len == 0)
-		{
-			error_log("Transaction input data is incomplete.");
-			return -1;
-		}
-		txinput->index <<= 8;
-		txinput->index += *input;
+		txinput->is_coinbase = 0;
 	}
-	
-	// Unlocking Script Size
-	r = compactuint_get_value(&txinput->script_size, input, input_len);
-	if (r < 0)
-	{
-		error_log("Could not parse compact size integer from transaction input data.");
-		return -1;
-	}
-	j = r; // quick fix - make prettier later
-	input += j;
-	c += j;
-	input_len = (j > input_len) ? 0 : input_len - j;
-	if (input_len == 0)
-	{
-		error_log("Transaction input data is incomplete.");
-		return -1;
-	}
-	
-	// Unlocking Script
-	txinput->script_raw = malloc(txinput->script_size);
-	if (txinput->script_raw == NULL)
-	{
-		error_log("Memory allocation error.");
-		return -1;
-	}
-	for (i = 0; i < txinput->script_size; ++i, ++input, --input_len, ++c)
-	{
-		if (input_len == 0)
-		{
-			error_log("Transaction input data is incomplete.");
-			return -1;
-		}
-		txinput->script_raw[i] = *input;
-	}
-	
-	// Sequence
-	for (i = 0; i < sizeof(txinput->sequence); ++i, ++input, --input_len, ++c)
-	{
-		if (input_len == 0)
-		{
-			error_log("Transaction input data is incomplete.");
-			return -1;
-		}
-		txinput->sequence <<= 8;
-		txinput->sequence += *input;
-	}
-	
-	return c;
+
+	input = deserialize_compuint(&(txinput->script_size), input, SERIALIZE_ENDIAN_LIT);
+
+	(txinput->script_raw) = malloc(txinput->script_size);
+	ERROR_CHECK_NULL((txinput->script_raw), "Memory allocation error.");
+
+	input = deserialize_uchar(txinput->script_raw, input, txinput->script_size, SERIALIZE_ENDIAN_BIG);
+	input = deserialize_uint32(&(txinput->sequence), input, SERIALIZE_ENDIAN_LIT);
+
+	return (input - head);
 }

@@ -7,79 +7,71 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <gcrypt.h>
+#include <stdlib.h>
 #include <assert.h>
+#include <openssl/evp.h>
+#ifdef EVP_H_MISSING
+#  include "crypto/rmd160.h"
+#  include "crypto/sha256.h"
+#else
+#  include <openssl/provider.h>
+#endif
 #include "crypto.h"
 #include "error.h"
 
-static int crypto_init(void)
-{
-	static int isInit = 0;
-
-	if (!isInit)
-	{
-		if (!gcry_check_version(GCRYPT_VERSION))
-		{
-			error_log("Libgcrypt version mismatch.");
-			return -1;
-		}
-		gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
-		gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
-		gcry_control(GCRYCTL_RESUME_SECMEM_WARN);
-		gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
-
-		isInit = 1;
-	}
-
-	return 1;
-}
-
 int crypto_get_sha256(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	gcry_md_hd_t gc;
-	
 	assert(output);
 	assert(input);
-	assert(input_len);
 
-	if (crypto_init() < 0)
-	{
-		error_log("Could not initialize encryption library.");
-		return -1;
-	}
-	
-	gcry_md_open(&gc, GCRY_MD_SHA256, 0);
-	
-	gcry_md_write(gc, input, input_len);
-	
-	memcpy(output, gcry_md_read(gc, 0), 32);
-	
-	gcry_md_close(gc);
+# ifdef EVP_H_MISSING
+	SHA256_CTX sha256;
+	SHA256_Init(&sha256);
+	SHA256_Update(&sha256, input, input_len);
+	SHA256_Final(output, &sha256);
+# else
+	EVP_MD_CTX *mdctx;
+	unsigned int output_len;
+	mdctx = EVP_MD_CTX_new();
+	ERROR_CHECK_NULL(mdctx, "Memory allocation error.");
+	EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
+	EVP_DigestUpdate(mdctx, input, input_len);
+	EVP_DigestFinal_ex(mdctx, output, &output_len);
+	EVP_MD_CTX_free(mdctx);
+# endif
 	
 	return 1;
 }
 
 int crypto_get_rmd160(unsigned char *output, unsigned char *input, size_t input_len)
 {
-	gcry_md_hd_t gc;
-	
 	assert(output);
 	assert(input);
 	assert(input_len);
-	
-	if (crypto_init() < 0)
-	{
-		error_log("Could not initialize encryption library.");
-		return -1;
-	}
 
-	gcry_md_open(&gc, GCRY_MD_RMD160, 0);
-
-	gcry_md_write(gc, input, input_len);
-
-	memcpy(output, gcry_md_read(gc, 0), 20);
-
-	gcry_md_close(gc);
+# ifdef EVP_H_MISSING
+	RIPEMD160_CTX rmd160;
+	RIPEMD160_Init(&rmd160);
+	RIPEMD160_Update(&rmd160, input, input_len);
+	RIPEMD160_Final(output, &rmd160);
+# else
+	int r;
+	EVP_MD_CTX *mdctx;
+	unsigned int output_len;
+#   ifndef PROVIDER_H_MISSING
+		OSSL_PROVIDER *prov = OSSL_PROVIDER_load(NULL, "legacy");
+#   endif
+	mdctx = EVP_MD_CTX_new();
+	ERROR_CHECK_NULL(mdctx, "Memory allocation error.");
+	r = EVP_DigestInit_ex(mdctx, EVP_ripemd160(), NULL);
+	ERROR_CHECK_FALSE(r, "Could not initialize rmd digest.");
+	EVP_DigestUpdate(mdctx, input, input_len);
+	EVP_DigestFinal_ex(mdctx, output, &output_len);
+	EVP_MD_CTX_free(mdctx);
+#   ifndef PROVIDER_H_MISSING
+		OSSL_PROVIDER_unload(prov);
+#   endif
+# endif
 
 	return 1;
 }
@@ -91,7 +83,6 @@ int crypto_get_checksum(uint32_t *output, unsigned char *data, size_t len)
 
 	assert(output);
 	assert(data);
-	assert(len);
 
 	sha1 = malloc(32);
 	if (sha1 == NULL)

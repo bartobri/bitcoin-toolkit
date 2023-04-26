@@ -1,0 +1,151 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK-BALANCE" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-balance \- Query any address balance.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIbalance\fR [<option>...] [<input_item>...]
+.fi
+
+.sp
+.SH "DESCRIPTION"
+
+.sp
+Create and query a local database of all addresses with a balance on the blockchain. Execute thousands of queries in less than a second.
+.sp
+Input is an address, or a list of addresses.
+.sp
+Output is decimal string, or a list of decimal strings, representing the balance of an address in satoshies (i.e. "100000000"), for each input provided.
+.sp
+The address balance database must be initially built from a bitcoin core full node that has a full copy of the blockchain. You must have administrative access to this node. The database can be built remotely using json-rpc over a local area network, or it can be built directly from the node database files on the same machine as the node itself. See the creation options below.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+\--create
+.RS 4
+Create the balance database using json-rpc to a remote bitcoin node. The remote node must have the json-rpc service open and available on the local network. Options --hostname and --rpc-auth are required.
+.RE
+
+.PP
+\--create-from-chainstate
+.RS 4
+Create the balance database using the bitcoin core node chainstate database. This does not require json-rpc access, but it does require a copy of its chainstate database. You can either copy it from a remote bitcoin node, or if the bitcoin node is running on the same machine, you can use it in it's default location, but you must shut down bitcoin core while the balance database is building. Use the option --chainstate-path if the chainstate database is not in the default location.
+.RE
+
+.PP
+\--balance-path=<path>
+.RS 4
+If other than the default path of ~/.btk/balance, this option specifies path of the balance database. It can be used for both creating and querying the database.
+.RE
+
+.PP
+\--chainstate-path=<path>
+.RS 4
+If other than the default path of ~/.bitcoin/chainstate, this specifies path of the chainstate database from which to create the balance database. Only use in combination with the --create-form-chainstate option.
+.RE
+
+.PP
+\--update
+.RS 4
+Update the balance database to account for new blocks that have arrived at your bitcoin core full node. This option requires json-rpc access to your node with a full copy of the blockchain. Options --hostname and --rpc-auth are required for json-rpc updates.
+.RE
+
+.PP
+\-h <hostname>, --hostname=<hostname>
+.RS 4
+Specify the hostname of a bitcoin full node. Used when creating or updating the balance database using json-rpc.
+.RE
+
+.PP
+\-p <port>, --port=<port>
+.RS 4
+Specify the json-rpc port of a bitcoin full node. 8332 by default. Used when creating or updating the balance database using json-rpc.
+.RE
+
+.PP
+\--rpc-auth=<auth_string>
+.RS 4
+Specify the json-rpc auth string used to authenticate to the json-rpc service of your bitcoin core full node. See the bitcoin core json-rpc auth documentation for setting up a new rpc auth user and password. The auth string is formatted as a base64 string containing the username, then a colon, then the password. The password is usually also encoded as base 64 separately. In pseudo code, the auth string looks something like this:
+.sp
+base64(username:base64(password))
+.RE
+
+.PP
+\fBFORMAT OPTIONS\fR
+.RE
+
+.PP
+The input/output format options tell btk the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
+.RE
+
+.PP
+\-l, --in-format=list
+.RS 4
+Input is formatted as a list of ascii strings delimited by a newline character. Note that a single string without a newline character is considered valid input (i.e. a list of one).
+.RE
+
+.PP
+\-j, --in-format=json
+.RS 4
+Input is formatted as a list of ascii strings contained within a json array.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format the output as a list of ascii strings delimited by a newline character.
+.RE
+
+.PP
+\-J, --out-format=json
+.RS 4
+Format the output as a list of ascii strings contained within a json array. This is the default output format when no other is specified.
+.RE
+
+.PP
+\fBLIST OPTIONS\fR
+.RE
+
+.PP
+\-G <regex>, --grep=<regex>
+.RS 4
+Filter (inclusively) items in the output list that match the regex string.
+.RE
+
+.PP
+\-S, --stream
+.RS 4
+By default, all output is printed after the last item of an input list is processed. This option tells btk to print the output immediately after each input item is processed, allowing you to view or redirect the output in real time as the list is processed.
+.RE
+
+.PP
+\--trace
+.RS 4
+If the output format is set to json, this option includes the input string in the resulting json data structure, drawing a connection between items on the input list and the items on the output list.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-privkey\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)

@@ -9,6 +9,9 @@
 #define POINT_H 1
 
 #include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 
 typedef struct Point *Point;
 struct Point

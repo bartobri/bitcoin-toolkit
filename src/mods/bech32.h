@@ -10,6 +10,6 @@
 
 #include <stddef.h>
 
-int bech32_get_address(char *, unsigned char *, size_t);
+int bech32_get_address(char *, unsigned char *, size_t, int);
 
 #endif

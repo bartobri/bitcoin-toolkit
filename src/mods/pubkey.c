@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <gmp.h>
 #include <ctype.h>
 #include <assert.h>
+#include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 #include "pubkey.h"
 #include "privkey.h"
 #include "point.h"
@@ -41,6 +44,8 @@ int pubkey_get(PubKey pubkey, PrivKey privkey)
 	
 	assert(privkey);
 	assert(pubkey);
+
+	memset(pubkey->data, 0, PUBKEY_UNCOMPRESSED_LENGTH + 1);
 
 	if (privkey_is_zero(privkey))
 	{
@@ -234,6 +239,8 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 		return -1;
 	}
 
+	memset(key->data, 0, PUBKEY_UNCOMPRESSED_LENGTH + 1);
+
 	memcpy(key->data, input, input_len);
 
 	return 1;
@@ -241,17 +248,16 @@ int pubkey_from_raw(PubKey key, unsigned char *input, size_t input_len)
 
 int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
 {
-	size_t i;
-	size_t input_str_len;
 	int r;
-	char *input_str;
+	size_t i;
+	char input_str[BUFSIZ];
 	PrivKey privkey;
 
 	assert(key);
 	assert(input);
 	assert(input_len);
 
-	input_str = NULL;
+	memset(input_str, 0, BUFSIZ);
 
 	for (i = 0; i < input_len; i++)
 	{
@@ -262,31 +268,14 @@ int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
 	}
 	if (i > 0)
 	{
-		input_str_len = i;
-		while (isspace(input[input_str_len - 1]))
-		{
-			--input_str_len;
-		}
-
-		input_str = malloc(input_str_len + 1);
-		if (input_str == NULL)
-		{
-			error_log("Memory allocation error.");
-			return -1;
-		}
-
-		memset(input_str, 0, input_str_len + 1);
-		memcpy(input_str, input, input_str_len);
+		memcpy(input_str, input, input_len);
 	}
 
-	if (input_str != NULL)
+	if (*input_str)
 	{
 		privkey = malloc(privkey_sizeof());
-		if (privkey == NULL)
-		{
-			error_log("Memory allocation error.");
-			return -1;
-		}
+		ERROR_CHECK_NULL(privkey, "Memory allocation error.");
+
 		r = privkey_from_wif(privkey, input_str);
 		if (r > 0)
 		{
@@ -294,31 +283,21 @@ int pubkey_from_guess(PubKey key, unsigned char *input, size_t input_len)
 			if (r > 0)
 			{
 				free(privkey);
-				free(input_str);
 				return 1;
 			}
 		}
-		free(privkey);
 
+		free(privkey);
 		error_clear();
 
 		r = pubkey_from_hex(key, input_str);
 		if (r > 0)
 		{
-			free(input_str);
 			return 1;
 		}
-		free(input_str);
 
 		error_clear();
 	}
-
-	r = pubkey_from_raw(key, input, input_len);
-	if (r > 0)
-	{
-		return 1;
-	}
-	error_clear();
 
 	error_log("Unable to guess input type. Specify an input type flag.");
 	return -1;
@@ -387,6 +366,8 @@ int pubkey_uncompress(PubKey key)
 		error_log("Invalid point values.");
 		return -1;
 	}
+
+	memset(key->data + 33, 0, 32);
 
 	l = (mpz_sizeinbase(point->y, 2) + 7) / 8;
 	mpz_export(key->data + 33 + (32 - l), &i, 1, 1, 1, 0, point->y);

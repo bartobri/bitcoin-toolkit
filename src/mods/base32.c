@@ -41,7 +41,7 @@ int base32_encode(char *output, unsigned char *data, size_t data_len)
 
 int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_len)
 {
-	size_t i, j, k;
+	size_t i, j, k = 0;
 	int r;
 
 	assert(output);
@@ -49,20 +49,30 @@ int base32_encode_raw(unsigned char *output, unsigned char *data, size_t data_le
 	assert(data_len);
 
 	*output = 0;
-	for (i = 0, k = 0; i < data_len; ++i)
+	for (i = 0; i < data_len; ++i)
 	{
 		for (j = 0; j < 8; ++j)
 		{
 			*output <<= 1;
 			*output += ((data[i] << j) & 0x80) >> 7;
-			if ((++k % 5) == 0)
+
+			k++;
+
+			if ((k % 5) == 0)
 			{
 				output++;
 				*output = 0;
 			}
 		}
 	}
-	r = ++k / 5;
+
+	while (k % 5 != 0)
+	{
+		*output <<= 1;
+		k++;
+	}
+
+	r = k / 5;
 
 	return r;
 }

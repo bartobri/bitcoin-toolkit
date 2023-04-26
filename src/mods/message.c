@@ -5,6 +5,7 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -17,121 +18,88 @@
 
 #define MESSAGE_MAINNET        0xD9B4BEF9
 #define MESSAGE_TESTNET        0x0709110B
-#define MESSAGE_COMMAND_MAXLEN 12
-#define MESSAGE_PAYLOAD_MAXLEN 1024
 
-struct Message
-{
-	uint32_t       magic;
-	char           command[MESSAGE_COMMAND_MAXLEN];
-	uint32_t       length;
-	uint32_t       checksum;
-	unsigned char  payload[MESSAGE_PAYLOAD_MAXLEN];
-};
-
-int message_new(Message m, const char *command, unsigned char *payload, size_t payload_len)
+int message_new(Message *message, const char *command, unsigned char *payload, size_t payload_len)
 {
 	int r;
 	
-	assert(m);
-	assert(command);
-	if (payload_len)
-	{
-		assert(payload);
-	}
-
-	if (strlen(command) > MESSAGE_COMMAND_MAXLEN)
-	{
-		error_log("Command length (%i) can not exceed %i bytes in length.", (int)strlen(command), MESSAGE_COMMAND_MAXLEN);
-		return -1;
-	}
-	if (payload_len > MESSAGE_PAYLOAD_MAXLEN)
-	{
-		error_log("Message length (%i) can not exceed %i bytes in length.", payload_len, MESSAGE_PAYLOAD_MAXLEN);
-		return -1;
-	}
-
-	if (network_is_main())
-	{
-		m->magic = MESSAGE_MAINNET;
-	}
-	else
-	{
-		m->magic = MESSAGE_TESTNET;
-	}
-
-	strncpy(m->command, command, MESSAGE_COMMAND_MAXLEN);
-	m->length = payload_len;
-	if (payload_len)
-	{
-		memcpy(m->payload, payload, payload_len);
-		r = crypto_get_checksum(&m->checksum, m->payload, (size_t)m->length);
-		if (r < 0)
-		{
-			error_log("Could not generate checksum for message payload.");
-			return -1;
-		}
-	}
-
-	return 1;
-}
-
-int message_serialize(unsigned char *output, size_t *output_len, Message m)
-{
-	assert(output);
-	assert(output_len);
-	assert(m);
-
-	output = serialize_uint32(output, m->magic, SERIALIZE_ENDIAN_LIT);
-	output = serialize_char(output, m->command, MESSAGE_COMMAND_MAXLEN);
-	output = serialize_uint32(output, m->length, SERIALIZE_ENDIAN_LIT);
-	output = serialize_uint32(output, m->checksum, SERIALIZE_ENDIAN_BIG);
-	if (m->length)
-	{
-		output = serialize_uchar(output, m->payload, m->length);
-	}
-
-	*output_len = 12 + MESSAGE_COMMAND_MAXLEN + m->length;
-	
-	return 1;
-}
-
-int message_deserialize(Message output, unsigned char *input, size_t input_len)
-{
-	assert(output);
-	assert(input);
-	assert(input_len);
-
-	if (input_len < 12 + MESSAGE_COMMAND_MAXLEN)
-	{
-		error_log("Input length (%i) insifficient to create a new message. At least %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN);
-		return -1;
-	}
-
-	input = deserialize_uint32(&(output->magic), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_char(output->command, input, MESSAGE_COMMAND_MAXLEN);
-	input = deserialize_uint32(&(output->length), input, SERIALIZE_ENDIAN_LIT);
-	input = deserialize_uint32(&(output->checksum), input, SERIALIZE_ENDIAN_BIG);
-	if (output->length)
-	{
-		if (input_len < 12 + MESSAGE_COMMAND_MAXLEN + output->length)
-		{
-			error_log("Input length (%i) insifficient to create a new message. %i bytes required.", input_len, 12 + MESSAGE_COMMAND_MAXLEN + output->length);
-			return -1;
-		}
-		input = deserialize_uchar(output->payload, input, output->length);
-	}
-	
-	return 12 + MESSAGE_COMMAND_MAXLEN + output->length;
-}
-
-int message_cmp_command(Message m, char *command)
-{
-	assert(m);
 	assert(command);
 	assert(strlen(command) <= MESSAGE_COMMAND_MAXLEN);
 
-	return strncmp(m->command, command, MESSAGE_COMMAND_MAXLEN);
+	*message = malloc(sizeof(struct Message));
+	ERROR_CHECK_NULL(*message, "Memory allocation error.");
+
+	if (network_is_main())
+	{
+		(*message)->magic = MESSAGE_MAINNET;
+	}
+	else
+	{
+		(*message)->magic = MESSAGE_TESTNET;
+	}
+
+	strncpy((*message)->command, command, MESSAGE_COMMAND_MAXLEN);
+	(*message)->length = payload_len;
+
+	if ((*message)->length)
+	{
+		(*message)->payload = malloc((*message)->length);
+		ERROR_CHECK_NULL((*message)->payload, "Memory allocation error.");
+
+		memcpy((*message)->payload, payload, (*message)->length);
+	}
+
+	r = crypto_get_checksum(&((*message)->checksum), (*message)->payload, (size_t)(*message)->length);
+	ERROR_CHECK_NEG(r, "Could not generate checksum for message payload.");
+
+	return 1;
+}
+
+int message_to_raw(unsigned char *output, Message message)
+{
+	unsigned char *head;
+
+	assert(output);
+	assert(message);
+
+	head = output;
+
+	output = serialize_uint32(output, message->magic, SERIALIZE_ENDIAN_LIT);
+	output = serialize_char(output, message->command, MESSAGE_COMMAND_MAXLEN);
+	output = serialize_uint32(output, message->length, SERIALIZE_ENDIAN_LIT);
+	output = serialize_uint32(output, message->checksum, SERIALIZE_ENDIAN_BIG);
+	if (message->length)
+	{
+		output = serialize_uchar(output, message->payload, message->length);
+	}
+	
+	return output - head;
+}
+
+int message_new_from_raw(Message *message, unsigned char *input)
+{
+	unsigned char *head;
+
+	assert(input);
+
+	*message = malloc(sizeof(struct Message));
+	ERROR_CHECK_NULL(*message, "Memory allocation error.");
+
+	head = input;
+
+	input = deserialize_uint32(&((*message)->magic), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_char((*message)->command, input, MESSAGE_COMMAND_MAXLEN);
+	input = deserialize_uint32(&((*message)->length), input, SERIALIZE_ENDIAN_LIT);
+	input = deserialize_uint32(&((*message)->checksum), input, SERIALIZE_ENDIAN_BIG);
+	if ((*message)->length)
+	{
+		(*message)->payload = malloc((*message)->length);
+		ERROR_CHECK_NULL((*message)->payload, "Memory allocation error.");
+
+		input = deserialize_uchar((*message)->payload, input, (*message)->length, SERIALIZE_ENDIAN_BIG);
+	}
+
+	return input - head;
 }
 
 int message_is_valid(Message m)
@@ -157,24 +125,45 @@ int message_is_valid(Message m)
 	return (checksum == m->checksum);
 }
 
-int message_get_payload(unsigned char *output, Message m)
+int message_is_complete(unsigned char *raw, size_t len)
 {
-	assert(output);
-	assert(m);
+	uint32_t payload_len;
 
-	memcpy(output, m->payload, m->length);
-	
-	return (int)m->length;
+	if (len < MESSAGE_MIN_SIZE)
+	{
+		return 0;
+	}
+
+	raw += sizeof(uint32_t);
+	raw += MESSAGE_COMMAND_MAXLEN;
+
+	deserialize_uint32(&payload_len, raw, SERIALIZE_ENDIAN_LIT);
+
+	if (len < MESSAGE_MIN_SIZE + payload_len)
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
-uint32_t message_get_payload_len(Message m)
+int message_get_payload_len(uint32_t *len, unsigned char *raw)
 {
-	assert(m);
+	raw += sizeof(uint32_t);
+	raw += MESSAGE_COMMAND_MAXLEN;
 
-	return m->length;
+	deserialize_uint32(len, raw, SERIALIZE_ENDIAN_LIT);
+
+	return 1;
 }
 
-size_t message_sizeof(void)
+void message_destroy(Message message)
 {
-	return sizeof(struct Message);
+	assert(message);
+
+	if (message->length > 0)
+	{
+		free(message->payload);
+	}
+	free(message);
 }

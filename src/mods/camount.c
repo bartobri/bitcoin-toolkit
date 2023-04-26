@@ -15,69 +15,69 @@
 
 void camount_compress(uint64_t *dest, uint64_t src)
 {
-    int d, e = 0;
+	int d, e = 0;
 
-    if (src == 0)
-    {
-        *dest = 0;
-    }
-    else
-    {
-        while (((src % 10) == 0) && e < 9)
-        {
-            src /= 10;
-            e++;
-        }
+	if (src == 0)
+	{
+		*dest = 0;
+	}
+	else
+	{
+		while (((src % 10) == 0) && e < 9)
+		{
+			src /= 10;
+			e++;
+		}
 
-        if (e < 9)
-        {
-            d = (src % 10);
+		if (e < 9)
+		{
+			d = (src % 10);
 
-            assert(d >= 1 && d <= 9);
+			assert(d >= 1 && d <= 9);
 
-            src /= 10;
-            *dest = 1 + (src * 9 + d - 1) * 10 + e;
-        }
-        else
-        {
-            *dest = 1 + (src - 1) * 10 + 9;
-        }
-    }
+			src /= 10;
+			*dest = 1 + (src * 9 + d - 1) * 10 + e;
+		}
+		else
+		{
+			*dest = 1 + (src - 1) * 10 + 9;
+		}
+	}
 }
 
 void camount_uncompress(uint64_t *dest, uint64_t src)
 {
-    int e, d;
-    uint64_t n = 0;
+	int e, d;
+	uint64_t n = 0;
 
-    if (src == 0)
-    {
-        *dest = 0;
-    }
-    else
-    {
-        src--;
+	if (src == 0)
+	{
+		*dest = 0;
+	}
+	else
+	{
+		src--;
 
-        e = src % 10;
-        src /= 10;
+		e = src % 10;
+		src /= 10;
 
-        if (e < 9)
-        {
-            d = (src % 9) + 1;
-            src /= 9;
-            n = src * 10 + d;
-        }
-        else
-        {
-            n = src + 1;
-        }
+		if (e < 9)
+		{
+			d = (src % 9) + 1;
+			src /= 9;
+			n = src * 10 + d;
+		}
+		else
+		{
+			n = src + 1;
+		}
 
-        while (e)
-        {
-            n *= 10;
-            e--;
-        }
+		while (e)
+		{
+			n *= 10;
+			e--;
+		}
 
-        *dest = n;
-    }
+		*dest = n;
+	}
 }

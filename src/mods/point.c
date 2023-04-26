@@ -5,8 +5,11 @@
  * under the terms of the GPL License. See LICENSE for more details.
  */
 
-#include <gmp.h>
 #include <assert.h>
+#include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 #include "point.h"
 
 #define BITCOIN_PRIME             "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
@@ -141,11 +144,6 @@ void point_solve_y(Point point, unsigned char even_odd_flag)
 	
 	mpz_set_str(p, BITCOIN_PRIME, 16);
 
-	// https://stackoverflow.com/questions/43629265/deriving-an-ecdsa-uncompressed-public-key-from-a-compressed-one
-	// (y^2) % p = (x^3 + 7) % p
-	// y^2 = ((x^3 % p) + 7) % p
-	// y = (((x^3 % p) + 7) % p) ^ ((p+1)/4) % p
-
 	// This calculates y squared: ((x^3 % p) + 7) % p
 	mpz_powm_ui(tempx, point->x, 3, p);
 	mpz_add_ui(tempx, tempx, 7);
@@ -156,7 +154,7 @@ void point_solve_y(Point point, unsigned char even_odd_flag)
 	mpz_tdiv_q_ui(exp, exp, 4);
 
 	// Raise y squared to the power of exp (keeping modulo p) to get the square root
-	mpz_powm_sec(tempy, tempx, exp, p);
+	mpz_powm(tempy, tempx, exp, p);
 
 	// Determine odd or even
 	if ((mpz_even_p(tempy) && (even_odd_flag & 1)) || (mpz_odd_p(tempy) && !(even_odd_flag & 1)))

@@ -10,15 +10,18 @@
 
 #include <stdint.h>
 
+#define TXINPUT_TXHASH_LENGTH 32
+
 typedef struct TXInput *TXInput;
 struct TXInput {
-	unsigned char  tx_hash[32];
+	unsigned char  tx_hash[TXINPUT_TXHASH_LENGTH];
 	uint32_t       index;
 	uint64_t       script_size;
 	unsigned char* script_raw;
 	uint32_t       sequence;
+	int            is_coinbase;
 };
 
-int txinput_from_raw(TXInput, unsigned char *, size_t);
+int txinput_from_raw(TXInput, unsigned char *);
 
 #endif

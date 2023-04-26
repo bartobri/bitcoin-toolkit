@@ -1,0 +1,53 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK-NODE" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-node \- Query data from a bitcoin node.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fInode\fR -h <host> [-p <port>]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Connect to a remote bitcoin node and send/receive bitcoin protocol commands.
+.sp
+Currently, only one command is supported: version. The version command is the first command in a node handshake process where nodes exchange data about their current state. This includes the protocol version, available services, current block height, user agent string, and more. This is a useful command to get basic information from any node on the bitcoin network.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+\-h <host>, --hostname=<host>
+.RS 4
+Specify the hostname or IP of a remote bitcoin node.
+.RE
+
+.PP
+\-p <port>, --port=<port>
+.RS 4
+Specify the port number or service of a remote bitcoin node. Default is port 8333.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1)

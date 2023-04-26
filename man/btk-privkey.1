@@ -1,0 +1,213 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK-PRIVKEY" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-privkey \- Create, modify, or transform private keys.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIprivkey\fR [<option>...] [<input_item>...]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Create a new cryptographically secure bitcoin private key, transform and existing bitcoin private key, or generate a bitcoin private key from arbitrary input such as ascii text or binary data.
+.sp
+Input, if required, is a private key, or a list of private keys, or arbitrary data, represented as one of multiple input types described in the OPTIONS section below.
+.sp
+Output is a private key, or a list of private keys, created or transformed according to the options you specify, for each created key, or each input provided.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+--create
+.RS 4
+Create a random cryptographically secure private key from your local CSPRNG.
+.RE
+
+.PP
+\-C, --compressed=true
+.RS 4
+Compress the private key (default). 
+.RE
+
+.PP
+\-U, --compressed=false
+.RS 4
+Uncompress the private key.
+.RE
+
+.PP
+\-W, --out-type=wif
+.RS 4
+Transform the private key to a "Wallet Import Format" (WIF) string. WIF is the default output type when no output type is specified.
+.RE
+
+.PP
+\-X, --out-type=hex
+.RS 4
+Transform the private key to a hexadecimal string, 64 characters in length. If a compression option is used, an extra pair of hex characters will be added to represent the compression flag.
+.RE
+
+.PP
+\-D, --out-type=decimal
+.RS 4
+Transform the private key to its (very large) decimal equivalent.
+.RE
+
+.PP
+\-R, --out-type=raw
+.RS 4
+Transform the private key to 32 bytes of raw binary data. Useful when redirecting the output to a file or another command.
+.RE
+
+.PP
+\--rehash=<count>
+.RS 4
+Rehash the private key \fIcount\fR times. Each rehash processes the raw private key data through a SHA256 hashing algorithm, deriving a new private key.
+.RE
+
+.PP
+\--testnet
+.RS 4
+Transform the private key for use on the testnet network.
+.RE
+
+.PP
+\fBINPUT TYPE OPTIONS\fR
+.RE
+
+.PP
+Input type refers to the representation (i.e. type) of each item in an input list. The options below describe the various input types that btk understands. Btk will try to auto-determine the input type if you do not specify one, if it can be done with a reasonable degree of certainty.
+.RE
+
+.PP
+\-w, --in-type=wif
+.RS 4
+Input is a private key represented as a "Wallet Import Format" (WIF) string.
+.RE
+
+.PP
+\-x, --in-type=hex
+.RS 4
+Input is a private key represented as a 64-character hexadecimal string. If a 65th and 66th character exist, they are interpreted as a compression flag. Any extra characters beyond that point are ignored.
+.RE
+
+.PP
+\-r, --in-type=raw
+.RS 4
+Input is a private key represented as 32 bytes of raw binary data. If a 33rd byte exists, it is interpreted as a compression flag. Any extra data beyond that point is ignored.
+.RE
+
+.PP
+\-d, --in-type=decimal
+.RS 4
+Input is an private key represented as a decimal string (i.e. "1978"). The decimal value is converted to a 32-byte binary equivalent to generate a private key.
+.RE
+
+.PP
+\-s, --in-type=string
+.RS 4
+Input is an arbitrary ASCII string. Strings are processed through a SHA256 hash algorithm to generate a unique 32-byte private key.
+.RE
+
+.PP
+\--in-type=binary
+.RS 4
+Input is arbitrary binary data. Data is processed through a SHA256 hash algorithm to generate a unique 32-byte private key.
+.RE
+
+.PP
+\fBFORMAT OPTIONS\fR
+.RE
+
+.PP
+Btk works with both binary and ascii data, and the input/output format options tell btk which of these it is working with. In the case of ascii data, they also specify the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
+.RE
+
+.PP
+\-l, --in-format=list
+.RS 4
+Input is formatted as a list of ascii strings delimited by a newline character. Note that a single string without a newline character is considered valid input (i.e. a list of one).
+.RE
+
+.PP
+\-j, --in-format=json
+.RS 4
+Input is formatted as a list of ascii strings contained within a json array.
+.RE
+
+.PP
+\-b, --in-format=binary
+.RS 4
+Input is unstructured binary data. All input is considered to be a single item. List processing is unavailable in this context.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format the output as a list of ascii strings delimited by a newline character.
+.RE
+
+.PP
+\-J, --out-format=json
+.RS 4
+Format the output as a list of ascii strings contained within a json array. This is the default output format when no other is specified.
+.RE
+
+.PP
+\-B, --out-format=binary
+.RS 4
+Print the output as unstructured binary data. This tells btk not to apply any formatting characters to the output.
+.RE
+
+.PP
+\-Q, --out-format=qrcode
+.RS 4
+Print each element in the output list as a qrcode.
+.RE
+
+.PP
+\fBLIST OPTIONS\fR
+.RE
+
+.PP
+\-G <regex>, --grep=<regex>
+.RS 4
+Filter (inclusively) items in the output list that match the regex string.
+.RE
+
+.PP
+\-S, --stream
+.RS 4
+By default, all output is printed after the last item of an input list is processed. This option tells btk to print the output immediately after each input item is processed, allowing you to view or redirect the output in real time as the list is processed.
+.RE
+
+.PP
+\--trace
+.RS 4
+If the output format is set to json, this option includes the input string in the resulting json data structure, drawing a connection between items on the input list and the items on the output list.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)

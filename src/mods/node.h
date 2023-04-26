@@ -10,10 +10,12 @@
 
 typedef struct Node *Node;
 
-int node_connect(Node, const char *, int);
+int node_new(Node *, char *, char *);
+int node_connect(Node);
 int node_write(Node, unsigned char *, size_t);
 int node_read(Node, unsigned char**);
+int node_read_message(unsigned char **, Node);
 void node_disconnect(Node);
-size_t node_sizeof(void);
+void node_destroy(Node);
 
 #endif

@@ -10,15 +10,27 @@
 
 #include <stdint.h>
 
-typedef struct Message *Message;
+#define MESSAGE_MIN_SIZE        24
+#define MESSAGE_COMMAND_MAXLEN  12
 
-int message_new(Message, const char *, unsigned char *, size_t);
-int message_serialize(unsigned char *, size_t *, Message);
-int message_deserialize(Message, unsigned char *, size_t);
-int message_cmp_command(Message, char *);
+#define MESSAGE_COMMAND_VERSION 1
+
+typedef struct Message *Message;
+struct Message
+{
+	uint32_t       magic;
+	char           command[MESSAGE_COMMAND_MAXLEN];
+	uint32_t       length;
+	uint32_t       checksum;
+	unsigned char  *payload;
+};
+
+int message_new(Message *, const char *, unsigned char *, size_t);
+int message_to_raw(unsigned char *output, Message message);
+int message_new_from_raw(Message *, unsigned char *);
 int message_is_valid(Message);
-int message_get_payload(unsigned char *output, Message m);
-uint32_t message_get_payload_len(Message m);
-size_t message_sizeof(void);
+int message_is_complete(unsigned char *, size_t);
+int message_get_payload_len(uint32_t *, unsigned char *);
+void message_destroy(Message);
 
 #endif

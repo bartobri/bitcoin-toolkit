@@ -8,16 +8,12 @@
 #ifndef BTK_HELP_H
 #define BTK_HELP_H 1
 
-int btk_help_init(int argc, char *argv[]);
-int btk_help_main(void);
-int btk_help_cleanup(void);
-void btk_help_commands(void);
-void btk_help_privkey(void);
-void btk_help_pubkey(void);
-void btk_help_address(void);
-void btk_help_vanity(void);
-void btk_help_node(void);
-void btk_help_version(void);
-void btk_help_utxodb(void);
+#include "mods/output.h"
+#include "mods/opts.h"
+
+int btk_help_main(output_item *, opts_p, unsigned char *, size_t);
+int btk_help_requires_input(opts_p);
+int btk_help_init(opts_p);
+int btk_help_cleanup(opts_p);
 
 #endif

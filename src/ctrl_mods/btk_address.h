@@ -8,8 +8,12 @@
 #ifndef BTK_ADDRESS_H
 #define BTK_ADDRESS_H 1
 
-int btk_address_init(int argc, char *argv[]);
-int btk_address_main(void);
-int btk_address_cleanup(void);
+#include "mods/output.h"
+#include "mods/opts.h"
+
+int btk_address_main(output_item *, opts_p, unsigned char *, size_t);
+int btk_address_requires_input(opts_p);
+int btk_address_init(opts_p);
+int btk_address_cleanup(opts_p);
 
 #endif

@@ -1,0 +1,129 @@
+'\" t
+.\"     Title: Bitcoin Toolkit
+.\"    Author: [see the "Authors" section]
+.\"      Date: 01/18/2023
+.\"    Manual: Bitcoin Toolkit Manual
+.\"    Source: Bitcoin Toolkit 3.0.0
+.\"  Language: English
+.\"
+.TH "BTK-ADDRESS" "1" "01/18/2023" "Bitcoin Toolkit 3.0.0" "Bitcoin Toolkit Manual"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+btk-address \- Generate addresses from a public keys.
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIbtk\fR \fIaddress\fR [<option>...] [<input_item>...]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Generate a bitcoin address from a public key or a private key.
+.sp
+Input can be a private key, or a public key, or a list thereof, represented as one of the input types described in the OPTIONS section below.
+.sp
+Output is an address, or a list of addresses, encoded according to the options you specify, for each input provided.
+
+.sp
+.SH "OPTIONS"
+
+.PP
+\--p2pkh
+.RS 4
+Encode the address using legacy Pay-to-PubKey-Hash encoding (default).
+.RE
+
+.PP
+\--bech32
+.RS 4
+Encode the address using the newer Pay-to-Witness-PubKey-Hash bech32 encoding.
+.RE
+
+.PP
+\fBINPUT TYPE OPTIONS\fR
+.RE
+
+.PP
+Input type refers to the representation (i.e. type) of each item in an input list. The options below describe the various input types that btk understands. Btk will try to auto-determine the input type if you do not specify one, if it can be done with a reasonable degree of certainty.
+.RE
+
+.PP
+\-w, --in-type=wif
+.RS 4
+Input is a private key represented as a "Wallet Import Format" (WIF) string.
+.RE
+
+.PP
+\-x, --in-type=hex
+.RS 4
+Input is a public key represented as a 66-character (compressed) or 130-character (uncompressed) hexadecimal string.
+.RE
+
+.PP
+\fBFORMAT OPTIONS\fR
+.RE
+
+.PP
+The input/output format options tell btk the format of the list that the input/output items are contained within. The input format options are not necessary when supplying input with command arguments - they only exist for cases where input redirection is used.
+.RE
+
+.PP
+\-l, --in-format=list
+.RS 4
+Input is formatted as a list of ascii strings delimited by a newline character. Note that a single string without a newline character is considered valid input (i.e. a list of one).
+.RE
+
+.PP
+\-j, --in-format=json
+.RS 4
+Input is formatted as a list of ascii strings contained within a json array.
+.RE
+
+.PP
+\-L, --out-format=list
+.RS 4
+Format the output as a list of ascii strings delimited by a newline character.
+.RE
+
+.PP
+\-J, --out-format=json
+.RS 4
+Format the output as a list of ascii strings contained within a json array. This is the default output format when no other is specified.
+.RE
+
+.PP
+\fBLIST OPTIONS\fR
+.RE
+
+.PP
+\-G <regex>, --grep=<regex>
+.RS 4
+Filter (inclusively) items in the output list that match the regex string.
+.RE
+
+.PP
+\-S, --stream
+.RS 4
+By default, all output is printed after the last item of an input list is processed. This option tells btk to print the output immediately after each input item is processed, allowing you to view or redirect the output in real time as the list is processed.
+.RE
+
+.PP
+\--trace
+.RS 4
+If the output format is set to json, this option includes the input string in the resulting json data structure, drawing a connection between items on the input list and the items on the output list.
+.RE
+
+.sp
+.SH "SEE ALSO"
+
+.sp
+\fBbtk\fR(1), \fBbtk-pubkey\fR(1), \fBbtk-address\fR(1)

@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "pubkey.h"
+#include "address.h"
 #include "script.h"
 #include "error.h"
 
@@ -294,4 +296,120 @@ char *script_from_raw(unsigned char *raw, size_t l)
 	}
 	
 	return r;
+}
+
+int script_get_output_address(char *address, unsigned char *script, uint64_t size, uint32_t tx_version)
+{
+	int r;
+	unsigned char last_op;
+	PubKey pubkey = NULL;
+	int uc_pubkey_len = PUBKEY_UNCOMPRESSED_LENGTH + 1;
+	int c_pubkey_len = PUBKEY_COMPRESSED_LENGTH + 1;
+	unsigned char tmp[BUFSIZ];
+
+	// May need this in the future
+	(void)tx_version;
+
+	// Get last op to help identify some script types
+	last_op = *(script + (size - 1));
+
+	// Set address to null string so we can check it at the end of this function.
+	*address = 0;
+
+	// ===========================================
+	// Verison 2 (caller checked for non-standard)
+	// ===========================================
+
+	// witness_v0_keyhash, 20 byte
+	if (*script == 0x00 && *(script + 1) == 0x14 && (int)size == (1 + 1 + *(script + 1)))
+	{
+		r = address_p2wpkh_from_raw(address, script + 2, 0x14, 0);
+		ERROR_CHECK_NEG(r, "Could not generate address from value data.");
+	}
+	// witness_v0_keyhash, 32 byte
+	else if (*script == 0x00 && *(script + 1) == 0x20 && (int)size == (1 + 1 + *(script + 1)))
+	{
+		r = address_p2wpkh_from_raw(address, script + 2, 0x20, 0);
+		ERROR_CHECK_NEG(r, "Could not generate address from value data.");
+	}
+	// witness_v1_taproot, 32 byte
+	else if (*script == 0x51 && *(script + 1) == 0x20 && (int)size == (1 + 1 + *(script + 1)))
+	{
+		r = address_p2wpkh_from_raw(address, script + 2, 0x20, 1);
+		ERROR_CHECK_NEG(r, "Could not generate address from value data.");
+	}
+	// OP_CHECKSIG
+	else if (last_op == 0xac)
+	{
+		// Hash160
+		if (*script == 0x76 && *(script + 1) == 0xa9 && *(script + 2) == 0x14)
+		{
+			r = address_from_rmd160(address, script + 3);
+			ERROR_CHECK_NEG(r, "Could not generate address from value data.");
+		}
+		// Hash160 - all zeros - burner address?
+		else if (*script == 0x76 && *(script + 1) == 0xa9 && *(script + 2) == 0x00)
+		{
+			memset(tmp, 0, BUFSIZ);
+
+			r = address_from_rmd160(address, tmp);
+			ERROR_CHECK_NEG(r, "Could not generate address from value data.");
+		}
+		// Uncompressed Public Key
+		else if (*script == uc_pubkey_len && (int)size == uc_pubkey_len + 2)
+		{
+			script++;
+
+			// Make sure the compression flag is correct
+			if (*script == 0x04)
+			{
+				pubkey = malloc(pubkey_sizeof());
+
+				r = pubkey_from_raw(pubkey, script, uc_pubkey_len);
+				ERROR_CHECK_NEG(r, "Can not get pubkey object from output script.");
+
+				r = address_get_p2pkh(address, pubkey);
+				ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
+
+				free(pubkey);
+			}
+		}
+		// Compressed Public Key
+		else if (*script == c_pubkey_len && (int)size == c_pubkey_len + 2)
+		{
+			script++;
+
+			// Make sure the compression flag is correct
+			if (*script == 0x02 || *script == 0x03)
+			{
+				pubkey = malloc(pubkey_sizeof());
+
+				r = pubkey_from_raw(pubkey, script, c_pubkey_len);
+				ERROR_CHECK_NEG(r, "Can not get pubkey object from output script.");
+
+				r = address_get_p2pkh(address, pubkey);
+				ERROR_CHECK_NEG(r, "Can not get address from pubkey.");
+
+				free(pubkey);
+			}
+		}
+	}
+	// OP_EQUAL
+	else if (last_op == 0x87)
+	{
+		// P2SH - OP_HASH160
+		if (*script == 0xa9 && *(script + 1) == 0x14 && size == 0x14 + 3)
+		{
+			r = address_from_p2sh_script(address, script + 2);
+			ERROR_CHECK_NEG(r, "Could not generate address.");
+		}
+	}
+
+	// If we don't find an address, return 0 and let caller decide what to do.
+	if (!(*address))
+	{
+		return 0;
+	}
+
+	return 1;
 }

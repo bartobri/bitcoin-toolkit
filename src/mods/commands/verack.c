@@ -6,20 +6,25 @@
  */
 
 #include <stddef.h>
+#include <assert.h>
 #include "verack.h"
 
-
-struct Verack {
-	// nothing here
-};
-
-int verack_new(Verack v) {
-	(void)v;
+int verack_new(Verack *verack) {
+	(void)verack;
 
 	return 1;
 }
 
-size_t verack_sizeof(void)
+int verack_to_raw(unsigned char *payload_send, Verack verack)
 {
-	return sizeof(struct Verack);
+	assert(payload_send);
+	
+	(void)verack;
+
+	return 0;
+}
+
+void verack_destroy(Verack verack)
+{
+	(void)verack;
 }

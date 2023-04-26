@@ -9,8 +9,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <gmp.h>
+#include <stdbool.h>
 #include <assert.h>
+#include <gmp.h>
+#ifdef GMP_H_MISSING
+#   include "GMP/mini-gmp.h"
+#endif
 #include "privkey.h"
 #include "network.h"
 #include "random.h"
@@ -117,8 +121,6 @@ int privkey_to_dec(char *str, PrivKey key)
 
 	mpz_init(d);
 
-	privkey_uncompress(key);
-
 	r = privkey_to_hex(privkey_hex, key, 0);
 	if (r < 0)
 	{
@@ -129,7 +131,7 @@ int privkey_to_dec(char *str, PrivKey key)
 	privkey_hex[PRIVKEY_LENGTH * 2] = '\0';
 	mpz_set_str(d, privkey_hex, 16);
 
-	gmp_sprintf(str, "%Zd", d);
+	mpz_get_str(str, 10, d);
 
 	return 1;
 }
@@ -482,16 +484,15 @@ int privkey_from_blob(PrivKey key, unsigned char *data, size_t data_len)
 
 int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 {
-	size_t i;
 	int r;
-	char *data_str;
-	size_t data_str_len;
+	size_t i;
+	char data_str[BUFSIZ];
 
 	assert(key);
 	assert(data);
 	assert(data_len);
 
-	data_str = NULL;
+	memset(data_str, 0, BUFSIZ);
 
 	for (i = 0; i < data_len; ++i)
 	{
@@ -502,28 +503,16 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 	}
 	if (i == data_len)
 	{
-		data_str_len = data_len;
-		while (isspace(data[data_str_len - 1]))
-		{
-			--data_str_len;
-		}
-		data_str = malloc(data_str_len + 1);
-		if (data_str == NULL)
-		{
-			error_log("Memory allocation error.");
-			return -1;
-		}
-		memcpy(data_str, data, data_str_len);
-		data_str[data_str_len] = '\0';
+		memcpy(data_str, data, data_len);
 	}
 
-	if (data_str != NULL)
+	if (*data_str)
 	{
 		// Decimal
 		r = privkey_from_dec(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_DECIMAL;
 		}
 		error_clear();
 
@@ -531,7 +520,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_hex(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_HEX;
 		}
 		error_clear();
 
@@ -539,7 +528,7 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_wif(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_WIF;
 		}
 		error_clear();
 
@@ -547,18 +536,32 @@ int privkey_from_guess(PrivKey key, unsigned char *data, size_t data_len)
 		r = privkey_from_str(key, data_str);
 		if (r > 0)
 		{
-			return 1;
+			return PRIVKEY_GUESS_STRING;
 		}
 		error_clear();
 	}
 
-	// Raw
-	r = privkey_from_raw(key, data, data_len);
-	if (r > 0)
+	if (data_len == PRIVKEY_LENGTH)
 	{
-		return 1;
+		// Raw
+		r = privkey_from_raw(key, data, data_len);
+		if (r > 0)
+		{
+			return PRIVKEY_GUESS_RAW;
+		}
+		error_clear();
 	}
-	error_clear();
+	else
+	{
+		// blob
+		r = privkey_from_blob(key, data, data_len);
+		if (r > 0)
+		{
+			return PRIVKEY_GUESS_BLOB;
+		}
+		error_clear();
+	}
+	
 
 	error_log("Unable to guess input type.");
 	return -1;
