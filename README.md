@@ -1,8 +1,6 @@
 ![Version](https://img.shields.io/badge/Version-3.0.0-green.svg)
 [![Twitter](https://img.shields.io/twitter/follow/bartobri78?label=Follow%20@bartobri78)](https://twitter.com/intent/follow?screen_name=bartobri78)
 
-![Demo](https://github.com/bartobri/bitcoin-toolkit/blob/master/assets/demo-3-0.gif?raw=true)
-
 Bitcoin Toolkit
 ===============
 
@@ -11,6 +9,8 @@ Bitcoin Toolkit is a collection of command line tools for working with the Bitco
 Bitcoin Toolkit supports JSON-formatted input and output making it useful for developers who want to build custom Bitcoin applications or integrate Bitcoin functionality into existing applications.
 
 See the [Usage](#usage) section for a quick introduction on the basics of Bitcoin Toolkit and how to use the help command to get more info.
+
+![Demo](https://github.com/bartobri/bitcoin-toolkit/blob/master/assets/demo-3-0.gif?raw=true)
 
 Table of Contents
 -----------------
