@@ -1,10 +1,6 @@
 ![Version](https://img.shields.io/badge/Version-3.0.0-green.svg)
 [![Twitter](https://img.shields.io/twitter/follow/bartobri78?label=Follow%20@bartobri78)](https://twitter.com/intent/follow?screen_name=bartobri78)
 
-Release 3.0 imminent! Follow me on Twitter for updates. [![Twitter](https://img.shields.io/twitter/follow/bartobri78?label=Follow%20@bartobri78)](https://twitter.com/intent/follow?screen_name=bartobri78)
-
-Like this project? Consider sponsoring me: [https://github.com/sponsors/bartobri](https://github.com/sponsors/bartobri)
-
 Bitcoin Toolkit
 ===============
 
