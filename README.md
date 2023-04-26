@@ -4,9 +4,14 @@
 Bitcoin Toolkit
 ===============
 
-Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include creating and manipulating public and private keys, generating addresses, querying info from remote bitcoin nodes, and mining blockchain data.
+Bitcoin Toolkit is a collection of command line tools for working with the Bitcoin network and blockchain. Some capabilities include:
 
-Bitcoin Toolkit supports JSON-formatted input and output making it useful for developers who want to build custom Bitcoin applications or integrate Bitcoin functionality into existing applications.
+- Create and manipulate public/private keys and addresses.
+- Generate QR codes.
+- Generate vanity addresses.
+- Query the balance of any address on the blockchain.
+- Query status info from any remote bitcoin nodes.
+- Supports JSON input/output to integrate bitcoin functionality into existing applications.
 
 See the [Usage](#usage) section for a quick introduction on the basics of Bitcoin Toolkit and how to use the help command to get more info.
 
