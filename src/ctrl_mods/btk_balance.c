@@ -434,6 +434,7 @@ int btk_balance_process(thread_args args)
 		{
 			uint32_t j;
 			char address[BUFSIZ];
+			uint64_t prev_balance;
 
 			for (j = 0; j < block->transactions[i]->input_count; j++)
 			{
@@ -473,12 +474,18 @@ int btk_balance_process(thread_args args)
 
 				if (*address)
 				{
+					prev_balance = 0;
+
+					// Get previous balance (if any)
+					r = balance_get(&prev_balance, address);
+					ERROR_CHECK_NEG(r, "Could not query balance database.");
+
 					// TXOA Database
 					r = txoa_batch_put(block->transactions[i]->txid, j, address);
 					ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
 
 					// Balance Database
-					r = balance_batch_put(address, block->transactions[i]->outputs[j]->amount);
+					r = balance_batch_put(address, block->transactions[i]->outputs[j]->amount + prev_balance);
 					ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
 				}
 			}
