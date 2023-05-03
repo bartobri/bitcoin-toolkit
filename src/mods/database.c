@@ -73,6 +73,7 @@ int database_open(DBRef *ref, char *location, bool create)
 int database_iter_seek_start(DBRef ref)
 {
 	assert(ref);
+	assert(ref->db_iter);
 
 	leveldb_iter_seek_to_first(ref->db_iter);
 
@@ -106,6 +107,15 @@ int database_iter_next(DBRef ref)
 		// Reached end of database. Return zero.
 		return 0;
 	}
+
+	return 1;
+}
+
+int database_iter_reset(DBRef ref)
+{
+	assert(ref);
+
+	ref->db_iter = leveldb_create_iterator(ref->db, ref->roptions);
 
 	return 1;
 }

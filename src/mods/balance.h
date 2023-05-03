@@ -20,4 +20,6 @@ int balance_batch_put(char *, uint64_t);
 int balance_batch_delete(char *address);
 int balance_batch_write(void);
 
+int balance_get_record_count(size_t *);
+
 #endif

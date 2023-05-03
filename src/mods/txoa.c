@@ -203,3 +203,27 @@ int txoa_batch_write(void)
 
 	return 1;
 }
+
+int txoa_get_record_count(size_t *count)
+{
+	int r;
+	size_t c = 0;
+
+	assert(count);
+	assert(dbref);
+
+	database_iter_reset(dbref);
+
+	r = database_iter_seek_start(dbref);
+	ERROR_CHECK_NEG(r, "Unable to seek to first record in chainstate database.");
+
+	while ((r = database_iter_next(dbref)) > 0)
+	{
+		c++;
+	}
+	ERROR_CHECK_NEG(r, "Could not iterate.");
+
+	*count = c;
+
+	return 1;
+}
