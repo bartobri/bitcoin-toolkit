@@ -63,7 +63,7 @@ void txoa_close(void)
 	dbref = NULL;
 }
 
-int txoa_get(char *address, unsigned char *tx_hash, uint32_t index)
+int txoa_get(char *address, uint64_t *amount, unsigned char *tx_hash, uint32_t index)
 {
 	int r;
 	size_t len;
@@ -79,7 +79,11 @@ int txoa_get(char *address, unsigned char *tx_hash, uint32_t index)
 	r = database_get(&tmp, &len, dbref, key, TXOA_KEY_LEN);
 	ERROR_CHECK_NEG(r, "Could not get address from txoa database.");
 
-	memcpy(address, tmp, len);
+	if (len > sizeof(uint64_t))
+	{
+		memcpy(address, tmp, len - sizeof(uint64_t));
+		deserialize_uint64(amount, tmp + (len - sizeof(uint64_t)), SERIALIZE_ENDIAN_LIT);
+	}
 
 	free(tmp);
 
@@ -159,18 +163,25 @@ int txoa_get_last_block(int *block_num)
 	return 1;
 }
 
-int txoa_batch_put(unsigned char *tx_hash, uint32_t index, char *address)
+int txoa_batch_put(unsigned char *tx_hash, uint32_t index, char *address, uint64_t amount)
 {
 	int r;
 	unsigned char key[TXOA_KEY_LEN];
+	unsigned char value[BUFSIZ];
 
 	assert(tx_hash);
 	assert(address);
 
+	memset(key, 0, TXOA_KEY_LEN);
+	memset(value, 0, BUFSIZ);
+
 	serialize_uchar(key, tx_hash, TRANSACTION_ID_LEN);
 	serialize_uint32(key + TRANSACTION_ID_LEN, index, SERIALIZE_ENDIAN_LIT);
 
-	r = database_batch_put(dbref, key, TXOA_KEY_LEN, (unsigned char *)address, strlen(address));
+	memcpy(value, address, strlen(address));
+	serialize_uint64(value + strlen(address), amount, SERIALIZE_ENDIAN_LIT);
+
+	r = database_batch_put(dbref, key, TXOA_KEY_LEN, value, strlen(address) + sizeof(uint64_t));
 	ERROR_CHECK_NEG(r, "Could not add entry to txoa database.");
 
 	return 1;
@@ -215,7 +226,7 @@ int txoa_get_record_count(size_t *count)
 	database_iter_reset(dbref);
 
 	r = database_iter_seek_start(dbref);
-	ERROR_CHECK_NEG(r, "Unable to seek to first record in chainstate database.");
+	ERROR_CHECK_NEG(r, "Unable to seek to first record in txoa database.");
 
 	while ((r = database_iter_next(dbref)) > 0)
 	{
@@ -224,6 +235,60 @@ int txoa_get_record_count(size_t *count)
 	ERROR_CHECK_NEG(r, "Could not iterate.");
 
 	*count = c;
+
+	return 1;
+}
+
+int txoa_seek_start(void)
+{
+	int r;
+
+	assert(dbref);
+
+	database_iter_reset(dbref);
+
+	r = database_iter_seek_start(dbref);
+	ERROR_CHECK_NEG(r, "Unable to seek to first record in txoa database.");
+
+	return 1;
+}
+
+int txoa_get_next(unsigned char *tx_hash, uint32_t *index, char *address, uint64_t *amount)
+{
+	int r;
+	size_t serialized_key_len = 0;
+	size_t serialized_value_len = 0;
+	unsigned char *serialized_key = NULL;
+	unsigned char *serialized_value = NULL;
+
+	assert(tx_hash);
+	assert(address);
+
+	r = database_iter_get(&serialized_key, &serialized_key_len, &serialized_value, &serialized_value_len, dbref);
+	ERROR_CHECK_NEG(r, "Could not get data from database.");
+
+	if (strncmp((char *)serialized_key, TXAO_LAST_BLOCK_KEY, strlen(TXAO_LAST_BLOCK_KEY)) == 0)
+	{
+		memcpy(tx_hash, serialized_key, serialized_key_len);
+	}
+	else
+	{
+		deserialize_uchar(tx_hash, serialized_key, TRANSACTION_ID_LEN, SERIALIZE_ENDIAN_LIT);
+		deserialize_uint32(index, serialized_key + TRANSACTION_ID_LEN, SERIALIZE_ENDIAN_LIT);
+		memcpy(address, serialized_value, serialized_value_len - sizeof(uint64_t));
+		deserialize_uint64(amount, serialized_value + (serialized_value_len - sizeof(uint64_t)), SERIALIZE_ENDIAN_LIT);
+	}
+
+	free(serialized_key);
+	free(serialized_value);
+
+	r = database_iter_next(dbref);
+	ERROR_CHECK_NEG(r, "Could not set chainstate iter to next record.")
+	if (r == 0)
+	{
+		// End of database
+		return 0;
+	}
 
 	return 1;
 }
