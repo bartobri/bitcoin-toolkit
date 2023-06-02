@@ -15,8 +15,6 @@ Bitcoin Toolkit is a collection of command line tools for working with the Bitco
 
 See the [Usage](#usage) section for a quick introduction on the basics of Bitcoin Toolkit and how to use the help command to get more info.
 
-![Demo](https://github.com/bartobri/bitcoin-toolkit/blob/master/assets/demo-3-0.gif?raw=true)
-
 Table of Contents
 -----------------
 
