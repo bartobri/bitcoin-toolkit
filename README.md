@@ -39,7 +39,7 @@ sudo apt-get install libgcrypt20-dev
 sudo apt-get install libleveldb-dev
 ```
 
-You will also need basic build tools:
+You will also need basic build tools (gcc, make, etc):
 
 ```
 sudo apt-get install build-essential
@@ -47,13 +47,13 @@ sudo apt-get install build-essential
 
 #### Install:
 
-Download the [latest release](https://github.com/bartobri/bitcoin-toolkit/releases/latest) or use git to clone the master repo:
+Use git to clone the master repo:
 
 ```
 $ git clone https://github.com/bartobri/bitcoin-toolkit.git
 ```
 
-Unzip/tar the release download and/or run the make commands inside the project folder:
+Run the make commands inside the project folder:
 ```
 $ cd bitcoin-toolkit
 $ make
