@@ -63,7 +63,7 @@ void txoa_close(void)
 	dbref = NULL;
 }
 
-int txoa_get(char *address, unsigned char *tx_hash, uint32_t index)
+int txoa_get(char *address, uint64_t *amount, unsigned char *tx_hash, uint32_t index)
 {
 	int r;
 	size_t len;
@@ -79,7 +79,11 @@ int txoa_get(char *address, unsigned char *tx_hash, uint32_t index)
 	r = database_get(&tmp, &len, dbref, key, TXOA_KEY_LEN);
 	ERROR_CHECK_NEG(r, "Could not get address from txoa database.");
 
-	memcpy(address, tmp, len);
+	if (len > sizeof(uint64_t))
+	{
+		memcpy(address, tmp, len - sizeof(uint64_t));
+		deserialize_uint64(amount, tmp + (len - sizeof(uint64_t)), SERIALIZE_ENDIAN_LIT);
+	}
 
 	free(tmp);
 
@@ -159,20 +163,25 @@ int txoa_get_last_block(int *block_num)
 	return 1;
 }
 
-int txoa_batch_put(unsigned char *tx_hash, uint32_t index, char *address)
+int txoa_batch_put(unsigned char *tx_hash, uint32_t index, char *address, uint64_t amount)
 {
 	int r;
 	unsigned char key[TXOA_KEY_LEN];
+	unsigned char value[BUFSIZ];
 
 	assert(tx_hash);
 	assert(address);
 
 	memset(key, 0, TXOA_KEY_LEN);
+	memset(value, 0, BUFSIZ);
 
 	serialize_uchar(key, tx_hash, TRANSACTION_ID_LEN);
 	serialize_uint32(key + TRANSACTION_ID_LEN, index, SERIALIZE_ENDIAN_LIT);
 
-	r = database_batch_put(dbref, key, TXOA_KEY_LEN, (unsigned char *)address, strlen(address));
+	memcpy(value, address, strlen(address));
+	serialize_uint64(value + strlen(address), amount, SERIALIZE_ENDIAN_LIT);
+
+	r = database_batch_put(dbref, key, TXOA_KEY_LEN, value, strlen(address) + sizeof(uint64_t));
 	ERROR_CHECK_NEG(r, "Could not add entry to txoa database.");
 
 	return 1;

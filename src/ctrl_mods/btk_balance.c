@@ -434,10 +434,12 @@ int btk_balance_process(thread_args args)
 		{
 			uint32_t j;
 			char address[BUFSIZ];
+			uint64_t amount;
 			uint64_t prev_balance;
 
 			for (j = 0; j < block->transactions[i]->input_count; j++)
 			{
+				amount = 0;
 				memset(address, 0, BUFSIZ);
 
 				// Skip coinbase inputs. No deduction for them.
@@ -446,21 +448,40 @@ int btk_balance_process(thread_args args)
 					continue;
 				}
 
-				r = txoa_get(address, block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);
+				r = txoa_get(address, &amount, block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);
 				ERROR_CHECK_NEG(r, "Could not get address from txoa database.");
 
 				if (*address)
 				{
-					// Every input is spent 100% (recouped via change address).
-					// Set all inputs to zero balance.
+					prev_balance = 0;
 
-					r = balance_batch_delete(address);
-					ERROR_CHECK_NEG(r, "Could not update address balance.");
+					// Every input is spent 100% (recouped via change address).
 
 					r = txoa_batch_delete(block->transactions[i]->inputs[j]->tx_hash, block->transactions[i]->inputs[j]->index);
 					ERROR_CHECK_NEG(r, "Could not delete txao entry after spending.");
+
+					// Get previous balance (if any)
+					r = balance_get(&prev_balance, address);
+					ERROR_CHECK_NEG(r, "Could not query balance database.");
+
+					if (prev_balance > amount)
+					{
+						r = balance_batch_put(address, prev_balance - amount);
+						ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
+					}
+					else
+					{
+						r = balance_batch_delete(address);
+						ERROR_CHECK_NEG(r, "Could not update address balance.");
+					}
 				}
 			}
+
+			r = txoa_batch_write();
+			ERROR_CHECK_NEG(r, "Could not batch write txao records.");
+
+			r = balance_batch_write();
+			ERROR_CHECK_NEG(r, "Could not batch write balance records.");
 
 			for (j = 0; j < block->transactions[i]->output_count; j++)
 			{
@@ -472,20 +493,22 @@ int btk_balance_process(thread_args args)
 							block->transactions[i]->version);
 				ERROR_CHECK_NEG(r, "Could not get address from output script.");
 
-				if (*address)
+				amount = block->transactions[i]->outputs[j]->amount;
+
+				if (*address && amount > 0)
 				{
 					prev_balance = 0;
+
+					// TXOA Database
+					r = txoa_batch_put(block->transactions[i]->txid, j, address, amount);
+					ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
 
 					// Get previous balance (if any)
 					r = balance_get(&prev_balance, address);
 					ERROR_CHECK_NEG(r, "Could not query balance database.");
 
-					// TXOA Database
-					r = txoa_batch_put(block->transactions[i]->txid, j, address);
-					ERROR_CHECK_NEG(r, "Could not put entry in the txoa database.");
-
 					// Balance Database
-					r = balance_batch_put(address, block->transactions[i]->outputs[j]->amount + prev_balance);
+					r = balance_batch_put(address, amount + prev_balance);
 					ERROR_CHECK_NEG(r, "Could not add entry to balance database.");
 				}
 			}
