@@ -30,8 +30,6 @@ int bech32_get_address(char *output, unsigned char *data, size_t data_len, int w
 	assert(output);
 	assert(data);
 	assert(data_len);
-	// For now I'm only supporting P2WPKH so the data length can only be 20
-	//assert(data_len == 20);
 
 	chk = 1;
 
