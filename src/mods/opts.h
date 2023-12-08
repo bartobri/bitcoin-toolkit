@@ -30,6 +30,7 @@ struct opts {
 	int output_type_raw;
 	int output_type_p2pkh;
 	int output_type_p2wpkh;
+	int output_type_p2wpkh_v1;
 	int output_stream;
 	char *output_grep;
 	int compression_on;

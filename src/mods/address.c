@@ -98,17 +98,17 @@ int address_get_p2pkh(char *address, PubKey key)
 	return 1;
 }
 
-int address_get_p2wpkh(char *address, PubKey key)
+int address_get_p2wpkh(char *address, PubKey key, int version)
 {
 	int r;
 	int data_len;
-	int witver = 0;  // hard coding witness version 0 for now. Note that 1 is taproot.
 	unsigned char *data;
 	unsigned char sha[32];
 	unsigned char rmd[20];
 
 	assert(address);
 	assert(key);
+	assert(version == 0 || version == 1);  // 0 is bech32, 1 is bech32m (taproot)
 
 	if (!pubkey_is_compressed(key))
 	{
@@ -145,7 +145,7 @@ int address_get_p2wpkh(char *address, PubKey key)
 		return -1;
 	}
 
-	r = bech32_get_address(address, rmd, 20, witver);
+	r = bech32_get_address(address, rmd, 20, version);
 	if (r < 0)
 	{
 		error_log("Could not generate bech32 address from public key data.");

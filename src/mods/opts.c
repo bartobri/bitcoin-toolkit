@@ -31,6 +31,7 @@
 #define OPTS_CHAINSTATE_PATH (struct opt_info){"chainstate-path",    ""}
 #define OPTS_BALANCE_PATH    (struct opt_info){"balance-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
+#define OPTS_BECH32M         (struct opt_info){"bech32m",     ""}
 #define OPTS_LEGACY          (struct opt_info){"legacy",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
 #define OPTS_RPC_AUTH        (struct opt_info){"rpc-auth",   ""}
@@ -77,6 +78,7 @@ int opts_init(opts_p opts, char *command)
 	opts->output_type_raw = 0;
 	opts->output_type_p2pkh = 0;
 	opts->output_type_p2wpkh = 0;
+	opts->output_type_p2wpkh_v1 = 0;
 	opts->output_stream = 0;
 	opts->output_grep = NULL;
 	opts->compression_on = 0;
@@ -134,6 +136,7 @@ int opts_init(opts_p opts, char *command)
 		opts_add(OPTS_INPUT_TYPE, required_argument);
 		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
 		opts_add(OPTS_BECH32, no_argument);
+		opts_add(OPTS_BECH32M, no_argument);
 		opts_add(OPTS_LEGACY, no_argument);
 		opts_add(OPTS_STREAM, no_argument);
 		opts_add(OPTS_GREP, required_argument);
@@ -499,6 +502,11 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 	else if (strcmp(optname, OPTS_BECH32.longopt) == 0)
 	{
 		opts->output_type_p2wpkh = 1;
+	}
+
+	else if (strcmp(optname, OPTS_BECH32M.longopt) == 0)
+	{
+		opts->output_type_p2wpkh_v1 = 1;
 	}
 
 	else if (strcmp(optname, OPTS_TESTNET.longopt) == 0)
