@@ -250,7 +250,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=wif"], input="wif", output="p2pkh")
 
     def test_0120(self):
-        self.io_test(opts=["-w", "--p2pkh"], input="wif", output="p2pkh")
+        self.io_test(opts=["-w", "--legacy"], input="wif", output="p2pkh")
 
     def test_0130(self):
         self.io_test(opts=["-w", "--bech32"], input="wif", output="bech32")
@@ -269,7 +269,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=wif"], input="wif_u", output="p2pkh_u")
 
     def test_0170(self):
-        self.io_test(opts=["-w", "--p2pkh"], input="wif_u", output="p2pkh_u")
+        self.io_test(opts=["-w", "--legacy"], input="wif_u", output="p2pkh_u")
 
     ###########
     ## WIF Test
@@ -285,7 +285,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=wif"], input="wif_test", output="p2pkh_test")
 
     def test_0210(self):
-        self.io_test(opts=["-w", "--p2pkh"], input="wif_test", output="p2pkh_test")
+        self.io_test(opts=["-w", "--legacy"], input="wif_test", output="p2pkh_test")
 
     def test_0220(self):
         self.io_test(opts=["-w", "--bech32"], input="wif_test", output="bech32_test")
@@ -304,7 +304,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=wif"], input="wif_test_u", output="p2pkh_test_u")
 
     def test_0260(self):
-        self.io_test(opts=["-w", "--p2pkh"], input="wif_test_u", output="p2pkh_test_u")
+        self.io_test(opts=["-w", "--legacy"], input="wif_test_u", output="p2pkh_test_u")
 
     ###########
     ## HEX
@@ -320,7 +320,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=hex"], input="hex", output="p2pkh")
 
     def test_0300(self):
-        self.io_test(opts=["-x", "--p2pkh"], input="hex", output="p2pkh")
+        self.io_test(opts=["-x", "--legacy"], input="hex", output="p2pkh")
 
     def test_0310(self):
         self.io_test(opts=["-x", "--bech32"], input="hex", output="bech32")
@@ -339,7 +339,7 @@ class Address(unittest.TestCase):
         self.io_test(opts=["--in-type=hex"], input="hex_u", output="p2pkh_u")
 
     def test_0350(self):
-        self.io_test(opts=["-x", "--p2pkh"], input="hex_u", output="p2pkh_u")
+        self.io_test(opts=["-x", "--legacy"], input="hex_u", output="p2pkh_u")
 
     ####################
     ## Grep
@@ -352,7 +352,7 @@ class Address(unittest.TestCase):
         self.btk.reset()
         self.btk.set_input(f"[\n\"{input}\"\n]")
         self.btk.arg("-w")
-        self.btk.arg("--p2pkh")
+        self.btk.arg("--legacy")
         self.btk.arg("--grep=\"1NZoZS\"")
 
         out = self.btk.run()
@@ -371,7 +371,7 @@ class Address(unittest.TestCase):
         self.btk.reset()
         self.btk.set_input(f"[\n\"{input}\"\n]")
         self.btk.arg("-w")
-        self.btk.arg("--p2pkh")
+        self.btk.arg("--legacy")
         self.btk.arg("--grep=\"00000000\"")
 
         out = self.btk.run()
@@ -409,7 +409,7 @@ class Address(unittest.TestCase):
             self.btk.set_input(privkey_json[0])
             self.btk.arg("-w")
             self.btk.arg("--bech32")
-            self.btk.arg("--p2pkh")
+            self.btk.arg("--legacy")
             out = self.btk.run()
             self.assertTrue(out.returncode == 0)
             self.assertTrue(out.stdout)
@@ -424,7 +424,7 @@ class Address(unittest.TestCase):
             self.btk.set_input(privkey_json[0])
             self.btk.arg("-w")
             self.btk.arg("--bech32")
-            self.btk.arg("--p2pkh")
+            self.btk.arg("--legacy")
             out = self.btk.run()
             self.assertTrue(out.returncode == 0)
             self.assertTrue(out.stdout)
