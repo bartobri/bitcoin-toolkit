@@ -18,6 +18,8 @@ inputs = [
         "p2pkh_test_u": "mr1YQWcgqnhrCu4tXNr4PdMaPR6zMqm786",
         "bech32": "bc1qaj8dzeef28e9qrwa386krprp56fps44gspvvy7",
         "bech32_test": "tb1qaj8dzeef28e9qrwa386krprp56fps44g68hlld",
+        "bech32m": "bc1paj8dzeef28e9qrwa386krprp56fps44gwrttvh",
+        "bech32m_test": "tb1paj8dzeef28e9qrwa386krprp56fps44gy9schy",
     },
     {
         "wif": "KyqWNV7VzbrzsyhuDQAzo2qPv3YuiJk5Rp9QwRS2m3ThdMudb5fs",
@@ -33,6 +35,8 @@ inputs = [
         "p2pkh_test_u": "mueuGYRd7tcNYQjjzh3rwY9eCM13VG6Hsk",
         "bech32": "bc1q2vt4nxs9a62ldd2gp8jf6telc7ulyu67r2xanu",
         "bech32_test": "tb1q2vt4nxs9a62ldd2gp8jf6telc7ulyu67fvawg0",
+        "bech32m": "bc1p2vt4nxs9a62ldd2gp8jf6telc7ulyu67agp6m4",
+        "bech32m_test": "tb1p2vt4nxs9a62ldd2gp8jf6telc7ulyu67hw6fqx",
     },
     {
         "wif": "KxKDsiQBjoyq84AnzKf82Xk5GSPzeHbJB489AZcDnQzGfr3mNfUn",
@@ -48,6 +52,8 @@ inputs = [
         "p2pkh_test_u": "mqWjKhyKE4wFmA4E73uRaSFzpmV9aLW6JA",
         "bech32": "bc1q45g8mauwsehetrvzc9dsknxe0250nknqg6de08",
         "bech32_test": "tb1q45g8mauwsehetrvzc9dsknxe0250nknqzuk255",
+        "bech32m": "bc1p45g8mauwsehetrvzc9dsknxe0250nknqkc278w",
+        "bech32m_test": "tb1p45g8mauwsehetrvzc9dsknxe0250nknqu73dua",
     },
     {
         "wif": "Kz2PvtUtw52z7yLxpXUNftHU6mzBg1VTd5cAGSX7xyVmy1xWRuyK",
@@ -63,6 +69,8 @@ inputs = [
         "p2pkh_test_u": "mp9keAUcPsXiw25f6gXAqTVWT9CpedJesA",
         "bech32": "bc1qvwd69k9xa746xt60t22600eq7vzzlrrrecakch",
         "bech32_test": "tb1qvwd69k9xa746xt60t22600eq7vzzlrrrn7x9ry",
+        "bech32m": "bc1pvwd69k9xa746xt60t22600eq7vzzlrrr8663s7",
+        "bech32m_test": "tb1pvwd69k9xa746xt60t22600eq7vzzlrrrdupztd",
     },
     {
         "wif": "L2VtEHPMEp9nLLpwWHRHX19xi1N1inMna231WqL1noXLdpvNSVeo",
@@ -78,6 +86,8 @@ inputs = [
         "p2pkh_test_u": "miFVqgzdp1TkVucQ1S3T8bFs7XSb4vQBba",
         "bech32": "bc1ql9tyhtv8p60tq6m29whfge9a7vw2xwnlqdj8fw",
         "bech32_test": "tb1ql9tyhtv8p60tq6m29whfge9a7vw2xwnl2tf5ja",
+        "bech32m": "bc1pl9tyhtv8p60tq6m29whfge9a7vw2xwnl704qp8",
+        "bech32m_test": "tb1pl9tyhtv8p60tq6m29whfge9a7vw2xwnl5fwn65",
     },
     {
         "wif": "L4EZ2ismHBC8KtCDbdQwsNiYRNkHiPpRaDtDzv3hodDWsDpPfLpV",
@@ -93,6 +103,8 @@ inputs = [
         "p2pkh_test_u": "moJPG57v3jef7fGkWYmYHSHv5eZAbE5Kwx",
         "bech32": "bc1qk5wfcvfs8rsfj3qch04l75l7t9atp3arjryyx6",
         "bech32_test": "tb1qk5wfcvfs8rsfj3qch04l75l7t9atp3arc9lhaf",
+        "bech32m": "bc1pk5wfcvfs8rsfj3qch04l75l7t9atp3arvprrwn",
+        "bech32m_test": "tb1pk5wfcvfs8rsfj3qch04l75l7t9atp3arx8cs4q",
     },
     {
         "wif": "L1Kc4zFKB5bqghB2SoufWA18ct9BNqMAE1XqBbfzs9dKz7Gxi5JX",
@@ -108,6 +120,8 @@ inputs = [
         "p2pkh_test_u": "mqvEj8TKjDqHs7n7ztc388VKPHeCQDGaBu",
         "bech32": "bc1q4ymve7dnxnqahayq3pr9hum0ujtnf7geq8syus",
         "bech32_test": "tb1q4ymve7dnxnqahayq3pr9hum0ujtnf7ge2pth8r",
+        "bech32m": "bc1p4ymve7dnxnqahayq3pr9hum0ujtnf7ge79hr5e",
+        "bech32m_test": "tb1p4ymve7dnxnqahayq3pr9hum0ujtnf7ge5rvs02",
     },
     {
         "wif": "L2u8RxPt7EnzMLgnK5UrXVyUh8JnCVLuGJeVN83uGxCSBHKfqEaP",
@@ -123,6 +137,8 @@ inputs = [
         "p2pkh_test_u": "mwoY4wjdbbdWQg2K1A7tKx4VjxonVQXJj5",
         "bech32": "bc1quzdzp3lu5cs72vrl82hpc4kpttg43uy8llj6gt",
         "bech32_test": "tb1quzdzp3lu5cs72vrl82hpc4kpttg43uy84effnc",
+        "bech32m": "bc1puzdzp3lu5cs72vrl82hpc4kpttg43uy8pa4aqz",
+        "bech32m_test": "tb1puzdzp3lu5cs72vrl82hpc4kpttg43uy8tmwwm3",
     },
     {
         "wif": "L4ZkzcBhWuEhkJQ5xcfiBzZ6einm27bKFtiC5aBjvHTQMmkbxcse",
@@ -138,6 +154,8 @@ inputs = [
         "p2pkh_test_u": "mg9522zU79jiyddphumJ2B3nXED2U2fbbW",
         "bech32": "bc1qxun5fxgesuczgzvvyermjgd6z0y29mgr8ltggn",
         "bech32_test": "tb1qxun5fxgesuczgzvvyermjgd6z0y29mgrdesmnq",
+        "bech32m": "bc1pxun5fxgesuczgzvvyermjgd6z0y29mgreav0q6",
+        "bech32m_test": "tb1pxun5fxgesuczgzvvyermjgd6z0y29mgrnmhumf",
     },
     {
         "wif": "KzZpAtMLUCMXdsGUa9ZXXGN655H7fa9ddrPv5AfiBuNqN7yY8K2g",
@@ -153,6 +171,8 @@ inputs = [
         "p2pkh_test_u": "msoJDyzTcof6Tg88D1WjMU3o6Bbb1F2zD3",
         "bech32": "bc1qfehccrcdk2zmgpxx8xew54skpgqj36v3a89pse",
         "bech32_test": "tb1qfehccrcdk2zmgpxx8xew54skpgqj36v3hp7jt2",
+        "bech32m": "bc1pfehccrcdk2zmgpxx8xew54skpgqj36v3r9zxcs",
+        "bech32m_test": "tb1pfehccrcdk2zmgpxx8xew54skpgqj36v3fre4rr",
     },
 ]
 
@@ -255,6 +275,9 @@ class Address(unittest.TestCase):
     def test_0130(self):
         self.io_test(opts=["-w", "--bech32"], input="wif", output="bech32")
 
+    def test_0135(self):
+        self.io_test(opts=["-w", "--bech32m"], input="wif", output="bech32m")
+
     ####################
     ## WIF Uncompressed
     ####################
@@ -289,6 +312,9 @@ class Address(unittest.TestCase):
 
     def test_0220(self):
         self.io_test(opts=["-w", "--bech32"], input="wif_test", output="bech32_test")
+
+    def test_0225(self):
+        self.io_test(opts=["-w", "--bech32m"], input="wif_test", output="bech32m_test")
 
     #########################
     ## WIF Test Uncompressed
