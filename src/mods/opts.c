@@ -31,7 +31,7 @@
 #define OPTS_CHAINSTATE_PATH (struct opt_info){"chainstate-path",    ""}
 #define OPTS_BALANCE_PATH    (struct opt_info){"balance-path",   ""}
 #define OPTS_BECH32          (struct opt_info){"bech32",     ""}
-#define OPTS_P2PKH           (struct opt_info){"p2pkh",     ""}
+#define OPTS_LEGACY          (struct opt_info){"legacy",     ""}
 #define OPTS_TESTNET         (struct opt_info){"testnet",    ""}
 #define OPTS_RPC_AUTH        (struct opt_info){"rpc-auth",   ""}
 #define OPTS_SET             (struct opt_info){"set",        ""}
@@ -134,7 +134,7 @@ int opts_init(opts_p opts, char *command)
 		opts_add(OPTS_INPUT_TYPE, required_argument);
 		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
 		opts_add(OPTS_BECH32, no_argument);
-		opts_add(OPTS_P2PKH, no_argument);
+		opts_add(OPTS_LEGACY, no_argument);
 		opts_add(OPTS_STREAM, no_argument);
 		opts_add(OPTS_GREP, required_argument);
 		opts_add(OPTS_TRACE, no_argument);
@@ -491,7 +491,7 @@ int opts_process_long(opts_p opts, const char *optname, char *optarg)
 		opts->balance_path = optarg;
 	}
 
-	else if (strcmp(optname, OPTS_P2PKH.longopt) == 0)
+	else if (strcmp(optname, OPTS_LEGACY.longopt) == 0)
 	{
 		opts->output_type_p2pkh = 1;
 	}
