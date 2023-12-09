@@ -10,7 +10,7 @@
 
 #define BTK_VERSION_MAJOR      3
 #define BTK_VERSION_MINOR      1
-#define BTK_VERSION_PATCH      0
+#define BTK_VERSION_PATCH      1
 
 int config_is_valid(char *);
 int config_get_path(char *, int);
