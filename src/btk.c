@@ -42,7 +42,6 @@ int btk_print_output(output_item, opts_p);
 int main(int argc, char *argv[])
 {
 	int i, r = 0;
-	char *command = NULL;
 	char command_str[BUFSIZ];
 	opts_p opts = NULL;
 	input_item input_head = NULL;
@@ -66,60 +65,68 @@ int main(int argc, char *argv[])
 		strncat(command_str, argv[i], BUFSIZ - 1 - strlen(command_str));
 	}
 
-	BTK_CHECK_TRUE((argc <= 1), "Missing command parameter.");
+	opts = malloc(sizeof(*opts));
+	BTK_CHECK_NULL(opts, "Memory allocation error.");
 
-	command = argv[1];
+	r = opts_init(opts);
+	BTK_CHECK_NEG(r, NULL);
 
-	if (strcmp(command, "privkey") == 0)
+	r = opts_get(opts, argc, argv);
+	BTK_CHECK_NEG(r, NULL);
+
+	r = btk_set_config_opts(opts);
+	BTK_CHECK_NEG(r, "Could not set opts from config.");
+
+	if (strcmp(opts->command, "privkey") == 0)
 	{
 		command_main = &btk_privkey_main;
 		command_requires_input = &btk_privkey_requires_input;
 		command_init = &btk_privkey_init;
 		command_cleanup = &btk_privkey_cleanup;
 	}
-	else if (strcmp(command, "pubkey") == 0)
+	else if (strcmp(opts->command, "pubkey") == 0)
 	{
 		command_main = &btk_pubkey_main;
 		command_requires_input = &btk_pubkey_requires_input;
 		command_init = &btk_pubkey_init;
 		command_cleanup = &btk_pubkey_cleanup;
 	}
-	else if (strcmp(command, "address") == 0)
+	else if (strcmp(opts->command, "address") == 0)
 	{
 		command_main = &btk_address_main;
 		command_requires_input = &btk_address_requires_input;
 		command_init = &btk_address_init;
 		command_cleanup = &btk_address_cleanup;
 	}
-	else if (strcmp(command, "node") == 0)
+	else if (strcmp(opts->command, "node") == 0)
 	{
 		command_main = &btk_node_main;
 		command_requires_input = &btk_node_requires_input;
 		command_init = &btk_node_init;
 		command_cleanup = &btk_node_cleanup;
 	}
-	else if (strcmp(command, "balance") == 0)
+	else if (strcmp(opts->command, "balance") == 0)
 	{
 		command_main = &btk_balance_main;
 		command_requires_input = &btk_balance_requires_input;
 		command_init = &btk_balance_init;
 		command_cleanup = &btk_balance_cleanup;
 	}
-	else if (strcmp(command, "config") == 0)
+	else if (strcmp(opts->command, "config") == 0)
 	{
 		command_main = &btk_config_main;
 		command_requires_input = &btk_config_requires_input;
 		command_init = &btk_config_init;
 		command_cleanup = &btk_config_cleanup;
 	}
-	else if (strcmp(command, "version") == 0)
+	else if (strcmp(opts->command, "version") == 0)
 	{
 		command_main = &btk_version_main;
 		command_requires_input = &btk_version_requires_input;
 		command_init = &btk_version_init;
 		command_cleanup = &btk_version_cleanup;
 	}
-	else if (strcmp(command, "help") == 0)
+	else if (strcmp(opts->command, "help") == 0)
 	{
 		command_main = &btk_help_main;
 		command_requires_input = &btk_help_requires_input;
@@ -129,23 +136,11 @@ int main(int argc, char *argv[])
 	else
 	{
 		error_log("See 'btk help' to read about available commands.");
-		error_log("'%s' is not a valid command.", command);
+		error_log("'%s' is not a valid command.", opts->command);
 		error_log("Error [%s]:", command_str);
 		error_print();
 		return EXIT_FAILURE;
 	}
-
-	opts = malloc(sizeof(*opts));
-	BTK_CHECK_NULL(opts, "Memory allocation error.");
-
-	r = opts_init(opts, command);
-	BTK_CHECK_NEG(r, NULL);
-
-	r = opts_get(opts, argc, argv);
-	BTK_CHECK_NEG(r, NULL);
-
-	r = btk_set_config_opts(opts);
-	BTK_CHECK_NEG(r, "Could not set opts from config.");
 
 	r = btk_init(opts);
 	BTK_CHECK_NEG(r, "Could not initialize btk.");

@@ -53,10 +53,9 @@ static char shortopts[OPTS_MAX];
 int opts_add(struct opt_info, int);
 int opts_process_long(opts_p, const char *, char *);
 
-int opts_init(opts_p opts, char *command)
+int opts_init(opts_p opts)
 {
 	assert(opts);
-	assert(command);
 
 	opts->input_format_list = 0;
 	opts->input_format_binary = 0;
@@ -98,94 +97,12 @@ int opts_init(opts_p opts, char *command)
 	opts->dump = 0;
 	opts->trace = 0;
 	opts->test = 0;
-	opts->command = command;
+	opts->command = NULL;
 	opts->input = NULL;
 	opts->input_count = 0;
 
 	memset(longopts, 0, OPTS_MAX * sizeof(*longopts));
 	memset(shortopts, 0, OPTS_MAX);
-
-	if (strcmp(command, "privkey") == 0)
-	{
-		opts_add(OPTS_INPUT_FORMAT, required_argument);
-		opts_add(OPTS_INPUT_TYPE, required_argument);
-		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
-		opts_add(OPTS_OUTPUT_TYPE, required_argument);
-		opts_add(OPTS_CREATE, no_argument);
-		opts_add(OPTS_COMPRESSED, required_argument);
-		opts_add(OPTS_STREAM, no_argument);
-		opts_add(OPTS_REHASH, required_argument);
-		opts_add(OPTS_GREP, required_argument);
-		opts_add(OPTS_TESTNET, no_argument);
-		opts_add(OPTS_TRACE, no_argument);
-	}
-	else if (strcmp(command, "pubkey") == 0)
-	{
-		opts_add(OPTS_INPUT_FORMAT, required_argument);
-		opts_add(OPTS_INPUT_TYPE, required_argument);
-		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
-		opts_add(OPTS_OUTPUT_TYPE, required_argument);
-		opts_add(OPTS_COMPRESSED, required_argument);
-		opts_add(OPTS_STREAM, no_argument);
-		opts_add(OPTS_GREP, required_argument);
-		opts_add(OPTS_TRACE, no_argument);
-	}
-	else if (strcmp(command, "address") == 0)
-	{
-		opts_add(OPTS_INPUT_FORMAT, required_argument);
-		opts_add(OPTS_INPUT_TYPE, required_argument);
-		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
-		opts_add(OPTS_BECH32, no_argument);
-		opts_add(OPTS_BECH32M, no_argument);
-		opts_add(OPTS_LEGACY, no_argument);
-		opts_add(OPTS_STREAM, no_argument);
-		opts_add(OPTS_GREP, required_argument);
-		opts_add(OPTS_TRACE, no_argument);
-	}
-	else if (strcmp(command, "balance") == 0)
-	{
-		opts_add(OPTS_INPUT_FORMAT, required_argument);
-		opts_add(OPTS_INPUT_TYPE, required_argument);
-		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
-		opts_add(OPTS_HOSTNAME, required_argument);
-		opts_add(OPTS_PORT, required_argument);
-		opts_add(OPTS_CREATE, no_argument);
-		opts_add(OPTS_CREATE_CHAINSTATE, no_argument);
-		opts_add(OPTS_UPDATE, no_argument);
-		opts_add(OPTS_CHAINSTATE_PATH, required_argument);
-		opts_add(OPTS_BALANCE_PATH, required_argument);
-		opts_add(OPTS_STREAM, no_argument);
-		opts_add(OPTS_GREP, required_argument);
-		opts_add(OPTS_RPC_AUTH, required_argument);
-		opts_add(OPTS_TRACE, no_argument);
-	}
-	else if (strcmp(command, "node") == 0)
-	{
-		opts_add(OPTS_INPUT_FORMAT, required_argument);
-		opts_add(OPTS_HOSTNAME, required_argument);
-		opts_add(OPTS_PORT, required_argument);
-		opts_add(OPTS_STREAM, no_argument);
-	}
-	else if (strcmp(command, "config") == 0)
-	{
-		opts_add(OPTS_SET, required_argument);
-		opts_add(OPTS_UNSET, required_argument);
-		opts_add(OPTS_DUMP, no_argument);
-		opts_add(OPTS_TEST, no_argument);
-	}
-	else if (strcmp(command, "version") == 0)
-	{
-		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
-	}
-	else if (strcmp(command, "help") == 0)
-	{
-		// No options
-	}
-	else
-	{
-		error_log("Unknown command: %s", command);
-		return -1;
-	}
 
 	return 1;
 }
@@ -207,6 +124,92 @@ int opts_get(opts_p opts, int argc, char *argv[])
 	const char *optname;
 
 	assert(opts);
+
+	ERROR_CHECK_TRUE((argc <= 1), "Missing command parameter.");
+	opts->command = argv[1];
+
+	// Set required opts
+	if (strcmp(opts->command, "privkey") == 0)
+	{
+		opts_add(OPTS_INPUT_FORMAT, required_argument);
+		opts_add(OPTS_INPUT_TYPE, required_argument);
+		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+		opts_add(OPTS_OUTPUT_TYPE, required_argument);
+		opts_add(OPTS_CREATE, no_argument);
+		opts_add(OPTS_COMPRESSED, required_argument);
+		opts_add(OPTS_STREAM, no_argument);
+		opts_add(OPTS_REHASH, required_argument);
+		opts_add(OPTS_GREP, required_argument);
+		opts_add(OPTS_TESTNET, no_argument);
+		opts_add(OPTS_TRACE, no_argument);
+	}
+	else if (strcmp(opts->command, "pubkey") == 0)
+	{
+		opts_add(OPTS_INPUT_FORMAT, required_argument);
+		opts_add(OPTS_INPUT_TYPE, required_argument);
+		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+		opts_add(OPTS_OUTPUT_TYPE, required_argument);
+		opts_add(OPTS_COMPRESSED, required_argument);
+		opts_add(OPTS_STREAM, no_argument);
+		opts_add(OPTS_GREP, required_argument);
+		opts_add(OPTS_TRACE, no_argument);
+	}
+	else if (strcmp(opts->command, "address") == 0)
+	{
+		opts_add(OPTS_INPUT_FORMAT, required_argument);
+		opts_add(OPTS_INPUT_TYPE, required_argument);
+		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+		opts_add(OPTS_BECH32, no_argument);
+		opts_add(OPTS_BECH32M, no_argument);
+		opts_add(OPTS_LEGACY, no_argument);
+		opts_add(OPTS_STREAM, no_argument);
+		opts_add(OPTS_GREP, required_argument);
+		opts_add(OPTS_TRACE, no_argument);
+	}
+	else if (strcmp(opts->command, "balance") == 0)
+	{
+		opts_add(OPTS_INPUT_FORMAT, required_argument);
+		opts_add(OPTS_INPUT_TYPE, required_argument);
+		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+		opts_add(OPTS_HOSTNAME, required_argument);
+		opts_add(OPTS_PORT, required_argument);
+		opts_add(OPTS_CREATE, no_argument);
+		opts_add(OPTS_CREATE_CHAINSTATE, no_argument);
+		opts_add(OPTS_UPDATE, no_argument);
+		opts_add(OPTS_CHAINSTATE_PATH, required_argument);
+		opts_add(OPTS_BALANCE_PATH, required_argument);
+		opts_add(OPTS_STREAM, no_argument);
+		opts_add(OPTS_GREP, required_argument);
+		opts_add(OPTS_RPC_AUTH, required_argument);
+		opts_add(OPTS_TRACE, no_argument);
+	}
+	else if (strcmp(opts->command, "node") == 0)
+	{
+		opts_add(OPTS_INPUT_FORMAT, required_argument);
+		opts_add(OPTS_HOSTNAME, required_argument);
+		opts_add(OPTS_PORT, required_argument);
+		opts_add(OPTS_STREAM, no_argument);
+	}
+	else if (strcmp(opts->command, "config") == 0)
+	{
+		opts_add(OPTS_SET, required_argument);
+		opts_add(OPTS_UNSET, required_argument);
+		opts_add(OPTS_DUMP, no_argument);
+		opts_add(OPTS_TEST, no_argument);
+	}
+	else if (strcmp(opts->command, "version") == 0)
+	{
+		opts_add(OPTS_OUTPUT_FORMAT, required_argument);
+	}
+	else if (strcmp(opts->command, "help") == 0)
+	{
+		// No options
+	}
+	else
+	{
+		error_log("Unknown command: %s", opts->command);
+		return -1;
+	}
 
 	// Prepend a colon to turn off getopt errors.
 	for (i = strlen(shortopts); i > 0; i--)

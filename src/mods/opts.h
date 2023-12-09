@@ -55,7 +55,7 @@ struct opts {
 	int input_count;
 };
 
-int opts_init(opts_p, char *);
+int opts_init(opts_p);
 int opts_get(opts_p, int, char **);
 
 #endif
