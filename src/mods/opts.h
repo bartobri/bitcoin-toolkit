@@ -57,5 +57,6 @@ struct opts {
 
 int opts_init(opts_p);
 int opts_get(opts_p, int, char **);
+int opts_set_config(opts_p);
 
 #endif
