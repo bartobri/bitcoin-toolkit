@@ -360,7 +360,7 @@ int btk_set_config_opts(opts_p opts)
 	{
 		if (!opts->host_name && config_exists("hostname"))
 		{
-			opts->host_name = malloc(100);
+			opts->host_name = malloc(BUFSIZ);
 			ERROR_CHECK_NULL(opts->host_name, "Memory allocation error.");
 
 			r = config_get(opts->host_name, "hostname");
@@ -369,10 +369,28 @@ int btk_set_config_opts(opts_p opts)
 
 		if (!opts->rpc_auth && config_exists("rpc-auth"))
 		{
-			opts->rpc_auth = malloc(100);
+			opts->rpc_auth = malloc(BUFSIZ);
 			ERROR_CHECK_NULL(opts->rpc_auth, "Memory allocation error.");
 
 			r = config_get(opts->rpc_auth, "rpc-auth");
+			ERROR_CHECK_NEG(r, "Could not get value from config file.");
+		}
+
+		if (!opts->balance_path && config_exists("balance-path"))
+		{
+			opts->balance_path = malloc(BUFSIZ);
+			ERROR_CHECK_NULL(opts->balance_path, "Memory allocation error.");
+
+			r = config_get(opts->balance_path, "balance-path");
+			ERROR_CHECK_NEG(r, "Could not get value from config file.");
+		}
+
+		if (!opts->chainstate_path && config_exists("chainstate-path"))
+		{
+			opts->chainstate_path = malloc(BUFSIZ);
+			ERROR_CHECK_NULL(opts->chainstate_path, "Memory allocation error.");
+
+			r = config_get(opts->chainstate_path, "chainstate-path");
 			ERROR_CHECK_NEG(r, "Could not get value from config file.");
 		}
 	}
