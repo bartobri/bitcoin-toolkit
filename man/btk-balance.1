@@ -85,9 +85,9 @@ Specify the json-rpc port of a bitcoin full node. 8332 by default. Used when cre
 .PP
 \--rpc-auth=<auth_string>
 .RS 4
-Specify the json-rpc auth string used to authenticate to the json-rpc service of your bitcoin core full node. See the bitcoin core json-rpc auth documentation for setting up a new rpc auth user and password. The auth string is formatted as a base64 string containing the username, then a colon, then the password. The password is usually also encoded as base 64 separately. In pseudo code, the auth string looks something like this:
+Specify the json-rpc auth string used to authenticate to the json-rpc service of your bitcoin core full node. See the bitcoin core json-rpc auth documentation for setting up a new rpc auth user and password. The auth string is formatted as a base64 string containing the username, then a colon, then the password. In pseudo code, the auth string looks something like this:
 .sp
-base64(username:base64(password))
+base64(username:password)
 .RE
 
 .PP
