@@ -1,0 +1,5 @@
+picojson.h
+Source : https://github.com/kazuho/picojson
+Commit : 111c9be5188f7350c2eac9ddaedd8cca3d7bf394  (2021-01-17)
+License: BSD-2-Clause
+URL    : https://raw.githubusercontent.com/kazuho/picojson/111c9be5188f7350c2eac9ddaedd8cca3d7bf394/picojson.h

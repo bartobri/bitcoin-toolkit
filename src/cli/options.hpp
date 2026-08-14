@@ -1,0 +1,66 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include "core/network.hpp"
+
+enum class OutFormat { Ndjson, Json, Plain };
+enum class InFormat { Auto, Ndjson, Json, Plain };
+
+struct FlagSpec {
+    char short_name;  // 0 if none
+    const char* long_name;
+    bool has_arg;
+};
+
+class OptionSpec {
+public:
+    void add(char short_name, const char* long_name, bool has_arg);
+    const std::vector<FlagSpec>& flags() const { return flags_; }
+
+private:
+    std::vector<FlagSpec> flags_;
+};
+
+struct Options {
+    std::string command;
+    bool help = false;
+    bool version = false;
+    std::string config_path;
+    Network network = Network::Main;
+    bool network_set = false;
+    OutFormat out = OutFormat::Ndjson;
+    InFormat in = InFormat::Auto;
+    bool stream = false;
+    bool count_set = false;
+    std::uint64_t count = 1;
+    std::vector<std::string> positionals;
+
+    // Command-specific flags filled by later phases via extras.
+    bool flag_new = false;
+    bool flag_compressed = false;
+    bool flag_uncompressed = false;
+    bool flag_from_text = false;
+    bool flag_from_file = false;
+    std::string from_text;
+    std::string from_file;
+    std::string encoding;
+    std::string type;
+    std::string match;
+    bool no_source = false;
+    bool source = false;
+    std::string host;
+    bool verbose = false;
+    bool force = false;
+    bool build = false;
+    bool update = false;
+    bool from_rpc = false;
+    bool from_chainstate = false;
+    std::string path;
+};
+
+void add_global_flags(OptionSpec& spec);
+void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts);
+std::string find_command_name(int argc, char** argv);
