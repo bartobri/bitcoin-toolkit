@@ -108,7 +108,7 @@ std::vector<Command*> all_commands() {
 void print_overview(std::ostream& out) {
     out << "btk — Bitcoin Toolkit " << BTK_VERSION_STRING << "\n\n";
     out << "Usage:\n";
-    out << "  btk [--config PATH] <command> [options] [item...]\n\n";
+    out << "  btk [--config PATH] <command> [options]\n\n";
     out << "Commands:\n";
     for (Command* c : all_commands()) {
         out << "  " << std::left << std::setw(10) << c->name() << c->summary() << '\n';

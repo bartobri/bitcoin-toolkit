@@ -17,7 +17,7 @@ Branch `4.x`. Latest work is **Phase 1 complete** (`btk privkey`). Next implemen
 ## Sources of truth
 
 1. **This file** — progress, lived-in CLI contract, how to resume.
-2. **[REBUILD.md](REBUILD.md)** — product design, golden vectors (Appendix A), remaining phase algorithms, help appendix. **Phase 1 CLI in that file is partly stale**: it still mentions `--from-text` / `--from-file` / positionals in some tables. Prefer the contract below when they conflict.
+2. **[REBUILD.md](REBUILD.md)** — product design, golden vectors (Appendix A), remaining phase algorithms, help appendix. The **shared input contract** (stdin-only items, `--from`, no silent hash on `address`) lives there and here; keep them in lockstep.
 3. **Do not** restore 3.1.2 sources, tests, man pages, cJSON, or QR. Tag `legacy/3.1.2` is history only.
 
 ## Phase status
@@ -26,9 +26,9 @@ Branch `4.x`. Latest work is **Phase 1 complete** (`btk privkey`). Next implemen
 |---|---|---|
 | 0 Scaffold | **Done** | Makefile, dispatcher, options, NDJSON I/O, hash/hex/base58, secp RAII, picojson, `--help`/`--version` stubs |
 | 1 `privkey` | **Done** | See contract below. Man page `man/btk-privkey.1` |
-| 2 `pubkey` | **Next** | REBUILD § Commands.2 / PR 2. Follow the **stdin-only + `--from`** contract, not 3.1.2 positionals |
+| 2 `pubkey` | **Next** | REBUILD § Commands.2 / PR 2 + Shared input contract |
 | 3 `address` | Not started | bech32, bech32m, BIP-341 empty-tree p2tr, `--match` |
-| 4 `node` | Not started | IPv4 mainnet handshake only; live tests behind `BTK_RUN_NET=1` |
+| 4 `node` | Not started | IPv4 mainnet handshake only; `--host` required (no positional host). Live tests behind `BTK_RUN_NET=1` |
 | 5 `help` | Partial | `btk --help` / `btk privkey --help` exist. No `help` command yet. Appendix C pins overview + privkey bodies |
 | 6 `version` | Stub | `btk --version` emits the typed object. No `version` command yet |
 | 7a–7d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
@@ -118,12 +118,60 @@ Register new commands in `register_builtin_commands()` (`src/cli/dispatcher.cpp`
 
 **Makefile has no header deps.** Changing a widely included header (especially `Options` layout) without touching every `.cpp` can produce silent ABI/stack bugs. `make clean && make test` after those edits.
 
+## Shared CLI contract (later phases)
+
+Phase 1 dropped positionals and `--from-text`/`--from-file` in favor of **stdin items + `--from` to override a guess**. Apply that only where it is the same *kind* of input (a stream of keys/addresses). Do not force it onto hosts, paths, or verbs.
+
+Split every command into:
+
+| Kind | What argv may contain | Input stream? |
+|---|---|---|
+| **Transformer** | flags only | yes — items on stdin |
+| **Generator** | flags only (`--new`, `--build`, …) | no (or raw stdin if `--from file`) |
+| **Parameterized one-shot** | flags for host/path/port | no |
+| **Verb / topic** | subcommand + key names | no |
+
+### Rules that apply everywhere they make sense
+
+1. **Item payload is never a positional.** `btk pubkey <wif>` and `btk address 00…01` are errors (`provide input on stdin`). Flag arguments (`--count 5`, `--type p2tr`, `--host x`) stay.
+2. **`--in` is framing** (auto / ndjson / json / plain). **`--from` is meaning** (wif / hex / dec / text / file / …). Do not merge them. `--encoding` remains **output** encoding only (`privkey`).
+3. **Typed objects in the pipe always win.** `{` / `[` under `--in auto` is the object stream. `--from` applies to **bare lines**, not to an object’s `type`/`data`.
+4. **`--from TYPE` is the override.** Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--build`.
+5. **Silent SHA-256 is not universal.** Only commands whose job is “turn bytes into a secret” may hash leftover text without `--from`. See per-command table. A WIF-shaped bad checksum is never hashed.
+6. **`--out` / `--in` / `--network` / `--compressed` stay the global vocabulary.** Per-command flags (`--type`, `--match`, `--host`, `--build`) stay per-command.
+
+### Per-command
+
+| Command | Kind | Stdin-only items? | `--from` values | Guess (bare line) | Silent SHA-256? |
+|---|---|---|---|---|---|
+| `privkey` | transformer / `--new` generator | yes (shipped) | `wif\|hex\|dec\|text\|file` | WIF → 64-hex → dec → text | yes (after guess) |
+| `pubkey` | transformer | **yes** | same + treat 66/130 hex as pub | WIF → 66/130 pub hex → 64-hex priv → dec → text | **yes** (hash → secret → pubkey). `--from text` for `1` |
+| `address` | transformer | **yes** | `wif\|hex\|dec\|text\|file` (`hex` = **secret**; 66/130 = pub via guess or `--from` if we add `pubkey`) | WIF → 66/130 pub → 64-hex **secret** → dec | **no**. Unknown string errors. `--from text\|file` hashes to a secret then addresses. Never treat 64-hex as x-only |
+| `node` | parameterized one-shot | no | none | n/a | no. `--host HOST` required. Not a key pipe |
+| `help` | topic | n/a | none | n/a | no. `btk help privkey` stays a topic token |
+| `version` | generator | n/a | none | n/a | no. Ignores stdin |
+| `balance` query | transformer | **yes** | optional `address` | Base58Check / bech32 address only | **no** (unknown → error, not a hash). `--from-rpc` / `--from-chainstate` are **build sources**, distinct flags, not `--from` |
+| `balance --build/--update` | parameterized generator | no | none | n/a | no. `--path`, `--host`, `--chainstate` stay flags |
+| `config` | verb | n/a | none | n/a | no. `set`/`get`/`unset`/`dump` keep argv keys |
+
+### Why address does not silently hash
+
+`printf 1BgGZ9… | btk address` looking like “use this address” must not SHA-256 the string into a new key. Privkey’s job includes “string → secret”; address’s job is “key → script”. Override is explicit: `--from text`.
+
+### Why node/config keep non-pipe argv
+
+`seed.bitcoin.sipa.be` and `rpc.host=127.0.0.1` are parameters, not a stream of objects. Continuity means “no naked *payloads*”, not “no words after the command.” `node` takes `--host` (D23). `config` keeps `set`/`get` argv keys.
+
+### Naming clash
+
+`--from wif` (privkey/pubkey/address) and `--from-rpc` (balance build) are different options. Do not invent `--from rpc`. Keep `--from-rpc` / `--from-chainstate`.
+
 ## How to continue (Phase 2)
 
-Implement `btk pubkey` from REBUILD.md §2, but **match Phase 1’s input contract**:
+Implement `btk pubkey` from REBUILD.md §2 and the Shared input contract:
 
-- Stdin only; reject positionals the same way.
-- Accept typed `privkey` / `pubkey` objects and bare WIF / hex priv / hex pub via guess (and `--from` if a pubkey-side override is needed).
+- Stdin only; reject positionals (`provide input on stdin`).
+- Accept typed `privkey` / `pubkey` objects and bare WIF / hex priv / hex pub / dec / leftover text (SHA-256 → secret). `--from` overrides.
 - From a secret: `secp256k1_ec_pubkey_create` + serialize. From a pubkey: parse + recompress.
 - Default compression follows the input; `--compressed` / `--uncompressed` override; both flags → two objects.
 - Output `encoding` is always `hex`. Copy `network` from the typed input or WIF version, else `--network`, else mainnet.

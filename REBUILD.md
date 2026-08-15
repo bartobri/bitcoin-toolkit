@@ -42,7 +42,7 @@ Each line of the default pipe is one JSON object with a `type` field. A `--plain
 | Balance index hashed the witness serialization (wtxid) as if it were txid | SegWit spends then miss. 4.0.0 uses BIP-141 txid. |
 | `btk help` shells out to `man` | Help must work on a box without man pages. |
 | Short-opt soup (`-W -X -D -C -U -Q -R`) | Hard to remember, hard to compose. Long options with a tiny, consistent vocabulary. |
-| Silent “string → SHA256 → key” guess | A typo’d WIF (WIF-shaped, bad checksum) is still an error. Strings that are **not** WIF/hex/dec formatted SHA-256 to a key. `--from-text` forces the hash when the string *is* a valid key (`1`). |
+| Silent “string → SHA256 → key” guess | A typo’d WIF (WIF-shaped, bad checksum) is still an error. On `privkey` / `pubkey`, leftover text is SHA-256’d. `--from text` forces the hash when the string *is* a valid key (`1`). `address` / `balance` do **not** silently hash. |
 
 The rebuild is the chance to keep the *jobs* and replace the *contract*.
 
@@ -52,7 +52,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 
 ### Goals
 
-- Git-style invocation: `btk <command> [options] [input…]`.
+- Git-style invocation: `btk <command> [options]`. Item payloads travel on **stdin**, not as leftover argv.
 - Unix pipes as the composition mechanism. Default wire format is **typed NDJSON**.
 - High-level capabilities: private keys, public keys, addresses (P2PKH / P2WPKH / BIP-341 P2TR), P2P node handshake, embedded help, version, local address-balance index, optional config.
 - Vanity / search as a usage pattern: stream keys, filter addresses with `--match`.
@@ -69,7 +69,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | Decimal private-key encoding | **Added.** `--encoding dec`; bare `[0-9]+` after WIF and 64-char hex. JSON `data` is a digit string (not a JSON number). |
 | Raw binary stdin/stdout (`-R` / `-B`) | Hex in a typed object is the binary escape hatch. No unframed 32-byte dumps in a pipe. |
 | Hidden `sbd` input type | Undocumented, not hashed, easy to misuse. |
-| Silent passphrase guessing | Strings that do not look like WIF/hex/dec are hashed. `--from-text` forces the hash for ambiguous values (`1`). A WIF-shaped typo still errors on checksum. |
+| Silent passphrase guessing on every command | Only `privkey` / `pubkey` hash leftover text. `address` requires `--from text\|file`. A WIF-shaped typo still errors on checksum. |
 | `--rehash` / vanity-from-incrementing-hash | Stream new CSPRNG keys instead. |
 | HD / BIP-32 / BIP-39 / PSBT / message sign / tx build | Never user-facing; still out of scope. |
 | IPv6 P2P, signet, regtest | 4.0.0 node is IPv4 mainnet. `--network` exists for keys/addresses; node ignores it. |
@@ -91,13 +91,13 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D4 | **JSON: vendor picojson (fresh download)** | Header-only, BSD-2-Clause, small. See pin in *Third-party pins*. Do **not** copy `src/mods/cJSON`. Parses one complete value: NDJSON/object streams are incremental; a JSON **array** is parsed whole, then walked (Issue: picojson is not a streaming array parser). |
 | D5 | **QR: drop** | See Non-Goals. |
 | D6 | **Command names stay `privkey` / `pubkey` / `address` / `node` / `help` / `version` / `balance` / `config`** | They are the domain nouns. Inventing `key`/`addr`/`peer` saves no typing and breaks muscle memory of the *jobs* without improving them. The option language is what changes. |
-| D7 | **Long options, tiny vocabulary** | `--network`, `--out`, `--type`, `--new`, `--match`, `--stream`. A handful of shorts (`-h -V -n -o`). No `-W -X -D -Q -R`. |
+| D7 | **Long options, tiny vocabulary** | `--network`, `--out`, `--in`, `--from`, `--type`, `--new`, `--match`, `--stream`. A handful of shorts (`-h -V -n -o`). No `-W -X -D -Q -R`. |
 | D8 | **Default pipe = NDJSON typed objects** | One JSON object per line, `type` discriminator, `fflush` after each object when streaming. Pretty JSON and `--plain` are opt-in. |
 | D9 | **Network is per object, never process-global** | WIF version byte sets that item’s network. **Both `privkey` and `pubkey` objects carry `network`.** `--network` applies to generated keys and to hex inputs. Address uses WIF → object `network` → flag → mainnet (never walks `source`). |
 | D10 | **Private keys must be in `[1, n-1]`** | `secp256k1_ec_seckey_verify`. Reject 0 and `≥ n`. |
 | D11 | **Address `--type p2pkh\|p2wpkh\|p2tr`** | Names the script. Default `p2wpkh` (modern, cheap, universally received). **No `--bech32m` flag.** `p2tr` is BIP-341 key-path, empty script tree. |
 | D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. Matching address objects include `source` (the privkey). |
-| D13 | **`--from` overrides the stdin guess** | Input is stdin only (no positional keys). Guess: WIF → 64-hex → decimal → text SHA-256 → binary whole-stream. `--from wif\|hex\|dec\|text\|file` forces the type. `--from text` is how `1` becomes SHA-256("1"). |
+| D13 | **`--from` overrides the stdin guess; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`/`pubkey`. `address` does not silently hash. `--from-rpc` / `--from-chainstate` are **different** flags (balance build sources). |
 | D14 | **Help is embedded** | `btk help`, `btk help <cmd>`, `btk --help`, `btk <cmd> --help`. Newly written man pages are optional install artifacts; help does not call `man`. |
 | D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). |
 | D16 | **`btk node` is IPv4 mainnet, port 8333, 15 s timeout** | Cheap `--network` on node would also need magic bytes + default port; defer. Keys/addresses still take `--network`. |
@@ -107,6 +107,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D20 | **Default `make test` is offline** | Live P2P only under `BTK_RUN_NET=1` / `make test-net`. |
 | D21 | **`--new` not `--create`** | Reads as “make a key”. Used on `privkey` (CSPRNG) and `balance` (build index) is *not* overloaded: balance uses `--build`. |
 | D22 | **TTY does not change the contract** | Default stdout is always NDJSON. No hidden pretty-print when isatty. `--out json` is the human pretty form. |
+| D23 | **`--host` (not a leftover argv host) for `node`** | Host/path/port are flags. `help` topics and `config` verbs stay argv. |
 
 ---
 
@@ -197,13 +198,13 @@ sequenceDiagram
         D-->>O: embedded text / version object
     else command
         D->>D: load config only for config / balance (file must already exist)
-        alt generator (--new / --from-text / --from-file / node / version / help / config / balance --build|--update)
+        alt generator (--new / --from file / node / version / help / config / balance --build|--update)
             loop once, --count times, or forever if --stream
                 D->>C: run()
                 D->>O: write object, flush if stream or ndjson
             end
         else transformer
-            loop each argv item or each stdin object/line
+            loop each stdin object/line
                 D->>C: run(item)
                 D->>O: write immediately (always incremental)
             end
@@ -216,8 +217,8 @@ sequenceDiagram
 1. Transformers are **always incremental**. One input item → zero or more output objects, written before the next item is read.
 2. `--out ndjson` (default) and `--out plain`: `fflush` after every object / line.
 3. `--out json`: buffer into one JSON value (object if 1, array if N) and print at the end, **unless** `--stream` is set, in which case behave as ndjson.
-4. Generators emit without reading the object stream. `privkey --new` emits `--count` items (default 1). `--stream` alone is **infinite** until SIGINT. `--stream --count N` is finite N. `privkey --from-text` / `--from-file` emit exactly one key (or error).
-5. Empty stdin and no positional items on a **transformer**: print nothing, exit 0.
+4. Generators emit without reading the object stream. `privkey --new` emits `--count` items (default 1). `--stream` alone is **infinite** until SIGINT. `--stream --count N` is finite N. `privkey --from file` emits exactly one key (SHA-256 of entire stdin).
+5. Empty stdin on a **transformer**: print nothing, exit 0. Leftover argv items are an error (`provide input on stdin`).
 6. A producer that writes one NDJSON object and sleeps must cause a consumer that is reading an **object stream** (`--in auto` seeing `{`, or `--in ndjson`) to emit before the producer exits. That is the vanity flush test. A pretty JSON **array** (`[…]`) may be parsed as one picojson value and then emitted item-by-item; it is **not** required to yield elements before the producer closes the array.
 
 ### Directory layout
@@ -401,8 +402,34 @@ One vocabulary across commands.
 | | `--in` | `auto`\|`ndjson`\|`json`\|`plain` | Stdin framing. Default `auto`. |
 | `-s` | `--stream` | | Generator: emit until SIGINT. Combined with `--count N`, emit exactly N (finite). Forces per-item flush. |
 | `-c` | `--count` | N | Generator: emit N items. Default 1. N must be a positive integer (`≥ 1`). |
+| | `--from` | type | Override how **bare stdin lines** are interpreted. Values depend on the command (table below). Not a framing flag (`--in` is). Unknown type: `invalid --from`. |
 
 Per-command additions are listed below. Repeatable flags are called out. Unknown flags are errors.
+
+### Shared input contract
+
+Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`, `--type p2tr`, `--host`) stay on argv. `--in` is framing; `--from` is meaning; `--encoding` is output (privkey).
+
+| Kind | Argv | Stdin |
+|---|---|---|
+| **Transformer** (`privkey`, `pubkey`, `address`, `balance` query) | flags only | items |
+| **Generator** (`--new`, `--from file`, `--build`, `version`) | flags only | none, or raw bytes for `--from file` |
+| **Parameterized one-shot** (`node`, `balance --build/--update`) | flags for host/path/port | none |
+| **Verb / topic** (`help`, `config`) | topic or `set`/`get`/`unset`/`dump` + keys | none |
+
+`--from` applies to **bare lines**, not to a typed object’s `type`/`data`. Typed objects in the pipe always win. `--from` cannot combine with `--new` or `--build`. `--from-rpc` / `--from-chainstate` are **different options** (balance build sources).
+
+| Command | `--from` values | Bare-line guess | Silent SHA-256 of leftover text? |
+|---|---|---|---|
+| `privkey` | `wif\|hex\|dec\|text\|file` | WIF → 64-hex → dec → text | **yes** (after guess). `--from text` for `1` |
+| `pubkey` | same; 66/130-char hex is a pub | WIF → 66/130 pub hex → 64-hex priv → dec → text | **yes** (hash → secret → pubkey) |
+| `address` | same (`hex` = **secret**) | WIF → 66/130 pub → 64-hex secret → dec | **no**. Error. `--from text\|file` hashes then addresses. Never treat 64-hex as x-only |
+| `balance` query | optional `address` | Base58Check / bech32 address | **no** |
+| `node` / `help` / `version` / `config` / `balance --build` | none | n/a | no |
+
+On a **pipe** (`--in auto`, not a TTY), I/O peeks 8KiB. Binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8) is one raw item. `privkey` / `pubkey` SHA-256 it (same as `--from file`). Other transformers do not. A TTY stays line-oriented.
+
+`--from text\|wif\|hex\|dec` with `--in auto` is coerced to `--in plain`. `--from file` is a generator: hash entire stdin, do not read the object stream.
 
 `getopt_long` is fine. Prefix `--` stops option parsing. Warn in help that `POSIXLY_CORRECT` stops parsing at the first non-option.
 
@@ -499,7 +526,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 
 `sats` is a JSON number (uint64, decimal integer — see above). Unknown address → `0`, not an error.
 
-Query input (argv or stdin), in order:
+Query input (stdin), in order:
 
 | Input | Action |
 |---|---|
@@ -559,18 +586,18 @@ Query input (argv or stdin), in order:
 | `config get` | the raw value only (redacted if `rpc.auth`) |
 | `help` | not JSON; `--out` is ignored |
 
-Positional argv items: if an argument starts with `{`, parse as a JSON object; else treat as a bare string.
+Transformers do **not** take positional items. A leftover argv word is `provide input on stdin`. (`help` topics and `config` verbs are not items.)
 
-**Bare-string interpretation** (when the command did not get a typed object):
+**Bare-string interpretation** (when the command did not get a typed object; `--from` omitted):
 
-| Command | Guess order | Failure |
+| Command | Guess order | Failure / override |
 |---|---|---|
-| `privkey` | WIF (base58check, version `0x80`/`0xEF`) → 64-char hex → `[0-9]+` decimal → SHA-256(text) | `--from-text` forces SHA-256. 64-digit all-numeric is hex. WIF-shaped bad checksum is an error, not a hash. |
-| `pubkey` | WIF → 66/130-char hex pubkey → 64-char hex privkey → error | |
-| `address` | WIF → 66/130-char hex pubkey → 64-char hex **privkey** → error | 64-hex is **always a secret**, never an x-only internal key. |
+| `privkey` | WIF (base58check, version `0x80`/`0xEF`) → 64-char hex → `[0-9]+` decimal → SHA-256(line) | `--from text` forces SHA-256. 64-digit all-numeric is hex. WIF-shaped bad checksum is an error, not a hash. |
+| `pubkey` | WIF → 66/130-char hex pubkey → 64-char hex privkey → decimal → SHA-256(line) as a secret | `--from text` forces SHA-256. Message if `--from` is a key type and parse fails: `not a private or public key`. |
+| `address` | WIF → 66/130-char hex pubkey → 64-char hex **privkey** → decimal | error `not a private or public key`. `--from text\|file` hashes to a secret then addresses. 64-hex is **always a secret**. |
 | `balance` | A Bitcoin address (Base58Check or bech32/bech32m) | error |
 
-**64-hex on `address` is a secret.** P2TR internal keys are also 32 bytes. `btk address --type p2tr <64 hex chars>` treats the string as a private key (`k·G`, then tweak). It never treats the bytes as an x-only public key. There is no `--from-xonly` in 4.0.0. Feed an x-only key only as a `pubkey` object with 66-char `02`/`03` (or 130-char `04`) `data`. Negative CLI test: the 64-hex of G’s x-coordinate `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` is a valid scalar (`< n`) and must **not** produce G’s P2TR `bc1pmfr3p9j00pfxjh0zmgp99y8zftmd3s5pmedqhyptwy6lm87hf5sspknck9` (it produces `int(x)·G` tweaked). Use secret-1 hex `00…01` for G’s address.
+**64-hex on `address` is a secret.** P2TR internal keys are also 32 bytes. `printf '<64 hex chars>' | btk address --type p2tr` treats the string as a private key (`k·G`, then tweak). It never treats the bytes as an x-only public key. There is no `--from-xonly` in 4.0.0. Feed an x-only key only as a `pubkey` object with 66-char `02`/`03` (or 130-char `04`) `data`. Negative CLI test: the 64-hex of G’s x-coordinate `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` is a valid scalar (`< n`) and must **not** produce G’s P2TR `bc1pmfr3p9j00pfxjh0zmgp99y8zftmd3s5pmedqhyptwy6lm87hf5sspknck9` (it produces `int(x)·G` tweaked). Use secret-1 hex `00…01` for G’s address.
 
 `--plain` on the producer + `--in plain` (or auto) on the consumer still composes:
 
@@ -620,7 +647,7 @@ btk node: connect timed out after 15s
 
 Rules:
 
-- Prefix is `btk <command>:` — never positional inputs (they may be secrets).
+- Prefix is `btk <command>:` — never echo stdin payloads (they may be secrets).
 - No WIF, hex keys, passphrases, or `rpc.auth` values in messages.
 - Validation wording is specified per command below so tests can assert it.
 
@@ -645,7 +672,7 @@ btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
 
 | Long | Notes |
 |---|---|
-| `--new` | 32 CSPRNG bytes, then `secp256k1_ec_seckey_verify`; retry on failure (p ≈ 2⁻¹²⁸). Default compressed, mainnet, WIF. **Generator:** ignores positionals and does not read the object stream. |
+| `--new` | 32 CSPRNG bytes, then `secp256k1_ec_seckey_verify`; retry on failure (p ≈ 2⁻¹²⁸). Default compressed, mainnet, WIF. **Generator:** does not read the object stream. |
 | `--encoding` | Output encoding: `wif` (default), `hex`, or `dec`. |
 | `--compressed` / `--uncompressed` | Set the compression flag. If **both**, emit two objects (compressed first). Default compressed. |
 | `--from` | Force stdin interpretation: `wif`, `hex`, `dec`, `text` (SHA-256 each line), or `file` (SHA-256 entire stdin, one key). Default: guess. Cannot combine with `--new`. |
@@ -682,17 +709,18 @@ WIF:
 
 Hex output is lowercase. Hex input is case-insensitive.
 
-`--from-text` / `--from-file` result is always treated as a compressed mainnet key unless flags say otherwise.
+`--from text` / `--from file` (and silent leftover-text / binary hash) is always treated as a compressed mainnet key unless flags say otherwise.
 
 ### 2. `btk pubkey` — Phase 2
 
 Derive a public key, or recompress one.
 
 ```text
-btk pubkey [--compressed | --uncompressed] [item…]
+btk pubkey [--compressed | --uncompressed]
+           [--from wif|hex|dec|text|file]
 ```
 
-Input: `privkey` object, `pubkey` object, WIF, hex privkey, or hex pubkey.
+Stdin only (`provide input on stdin` if leftover argv). Input: `privkey` object, `pubkey` object, or a bare line (see Shared input contract).
 
 - From a secret: `secp256k1_ec_pubkey_create` + `secp256k1_ec_pubkey_serialize`.
 - From a pubkey: `secp256k1_ec_pubkey_parse` + serialize in the requested form.
@@ -701,7 +729,7 @@ Default compression: follow the input’s `compressed` field / WIF flag / existi
 
 Output `encoding` is always `hex`. `network` on the output object: from a typed input’s `network`; else from a WIF version byte; else `--network`; else `mainnet`.
 
-Message on bad input: `not a private or public key`. `--match` is an unknown flag here.
+Message on bad input when `--from` is a key type, or when a typed object is the wrong `type`: `not a private or public key`. `--match` is an unknown flag here. `--from text` / leftover text SHA-256s to a secret then derives. `--from file` hashes entire stdin as one secret.
 
 ### 3. `btk address` — Phase 3
 
@@ -710,7 +738,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
             [--network mainnet|testnet]
             [--match REGEX] [--ignore-case]
             [--source | --no-source]
-            [item…]
+            [--from wif|hex|dec|text|file]
 ```
 
 | Long | Notes |
@@ -753,20 +781,19 @@ A compressed `03` key (odd Y) must produce the same address as the `02` key with
 3. `--network` flag.
 4. `mainnet`.
 
-**64-hex is a secret.** Never an x-only internal key. See Bare-string interpretation.
+**64-hex is a secret.** Never an x-only internal key. See Bare-string interpretation. Stdin only; leftover argv is `provide input on stdin`. Leftover text that is not a key is an error unless `--from text` or `--from file`.
 
-**Illegal combinations:** `--match` more than once → `cannot pass --match more than once`. `--stream` is accepted as “flush each output” (no-op; transformers already flush). `--count` is unknown.
+**Illegal combinations:** `--match` more than once → `cannot pass --match more than once`. `--stream` is accepted as “flush each output” (no-op; transformers already flush). `--count` is unknown. `--from` + `--new` does not apply (address is not a generator).
 
 ### 4. `btk node` — Phase 4
 
 ```text
-btk node <host[:port]>
-btk node --host <host> [--port 8333]
+btk node --host HOST [--port 8333]
 ```
 
 IPv4 TCP only. Default port 8333. DNS via `getaddrinfo` (`AF_INET`). 15 second `SO_SNDTIMEO` / `SO_RCVTIMEO` (and/or `poll`) on connect and read.
 
-**Host selection:** exactly one of positional `<host[:port]>` or `--host`. Both → `specify a host as a positional or --host, not both`. Neither → `missing host`. If the positional contains `:`, the suffix is the port (IPv4 only, so one colon). `--port` plus a positional that already has `:port` → `port specified twice`.
+**Host selection:** `--host` is required. Missing → `missing host`. A leftover positional is `provide input on stdin` (hosts are flags, not item payloads). If `--host` contains `:`, the suffix is the port (IPv4 only, so one colon). `--port` plus a `--host` that already has `:port` → `port specified twice`.
 
 Handshake: send `version`, read the peer’s `version`, print the object, close. Do **not** send `verack`. One shot; `--stream` is an error (`node does not stream`).
 
@@ -837,7 +864,7 @@ Emits the `version` object. `--out plain` prints `4.0.0`. `--version` works befo
 Local address → satoshi index.
 
 ```text
-btk balance [--path DIR] [item…]                    # query
+btk balance [--path DIR]                             # query stdin
 btk balance --build --from-rpc [--host H] [--port P] [--rpc-auth USER:PASS]
 btk balance --build --from-chainstate [--chainstate DIR]
 btk balance --update                                 # RPC, from last height+1
@@ -851,7 +878,7 @@ btk balance --update                                 # RPC, from last height+1
 | `--chainstate` | config `chainstate.path` or `~/.bitcoin/chainstate` |
 | `--force` | Only with `--build`. Overwrite a non-empty `--path`. |
 
-Query is a **transformer**: argv items or stdin. `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin and no argv → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --build)`.
+Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --build)`. Do not SHA-256 leftover text. `--from-rpc` / `--from-chainstate` are build-source flags, not `--from`.
 
 `--build` refuses to overwrite a non-empty directory unless `--force`.
 
@@ -1134,9 +1161,9 @@ There is no 3.1.2 compatibility surface. Migration for humans (README):
 | `btk address --legacy` | `btk address --type p2pkh` |
 | `btk address --bech32m` | **removed** (was not Taproot). Use `--type p2tr`. |
 | `btk address --p2tr` (if anyone used a patch) | `btk address --type p2tr` |
-| `btk node --hostname=X` | `btk node X` |
-| `btk privkey "passphrase"` | `btk privkey --from-text "passphrase"` |
-| `cat photo.jpg \| btk privkey --in-type=binary` | `btk privkey --from-file photo.jpg` |
+| `btk node --hostname=X` | `btk node --host X` |
+| `btk privkey "passphrase"` | `printf passphrase \| btk privkey` or `printf passphrase \| btk privkey --from text` |
+| `cat photo.jpg \| btk privkey --in-type=binary` | `cat photo.jpg \| btk privkey` or `cat photo.jpg \| btk privkey --from file` |
 | `--out-format=list` | `--out plain` |
 | `--testnet` | `--network testnet` |
 | JSON array of strings | typed objects |
@@ -1154,7 +1181,7 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 btk privkey --new --compressed --uncompressed
 
 # convert WIF → hex
-btk privkey --encoding hex KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn
+printf '%s' KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn | btk privkey --encoding hex
 
 # vanity (prints the matching address + source privkey)
 btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
@@ -1163,11 +1190,11 @@ btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 btk privkey --new --stream | btk address --type p2tr --match '^bc1p73'
 
 # node
-btk node seed.bitcoin.sipa.be
+btk node --host seed.bitcoin.sipa.be
 
 # balance
 btk balance --build --from-chainstate
-btk balance 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 ```
 
 ---
@@ -1235,7 +1262,7 @@ Core’s default RPC auth is a cookie at `~/.bitcoin/.cookie`. Convenient, but a
 | Secrets on stderr / in argv traces | High | Error prefix is command name only. Never echo WIF/hex/passphrases/`rpc.auth`. |
 | Config file world-readable | High | `0600` on the file, `0700` on `~/.btk`. |
 | `config dump` leaking RPC password | High | Always `********`. `get rpc.auth` redacts too. |
-| `--from-text` used as a brainwallet | Medium | Allowed but explicit. README warns: SHA-256(passphrase) is not a KDF. |
+| `--from text` / leftover-text hash used as a brainwallet | Medium | Allowed on `privkey`/`pubkey`. README warns: SHA-256(passphrase) is not a KDF. |
 | CSPRNG failure ignored | High | Short `getentropy`/`urandom` read is fatal. |
 | Balance data race / torn writes | Medium | Single writer thread, LevelDB write batches. |
 | wtxid used as outpoint | High | BIP-141 non-witness txid only. |
@@ -1291,14 +1318,14 @@ Each phase after the scaffold is one command and the tests that make it real.
 | PR | Phase | Delivers | Acceptance |
 |---|---|---|---|
 | **0** | Scaffold | Layout, Makefile, `main`/dispatcher, options, NDJSON I/O, hash, hex, base58, error, secp RAII, `third_party/picojson`, `--help`/`--version` stubs. `bin/btk` runs and rejects unknown commands. | `make` produces `bin/btk`. Unit tests for SHA256, RIPEMD160, HASH160, HASH256, Base58Check, hex. |
-| **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from-text/--from-file/--stream/--count`. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` round-trips. Range reject 0 and `n`. Stream flush test. |
-| **2** | Public keys | `cmd/pubkey`. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. |
-| **3** | Addresses | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. 64-hex is a secret (negative test). Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
-| **4** | Node | `net/p2p`, `cmd/node`. Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
+| **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. |
+| **2** | Public keys | `cmd/pubkey`. Same stdin-only + `--from` contract. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. |
+| **3** | Addresses | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no silent hash. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. 64-hex is a secret (negative test). Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
+| **4** | Node | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
 | **5** | Help | `cmd/help`, overview text, man pages for remaining stubs. | `btk help` and `btk help privkey` match Appendix C. Works without `man` in `PATH`. |
 | **6** | Version | `cmd/version` typed object. | `btk version --out plain` → `4.0.0`. |
 | **7a** | Balance primitives | CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only. | Appendix A.9–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
-| **7b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
+| **7b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
 | **7c** | Chainstate `--build` | Obfuscation, `'B'`/`'C'`, amount + script decompress, nSize 4/5 via libsecp256k1. | Appendix A.12 record → `1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH` = 5000000000. Pre-0.15 `'c'` aborts. |
 | **7d** | RPC `--build` / `--update` | Hex `getblock`, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. |
 | **8** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
@@ -1434,7 +1461,7 @@ Secret `0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d`
 | WIF compressed main | `KwdMAjGmerYanjeui5SHS7JkmpZvVipYvB2LJGU1ZxJwYvP98617` |
 | pubkey compressed | `02d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645c` |
 
-### A.5 Vector `--from-text`
+### A.5 Vector `--from text` (SHA-256 of UTF-8)
 
 | Text (UTF-8) | SHA-256 (secret hex) | WIF compressed main |
 |---|---|---|
@@ -1592,15 +1619,14 @@ Enough to start coding the day after the wipe.
 ### I/O loop
 
 ```
-if cmd.is_generator(opts):          # --new, --from-text, --from-file, node, …
-    if --from-file -: raw = read_all_stdin(); emit sha256(raw) as one key; return
-    if --from-text with no STR: raw = read_all_stdin(); emit sha256(raw) as one key; return
-    if --from-text STR: emit sha256(str) as one key; return   # do not read stdin
+if cmd.is_generator(opts):          # --new, --from file, node, …
+    if --from file: raw = read_all_stdin(); emit sha256(raw) as one key; return
     if --new: emit count keys (infinite if --stream and no --count); return
     # node / version / help / config / balance --build|--update: run once
     return
 
-items = argv_positionals or read_stdin(opts.in)
+if leftover argv on a transformer: error "provide input on stdin"
+items = read_stdin(opts.in)
 if items empty: return 0
 for item in items:
     obj = parse_item(item)          # JSON object or wrap bare string
@@ -1617,8 +1643,9 @@ for item in items:
 
 1. If object with `type` other than `privkey` → error `expected a privkey`.
 2. If object: read `data` + `encoding` (or guess from `data`).
-3. If bare string: WIF if Base58Check decodes to 33 or 34 bytes with version `80`/`EF`; else if `[0-9a-fA-F]{64}` then hex; else if `[0-9]+` then decimal; else `SHA256(UTF-8 bytes)` as the secret (same as `--from-text`). A WIF-shaped string (37/38-byte base58 payload) with a bad checksum is `invalid WIF checksum`, not a hash. Out-of-range hex/dec is still `private key out of range`.
-4. **Piped binary** (`--in auto`, stdin is not a TTY): if a prefix of stdin is binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8), hash the **entire** stdin as raw bytes — same as `--from-file -`. All-text pipes stay on the line/object guess above. A positional is never opened as a path; use `--from-file PATH`.
+3. If `--from` is set, interpret the line as that type (`wif`/`hex`/`dec`/`text`). `file` is not a line type (it is a generator).
+4. If bare string and `--from` omitted: WIF if Base58Check decodes to 33 or 34 bytes with version `80`/`EF`; else if `[0-9a-fA-F]{64}` then hex; else if `[0-9]+` then decimal; else `SHA256(line)` as the secret. A WIF-shaped string (37/38-byte base58 payload) with a bad checksum is `invalid WIF checksum`, not a hash. Out-of-range hex/dec is still `private key out of range`.
+5. **Piped binary** (`--in auto`, stdin is not a TTY): if a prefix of stdin is binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8), hash the **entire** stdin as raw bytes — same as `--from file`. All-text pipes stay on the line/object guess above.
 
 ### Makefile probe sketch
 
@@ -1633,14 +1660,16 @@ endif
 ### First CLI tests (`test/cli/test_privkey.py`)
 
 1. `btk privkey --new --out plain` → one line, valid WIF, compressed main (`K` or `L`).
-2. That WIF back into `btk privkey --encoding hex --out plain` → 64 hex chars; then back to WIF equals original.
-3. Vector G hex → each of the four WIFs via `--network` / `--compressed` / `--uncompressed`.
-4. `--from-text test01 --out plain` → `Kzh1d5pXSZLtwsgENakrfCjuGy9txPEb3aEb2y8yyZo65qDs8bTu`. Must **not** read stdin: `printf '{"type":"privkey","data":"00"}\n' | btk privkey --from-text test01 --out plain` still yields that one WIF.
-5. `--from-text 'Secret Passphrase'` → `L1Cf21MBhiZX9QFTAhN3PGJkyvQzN4CuHwhasHsdV9tkEfiiB8Ug`.
-6. hex `00…00` → exit 1, stderr contains `out of range`.
+2. That WIF piped into `btk privkey --encoding hex --out plain` → 64 hex chars; then back to WIF equals original.
+3. Vector G hex on stdin → each of the four WIFs via `--network` / `--compressed` / `--uncompressed`.
+4. `printf test01 | btk privkey --from text --out plain` → `Kzh1d5pXSZLtwsgENakrfCjuGy9txPEb3aEb2y8yyZo65qDs8bTu`.
+5. `printf 'Secret Passphrase' | btk privkey --from text --out plain` → `L1Cf21MBhiZX9QFTAhN3PGJkyvQzN4CuHwhasHsdV9tkEfiiB8Ug`.
+6. hex `00…00` on stdin → exit 1, stderr contains `out of range`.
 7. `--new --count 3` → three NDJSON objects, distinct `data`.
 8. `printf '%s\n' <G-wif> <wiki-wif> | btk privkey --encoding hex` → two objects.
 9. Flush: subprocess `privkey --new --stream` piped to a Python consumer that exits on first object; must return before a 2 s timeout.
+10. Leftover argv (`btk privkey <wif>`) → `provide input on stdin`.
+11. `printf 1 | btk privkey --out plain` is secret 1; `printf 1 | btk privkey --from text` is SHA-256("1").
 
 ---
 
@@ -1654,7 +1683,7 @@ Print exactly this (or an isomorphic wrap to 80 columns). This is also the body 
 btk — Bitcoin Toolkit 4.0.0
 
 Usage:
-  btk [--config PATH] <command> [options] [item...]
+  btk [--config PATH] <command> [options]
 
 Commands:
   privkey   Create or convert private keys
@@ -1707,9 +1736,11 @@ hex, decimal, text (SHA-256), then binary file (whole stdin).
 btk pubkey — derive or recompress public keys
 
 Usage:
-  btk pubkey [--compressed | --uncompressed] [item...]
+  btk pubkey [--compressed | --uncompressed]
+             [--from wif|hex|dec|text|file]
 
-Items are a privkey (object, WIF, hex), or a hex public key.
+Items are a privkey or pubkey object, or a stdin line (WIF, hex
+priv, hex pub, decimal, or leftover text hashed to a secret).
 Default compression follows the input; flags override. Both flags
 emit two objects. Output is hex (33 or 65 bytes).
 ```
@@ -1724,7 +1755,7 @@ Usage:
               [--match REGEX] [--ignore-case]
               [--network mainnet|testnet]
               [--no-source]
-              [item...]
+              [--from wif|hex|dec|text|file]
 
   --type       Repeatable. Default: p2wpkh
                p2pkh   Base58Check HASH160(pubkey)
@@ -1736,6 +1767,7 @@ Usage:
 
 p2wpkh and p2tr require a compressed key.
 64-hex is a private key, never an x-only public key.
+Leftover text is an error unless --from text or --from file.
 There is no --bech32m flag; use --type p2tr for Taproot.
 
 Vanity:
@@ -1748,12 +1780,10 @@ Vanity:
 btk node — Bitcoin P2P version handshake (IPv4 mainnet)
 
 Usage:
-  btk node <host[:port]>
   btk node --host HOST [--port 8333]
 
 Connects, sends version, prints the peer's version as a typed object,
 and closes. 15s timeout. Default port 8333.
-Give the host as a positional or --host, not both.
 --verbose includes raw P2P fields. --out plain prints ip:port.
 ```
 
@@ -1773,13 +1803,13 @@ Usage:
 btk balance — local address → satoshi index
 
 Usage:
-  btk balance [--path DIR] <address...>
+  btk balance [--path DIR]
   btk balance --build --from-rpc [--host H] [--port P] [--rpc-auth user:pass]
   btk balance --build --from-chainstate [--chainstate DIR]
   btk balance --update
 
 Query prints {"type":"balance","address":"…","sats":N}. Missing = 0.
-Accepts address objects from a pipe, or bare address strings.
+Accepts address objects or bare address strings on stdin.
 --build writes a new LevelDB at --path (default ~/.btk/balance).
 --force overwrites a non-empty --path (only with --build).
 --from-rpc walks blocks via Bitcoin Core JSON-RPC (hex blocks).
@@ -1827,7 +1857,7 @@ Usage:
 | Chainstate format drift (Core 28+) | Medium | Abort on unknown key prefixes; document ≥0.15 `'C'` keys. |
 | Full-mainnet RPC `--build` takes days | Low | Document chainstate as the intended initial path; RPC is for `--update` and small test chains. |
 | `--stream` + `--match` burns CPU | Low | Expected for vanity. No rate limit. |
-| Users treat `--from-text` as a wallet | Medium | Help + README warning. |
+| Users treat leftover-text SHA-256 as a wallet | Medium | Help + README warning. `--from text` is explicit. |
 
 ---
 
