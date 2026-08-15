@@ -5,7 +5,7 @@
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
 | **Date** | 2026-08-15 |
-| **Status** | Ready |
+| **Status** | Phases 0–2 implemented on `4.x` (`privkey`, `pubkey`). Next: Phase 3 `address`. |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -1325,7 +1325,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 |---|---|---|---|
 | **0** | Scaffold | Layout, Makefile, `main`/dispatcher, options, NDJSON I/O, hash, hex, base58, error, secp RAII, `third_party/picojson`, `--help`/`--version` stubs. `bin/btk` runs and rejects unknown commands. | `make` produces `bin/btk`. Unit tests for SHA256, RIPEMD160, HASH160, HASH256, Base58Check, hex. |
 | **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. |
-| **2** | Public keys | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. |
+| **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no silent hash. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. 64-hex is a secret (negative test). Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
 | **5** | Help | `cmd/help`, overview text, man pages for remaining stubs. | `btk help` and `btk help privkey` match Appendix C. Works without `man` in `PATH`. |

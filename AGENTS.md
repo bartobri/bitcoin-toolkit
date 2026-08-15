@@ -12,6 +12,7 @@ Branch `4.x`. Latest work is **Phase 2 complete** (`btk pubkey`). Next implement
 | `f9b4631` | Phase 0 scaffold |
 | `021ec27` | Phase 1 privkey + later stdin-only / `--from` contract |
 | `e5281ad` | Pubkey plan: no leftover hash; guess WIF → hex priv → dec → hex pub |
+| `38855af` | Phase 2 `btk pubkey` + opt-in `--source` |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 
