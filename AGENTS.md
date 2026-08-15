@@ -26,7 +26,7 @@ Branch `4.x`. Latest work is **Phase 1 complete** (`btk privkey`). Next implemen
 |---|---|---|
 | 0 Scaffold | **Done** | Makefile, dispatcher, options, NDJSON I/O, hash/hex/base58, secp RAII, picojson, `--help`/`--version` stubs |
 | 1 `privkey` | **Done** | See contract below. Man page `man/btk-privkey.1` |
-| 2 `pubkey` | **Next** | REBUILD § Commands.2 / PR 2 + Shared input contract |
+| 2 `pubkey` | **Next** | REBUILD § Commands.2 / PR 2 + Shared input contract. No leftover-text / `--from text\|file`. Guess: WIF → 64-hex priv → dec → 66/130 hex pub |
 | 3 `address` | Not started | bech32, bech32m, BIP-341 empty-tree p2tr, `--match` |
 | 4 `node` | Not started | IPv4 mainnet handshake only; `--host` required (no positional host). Live tests behind `BTK_RUN_NET=1` |
 | 5 `help` | Partial | `btk --help` / `btk privkey --help` exist. No `help` command yet. Appendix C pins overview + privkey bodies |
@@ -137,7 +137,7 @@ Split every command into:
 2. **`--in` is framing** (auto / ndjson / json / plain). **`--from` is meaning** (wif / hex / dec / text / file / …). Do not merge them. `--encoding` remains **output** encoding only (`privkey`).
 3. **Typed objects in the pipe always win.** `{` / `[` under `--in auto` is the object stream. `--from` applies to **bare lines**, not to an object’s `type`/`data`.
 4. **`--from TYPE` is the override.** Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--build`.
-5. **Silent SHA-256 is not universal.** Only commands whose job is “turn bytes into a secret” may hash leftover text without `--from`. See per-command table. A WIF-shaped bad checksum is never hashed.
+5. **Silent SHA-256 is not universal.** Only `privkey` hashes leftover text without `--from`. `pubkey` requires an explicit key. A WIF-shaped bad checksum is never hashed.
 6. **`--out` / `--in` / `--network` / `--compressed` stay the global vocabulary.** Per-command flags (`--type`, `--match`, `--host`, `--build`) stay per-command.
 
 ### Per-command
@@ -145,7 +145,7 @@ Split every command into:
 | Command | Kind | Stdin-only items? | `--from` values | Guess (bare line) | Silent SHA-256? |
 |---|---|---|---|---|---|
 | `privkey` | transformer / `--new` generator | yes (shipped) | `wif\|hex\|dec\|text\|file` | WIF → 64-hex → dec → text | yes (after guess) |
-| `pubkey` | transformer | **yes** | same + treat 66/130 hex as pub | WIF → 66/130 pub hex → 64-hex priv → dec → text | **yes** (hash → secret → pubkey). `--from text` for `1` |
+| `pubkey` | transformer | **yes** | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Leftover text / `--from text\|file` are errors |
 | `address` | transformer | **yes** | `wif\|hex\|dec\|text\|file` (`hex` = **secret**; 66/130 = pub via guess or `--from` if we add `pubkey`) | WIF → 66/130 pub → 64-hex **secret** → dec | **no**. Unknown string errors. `--from text\|file` hashes to a secret then addresses. Never treat 64-hex as x-only |
 | `node` | parameterized one-shot | no | none | n/a | no. `--host HOST` required. Not a key pipe |
 | `help` | topic | n/a | none | n/a | no. `btk help privkey` stays a topic token |
@@ -153,6 +153,10 @@ Split every command into:
 | `balance` query | transformer | **yes** | optional `address` | Base58Check / bech32 address only | **no** (unknown → error, not a hash). `--from-rpc` / `--from-chainstate` are **build sources**, distinct flags, not `--from` |
 | `balance --build/--update` | parameterized generator | no | none | n/a | no. `--path`, `--host`, `--chainstate` stay flags |
 | `config` | verb | n/a | none | n/a | no. `set`/`get`/`unset`/`dump` keep argv keys |
+
+### Why pubkey does not silently hash
+
+`pubkey` turns a key into a public key. It does not invent a secret from leftover text or a file. `printf test01 | btk pubkey` is `not a private or public key`. Hash a passphrase first with `btk privkey --from text`, then pipe the typed object.
 
 ### Why address does not silently hash
 
@@ -171,12 +175,14 @@ Split every command into:
 Implement `btk pubkey` from REBUILD.md §2 and the Shared input contract:
 
 - Stdin only; reject positionals (`provide input on stdin`).
-- Accept typed `privkey` / `pubkey` objects and bare WIF / hex priv / hex pub / dec / leftover text (SHA-256 → secret). `--from` overrides.
-- From a secret: `secp256k1_ec_pubkey_create` + serialize. From a pubkey: parse + recompress.
+- Accept typed `privkey` / `pubkey` objects and bare WIF / 64-hex priv / decimal / 66/130-hex pub. Do **not** SHA-256 leftover text or files. No `--from text` / `--from file`.
+- `--from` is only `wif|hex|dec`. `--from hex` is 64-char priv or 66/130-char pub. Unknown `--from` is `invalid --from`.
+- Guess: WIF → 64-hex priv → decimal → 66/130 hex pub. `--from` overrides. 64-digit all-numeric is hex priv. A 66- or 130-digit all-numeric string is decimal (before hex pub). Fail: `not a private or public key`.
+- From a private key: `secp256k1_ec_pubkey_create` + serialize. From a pubkey: parse + recompress.
 - Default compression follows the input; `--compressed` / `--uncompressed` override; both flags → two objects.
 - Output `encoding` is always `hex`. Copy `network` from the typed input or WIF version, else `--network`, else mainnet.
 - Optional `source` (the input privkey object) when the input was a privkey — address must not walk `source` for network (one level only). `--match` is an unknown flag here.
-- Acceptance: Appendix A Vector G and Wiki compressed/uncompressed hex; WIF → pubkey; recompress; testnet privkey object → pubkey object with `network=testnet`.
+- Acceptance: Appendix A Vector G and Wiki compressed/uncompressed hex; WIF → pubkey; recompress; testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors.
 - New files: `src/cmd/pubkey.cpp`, `src/core/pubkey.{hpp,cpp}`, `test/cli/test_pubkey.py`, unit coverage, `man/btk-pubkey.1`.
 - `btk pubkey --help` from Appendix C (adapt if the stdin-only wording should match privkey).
 
