@@ -5,6 +5,7 @@
 #include "cli/output.hpp"
 #include "cmd/address.hpp"
 #include "cmd/command.hpp"
+#include "cmd/node.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
 #include "util/error.hpp"
@@ -78,6 +79,7 @@ void register_builtin_commands() {
     register_command(make_privkey_command());
     register_command(make_pubkey_command());
     register_command(make_address_command());
+    register_command(make_node_command());
 }
 
 Command* find_command(const std::string& name) {

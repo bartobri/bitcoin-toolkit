@@ -5,7 +5,7 @@
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
 | **Date** | 2026-08-15 |
-| **Status** | Phases 0–3 implemented on `4.x` (`privkey`, `pubkey`, `address`). Next: Phase 4 `node`. |
+| **Status** | Phases 0–4 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`). Next: Phase 5 `help`. |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -801,7 +801,7 @@ IPv4 TCP only. Default port 8333. DNS via `getaddrinfo` (`AF_INET`). 15 second `
 
 Handshake: send `version`, read the peer’s `version`, print the object, close. Do **not** send `verack`. One shot; `--stream` is an error (`node does not stream`).
 
-`--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce`, `services_bits`.
+`--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal digit string — a uint64 nonce does not fit in a JSON number), `services_bits`.
 
 **`version` payload layout** (all multi-byte integers little-endian **except** `addr_*` ports):
 
@@ -1325,7 +1325,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. |
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses (**done**, `3fb1427`) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. `--match` includes `source`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
-| **4** | Node | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
+| **4** | Node (**done**) | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
 | **5** | Help | `cmd/help`, overview text, man pages for remaining stubs. | `btk help` and `btk help privkey` match Appendix C. Works without `man` in `PATH`. |
 | **6** | Version | `cmd/version` typed object. | `btk version --out plain` → `4.0.0`. |
 | **7a** | Balance primitives | CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only. | Appendix A.9–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |

@@ -33,9 +33,11 @@ SRC := \
 	src/core/pubkey.cpp \
 	src/core/bech32.cpp \
 	src/core/address.cpp \
+	src/net/p2p.cpp \
 	src/cmd/privkey.cpp \
 	src/cmd/pubkey.cpp \
 	src/cmd/address.cpp \
+	src/cmd/node.cpp \
 	src/util/error.cpp
 
 OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
@@ -80,7 +82,11 @@ bin/test_address: test/unit/address_test.cpp src/core/address.cpp src/core/bech3
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address
+bin/test_p2p: test/unit/p2p_test.cpp src/net/p2p.cpp src/core/hash.cpp src/core/hex.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
+
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address bin/test_p2p
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
@@ -88,12 +94,13 @@ test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_
 	bin/test_pubkey
 	bin/test_bech32
 	bin/test_address
+	bin/test_p2p
 
 test-cli: bin/btk
 	python3 test/runner.py
 
-test-net:
-	@echo "No live network tests in Phase 1."
+test-net: bin/btk
+	BTK_RUN_NET=1 python3 test/cli/test_node.py
 
 test: test-unit test-cli
 

@@ -52,6 +52,8 @@ struct Options {
     bool ignore_case = false;
     bool source = false;
     std::string host;
+    bool port_set = false;
+    std::uint16_t port = 0;
     bool verbose = false;
     bool force = false;
     bool build = false;

@@ -55,6 +55,7 @@ def main():
     assert "privkey" in out
     assert "pubkey" in out
     assert "address" in out
+    assert "node" in out
     return 0
 
 

@@ -4,7 +4,7 @@ Hand-off for anyone (human or agent) continuing the 4.x rebuild. Read this first
 
 ## Where we are
 
-Branch `4.x`. Latest work is **Phase 3 complete** (`btk address`). Next implementable phase is **Phase 4 (`btk node`)**.
+Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementable phase is **Phase 5 (`btk help`)**.
 
 | Commit | What |
 |---|---|
@@ -14,6 +14,7 @@ Branch `4.x`. Latest work is **Phase 3 complete** (`btk address`). Next implemen
 | `e5281ad` | Pubkey plan: no leftover hash; guess WIF → hex priv → dec → hex pub |
 | `38855af` | Phase 2 `btk pubkey` + opt-in `--source` |
 | `3fb1427` | Phase 3 `btk address` + `--match` implies `source` |
+| `76bb1d9` | Record Phase 3 as shipped |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 
@@ -31,8 +32,8 @@ Branch `4.x`. Latest work is **Phase 3 complete** (`btk address`). Next implemen
 | 1 `privkey` | **Done** | See contract below. Man page `man/btk-privkey.1` |
 | 2 `pubkey` | **Done** | See contract below. Man page `man/btk-pubkey.1` |
 | 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
-| 4 `node` | Not started | IPv4 mainnet handshake only; `--host` required (no positional host). Live tests behind `BTK_RUN_NET=1` |
-| 5 `help` | Partial | `btk --help` / `btk privkey --help` / `btk pubkey --help` / `btk address --help` exist. No `help` command yet. Appendix C pins overview + privkey/pubkey/address bodies |
+| 4 `node` | **Done** | See contract below. Man page `man/btk-node.1` |
+| 5 `help` | Partial | `btk --help` / `btk privkey --help` / `btk pubkey --help` / `btk address --help` / `btk node --help` exist. No `help` command yet. Appendix C pins overview + privkey/pubkey/address/node bodies |
 | 6 `version` | Stub | `btk --version` emits the typed object. No `version` command yet |
 | 7a–7d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
 | 8 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–6 must not open `~/.btk` |
@@ -106,15 +107,17 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 ```
 src/main.cpp
 src/cli/          dispatcher, options, io, output
-src/cmd/          command.hpp, privkey.{hpp,cpp}, pubkey.{hpp,cpp}, address.{hpp,cpp}
+src/cmd/          command.hpp, privkey.{hpp,cpp}, pubkey.{hpp,cpp}, address.{hpp,cpp}, node.{hpp,cpp}
 src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pubkey, address, network.hpp
+src/net/          p2p.{hpp,cpp}
 src/util/         error
 src/version.hpp
 man/btk-privkey.1
 man/btk-pubkey.1
 man/btk-address.1
-test/unit/        hash, hex, base58, privkey, pubkey, bech32, address  (CHECK() macro, no gtest)
-test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py
+man/btk-node.1
+test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p  (CHECK() macro, no gtest)
+test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py, test_node.py
 test/runner.py    discovers test/cli/test_*.py
 third_party/picojson/
 ```
@@ -216,13 +219,33 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 - `--match` is POSIX ERE on `data`, compiled in the C locale (`REG_EXTENDED | REG_NOSUB`, plus `REG_ICASE` if `--ignore-case`). More than once: `cannot pass --match more than once`. Invalid pattern: `invalid match pattern`. All filtered → empty stdout, exit 0. Implies `source`.
 - `btk address --help` is pinned in `test/cli/test_address.py` (`ADDRESS_HELP`) and the command’s raw string.
 
-## How to continue (Phase 4)
+## Phase 4 contract (as shipped)
 
-Implement `btk node` from REBUILD.md §4:
+This is what `btk node` actually does.
 
-- Parameterized one-shot. `--host HOST` required (no positional host: leftover argv is `provide input on stdin`).
-- IPv4 mainnet only, default port 8333, 15 s timeout. Send `version`, read the peer’s `version`, print the typed object, close. Do not send `verack`.
-- Offline unit test of version message ser/de (frozen payload in the node section). Live tests behind `BTK_RUN_NET=1`. `make test` must not touch the network.
+```text
+btk node --host HOST [--port 8333]
+```
+
+- Parameterized one-shot. Not a key pipe. `is_generator` is true so stdin is ignored.
+- **`--host` is required.** Missing → `missing host`. A leftover positional is `provide input on stdin`.
+- `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
+- IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
+- `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string; uint64 does not fit in a JSON number), `services_bits`.
+- Service bits: named (`NODE_NETWORK`, `NODE_WITNESS`, …) plus unknown `BIT_<n>`, ascending bit order.
+- Does not load `~/.btk/config.json`. `--network` is ignored.
+- Offline: unit ser/de of the frozen 109-byte payload + a localhost mock peer in `test/cli/test_node.py`. Live handshake behind `BTK_RUN_NET=1` / `make test-net`.
+- `btk node --help` is pinned in `test/cli/test_node.py` (`NODE_HELP`) and the command’s raw string.
+
+## How to continue (Phase 5)
+
+Implement `btk help` from REBUILD.md §5:
+
+- `btk help` and `btk help <command>` print Appendix C bodies. Not JSON. Unknown topic: `btk help: unknown command 'foo'`.
+- `btk <command> --help` already prints the same body as `btk help <command>` will. Phase 5 only adds the `help` command and the overview.
+- Help never execs `man`.
 - Phases 1–6 must not load `~/.btk/config.json`.
 
 ## Conventions
@@ -240,5 +263,6 @@ make
 make test          # unit + offline CLI
 make test-unit
 make test-cli
+make test-net      # live P2P; requires BTK_RUN_NET=1 / network
 make clean && make test   # after header/layout changes
 ```

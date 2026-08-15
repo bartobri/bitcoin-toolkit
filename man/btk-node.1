@@ -1,0 +1,75 @@
+.TH BTK-NODE 1 "15 August 2026" "Bitcoin Toolkit 4.0.0" "User Commands"
+.SH NAME
+btk-node \- Bitcoin P2P version handshake (IPv4 mainnet)
+.SH SYNOPSIS
+.B btk node
+.B \-\-host
+.I HOST
+[\fB\-\-port\fR \fI8333\fR]
+.SH DESCRIPTION
+Connects to a Bitcoin P2P peer, sends a
+.B version
+message, prints the peer's
+.B version
+as a typed object, and closes. Does not send
+.BR verack .
+IPv4 mainnet only. 15 second timeout. Default port 8333.
+.PP
+.B \-\-host
+is required. A leftover positional is
+.BR "provide input on stdin"
+(the host is a flag, not an item payload). If
+.B \-\-host
+contains a single colon, the suffix is the port. Combined with
+.B \-\-port
+that is
+.BR "port specified twice" .
+.PP
+.B \-\-stream
+is an error
+.RB ( "node does not stream" ).
+.SH OPTIONS
+.TP
+.BI \-\-host " HOST"
+IPv4 address or DNS name. Required. A
+.I host:port
+form sets the port.
+.TP
+.BI \-\-port " 8333"
+TCP port. Default 8333.
+.TP
+.B \-\-verbose
+Include
+.B raw
+with
+.BR addr_recv ,
+.BR addr_trans ,
+.BR nonce ,
+and
+.BR services_bits .
+.TP
+.BI \-\-out " ndjson|json|plain"
+Output framing. Default ndjson.
+.B \-\-out plain
+prints
+.IR ip:port .
+.SH OUTPUT
+The typed object includes
+.BR host ,
+.BR ip ,
+.BR port ,
+.BR protocol ,
+.BR user_agent ,
+.BR height ,
+.BR services
+(named bits in ascending order; unknown set bits are
+.BR BIT_n ),
+.BR relay ,
+and
+.BR timestamp .
+.SH NOTES
+Does not load
+.IR ~/.btk/config.json .
+Does not speak IPv6, testnet, or the rest of the peer protocol.
+.SH SEE ALSO
+.BR btk (1)

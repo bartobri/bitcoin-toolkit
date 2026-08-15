@@ -3,6 +3,7 @@
 #include "util/error.hpp"
 
 #include <getopt.h>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -221,6 +222,18 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.source = true;
         } else if (name == "host") {
             opts.host = optarg ? optarg : "";
+        } else if (name == "port") {
+            if (!optarg || !*optarg) {
+                throw BtkError(opts.command, "invalid --port");
+            }
+            char* end = nullptr;
+            errno = 0;
+            const unsigned long v = std::strtoul(optarg, &end, 10);
+            if (end == optarg || *end != '\0' || errno == ERANGE || v < 1 || v > 65535) {
+                throw BtkError(opts.command, "invalid --port");
+            }
+            opts.port = static_cast<std::uint16_t>(v);
+            opts.port_set = true;
         } else if (name == "verbose") {
             opts.verbose = true;
         } else if (name == "force") {
