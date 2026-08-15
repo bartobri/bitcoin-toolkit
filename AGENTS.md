@@ -13,6 +13,7 @@ Branch `4.x`. Latest work is **Phase 3 complete** (`btk address`). Next implemen
 | `021ec27` | Phase 1 privkey + later stdin-only / `--from` contract |
 | `e5281ad` | Pubkey plan: no leftover hash; guess WIF → hex priv → dec → hex pub |
 | `38855af` | Phase 2 `btk pubkey` + opt-in `--source` |
+| `3fb1427` | Phase 3 `btk address` + `--match` implies `source` |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 

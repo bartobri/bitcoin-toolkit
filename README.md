@@ -6,7 +6,7 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 2 is implemented: `btk privkey` creates and converts private keys; `btk pubkey` derives or recompresses public keys. Next is `btk address`. Later commands (`node`, `help`, `version`, `balance`, `config`) land in later phases.
+Phase 3 is implemented: `btk privkey`, `btk pubkey`, and `btk address`. Next is `btk node`. Later commands (`help`, `version`, `balance`, `config`) land in later phases.
 
 ```sh
 btk privkey --new
@@ -19,11 +19,16 @@ cat photo.jpg | btk privkey --from file --out plain
 printf '%s' KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn | btk pubkey --out plain
 btk privkey --new | btk pubkey
 btk privkey --new | btk pubkey --source
+btk privkey --new | btk address --type p2wpkh
+btk privkey --new --out plain | btk address --type p2tr --out plain
+btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 ```
 
 Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.
 
 `pubkey` does not hash leftover text. Guess order is WIF, 64-char hex priv, decimal, then 66/130-char hex pub. `--from` is only `wif|hex|dec`. `source` is omitted unless `--source` is set.
+
+`address` has no `--from`. Bare lines are WIF or a 66/130-char hex public key. Typed `privkey` / `pubkey` objects still compose. `--type` is `p2pkh`, `p2wpkh` (default), or `p2tr` (BIP-341 empty-tree). `source` is included on `--match`, or when `--source` is set.
 
 Output is one JSON object per line (ndjson) unless `--out json` or `--out plain`.
 
