@@ -15,6 +15,7 @@ Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementab
 | `38855af` | Phase 2 `btk pubkey` + opt-in `--source` |
 | `3fb1427` | Phase 3 `btk address` + `--match` implies `source` |
 | `76bb1d9` | Record Phase 3 as shipped |
+| `d91fa5b` | Phase 4 `btk node` IPv4 mainnet handshake |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 

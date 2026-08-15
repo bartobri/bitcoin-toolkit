@@ -6,7 +6,7 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 3 is implemented: `btk privkey`, `btk pubkey`, and `btk address`. Next is `btk node`. Later commands (`help`, `version`, `balance`, `config`) land in later phases.
+Phase 4 is implemented: `btk privkey`, `btk pubkey`, `btk address`, and `btk node`. Next is `btk help`. Later commands (`version`, `balance`, `config`) land in later phases.
 
 ```sh
 btk privkey --new
@@ -22,6 +22,8 @@ btk privkey --new | btk pubkey --source
 btk privkey --new | btk address --type p2wpkh
 btk privkey --new --out plain | btk address --type p2tr --out plain
 btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
+btk node --host seed.bitcoin.sipa.be
+btk node --host seed.bitcoin.sipa.be --out plain
 ```
 
 Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.
@@ -29,6 +31,8 @@ Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (S
 `pubkey` does not hash leftover text. Guess order is WIF, 64-char hex priv, decimal, then 66/130-char hex pub. `--from` is only `wif|hex|dec`. `source` is omitted unless `--source` is set.
 
 `address` has no `--from`. Bare lines are WIF or a 66/130-char hex public key. Typed `privkey` / `pubkey` objects still compose. `--type` is `p2pkh`, `p2wpkh` (default), or `p2tr` (BIP-341 empty-tree). `source` is included on `--match`, or when `--source` is set.
+
+`node` is a one-shot IPv4 mainnet handshake. `--host` is required (no positional host). It sends `version`, prints the peer’s `version`, and closes without `verack`. `--out plain` prints `ip:port`.
 
 Output is one JSON object per line (ndjson) unless `--out json` or `--out plain`.
 
