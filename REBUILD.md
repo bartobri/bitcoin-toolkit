@@ -5,7 +5,7 @@
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
 | **Date** | 2026-08-15 |
-| **Status** | Phases 0–2 implemented on `4.x` (`privkey`, `pubkey`). Next: Phase 3 `address`. |
+| **Status** | Phases 0–3 implemented on `4.x` (`privkey`, `pubkey`, `address`). Next: Phase 4 `node`. |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -69,7 +69,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | Decimal private-key encoding | **Added.** `--encoding dec`; bare `[0-9]+` after WIF and 64-char hex. JSON `data` is a digit string (not a JSON number). |
 | Raw binary stdin/stdout (`-R` / `-B`) | Hex in a typed object is the binary escape hatch. No unframed 32-byte dumps in a pipe. |
 | Hidden `sbd` input type | Undocumented, not hashed, easy to misuse. |
-| Silent passphrase guessing on every command | Only `privkey` hashes leftover text. `pubkey` requires a key (`wif` / hex / `dec` / hex pub). `address` requires `--from text\|file`. A WIF-shaped typo still errors on checksum. |
+| Silent passphrase guessing on every command | Only `privkey` hashes leftover text. `pubkey` requires a key (`wif` / hex / `dec` / hex pub). `address` accepts bare WIF or a hex pubkey only; leftover text is an error. A WIF-shaped typo still errors on checksum. |
 | `--rehash` / vanity-from-incrementing-hash | Stream new CSPRNG keys instead. |
 | HD / BIP-32 / BIP-39 / PSBT / message sign / tx build | Never user-facing; still out of scope. |
 | IPv6 P2P, signet, regtest | 4.0.0 node is IPv4 mainnet. `--network` exists for keys/addresses; node ignores it. |
@@ -96,8 +96,8 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D9 | **Network is per object, never process-global** | WIF version byte sets that item’s network. **Both `privkey` and `pubkey` objects carry `network`.** `--network` applies to generated keys and to hex inputs. Address uses WIF → object `network` → flag → mainnet (never walks `source`). |
 | D10 | **Private keys must be in `[1, n-1]`** | `secp256k1_ec_seckey_verify`. Reject 0 and `≥ n`. |
 | D11 | **Address `--type p2pkh\|p2wpkh\|p2tr`** | Names the script. Default `p2wpkh` (modern, cheap, universally received). **No `--bech32m` flag.** `p2tr` is BIP-341 key-path, empty script tree. |
-| D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. Matching address objects include `source` (the privkey). |
-| D13 | **`--from` overrides the stdin guess; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`. `pubkey` has no `--from text` / `--from file`; leftover text is an error. `address` does not silently hash. `--from-rpc` / `--from-chainstate` are **different** flags (balance build sources). |
+| D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. `--match` includes `source` (the privkey). `--source` forces `source` without `--match`. |
+| D13 | **`--from` overrides the stdin guess where the guess is ambiguous; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`. `pubkey` has no `--from text` / `--from file`; leftover text is an error. `address` has no `--from`: bare lines are only WIF or a hex pubkey. `--from-rpc` / `--from-chainstate` are **different** flags (balance build sources). |
 | D14 | **Help is embedded** | `btk help`, `btk help <cmd>`, `btk --help`, `btk <cmd> --help`. Newly written man pages are optional install artifacts; help does not call `man`. |
 | D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). |
 | D16 | **`btk node` is IPv4 mainnet, port 8333, 15 s timeout** | Cheap `--network` on node would also need magic bytes + default port; defer. Keys/addresses still take `--network`. |
@@ -423,7 +423,7 @@ Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`
 |---|---|---|---|
 | `privkey` | `wif\|hex\|dec\|text\|file` | WIF → 64-hex → dec → text | **yes** (after guess). `--from text` for `1` |
 | `pubkey` | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Error. No `--from text` / `--from file` |
-| `address` | `wif\|hex\|dec\|text\|file` (`hex` = **secret**) | WIF → 66/130 pub → 64-hex secret → dec | **no**. Error. `--from text\|file` hashes then addresses. Never treat 64-hex as x-only |
+| `address` | none (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Error. Typed `privkey`/`pubkey` objects still work. Bare 64-hex / decimal / leftover text are errors |
 | `balance` query | optional `address` | Base58Check / bech32 address | **no** |
 | `node` / `help` / `version` / `config` / `balance --build` | none | n/a | no |
 
@@ -594,10 +594,10 @@ Transformers do **not** take positional items. A leftover argv word is `provide 
 |---|---|---|
 | `privkey` | WIF (base58check, version `0x80`/`0xEF`) → 64-char hex → `[0-9]+` decimal → SHA-256(line) | `--from text` forces SHA-256. 64-digit all-numeric is hex. WIF-shaped bad checksum is an error, not a hash. |
 | `pubkey` | WIF → 64-char hex privkey → decimal → 66/130-char hex pubkey | `--from wif\|hex\|dec` overrides. `--from hex` is 64-char priv or 66/130-char pub. 64-digit all-numeric is hex priv. A 66- or 130-digit all-numeric string is decimal (guessed before hex pub). No leftover-text or file hash. Fail: `not a private or public key`. |
-| `address` | WIF → 66/130-char hex pubkey → 64-char hex **privkey** → decimal | error `not a private or public key`. `--from text\|file` hashes to a secret then addresses. 64-hex is **always a secret**. |
+| `address` | WIF → 66/130-char hex pubkey | error `not a private or public key`. No `--from`. 64-hex / decimal / leftover text are errors. |
 | `balance` | A Bitcoin address (Base58Check or bech32/bech32m) | error |
 
-**64-hex on `address` is a secret.** P2TR internal keys are also 32 bytes. `printf '<64 hex chars>' | btk address --type p2tr` treats the string as a private key (`k·G`, then tweak). It never treats the bytes as an x-only public key. There is no `--from-xonly` in 4.0.0. Feed an x-only key only as a `pubkey` object with 66-char `02`/`03` (or 130-char `04`) `data`. Negative CLI test: the 64-hex of G’s x-coordinate `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` is a valid scalar (`< n`) and must **not** produce G’s P2TR `bc1pmfr3p9j00pfxjh0zmgp99y8zftmd3s5pmedqhyptwy6lm87hf5sspknck9` (it produces `int(x)·G` tweaked). Use secret-1 hex `00…01` for G’s address.
+**Bare hex on `address` is a public key.** 66-char (`02`/`03`) or 130-char (`04`) only. 64-hex is not accepted as a bare line — it is neither WIF nor a serialized pubkey, and it is never treated as an x-only internal key. There is no `--from` and no `--from-xonly`. Feed a secret hex/dec as a typed `privkey` object (`printf '<64 hex>' | btk privkey --from hex | btk address`). Feed an x-only key as a `pubkey` object with 66-char `02`/`03` `data`. Negative CLI test: the 64-hex of G’s x-coordinate `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` is `not a private or public key`, and must **not** produce G’s P2TR `bc1pmfr3p9j00pfxjh0zmgp99y8zftmd3s5pmedqhyptwy6lm87hf5sspknck9`. Use secret-1 WIF (or a typed `privkey`) for G’s address.
 
 `--plain` on the producer + `--in plain` (or auto) on the consumer still composes:
 
@@ -611,15 +611,15 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 
 On **`pubkey`**, `source` is omitted unless `--source` is set. `--no-source` is an unknown flag.
 
-On **`address`**, default is include `source` when the input was a typed object; omit it for bare strings. `--no-source` strips it and wins over `--source`. `--source` on a bare string synthesizes:
+On **`address`**, `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--no-source` is an unknown flag. `--source` / `--match` on a typed object copies the parent (one level). On a bare string the source is synthesized:
 
 ```json
-{"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"<the-bare-string>"}
+{"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"<the-bare-WIF>"}
 ```
 
-or `encoding=hex` if the bare string was 64/66/130 hex; or `{"type":"pubkey",…}` if it was a hex pubkey. The synthetic `data` is the bare input; do not re-encode. `--no-source` always wins over `--source`.
+or `{"type":"pubkey","encoding":"hex",…}` if the bare string was a 66/130-char hex pubkey. The synthetic `data` is the bare input; do not re-encode.
 
-Vanity relies on this:
+Vanity relies on `--match` implying `source`:
 
 ```bash
 btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
@@ -629,7 +629,7 @@ btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 {"type":"address","style":"p2pkh","network":"mainnet","data":"1BRi…","source":{"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"L3Uq…"}}
 ```
 
-Pipe `privkey | pubkey | address` if you want the pubkey as `source` (not spendable from the address object alone). Vanity should be `privkey | address`.
+Pipe `privkey | pubkey | address --source` if you want the pubkey as `source` without `--match` (not spendable from the address object alone). Vanity should be `privkey | address --match`.
 
 ### Error handling
 
@@ -743,17 +743,15 @@ Message on bad input when `--from` is a key type, when a typed object is the wro
 btk address [--type p2pkh|p2wpkh|p2tr]...
             [--network mainnet|testnet]
             [--match REGEX] [--ignore-case]
-            [--source | --no-source]
-            [--from wif|hex|dec|text|file]
+            [--source]
 ```
 
 | Long | Notes |
 |---|---|
 | `--type` | Repeatable. Default: one `p2wpkh`. Order of emission = order of flags. Unknown style: `unknown address type`. |
-| `--match` | POSIX ERE on the address `data`. Inclusive. Once. **Address only** (unknown flag on every other command). |
+| `--match` | POSIX ERE on the address `data`. Inclusive. Once. **Address only** (unknown flag on every other command). Implies `--source`. |
 | `--ignore-case` | Adds `REG_ICASE`. Address only. |
-| `--source` | Force a `source` object even for bare-string input (see Provenance). |
-| `--no-source` | Strip `source`. Wins over `--source`. |
+| `--source` | Include a `source` object (typed parent, or a synthesized object for a bare string). Implied by `--match`. |
 
 `--match` compilation: `regcomp(pattern, REG_EXTENDED | REG_NOSUB [| REG_ICASE])` with the C locale in effect (`setlocale(LC_CTYPE, "C")` and `LC_COLLATE` C before `regcomp`, or `newlocale`/`uselocale` so `LC_COLLATE` cannot change `^1bri`). Invalid pattern: exit 1, `invalid match pattern`. `regexec` uses the same locale.
 
@@ -787,9 +785,9 @@ A compressed `03` key (odd Y) must produce the same address as the `02` key with
 3. `--network` flag.
 4. `mainnet`.
 
-**64-hex is a secret.** Never an x-only internal key. See Bare-string interpretation. Stdin only; leftover argv is `provide input on stdin`. Leftover text that is not a key is an error unless `--from text` or `--from file`.
+**Bare lines are WIF or a hex pubkey.** Guess: WIF (base58check, 33/34-byte payload, version `0x80`/`0xEF`) → 66/130-char hex public key. There is no `--from`; the two shapes do not overlap. `--from` is `unknown option '--from'`. Typed `privkey` / `pubkey` objects always work (any encoding on the object). 64-hex, decimal, leftover text, and binary stdin are `not a private or public key`. 64-hex is never an x-only internal key. Feed a secret hex/dec as a typed `privkey` object. Feed an x-only key as a `pubkey` object with 66-char `02`/`03` `data`. A WIF-shaped string with a bad checksum is `invalid WIF checksum`. Stdin only; leftover argv is `provide input on stdin`.
 
-**Illegal combinations:** `--match` more than once → `cannot pass --match more than once`. `--stream` is accepted as “flush each output” (no-op; transformers already flush). `--count` is unknown. `--from` + `--new` does not apply (address is not a generator).
+**Illegal combinations:** `--match` more than once → `cannot pass --match more than once`. `--stream` is accepted as “flush each output” (no-op; transformers already flush). `--count` and `--from` are unknown.
 
 ### 4. `btk node` — Phase 4
 
@@ -1180,7 +1178,7 @@ Worked pipes:
 # key → pubkey → address (typed objects)
 btk privkey --new | btk pubkey | btk address --type p2wpkh
 
-# same, bare strings
+# same, bare strings (privkey --out plain is WIF; hex/dec --out plain does not feed address)
 btk privkey --new --out plain | btk address --type p2tr --out plain
 
 # both compressions of one secret
@@ -1268,7 +1266,7 @@ Core’s default RPC auth is a cookie at `~/.bitcoin/.cookie`. Convenient, but a
 | Secrets on stderr / in argv traces | High | Error prefix is command name only. Never echo WIF/hex/passphrases/`rpc.auth`. |
 | Config file world-readable | High | `0600` on the file, `0700` on `~/.btk`. |
 | `config dump` leaking RPC password | High | Always `********`. `get rpc.auth` redacts too. |
-| `--from text` / leftover-text hash used as a brainwallet | Medium | Allowed on `privkey` only. `pubkey` does not hash leftover text or files. README warns: SHA-256(passphrase) is not a KDF. |
+| `--from text` / leftover-text hash used as a brainwallet | Medium | Allowed on `privkey` only. `pubkey` and `address` do not hash leftover text or files. `address` has no `--from`. README warns: SHA-256(passphrase) is not a KDF. |
 | CSPRNG failure ignored | High | Short `getentropy`/`urandom` read is fatal. |
 | Balance data race / torn writes | Medium | Single writer thread, LevelDB write batches. |
 | wtxid used as outpoint | High | BIP-141 non-witness txid only. |
@@ -1326,7 +1324,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **0** | Scaffold | Layout, Makefile, `main`/dispatcher, options, NDJSON I/O, hash, hex, base58, error, secp RAII, `third_party/picojson`, `--help`/`--version` stubs. `bin/btk` runs and rejects unknown commands. | `make` produces `bin/btk`. Unit tests for SHA256, RIPEMD160, HASH160, HASH256, Base58Check, hex. |
 | **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. |
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
-| **3** | Addresses | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no silent hash. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. 64-hex is a secret (negative test). Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
+| **3** | Addresses (**done**) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
 | **5** | Help | `cmd/help`, overview text, man pages for remaining stubs. | `btk help` and `btk help privkey` match Appendix C. Works without `man` in `PATH`. |
 | **6** | Version | `cmd/version` typed object. | `btk version --out plain` → `4.0.0`. |
@@ -1515,7 +1513,7 @@ Secret `6` (`00…06`). Compressed prefix is `03` (odd Y). `lift_x` still uses e
 
 **Decode-only** (uppercase HRP is valid input; a correct **encoder** must emit lowercase): `A12UEL5L` (bech32), `A1LQFN3A` (bech32m).
 
-**Encode goldens** (lowercase): `a12uel5l`, `a1lqfn3a`, `abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw` (bech32), `abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx` (bech32m).
+**Encode goldens** (lowercase): `a12uel5l` (bech32, empty data), `a1lqfn3a` (bech32m, empty data), `abcdef1qpzry9x8gf2tvdw0s3jn54khce6mua7lmqqqxw` (bech32, data `0..31`). `abcdef1l7aum6echk45nj3s0wdvt2fg8x9yrzpqzd3ryx` is a BIP-350 bech32m self-test (decode then re-encode); it is **not** the 0..31 charset payload.
 
 Segwit decode **and** encode (BIP-350; emit lowercase):
 
@@ -1639,7 +1637,6 @@ for item in items:
     outs = cmd.run(opts, obj)
     for o in outs:
         if cmd is address and opts.match and not regex_search(o.data): continue
-        if opts.no_source: o.erase("source")
         write_out(opts, o)          # ndjson line + flush
 ```
 
@@ -1763,20 +1760,20 @@ Usage:
   btk address [--type p2pkh|p2wpkh|p2tr]...
               [--match REGEX] [--ignore-case]
               [--network mainnet|testnet]
-              [--no-source]
-              [--from wif|hex|dec|text|file]
+              [--source]
 
   --type       Repeatable. Default: p2wpkh
                p2pkh   Base58Check HASH160(pubkey)
                p2wpkh  Bech32 v0 HASH160(compressed pubkey)
                p2tr    Bech32m v1 BIP-341 key-path (empty tree)
-  --match      POSIX ERE on the address; drop non-matches
-  --source     Include a source object even for bare-string input
-  --no-source  Do not echo the parent key on the object
+  --match      POSIX ERE on the address; drop non-matches; includes source
+  --source     Include a source object even without --match
 
+Items are a privkey or pubkey object, or a stdin line that is
+already a WIF private key or a 66/130-char hex public key.
+Guess order: WIF, then hex pub. There is no --from.
+64-hex and leftover text are errors (not keys).
 p2wpkh and p2tr require a compressed key.
-64-hex is a private key, never an x-only public key.
-Leftover text is an error unless --from text or --from file.
 There is no --bech32m flag; use --type p2tr for Taproot.
 
 Vanity:

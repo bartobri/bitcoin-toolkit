@@ -208,11 +208,15 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
         } else if (name == "encoding") {
             opts.encoding = optarg ? optarg : "";
         } else if (name == "type") {
-            opts.type = optarg ? optarg : "";
+            opts.types.push_back(optarg ? optarg : "");
         } else if (name == "match") {
+            if (opts.match_set) {
+                throw BtkError(opts.command, "cannot pass --match more than once");
+            }
+            opts.match_set = true;
             opts.match = optarg ? optarg : "";
-        } else if (name == "no-source") {
-            opts.no_source = true;
+        } else if (name == "ignore-case") {
+            opts.ignore_case = true;
         } else if (name == "source") {
             opts.source = true;
         } else if (name == "host") {

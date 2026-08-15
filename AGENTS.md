@@ -4,7 +4,7 @@ Hand-off for anyone (human or agent) continuing the 4.x rebuild. Read this first
 
 ## Where we are
 
-Branch `4.x`. Latest work is **Phase 2 complete** (`btk pubkey`). Next implementable phase is **Phase 3 (`btk address`)**.
+Branch `4.x`. Latest work is **Phase 3 complete** (`btk address`). Next implementable phase is **Phase 4 (`btk node`)**.
 
 | Commit | What |
 |---|---|
@@ -19,7 +19,7 @@ Branch `4.x`. Latest work is **Phase 2 complete** (`btk pubkey`). Next implement
 ## Sources of truth
 
 1. **This file** — progress, lived-in CLI contract, how to resume.
-2. **[REBUILD.md](REBUILD.md)** — product design, golden vectors (Appendix A), remaining phase algorithms, help appendix. The **shared input contract** (stdin-only items, `--from`, no silent hash on `address`) lives there and here; keep them in lockstep.
+2. **[REBUILD.md](REBUILD.md)** — product design, golden vectors (Appendix A), remaining phase algorithms, help appendix. The **shared input contract** (stdin-only items, `--from` on privkey/pubkey, no `--from` / no silent hash on `address`) lives there and here; keep them in lockstep.
 3. **Do not** restore 3.1.2 sources, tests, man pages, cJSON, or QR. Tag `legacy/3.1.2` is history only.
 
 ## Phase status
@@ -29,9 +29,9 @@ Branch `4.x`. Latest work is **Phase 2 complete** (`btk pubkey`). Next implement
 | 0 Scaffold | **Done** | Makefile, dispatcher, options, NDJSON I/O, hash/hex/base58, secp RAII, picojson, `--help`/`--version` stubs |
 | 1 `privkey` | **Done** | See contract below. Man page `man/btk-privkey.1` |
 | 2 `pubkey` | **Done** | See contract below. Man page `man/btk-pubkey.1` |
-| 3 `address` | **Next** | bech32, bech32m, BIP-341 empty-tree p2tr, `--match` |
+| 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
 | 4 `node` | Not started | IPv4 mainnet handshake only; `--host` required (no positional host). Live tests behind `BTK_RUN_NET=1` |
-| 5 `help` | Partial | `btk --help` / `btk privkey --help` / `btk pubkey --help` exist. No `help` command yet. Appendix C pins overview + privkey/pubkey bodies |
+| 5 `help` | Partial | `btk --help` / `btk privkey --help` / `btk pubkey --help` / `btk address --help` exist. No `help` command yet. Appendix C pins overview + privkey/pubkey/address bodies |
 | 6 `version` | Stub | `btk --version` emits the typed object. No `version` command yet |
 | 7a–7d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
 | 8 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–6 must not open `~/.btk` |
@@ -105,14 +105,15 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 ```
 src/main.cpp
 src/cli/          dispatcher, options, io, output
-src/cmd/          command.hpp, privkey.{hpp,cpp}, pubkey.{hpp,cpp}
-src/core/         hash, hex, base58, json_io, secp, random, privkey, pubkey, network.hpp
+src/cmd/          command.hpp, privkey.{hpp,cpp}, pubkey.{hpp,cpp}, address.{hpp,cpp}
+src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pubkey, address, network.hpp
 src/util/         error
 src/version.hpp
 man/btk-privkey.1
 man/btk-pubkey.1
-test/unit/        hash, hex, base58, privkey, pubkey  (CHECK() macro, no gtest)
-test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py
+man/btk-address.1
+test/unit/        hash, hex, base58, privkey, pubkey, bech32, address  (CHECK() macro, no gtest)
+test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py
 test/runner.py    discovers test/cli/test_*.py
 third_party/picojson/
 ```
@@ -123,7 +124,7 @@ Register new commands in `register_builtin_commands()` (`src/cli/dispatcher.cpp`
 
 ## Shared CLI contract (later phases)
 
-Phase 1 dropped positionals and `--from-text`/`--from-file` in favor of **stdin items + `--from` to override a guess**. Apply that only where it is the same *kind* of input (a stream of keys/addresses). Do not force it onto hosts, paths, or verbs.
+Phase 1 dropped positionals and `--from-text`/`--from-file` in favor of **stdin items + `--from` to override a guess**. Apply that only where it is the same *kind* of input (a stream of keys) **and** the bare-line guess is ambiguous. Do not force it onto hosts, paths, verbs, or `address` (WIF vs hex pub is unambiguous).
 
 Split every command into:
 
@@ -139,8 +140,8 @@ Split every command into:
 1. **Item payload is never a positional.** `btk pubkey <wif>` and `btk address 00…01` are errors (`provide input on stdin`). Flag arguments (`--count 5`, `--type p2tr`, `--host x`) stay.
 2. **`--in` is framing** (auto / ndjson / json / plain). **`--from` is meaning** (wif / hex / dec / text / file / …). Do not merge them. `--encoding` remains **output** encoding only (`privkey`).
 3. **Typed objects in the pipe always win.** `{` / `[` under `--in auto` is the object stream. `--from` applies to **bare lines**, not to an object’s `type`/`data`.
-4. **`--from TYPE` is the override.** Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--build`.
-5. **Silent SHA-256 is not universal.** Only `privkey` hashes leftover text without `--from`. `pubkey` requires an explicit key. A WIF-shaped bad checksum is never hashed.
+4. **`--from TYPE` is the override** where the guess is ambiguous (`privkey`, `pubkey`). Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--build`. `address` has no `--from` (`unknown option '--from'`).
+5. **Silent SHA-256 is not universal.** Only `privkey` hashes leftover text without `--from`. `pubkey` and `address` require an explicit key. A WIF-shaped bad checksum is never hashed.
 6. **`--out` / `--in` / `--network` / `--compressed` stay the global vocabulary.** Per-command flags (`--type`, `--match`, `--host`, `--build`) stay per-command.
 
 ### Per-command
@@ -149,7 +150,7 @@ Split every command into:
 |---|---|---|---|---|---|
 | `privkey` | transformer / `--new` generator | yes (shipped) | `wif\|hex\|dec\|text\|file` | WIF → 64-hex → dec → text | yes (after guess) |
 | `pubkey` | transformer | **yes** | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Leftover text / `--from text\|file` are errors |
-| `address` | transformer | **yes** | `wif\|hex\|dec\|text\|file` (`hex` = **secret**; 66/130 = pub via guess or `--from` if we add `pubkey`) | WIF → 66/130 pub → 64-hex **secret** → dec | **no**. Unknown string errors. `--from text\|file` hashes to a secret then addresses. Never treat 64-hex as x-only |
+| `address` | transformer | **yes** | **none** (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Unknown string errors. Typed `privkey` / `pubkey` objects still work (any encoding on the object). Bare 64-hex / decimal / leftover text are errors |
 | `node` | parameterized one-shot | no | none | n/a | no. `--host HOST` required. Not a key pipe |
 | `help` | topic | n/a | none | n/a | no. `btk help privkey` stays a topic token |
 | `version` | generator | n/a | none | n/a | no. Ignores stdin |
@@ -161,9 +162,9 @@ Split every command into:
 
 `pubkey` turns a key into a public key. It does not invent a secret from leftover text or a file. `printf test01 | btk pubkey` is `not a private or public key`. Hash a passphrase first with `btk privkey --from text`, then pipe the typed object.
 
-### Why address does not silently hash
+### Why address has no `--from` and does not hash
 
-`printf 1BgGZ9… | btk address` looking like “use this address” must not SHA-256 the string into a new key. Privkey’s job includes “string → secret”; address’s job is “key → script”. Override is explicit: `--from text`.
+Bare lines are only WIF or a 66/130-char hex pubkey — the two shapes do not overlap, so there is no override flag. `printf 1BgGZ9… | btk address` looking like “use this address” must not SHA-256 the string into a new key. Privkey’s job includes “string → secret”; address’s job is “key → script”. Hash a passphrase first with `btk privkey --from text`, then pipe the typed object.
 
 ### Why node/config keep non-pipe argv
 
@@ -171,7 +172,7 @@ Split every command into:
 
 ### Naming clash
 
-`--from wif` (privkey/pubkey/address) and `--from-rpc` (balance build) are different options. Do not invent `--from rpc`. Keep `--from-rpc` / `--from-chainstate`.
+`--from wif` (privkey/pubkey) and `--from-rpc` (balance build) are different options. Do not invent `--from rpc`. Keep `--from-rpc` / `--from-chainstate`. `address` does not take `--from`.
 
 ## Phase 2 contract (as shipped)
 
@@ -192,18 +193,36 @@ btk pubkey [--compressed | --uncompressed]
 - `source` is omitted unless `--source` is set (typed parent object, or a synthesized object for a bare string). `--match` and `--no-source` are unknown flags.
 - `btk pubkey --help` is pinned in `test/cli/test_pubkey.py` (`PUBKEY_HELP`) and the command’s raw string.
 
-## How to continue (Phase 3)
+## Phase 3 contract (as shipped)
 
-Implement `btk address` from REBUILD.md §3 and the Shared input contract:
+This is what `btk address` actually does.
 
-- Stdin only; reject positionals (`provide input on stdin`).
-- `--type p2pkh|p2wpkh|p2tr` (repeatable; default one `p2wpkh`). `--match` is address-only.
-- No silent leftover-text hash. Unknown string: `not a private or public key`. `--from text|file` hashes to a secret then addresses.
-- 64-hex is always a secret, never an x-only key. Do not skip goldens A.2 / A.2b / A.6.
-- Uncompressed + `p2wpkh`/`p2tr`: `uncompressed key cannot produce p2wpkh or p2tr`.
-- New files: `src/cmd/address.cpp`, bech32/bech32m + BIP-341 tweak, `test/cli/test_address.py`, unit coverage, `man/btk-address.1`.
+```text
+btk address [--type p2pkh|p2wpkh|p2tr]...
+            [--network mainnet|testnet]
+            [--match REGEX] [--ignore-case]
+            [--source]
+```
 
-Phases 1–6 must not load `~/.btk/config.json`.
+- **Stdin only.** Positional keys are `provide input on stdin`.
+- Accept typed `privkey` / `pubkey` objects (any encoding on the object) and bare WIF or 66/130-hex pub. No leftover-text or file hash. No `--from`.
+- Bare-line guess: WIF → 66/130 hex pub. 64-hex, decimal, leftover text, and binary are `not a private or public key`. A WIF-shaped bad checksum is `invalid WIF checksum`. 64-hex is never an x-only key.
+- `--from` is `unknown option '--from'`. `--count` is `unknown option '--count'`. `--stream` is accepted (already flushes).
+- `--type` is repeatable; default one `p2wpkh`; emission order = flag order. Unknown style: `unknown address type`.
+- Uncompressed + `p2wpkh`/`p2tr`: `uncompressed key cannot produce p2wpkh or p2tr`. P2PKH of an uncompressed key is allowed. `p2tr` is BIP-341 key-path, empty tree (`lift_x` + `TapTweak`); odd-Y and even-Y with the same X share an address.
+- Network: WIF version → typed object `network` → `--network` → mainnet. Do not walk `source`. `--network` does not override a WIF version byte.
+- `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--source` on a bare string synthesizes a `privkey` (WIF) or `pubkey` (hex pub); `data` is the bare input. `--no-source` is an unknown flag.
+- `--match` is POSIX ERE on `data`, compiled in the C locale (`REG_EXTENDED | REG_NOSUB`, plus `REG_ICASE` if `--ignore-case`). More than once: `cannot pass --match more than once`. Invalid pattern: `invalid match pattern`. All filtered → empty stdout, exit 0. Implies `source`.
+- `btk address --help` is pinned in `test/cli/test_address.py` (`ADDRESS_HELP`) and the command’s raw string.
+
+## How to continue (Phase 4)
+
+Implement `btk node` from REBUILD.md §4:
+
+- Parameterized one-shot. `--host HOST` required (no positional host: leftover argv is `provide input on stdin`).
+- IPv4 mainnet only, default port 8333, 15 s timeout. Send `version`, read the peer’s `version`, print the typed object, close. Do not send `verack`.
+- Offline unit test of version message ser/de (frozen payload in the node section). Live tests behind `BTK_RUN_NET=1`. `make test` must not touch the network.
+- Phases 1–6 must not load `~/.btk/config.json`.
 
 ## Conventions
 

@@ -54,6 +54,7 @@ def main():
     out = r.stdout.decode()
     assert "privkey" in out
     assert "pubkey" in out
+    assert "address" in out
     return 0
 
 

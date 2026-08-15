@@ -31,8 +31,11 @@ SRC := \
 	src/core/random.cpp \
 	src/core/privkey.cpp \
 	src/core/pubkey.cpp \
+	src/core/bech32.cpp \
+	src/core/address.cpp \
 	src/cmd/privkey.cpp \
 	src/cmd/pubkey.cpp \
+	src/cmd/address.cpp \
 	src/util/error.cpp
 
 OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
@@ -69,12 +72,22 @@ bin/test_pubkey: test/unit/pubkey_test.cpp src/core/pubkey.cpp src/core/privkey.
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey
+bin/test_bech32: test/unit/bech32_test.cpp src/core/bech32.cpp src/core/hex.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
+
+bin/test_address: test/unit/address_test.cpp src/core/address.cpp src/core/bech32.cpp src/core/pubkey.cpp src/core/privkey.cpp src/core/base58.cpp src/core/hash.cpp src/core/hex.cpp src/core/secp.cpp src/core/random.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
 	bin/test_privkey
 	bin/test_pubkey
+	bin/test_bech32
+	bin/test_address
 
 test-cli: bin/btk
 	python3 test/runner.py

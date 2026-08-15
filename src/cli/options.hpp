@@ -46,9 +46,10 @@ struct Options {
     bool flag_uncompressed = false;
     std::string from;  // wif|hex|dec|text|file; empty = guess
     std::string encoding;
-    std::string type;
+    std::vector<std::string> types;
     std::string match;
-    bool no_source = false;
+    bool match_set = false;
+    bool ignore_case = false;
     bool source = false;
     std::string host;
     bool verbose = false;

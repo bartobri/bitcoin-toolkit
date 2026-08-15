@@ -3,6 +3,7 @@
 #include "cli/io.hpp"
 #include "cli/options.hpp"
 #include "cli/output.hpp"
+#include "cmd/address.hpp"
 #include "cmd/command.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
@@ -31,18 +32,7 @@ void on_sigint(int) { g_stop = 1; }
 void run_transformer(Command& cmd, const Options& opts, OutputWriter& out) {
     auto handle = [&](const JsonObject& item) {
         const std::vector<JsonObject> produced = cmd.run(opts, item);
-        for (JsonObject o : produced) {
-            if (opts.no_source) {
-                o.erase("source");
-            }
-            if (!opts.match.empty()) {
-                auto it = o.find("data");
-                if (it == o.end() || !it->second.is<std::string>()) {
-                    continue;
-                }
-                // Phase 3 installs the real matcher; scaffold ignores --match.
-                (void)it;
-            }
+        for (const JsonObject& o : produced) {
             out.write(o);
         }
     };
@@ -87,6 +77,7 @@ void register_builtin_commands() {
     done = true;
     register_command(make_privkey_command());
     register_command(make_pubkey_command());
+    register_command(make_address_command());
 }
 
 Command* find_command(const std::string& name) {

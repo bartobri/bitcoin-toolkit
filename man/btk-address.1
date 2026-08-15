@@ -1,0 +1,102 @@
+.TH BTK-ADDRESS 1 "15 August 2026" "Bitcoin Toolkit 4.0.0" "User Commands"
+.SH NAME
+btk-address \- derive P2PKH, P2WPKH, or BIP-341 P2TR addresses
+.SH SYNOPSIS
+.B btk address
+[\fB\-\-type\fR \fIp2pkh\fR|\fIp2wpkh\fR|\fIp2tr\fR]...
+[\fB\-\-match\fR \fIREGEX\fR]
+[\fB\-\-ignore-case\fR]
+[\fB\-\-network\fR \fImainnet\fR|\fItestnet\fR]
+[\fB\-\-source\fR]
+.SH DESCRIPTION
+Derive a Bitcoin address from an explicit private or public key. Items are
+read from stdin. There are no positional key arguments.
+.PP
+Each stdin item is a typed
+.B privkey
+or
+.B pubkey
+object, or a bare line guessed as WIF then a 66- or 130-character hex
+public key. There is no
+.BR \-\-from .
+64-character hex, decimal, leftover text, and binary stdin are
+.BR "not a private or public key" .
+A WIF-shaped string with a bad checksum is
+.BR "invalid WIF checksum" .
+.PP
+Default
+.B \-\-type
+is one
+.BR p2wpkh .
+The flag is repeatable; addresses are emitted in flag order.
+.B p2wpkh
+and
+.B p2tr
+require a compressed key.
+.B p2tr
+is BIP-341 key-path with an empty script tree (tweaked), encoded as
+bech32m witness v1. There is no
+.B \-\-bech32m
+flag.
+.SH OPTIONS
+.TP
+.BI \-\-type " p2pkh|p2wpkh|p2tr"
+Address script to produce. Repeatable. Default
+.BR p2wpkh .
+Unknown values are
+.BR "unknown address type" .
+.TP
+.BI \-\-match " REGEX"
+POSIX extended regular expression on the address
+.BR data .
+Non-matches are dropped. Empty stdout is still exit 0. May be passed
+once. Invalid patterns are
+.BR "invalid match pattern" .
+Implies
+.BR \-\-source .
+.TP
+.B \-\-ignore-case
+Add
+.B REG_ICASE
+to
+.BR \-\-match .
+.TP
+.B \-\-source
+Include a
+.B source
+object for the parent key even without
+.BR \-\-match .
+On a bare string the source is synthesized (WIF private key or hex
+public key); the
+.B data
+field is the bare input.
+.TP
+.BI \-\-network " mainnet|testnet"
+Network for hex public keys and typed objects that omit
+.BR network .
+WIF version bytes take precedence. A typed object's
+.B network
+field takes precedence over this flag. Default mainnet. Does not walk
+.BR source .
+.TP
+.BI \-\-out " ndjson|json|plain"
+Output framing. Default ndjson.
+.TP
+.BI \-\-in " auto|ndjson|json|plain"
+Stdin framing. Default auto.
+.SH NOTES
+64-hex is never treated as an x-only internal key. Feed a secret hex or
+decimal value as a typed
+.B privkey
+object
+.RI ( "btk privkey --from hex | btk address" ).
+.PP
+Vanity search is a pipe:
+.PP
+.nf
+btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
+.fi
+.SH SEE ALSO
+.BR btk (1),
+.BR btk-privkey (1),
+.BR btk-pubkey (1)
