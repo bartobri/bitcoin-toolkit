@@ -30,7 +30,9 @@ SRC := \
 	src/core/secp.cpp \
 	src/core/random.cpp \
 	src/core/privkey.cpp \
+	src/core/pubkey.cpp \
 	src/cmd/privkey.cpp \
+	src/cmd/pubkey.cpp \
 	src/util/error.cpp
 
 OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
@@ -63,11 +65,16 @@ bin/test_privkey: test/unit/privkey_test.cpp src/core/privkey.cpp src/core/base5
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey
+bin/test_pubkey: test/unit/pubkey_test.cpp src/core/pubkey.cpp src/core/privkey.cpp src/core/base58.cpp src/core/hash.cpp src/core/hex.cpp src/core/secp.cpp src/core/random.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
 	bin/test_privkey
+	bin/test_pubkey
 
 test-cli: bin/btk
 	python3 test/runner.py

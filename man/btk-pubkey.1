@@ -1,0 +1,84 @@
+.TH BTK-PUBKEY 1 "15 August 2026" "Bitcoin Toolkit 4.0.0" "User Commands"
+.SH NAME
+btk-pubkey \- derive or recompress public keys
+.SH SYNOPSIS
+.B btk pubkey
+[\fB\-\-compressed\fR | \fB\-\-uncompressed\fR]
+[\fB\-\-from\fR \fIwif\fR|\fIhex\fR|\fIdec\fR]
+[\fB\-\-source\fR]
+.SH DESCRIPTION
+Derive a public key from an explicit private key, or parse and recompress a
+public key. Items are read from stdin. There are no positional key arguments.
+.PP
+Each stdin item is a typed
+.B privkey
+or
+.B pubkey
+object, or a bare line guessed as WIF, 64-character hex private key, a
+decimal digit string, then 66- or 130-character hex public key.
+.B \-\-from
+overrides that guess.
+.B \-\-from hex
+accepts a 64-character private key or a 66- or 130-character public key.
+.PP
+Leftover text is an error. There is no
+.B \-\-from text
+or
+.BR "\-\-from file" .
+A WIF-shaped string with a bad checksum is
+.BR "invalid WIF checksum" ,
+not a public key.
+.PP
+Default compression follows the input (object field, WIF flag, or
+.BR 02 / 03 / 04
+prefix). Flags override. Both flags emit two objects. Output
+.B encoding
+is always hex.
+.SH OPTIONS
+.TP
+.B \-\-compressed
+Emit a compressed public key (33 bytes,
+.B 02
+or
+.B 03
+prefix).
+.TP
+.B \-\-uncompressed
+Emit an uncompressed public key (65 bytes,
+.B 04
+prefix). Both flags emit two objects (compressed first).
+.TP
+.BI \-\-from " wif|hex|dec"
+Force how bare stdin lines are interpreted. Default is guess. Unknown
+values are
+.BR "invalid \-\-from" .
+.TP
+.B \-\-source
+Include a
+.B source
+object for the parent key. Omitted unless this flag is set. On a
+bare string the source is synthesized (WIF/hex/dec private key or
+hex public key); the
+.B data
+field is the bare input.
+.TP
+.BI \-\-network " mainnet|testnet"
+Network for hex and decimal inputs. WIF version bytes and a typed object's
+.B network
+field take precedence. Default mainnet.
+.TP
+.BI \-\-out " ndjson|json|plain"
+Output framing. Default ndjson.
+.TP
+.BI \-\-in " auto|ndjson|json|plain"
+Stdin framing. Default auto.
+.SH NOTES
+.B source
+is omitted unless
+.B \-\-source
+is given. Address must not walk
+.B source
+for network (one level only).
+.SH SEE ALSO
+.BR btk (1),
+.BR btk-privkey (1)

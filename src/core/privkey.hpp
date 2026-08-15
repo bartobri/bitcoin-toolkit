@@ -31,6 +31,10 @@ Secret decode_secret_dec(const std::string& dec);
 
 bool looks_like_decimal(const std::string& text);
 
+// True if text is a 37/38-byte base58 payload with a WIF version or a bad
+// checksum (so a typo’d WIF is not guessed as something else).
+bool looks_like_wif(const std::string& text);
+
 // True if text is WIF-shaped, 64-char hex, or decimal digits (including
 // values that will then fail checksum / range checks).
 bool looks_like_privkey_text(const std::string& text);

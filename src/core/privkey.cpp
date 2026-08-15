@@ -164,8 +164,12 @@ bool looks_like_decimal(const std::string& text) {
     return true;
 }
 
+bool looks_like_wif(const std::string& text) {
+    return looks_like_wif_shape(text);
+}
+
 bool looks_like_privkey_text(const std::string& text) {
-    return looks_like_wif_shape(text) || is_hex64(text) || looks_like_decimal(text);
+    return looks_like_wif(text) || is_hex64(text) || looks_like_decimal(text);
 }
 
 std::string encode_secret_dec(const Secret& secret) {

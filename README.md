@@ -6,7 +6,7 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 1 is implemented: `btk privkey` creates and converts private keys over a typed NDJSON pipe. Later commands (`pubkey`, `address`, `node`, `help`, `version`, `balance`, `config`) land in later phases.
+Phase 2 is implemented: `btk privkey` creates and converts private keys; `btk pubkey` derives or recompresses public keys. Later commands (`address`, `node`, `help`, `version`, `balance`, `config`) land in later phases.
 
 ```sh
 btk privkey --new
@@ -16,6 +16,8 @@ printf 1 | btk privkey --encoding dec --out plain
 printf 1 | btk privkey --out plain
 printf test01 | btk privkey --from text --out plain
 cat photo.jpg | btk privkey --from file --out plain
+printf '%s' KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn | btk pubkey --out plain
+btk privkey --new | btk pubkey
 ```
 
 Input is stdin only. Guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.

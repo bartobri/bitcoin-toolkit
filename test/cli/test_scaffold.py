@@ -51,7 +51,9 @@ def main():
     assert "btk help" in err
 
     r = run(["--help"])
-    assert "privkey" in r.stdout.decode()
+    out = r.stdout.decode()
+    assert "privkey" in out
+    assert "pubkey" in out
     return 0
 
 

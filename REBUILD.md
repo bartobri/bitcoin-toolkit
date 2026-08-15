@@ -480,7 +480,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 }
 ```
 
-`data` is 66-char (`02`/`03`) or 130-char (`04`) lowercase hex. `network` is copied from the parent privkey, or from `--network`, or `mainnet` for a bare hex pubkey. Optional `source` (a `privkey` object) when the input was a privkey. Address must **not** walk `source` for network (one level only).
+`data` is 66-char (`02`/`03`) or 130-char (`04`) lowercase hex. `network` is copied from the parent privkey, or from `--network`, or `mainnet` for a bare hex pubkey. Optional `source` (the parent `privkey` or `pubkey` object) only when `--source` is set. Address must **not** walk `source` for network (one level only).
 
 #### `address`
 
@@ -607,9 +607,11 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 
 #### Provenance (`source`)
 
-When a transformer’s input is a typed object, the output includes `source` set to **that input object** (one level, not a deep chain). `--no-source` strips it.
+`source` is the immediate parent object (one level, not a deep chain).
 
-`--source` / `--no-source` exist only on `address` (unknown flag elsewhere). Default: include `source` when the input was a typed object; omit it for bare strings. `--source` on a bare string synthesizes:
+On **`pubkey`**, `source` is omitted unless `--source` is set. `--no-source` is an unknown flag.
+
+On **`address`**, default is include `source` when the input was a typed object; omit it for bare strings. `--no-source` strips it and wins over `--source`. `--source` on a bare string synthesizes:
 
 ```json
 {"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"<the-bare-string>"}
@@ -717,7 +719,7 @@ Derive a public key from an explicit private key, or recompress a public key.
 
 ```text
 btk pubkey [--compressed | --uncompressed]
-           [--from wif|hex|dec]
+           [--from wif|hex|dec] [--source]
 ```
 
 Stdin only (`provide input on stdin` if leftover argv). Input: `privkey` object, `pubkey` object, or a bare line that is already a key (see Shared input contract).
@@ -733,7 +735,7 @@ Default compression: follow the input’s `compressed` field / WIF flag / existi
 
 Output `encoding` is always `hex`. `network` on the output object: from a typed input’s `network`; else from a WIF version byte; else `--network`; else `mainnet`.
 
-Message on bad input when `--from` is a key type, when a typed object is the wrong `type`, or when a bare line matches no guess: `not a private or public key`. `--match` is an unknown flag here.
+Message on bad input when `--from` is a key type, when a typed object is the wrong `type`, or when a bare line matches no guess: `not a private or public key`. `--match` is an unknown flag here. `--source` includes the parent key (`source`); without it the field is omitted. On a bare string, `--source` synthesizes a `privkey` or `pubkey` object (data is the bare input). `--no-source` is unknown here.
 
 ### 3. `btk address` — Phase 3
 
@@ -1741,7 +1743,7 @@ btk pubkey — derive or recompress public keys
 
 Usage:
   btk pubkey [--compressed | --uncompressed]
-             [--from wif|hex|dec]
+             [--from wif|hex|dec] [--source]
 
 Items are a privkey or pubkey object, or a stdin line that is
 already a key (WIF, hex priv, decimal, or hex pub). Guess order:
@@ -1749,7 +1751,7 @@ WIF, 64-char hex priv, decimal, 66/130-char hex pub. --from
 overrides the guess (--from hex is 64-char priv or 66/130-char
 pub). Leftover text is an error. Default compression follows the
 input; flags override. Both flags emit two objects. Output is hex
-(33 or 65 bytes).
+(33 or 65 bytes). --source includes the parent key on the object.
 ```
 
 ### `btk help address`

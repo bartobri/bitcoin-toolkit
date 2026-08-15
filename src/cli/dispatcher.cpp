@@ -5,6 +5,7 @@
 #include "cli/output.hpp"
 #include "cmd/command.hpp"
 #include "cmd/privkey.hpp"
+#include "cmd/pubkey.hpp"
 #include "util/error.hpp"
 #include "version.hpp"
 
@@ -85,6 +86,7 @@ void register_builtin_commands() {
     }
     done = true;
     register_command(make_privkey_command());
+    register_command(make_pubkey_command());
 }
 
 Command* find_command(const std::string& name) {
