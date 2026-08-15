@@ -4,6 +4,7 @@
 #include "cli/options.hpp"
 #include "cli/output.hpp"
 #include "cmd/command.hpp"
+#include "cmd/privkey.hpp"
 #include "util/error.hpp"
 #include "version.hpp"
 
@@ -55,8 +56,9 @@ void run_transformer(Command& cmd, const Options& opts, OutputWriter& out) {
 }
 
 void run_generator(Command& cmd, const Options& opts, OutputWriter& out) {
-    const bool infinite = opts.stream && !opts.count_set;
-    const std::uint64_t n = infinite ? 0 : (opts.count_set ? opts.count : 1);
+    const bool repeatable = opts.flag_new;
+    const bool infinite = repeatable && opts.stream && !opts.count_set;
+    const std::uint64_t n = opts.count_set ? opts.count : 1;
     std::uint64_t i = 0;
     while (!g_stop && (infinite || i < n)) {
         const std::vector<JsonObject> produced = cmd.run(opts, std::nullopt);
@@ -64,17 +66,8 @@ void run_generator(Command& cmd, const Options& opts, OutputWriter& out) {
             out.write(o);
         }
         ++i;
-        if (!opts.stream && !opts.count_set) {
+        if (!repeatable) {
             break;
-        }
-        if (!infinite && i >= n) {
-            break;
-        }
-        if (!opts.stream && opts.count_set && i >= n) {
-            break;
-        }
-        if (!opts.flag_new && !opts.stream) {
-            break;  // from-text / node / version: once
         }
     }
 }
@@ -83,6 +76,15 @@ void run_generator(Command& cmd, const Options& opts, OutputWriter& out) {
 
 void register_command(std::unique_ptr<Command> cmd) {
     registry().push_back(std::move(cmd));
+}
+
+void register_builtin_commands() {
+    static bool done = false;
+    if (done) {
+        return;
+    }
+    done = true;
+    register_command(make_privkey_command());
 }
 
 Command* find_command(const std::string& name) {
@@ -117,6 +119,8 @@ void print_overview(std::ostream& out) {
 }
 
 int dispatch(int argc, char** argv) {
+    register_builtin_commands();
+
     Options opts;
     opts.command = find_command_name(argc, argv);
 
@@ -138,18 +142,19 @@ int dispatch(int argc, char** argv) {
 
     parse_argv(argc, argv, spec, opts);
 
-    if (opts.help && (opts.command.empty() || cmd != nullptr)) {
-        if (opts.command.empty()) {
-            print_overview(std::cout);
-            return 0;
+    if (opts.help) {
+        if (cmd != nullptr) {
+            const char* text = cmd->help();
+            if (text != nullptr && text[0] != '\0') {
+                std::cout << text;
+                return 0;
+            }
         }
-        // Command help is Phase 5; until then --help on a registered command
-        // falls through to that command's own help once help exists.
         print_overview(std::cout);
         return 0;
     }
 
-    if (opts.version && (opts.command.empty() || cmd == nullptr)) {
+    if (opts.version) {
         OutputWriter out(opts);
         out.write(version_object());
         out.finish();
@@ -159,17 +164,6 @@ int dispatch(int argc, char** argv) {
     if (opts.command.empty()) {
         print_overview(std::cerr);
         return 1;
-    }
-
-    if (opts.help) {
-        print_overview(std::cout);
-        return 0;
-    }
-    if (opts.version) {
-        OutputWriter out(opts);
-        out.write(version_object());
-        out.finish();
-        return 0;
     }
 
     cmd->init(opts);

@@ -28,6 +28,9 @@ SRC := \
 	src/core/base58.cpp \
 	src/core/json_io.cpp \
 	src/core/secp.cpp \
+	src/core/random.cpp \
+	src/core/privkey.cpp \
+	src/cmd/privkey.cpp \
 	src/util/error.cpp
 
 OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
@@ -56,16 +59,21 @@ bin/test_base58: test/unit/base58_test.cpp src/core/base58.cpp src/core/hash.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58
+bin/test_privkey: test/unit/privkey_test.cpp src/core/privkey.cpp src/core/base58.cpp src/core/hash.cpp src/core/hex.cpp src/core/secp.cpp src/core/random.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
+	bin/test_privkey
 
 test-cli: bin/btk
 	python3 test/runner.py
 
 test-net:
-	@echo "No live network tests in Phase 0."
+	@echo "No live network tests in Phase 1."
 
 test: test-unit test-cli
 

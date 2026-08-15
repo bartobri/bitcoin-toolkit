@@ -8,16 +8,18 @@
 
 enum class OutFormat { Ndjson, Json, Plain };
 enum class InFormat { Auto, Ndjson, Json, Plain };
+enum class FlagArg { None, Required, Optional };
 
 struct FlagSpec {
     char short_name;  // 0 if none
     const char* long_name;
-    bool has_arg;
+    FlagArg arg;
 };
 
 class OptionSpec {
 public:
     void add(char short_name, const char* long_name, bool has_arg);
+    void add(char short_name, const char* long_name, FlagArg arg);
     const std::vector<FlagSpec>& flags() const { return flags_; }
 
 private:
@@ -42,10 +44,7 @@ struct Options {
     bool flag_new = false;
     bool flag_compressed = false;
     bool flag_uncompressed = false;
-    bool flag_from_text = false;
-    bool flag_from_file = false;
-    std::string from_text;
-    std::string from_file;
+    std::string from;  // wif|hex|dec|text|file; empty = guess
     std::string encoding;
     std::string type;
     std::string match;

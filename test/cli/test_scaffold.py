@@ -50,9 +50,8 @@ def main():
     assert "unknown command 'foo'" in err
     assert "btk help" in err
 
-    r = run(["privkey"])
-    assert r.returncode == 1
-    assert "unknown command 'privkey'" in r.stderr.decode()
+    r = run(["--help"])
+    assert "privkey" in r.stdout.decode()
     return 0
 
 

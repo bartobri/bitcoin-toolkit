@@ -6,13 +6,19 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 0 (scaffold) is in progress. `bin/btk` builds and rejects unknown commands. User commands land in later phases: `privkey`, `pubkey`, `address`, `node`, `help`, `version`, `balance`, `config`.
+Phase 1 is implemented: `btk privkey` creates and converts private keys over a typed NDJSON pipe. Later commands (`pubkey`, `address`, `node`, `help`, `version`, `balance`, `config`) land in later phases.
 
 ```sh
-btk --help
-btk --version
-btk privkey --new | btk address --type p2wpkh   # after later phases
+btk privkey --new
+btk privkey --new --out plain
+printf '%s' KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn | btk privkey --encoding hex
+printf 1 | btk privkey --encoding dec --out plain
+printf 1 | btk privkey --out plain
+printf test01 | btk privkey --from text --out plain
+cat photo.jpg | btk privkey --from file --out plain
 ```
+
+Input is stdin only. Guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.
 
 Output is one JSON object per line (ndjson) unless `--out json` or `--out plain`.
 

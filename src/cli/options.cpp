@@ -9,7 +9,11 @@
 #include <vector>
 
 void OptionSpec::add(char short_name, const char* long_name, bool has_arg) {
-    flags_.push_back(FlagSpec{short_name, long_name, has_arg});
+    add(short_name, long_name, has_arg ? FlagArg::Required : FlagArg::None);
+}
+
+void OptionSpec::add(char short_name, const char* long_name, FlagArg arg) {
+    flags_.push_back(FlagSpec{short_name, long_name, arg});
 }
 
 void add_global_flags(OptionSpec& spec) {
@@ -67,13 +71,22 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
     for (const FlagSpec& f : spec.flags()) {
         option o{};
         o.name = f.long_name;
-        o.has_arg = f.has_arg ? required_argument : no_argument;
+        if (f.arg == FlagArg::Required) {
+            o.has_arg = required_argument;
+        } else if (f.arg == FlagArg::Optional) {
+            o.has_arg = optional_argument;
+        } else {
+            o.has_arg = no_argument;
+        }
         o.flag = nullptr;
         o.val = f.short_name ? f.short_name : 0;
         longopts.push_back(o);
         if (f.short_name) {
             shorts.push_back(f.short_name);
-            if (f.has_arg) {
+            if (f.arg == FlagArg::Required) {
+                shorts.push_back(':');
+            } else if (f.arg == FlagArg::Optional) {
+                shorts.push_back(':');
                 shorts.push_back(':');
             }
         }
@@ -190,12 +203,8 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.flag_compressed = true;
         } else if (name == "uncompressed") {
             opts.flag_uncompressed = true;
-        } else if (name == "from-text") {
-            opts.flag_from_text = true;
-            opts.from_text = optarg ? optarg : "";
-        } else if (name == "from-file") {
-            opts.flag_from_file = true;
-            opts.from_file = optarg ? optarg : "";
+        } else if (name == "from") {
+            opts.from = optarg ? optarg : "";
         } else if (name == "encoding") {
             opts.encoding = optarg ? optarg : "";
         } else if (name == "type") {

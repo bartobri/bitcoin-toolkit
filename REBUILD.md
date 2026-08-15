@@ -42,7 +42,7 @@ Each line of the default pipe is one JSON object with a `type` field. A `--plain
 | Balance index hashed the witness serialization (wtxid) as if it were txid | SegWit spends then miss. 4.0.0 uses BIP-141 txid. |
 | `btk help` shells out to `man` | Help must work on a box without man pages. |
 | Short-opt soup (`-W -X -D -C -U -Q -R`) | Hard to remember, hard to compose. Long options with a tiny, consistent vocabulary. |
-| Silent “string → SHA256 → key” guess | A typo’d WIF became a passphrase key. Explicit `--from-text` only. |
+| Silent “string → SHA256 → key” guess | A typo’d WIF (WIF-shaped, bad checksum) is still an error. Strings that are **not** WIF/hex/dec formatted SHA-256 to a key. `--from-text` forces the hash when the string *is* a valid key (`1`). |
 
 The rebuild is the chance to keep the *jobs* and replace the *contract*.
 
@@ -66,10 +66,10 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | Item | Reason |
 |---|---|
 | QR terminal output | Cute, not load-bearing. `btk address --plain \| qrencode -t ANSIUTF8` covers it. No Nayuki tree. |
-| Decimal private-key encoding | Huge integers, no wallet uses them. Hex and WIF are enough. |
+| Decimal private-key encoding | **Added.** `--encoding dec`; bare `[0-9]+` after WIF and 64-char hex. JSON `data` is a digit string (not a JSON number). |
 | Raw binary stdin/stdout (`-R` / `-B`) | Hex in a typed object is the binary escape hatch. No unframed 32-byte dumps in a pipe. |
 | Hidden `sbd` input type | Undocumented, not hashed, easy to misuse. |
-| Silent passphrase guessing | `--from-text` is the explicit replacement. |
+| Silent passphrase guessing | Strings that do not look like WIF/hex/dec are hashed. `--from-text` forces the hash for ambiguous values (`1`). A WIF-shaped typo still errors on checksum. |
 | `--rehash` / vanity-from-incrementing-hash | Stream new CSPRNG keys instead. |
 | HD / BIP-32 / BIP-39 / PSBT / message sign / tx build | Never user-facing; still out of scope. |
 | IPv6 P2P, signet, regtest | 4.0.0 node is IPv4 mainnet. `--network` exists for keys/addresses; node ignores it. |
@@ -97,7 +97,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D10 | **Private keys must be in `[1, n-1]`** | `secp256k1_ec_seckey_verify`. Reject 0 and `≥ n`. |
 | D11 | **Address `--type p2pkh\|p2wpkh\|p2tr`** | Names the script. Default `p2wpkh` (modern, cheap, universally received). **No `--bech32m` flag.** `p2tr` is BIP-341 key-path, empty script tree. |
 | D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. Matching address objects include `source` (the privkey). |
-| D13 | **`--from-text` / `--from-file` are explicit** | SHA-256 of the bytes → key. Never the default parse path. |
+| D13 | **`--from` overrides the stdin guess** | Input is stdin only (no positional keys). Guess: WIF → 64-hex → decimal → text SHA-256 → binary whole-stream. `--from wif\|hex\|dec\|text\|file` forces the type. `--from text` is how `1` becomes SHA-256("1"). |
 | D14 | **Help is embedded** | `btk help`, `btk help <cmd>`, `btk --help`, `btk <cmd> --help`. Newly written man pages are optional install artifacts; help does not call `man`. |
 | D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). |
 | D16 | **`btk node` is IPv4 mainnet, port 8333, 15 s timeout** | Cheap `--network` on node would also need magic bytes + default port; defer. Keys/addresses still take `--network`. |
@@ -436,10 +436,10 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 
 | Field | Values |
 |---|---|
-| `encoding` | `wif` (default on output) or `hex` |
+| `encoding` | `wif` (default on output), `hex`, or `dec` |
 | `network` | `mainnet` \| `testnet` |
 | `compressed` | bool. WIF compression flag / “prefer compressed pubkey”. |
-| `data` | WIF string, or 64 lowercase hex chars (the 32-byte scalar). Hex never includes a trailing `01`/`00` flag — compression is the boolean. |
+| `data` | WIF string, 64 lowercase hex chars (the 32-byte scalar), or a decimal digit string (`encoding=dec`). Hex never includes a trailing `01`/`00` flag — compression is the boolean. Decimal `data` is a JSON string, never a JSON number. |
 
 #### `pubkey`
 
@@ -565,7 +565,7 @@ Positional argv items: if an argument starts with `{`, parse as a JSON object; e
 
 | Command | Guess order | Failure |
 |---|---|---|
-| `privkey` | WIF (base58check, version `0x80`/`0xEF`) → 64-char hex → error | Do **not** SHA-256 the string. |
+| `privkey` | WIF (base58check, version `0x80`/`0xEF`) → 64-char hex → `[0-9]+` decimal → SHA-256(text) | `--from-text` forces SHA-256. 64-digit all-numeric is hex. WIF-shaped bad checksum is an error, not a hash. |
 | `pubkey` | WIF → 66/130-char hex pubkey → 64-char hex privkey → error | |
 | `address` | WIF → 66/130-char hex pubkey → 64-char hex **privkey** → error | 64-hex is **always a secret**, never an x-only internal key. |
 | `balance` | A Bitcoin address (Base58Check or bech32/bech32m) | error |
@@ -636,40 +636,40 @@ Create a private key from the CSPRNG, convert encodings, or derive a key from ex
 
 ```text
 btk privkey --new [--count N] [--stream]
-            [--encoding wif|hex] [--network mainnet|testnet]
+            [--encoding wif|hex|dec] [--network mainnet|testnet]
             [--compressed | --uncompressed]
-btk privkey [--encoding wif|hex] [--network mainnet|testnet]
+btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
             [--compressed | --uncompressed]
-            [--from-text <str> | --from-file <path>]
-            [item…]
+            [--from wif|hex|dec|text|file]
 ```
 
 | Long | Notes |
 |---|---|
 | `--new` | 32 CSPRNG bytes, then `secp256k1_ec_seckey_verify`; retry on failure (p ≈ 2⁻¹²⁸). Default compressed, mainnet, WIF. **Generator:** ignores positionals and does not read the object stream. |
-| `--encoding` | Output encoding. Default `wif`. |
+| `--encoding` | Output encoding: `wif` (default), `hex`, or `dec`. |
 | `--compressed` / `--uncompressed` | Set the compression flag. If **both**, emit two objects (compressed first). Default compressed. |
-| `--from-text STR` | **Generator.** `SHA256(UTF-8 bytes of STR)` → one key. Ignores positionals. Does not read the object stream. `-` is not magic (it is the literal string `-`). |
-| `--from-file PATH` | **Generator.** `SHA256(entire file contents)` → one key. Ignores positionals. PATH `-` consumes stdin as raw bytes and is exclusive with piped objects. Any other PATH does not read stdin. |
+| `--from` | Force stdin interpretation: `wif`, `hex`, `dec`, `text` (SHA-256 each line), or `file` (SHA-256 entire stdin, one key). Default: guess. Cannot combine with `--new`. |
 | `--count N` | Only with `--new`. Emit N keys. Default 1. N must be `≥ 1`. |
 | `--stream` | Only with `--new`. Alone: emit until SIGINT. With `--count N`: emit N, then stop. |
 
-`--new`, `--from-text`, and `--from-file` are mutually exclusive (any two: `cannot combine --new, --from-text, and --from-file`).
+`--new` and `--from` cannot be combined (`cannot combine --new and --from`).
 
-Without `--new` / `--from-*`, this command is a **transformer**: each argv item or stdin object/line is parsed as WIF or hex (see guess order). `--encoding` selects the output encoding. `--network` re-encodes WIF to that network (hex items pick up `--network`, default mainnet). `--compressed` / `--uncompressed` flip the flag.
+Without `--new`, this command is a **transformer** on stdin (no positional keys: `provide input on stdin`). Each stdin object/line is parsed as WIF, 64-char hex, or a decimal digit string (see guess order). Anything else is SHA-256'd as text. Piped binary (`--in auto`) is hashed whole. `--from` overrides the guess. `--from file` is a generator (hashes entire stdin once). `--encoding` selects the output encoding. `--network` re-encodes WIF to that network (hex/dec items pick up `--network`, default mainnet). `--compressed` / `--uncompressed` flip the flag.
 
 **Illegal combinations**
 
 | Combo | Error |
 |---|---|
-| `--new` + `--from-text` / `--from-file` | `cannot combine --new, --from-text, and --from-file` |
-| `--from-text` + `--from-file` | same |
+| `--new` + `--from` | `cannot combine --new and --from` |
 | `--count` without `--new` | `--count requires --new` |
 | `--stream` without `--new` | `--stream requires --new` |
 | `--count 0` or negative or non-integer | `invalid --count` |
-| `--from-file -` and positional items | `--from-file - cannot be combined with positional items` |
+| positional items | `provide input on stdin` |
+| `--from` not `wif\|hex\|dec\|text\|file` | `invalid --from` |
 
-**Reject:** scalar `0` or `≥ n`. Message: `private key out of range`. Bad WIF checksum: `invalid WIF checksum`. Bad hex length: `invalid hex private key`.
+**Reject:** scalar `0` or `≥ n`. Message: `private key out of range`. Bad WIF checksum: `invalid WIF checksum`. Bad hex length: `invalid hex private key`. Bad decimal (sign, `0x`, empty, non-digits): `invalid decimal private key` when `encoding=dec`; otherwise a guess-order miss (not WIF-shaped, not 64-hex, not digits) is SHA-256'd as text.
+
+Decimal emit has no leading zeros (`1`, not `01`). Parse strips leading zeros (`001` is secret 1). A 64-digit all-numeric bare string is hex (guess step 2), not decimal; force decimal with a typed object `"encoding":"dec"`.
 
 CSPRNG: `getentropy(buf, 32)` if available (`<sys/random.h>`), else read exactly 32 bytes from `/dev/urandom`. Short read is fatal: `could not read CSPRNG`.
 
@@ -1594,7 +1594,8 @@ Enough to start coding the day after the wipe.
 ```
 if cmd.is_generator(opts):          # --new, --from-text, --from-file, node, …
     if --from-file -: raw = read_all_stdin(); emit sha256(raw) as one key; return
-    if --from-text: emit sha256(str) as one key; return   # do not read stdin
+    if --from-text with no STR: raw = read_all_stdin(); emit sha256(raw) as one key; return
+    if --from-text STR: emit sha256(str) as one key; return   # do not read stdin
     if --new: emit count keys (infinite if --stream and no --count); return
     # node / version / help / config / balance --build|--update: run once
     return
@@ -1616,7 +1617,8 @@ for item in items:
 
 1. If object with `type` other than `privkey` → error `expected a privkey`.
 2. If object: read `data` + `encoding` (or guess from `data`).
-3. If bare string: WIF if Base58Check decodes to 33 or 34 bytes with version `80`/`EF`; else if `[0-9a-fA-F]{64}` then hex; else error `not a WIF or hex private key`.
+3. If bare string: WIF if Base58Check decodes to 33 or 34 bytes with version `80`/`EF`; else if `[0-9a-fA-F]{64}` then hex; else if `[0-9]+` then decimal; else `SHA256(UTF-8 bytes)` as the secret (same as `--from-text`). A WIF-shaped string (37/38-byte base58 payload) with a bad checksum is `invalid WIF checksum`, not a hash. Out-of-range hex/dec is still `private key out of range`.
+4. **Piped binary** (`--in auto`, stdin is not a TTY): if a prefix of stdin is binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8), hash the **entire** stdin as raw bytes — same as `--from-file -`. All-text pipes stay on the line/object guess above. A positional is never opened as a path; use `--from-file PATH`.
 
 ### Makefile probe sketch
 
@@ -1677,30 +1679,26 @@ btk privkey — create or convert private keys
 
 Usage:
   btk privkey --new [--count N] [--stream]
-              [--encoding wif|hex] [--network mainnet|testnet]
+              [--encoding wif|hex|dec] [--network mainnet|testnet]
               [--compressed | --uncompressed]
-  btk privkey [--encoding wif|hex] [--network mainnet|testnet]
+  btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
               [--compressed | --uncompressed]
-              [--from-text STR | --from-file PATH]
-              [item...]
+              [--from wif|hex|dec|text|file]
 
   --new              CSPRNG key in [1, n-1]
-  --encoding         Output wif (default) or hex
+  --encoding         Output wif (default), hex, or dec
   --network          mainnet (default) or testnet; WIF version byte
   --compressed       Set the WIF/pubkey compression flag (default)
   --uncompressed     Clear the flag; both flags emit two objects
-  --from-text STR    SHA-256(STR) as the secret (not a KDF)
-  --from-file PATH   SHA-256(file bytes); PATH - reads stdin as bytes
+  --from             Force stdin type (default: guess)
   --count N          With --new, emit N keys
   --stream           With --new, emit until SIGINT
   --out ndjson|json|plain
   --in  auto|ndjson|json|plain
 
-  --new, --from-text, and --from-file are generators (no stdin objects).
-  They cannot be combined. --from-file - hashes stdin as raw bytes.
-
-Items are WIF, 64-char hex, or typed privkey objects. Unknown strings
-are errors (they are not hashed unless --from-text).
+Input is stdin only (no positional keys). Guess order: WIF, 64-char
+hex, decimal, text (SHA-256), then binary file (whole stdin).
+--from text|file overrides the guess (e.g. printf 1 | btk privkey --from text).
 ```
 
 ### `btk help pubkey`
