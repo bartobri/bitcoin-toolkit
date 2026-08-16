@@ -5,7 +5,7 @@
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
 | **Date** | 2026-08-15 |
-| **Status** | Phases 0–4 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`). Next: Phase 5 `version`. No `help` command (`--help` only). |
+| **Status** | Phases 0–4 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`). Next: Phase 5 `balance`. No `help` or `version` command (`--help` / `--version` only). |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -90,7 +90,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D3 | **Hashes: implement SHA-256 and RIPEMD-160 in-tree** | Avoids OpenSSL 3 legacy-provider hell. ~300 lines, tested against FIPS/Wikipedia vectors below. Not copied from 3.1.2. |
 | D4 | **JSON: vendor picojson (fresh download)** | Header-only, BSD-2-Clause, small. See pin in *Third-party pins*. Do **not** copy `src/mods/cJSON`. Parses one complete value: NDJSON/object streams are incremental; a JSON **array** is parsed whole, then walked (Issue: picojson is not a streaming array parser). |
 | D5 | **QR: drop** | See Non-Goals. |
-| D6 | **Command names stay `privkey` / `pubkey` / `address` / `node` / `version` / `balance` / `config`** | They are the domain nouns. Inventing `key`/`addr`/`peer` saves no typing and breaks muscle memory of the *jobs* without improving them. The option language is what changes. There is no `help` command; use `--help`. |
+| D6 | **Command names stay `privkey` / `pubkey` / `address` / `node` / `balance` / `config`** | They are the domain nouns. Inventing `key`/`addr`/`peer` saves no typing and breaks muscle memory of the *jobs* without improving them. The option language is what changes. There is no `help` or `version` command; use `--help` / `--version`. |
 | D7 | **Long options, tiny vocabulary** | `--network`, `--out`, `--in`, `--from`, `--type`, `--new`, `--match`, `--stream`. A handful of shorts (`-h -V -n -o`). No `-W -X -D -Q -R`. |
 | D8 | **Default pipe = NDJSON typed objects** | One JSON object per line, `type` discriminator, `fflush` after each object when streaming. Pretty JSON and `--plain` are opt-in. |
 | D9 | **Network is per object, never process-global** | WIF version byte sets that item’s network. **Both `privkey` and `pubkey` objects carry `network`.** `--network` applies to generated keys and to hex inputs. Address uses WIF → object `network` → flag → mainnet (never walks `source`). |
@@ -99,7 +99,7 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. `--match` includes `source` (the privkey). `--source` forces `source` without `--match`. |
 | D13 | **`--from` overrides the stdin guess where the guess is ambiguous; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`. `pubkey` has no `--from text` / `--from file`; leftover text is an error. `address` has no `--from`: bare lines are only WIF or a hex pubkey. `--from-rpc` / `--from-chainstate` are **different** flags (balance build sources). |
 | D14 | **Help is embedded `--help`** | `btk --help` and `btk <cmd> --help`. No `help` command. Newly written man pages are optional install artifacts; help does not call `man`. |
-| D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). |
+| D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). `btk --version` emits the typed object. No `version` command. |
 | D16 | **`btk node` is IPv4 mainnet, port 8333, 15 s timeout** | Cheap `--network` on node would also need magic bytes + default port; defer. Keys/addresses still take `--network`. |
 | D17 | **Balance store is a new LevelDB layout** | Address → uint64 LE sats; outpoint → address+amount; metadata for tip/height. BIP-141 txid. Single writer. Progress on stderr. 3.1.2 DBs are not readable. |
 | D18 | **Config dump redacts `rpc.auth` as `********`** | Exactly eight asterisks. File mode `0600`. |
@@ -132,7 +132,6 @@ flowchart TB
         PUB[cmd/pubkey]
         ADDR[cmd/address]
         NODE[cmd/node]
-        VER[cmd/version]
         BAL[cmd/balance]
         CFG[cmd/config]
     end
@@ -197,7 +196,7 @@ sequenceDiagram
         D-->>O: embedded text / version object
     else command
         D->>D: load config only for config / balance (file must already exist)
-        alt generator (--new / --from file / node / version / config / balance --build|--update)
+        alt generator (--new / --from file / node / config / balance --build|--update)
             loop once, --count times, or forever if --stream
                 D->>C: run()
                 D->>O: write object, flush if stream or ndjson
@@ -234,7 +233,6 @@ bitcoin-toolkit/
 │   ├── btk-pubkey.1
 │   ├── btk-address.1
 │   ├── btk-node.1
-│   ├── btk-version.1
 │   ├── btk-balance.1
 │   └── btk-config.1
 ├── src/
@@ -251,7 +249,6 @@ bitcoin-toolkit/
 │   │   ├── pubkey.cpp
 │   │   ├── address.cpp
 │   │   ├── node.cpp
-│   │   ├── version.cpp
 │   │   ├── balance.cpp
 │   │   └── config.cpp
 │   ├── core/
@@ -379,9 +376,11 @@ No arguments at all: print the overview help on **stderr**, exit 1 (same idea as
 
 `btk --help`: overview on **stdout**, exit 0. There is no `help` command.
 
+`btk --version`: typed `version` object on **stdout**, exit 0. There is no `version` command.
+
 Do not create `~/.btk` on unknown command or failed option parse.
 
-**When config is loaded.** After a successful parse, load `~/.btk/config.json` (or `--config` / `$BTK_CONFIG`) **only** for `config` and `balance`. Phases 1–5 (`privkey`, `pubkey`, `address`, `node`, `version`) never open the config file, so a corrupt file cannot break key generation. If the file is missing, those two commands use compiled defaults (no mkdir). If the file exists but is invalid JSON or has a wrong type for a known key: `btk <command>: invalid config file`. Unknown JSON fields on disk are ignored.
+**When config is loaded.** After a successful parse, load `~/.btk/config.json` (or `--config` / `$BTK_CONFIG`) **only** for `config` and `balance`. Phases 1–4 (`privkey`, `pubkey`, `address`, `node`) never open the config file, so a corrupt file cannot break key generation. If the file is missing, those two commands use compiled defaults (no mkdir). If the file exists but is invalid JSON or has a wrong type for a known key: `btk <command>: invalid config file`. Unknown JSON fields on disk are ignored.
 
 **Resolving the config path.** `--config PATH` wins, else `$BTK_CONFIG`, else `$HOME/.btk/config.json`. `--config` and `$BTK_CONFIG` may be relative (cwd). If the resolved path needs `$HOME` and `HOME` is unset: `HOME is not set`. `rpc.auth` is `user:pass` split on the **first** colon (`user` may not contain `:`; `pass` may). No Bitcoin Core cookie file in 4.0.0.
 
@@ -410,7 +409,7 @@ Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`
 | Kind | Argv | Stdin |
 |---|---|---|
 | **Transformer** (`privkey`, `pubkey`, `address`, `balance` query) | flags only | items |
-| **Generator** (`--new`, `--from file`, `--build`, `version`) | flags only | none, or raw bytes for `--from file` |
+| **Generator** (`--new`, `--from file`, `--build`) | flags only | none, or raw bytes for `--from file` |
 | **Parameterized one-shot** (`node`, `balance --build/--update`) | flags for host/path/port | none |
 | **Verb** (`config`) | `set`/`get`/`unset`/`dump` + keys | none |
 
@@ -422,7 +421,7 @@ Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`
 | `pubkey` | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Error. No `--from text` / `--from file` |
 | `address` | none (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Error. Typed `privkey`/`pubkey` objects still work. Bare 64-hex / decimal / leftover text are errors |
 | `balance` query | optional `address` | Base58Check / bech32 address | **no** |
-| `node` / `version` / `config` / `balance --build` | none | n/a | no |
+| `node` / `config` / `balance --build` | none | n/a | no |
 
 On a **pipe** (`--in auto`, not a TTY), I/O peeks 8KiB. Binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8) is one raw item. `privkey` SHA-256s it (same as `--from file`). Other transformers do not. A TTY stays line-oriented.
 
@@ -577,7 +576,7 @@ Query input (stdin), in order:
 | `pubkey` | `data` (hex) |
 | `address` | `data` (address) |
 | `balance` | `sats` as decimal digits |
-| `version` | `version` (`4.0.0`) |
+| `--version` | `version` (`4.0.0`) |
 | `node` | `ip:port` (example `1.2.3.4:8333`) |
 | `config dump` | one `key=value` per line, dotted keys, `rpc.auth=********` |
 | `config get` | the raw value only (redacted if `rpc.auth`) |
@@ -837,20 +836,13 @@ P2P framing (mainnet only): magic on the wire `f9 be b4 d9`; 12-byte command; ui
 
 **Service bits:** 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Every other set bit is listed as `BIT_<n>` (decimal n). Named and `BIT_<n>` entries appear in ascending bit order. Do not omit unknown bits.
 
-### Help (not a command)
+### Help and version (not commands)
 
 `btk --help` and `btk <command> --help` print Appendix C bodies. There is no `help` command. Newly written man pages wrap the same text. `make install` installs them. Help never execs `man`.
 
-### 5. `btk version` — Phase 5
+`btk --version` emits the typed `version` object. `--out plain` prints `4.0.0`. There is no `version` command.
 
-```text
-btk version
-btk --version
-```
-
-Emits the `version` object. `--out plain` prints `4.0.0`. `--version` works before Phase 5 as a stub that prints the typed object so the binary is identifiable; Phase 5 adds the `version` command.
-
-### 6. `btk balance` — Phases 6a–6d
+### 5. `btk balance` — Phases 5a–5d
 
 Local address → satoshi index.
 
@@ -1043,7 +1035,7 @@ For each block, for each tx, for each input (skip coinbase): look up `O[prevout]
 
 LevelDB missing at compile time: the command prints `btk balance: this build was compiled without LevelDB (install libleveldb-dev and rebuild)` and exits 1.
 
-### 7. `btk config` — Phase 7
+### 6. `btk config` — Phase 6
 
 ```text
 btk config set <key>=<value>
@@ -1196,7 +1188,7 @@ No 3.1.2 database is migrated.
 
 - **Config:** `~/.btk/config.json` (new path vs `~/.btk/btk.conf`). Nested JSON. Mode 0600.
 - **Balance:** `~/.btk/balance/` LevelDB as specified. Rebuild from chainstate or RPC. 3.1.2 TXOA files are trash after the wipe.
-- **No in-tree fixture copied from `test/balance/`.** Phase 6 tests create a tiny DB with the new writer and query it.
+- **No in-tree fixture copied from `test/balance/`.** Phase 5 tests create a tiny DB with the new writer and query it.
 
 ---
 
@@ -1232,7 +1224,7 @@ The wipe forbids *copying* `src/mods/cJSON`; it does not ban cJSON as a project.
 
 ### H. SQLite vs LevelDB for the new balance store
 
-SQLite would give SQL and one file. LevelDB is what Bitcoin Core’s chainstate already is, so Phase 6c’s reader and 6b’s writer share a link and an iteration style. One optional package (`libleveldb-dev`) covers both. **LevelDB chosen.**
+SQLite would give SQL and one file. LevelDB is what Bitcoin Core’s chainstate already is, so Phase 5c’s reader and 5b’s writer share a link and an iteration style. One optional package (`libleveldb-dev`) covers both. **LevelDB chosen.**
 
 ### I. RPC-only balance (skip the chainstate parser)
 
@@ -1271,7 +1263,7 @@ Not a service. Observability is:
 
 - **stderr** for errors and balance progress. Never mix with NDJSON stdout.
 - No log file, no metrics daemon.
-- `btk version` reports whether LevelDB was linked.
+- `btk --version` reports whether LevelDB was linked.
 
 No alerts.
 
@@ -1294,7 +1286,7 @@ None. Commands appear when their PR merges. A missing command is `unknown comman
 
 ### Staged rollout
 
-Ship 4.0.0 when Phases 1–7 are in. No 3.1.2 dual-stack.
+Ship 4.0.0 when Phases 1–6 are in. No 3.1.2 dual-stack.
 
 ### Rollback
 
@@ -1313,12 +1305,11 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses (**done**, `3fb1427`) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. `--match` includes `source`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node (**done**, `d91fa5b`) | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
-| **5** | Version | `cmd/version` typed object. | `btk version --out plain` → `4.0.0`. |
-| **6a** | Balance primitives | CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only. | Appendix A.9–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
-| **6b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
-| **6c** | Chainstate `--build` | Obfuscation, `'B'`/`'C'`, amount + script decompress, nSize 4/5 via libsecp256k1. | Appendix A.12 record → `1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH` = 5000000000. Pre-0.15 `'c'` aborts. |
-| **6d** | RPC `--build` / `--update` | Hex `getblock`, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. |
-| **7** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
+| **5a** | Balance primitives | CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only. | Appendix A.9–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
+| **5b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
+| **5c** | Chainstate `--build` | Obfuscation, `'B'`/`'C'`, amount + script decompress, nSize 4/5 via libsecp256k1. | Appendix A.12 record → `1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH` = 5000000000. Pre-0.15 `'c'` aborts. |
+| **5d** | RPC `--build` / `--update` | Hex `getblock`, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. |
+| **6** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
 
 PR 1 is implementable the day after the wipe from this file: all encodings, vectors, help body for privkey, Makefile flags, and the pipe schema are inlined.
 
@@ -1352,7 +1343,7 @@ Required cases per phase are listed in the PR table. Cross-cutting:
 
 ### Balance fixtures
 
-Create at test time with the 6b writer (one address, 50 BTC, one outpoint). Phase 6c feeds Appendix A.12 as a mock LevelDB (or a byte-level unit test of the decoder — a full LevelDB is not required if the decoder is tested on the plaintext+XOR bytes). Do not check in 3.1.2 `000005.ldb`.
+Create at test time with the 5b writer (one address, 50 BTC, one outpoint). Phase 5c feeds Appendix A.12 as a mock LevelDB (or a byte-level unit test of the decoder — a full LevelDB is not required if the decoder is tested on the plaintext+XOR bytes). Do not check in 3.1.2 `000005.ldb`.
 
 ---
 
@@ -1557,7 +1548,7 @@ Full witness serialization (wtxid preimage, **192 bytes**). After the 22-byte ou
 | **txid** (use this) | `3c58a2ad2dfc2f132e6dd137844f6e6bd749e33672f5e24d5109cea990c282a8` | `a882c290a9ce09514de2f57236e349d76b6e4f8437d16d2e132ffc2dada2583c` |
 | **wtxid** (do not use) | `dd22da01b8929076ae782656fb7dfd1d3fe12a39c895b38aa533dbaa7d0806a1` | `a106087daadb33a58ab395c8392ae13f1dfd7dfb562678ae769092b801da22dd` |
 
-Assert txid ≠ wtxid. The indexer keys `O` with the **internal** txid. Phase 6a must HASH256 both preimages **and** round-trip-parse the 192-byte hex: one input, one output, **two** witness items of length 72 and 33.
+Assert txid ≠ wtxid. The indexer keys `O` with the **internal** txid. Phase 5a must HASH256 both preimages **and** round-trip-parse the 192-byte hex: one input, one output, **two** witness items of length 72 and 33.
 
 ### A.11 CompactSize and Core VARINT
 
@@ -1612,7 +1603,7 @@ Enough to start coding the day after the wipe.
 if cmd.is_generator(opts):          # --new, --from file, node, …
     if --from file: raw = read_all_stdin(); emit sha256(raw) as one key; return
     if --new: emit count keys (infinite if --stream and no --count); return
-    # node / version / config / balance --build|--update: run once
+    # node / config / balance --build|--update: run once
     return
 
 if leftover argv on a transformer: error "provide input on stdin"
@@ -1679,7 +1670,6 @@ Commands:
   pubkey    Derive or recompress public keys
   address   Derive P2PKH, P2WPKH, or BIP-341 P2TR addresses
   node      Handshake a Bitcoin P2P peer (IPv4 mainnet)
-  version   Show version
   balance   Build or query a local address-balance index
   config    Get and set defaults (RPC, paths)
 
@@ -1778,13 +1768,12 @@ and closes. 15s timeout. Default port 8333.
 --verbose includes raw P2P fields. --out plain prints ip:port.
 ```
 
-### `btk version --help`
+### `btk --version`
 
 ```
-btk version — print 4.0.0
+btk --version — print 4.0.0
 
 Usage:
-  btk version
   btk --version
 ```
 
