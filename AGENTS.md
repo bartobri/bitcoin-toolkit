@@ -34,7 +34,7 @@ Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementab
 | 2 `pubkey` | **Done** | See contract below. Man page `man/btk-pubkey.1` |
 | 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
 | 4 `node` | **Done** | See contract below. Man page `man/btk-node.1` |
-| 5a–5d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
+| 5a–5c `balance` | Not started | LevelDB optional; primitives then query then RPC `--sync`. No chainstate reader |
 | 6 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk` |
 
 ## Phase 1 contract (as shipped)
@@ -134,8 +134,8 @@ Split every command into:
 | Kind | What argv may contain | Input stream? |
 |---|---|---|
 | **Transformer** | flags only | yes — items on stdin |
-| **Generator** | flags only (`--new`, `--build`, …) | no (or raw stdin if `--from file`) |
-| **Parameterized one-shot** | flags for host/path/port | no |
+| **Generator** | flags only (`--new`, `--sync`, …) | no (or raw stdin if `--from file`) |
+| **Parameterized one-shot** | flags for host/port | no |
 | **Verb** | subcommand + key names | no |
 
 ### Rules that apply everywhere they make sense
@@ -143,9 +143,9 @@ Split every command into:
 1. **Item payload is never a positional.** `btk pubkey <wif>` and `btk address 00…01` are errors (`provide input on stdin`). Flag arguments (`--count 5`, `--type p2tr`, `--host x`) stay.
 2. **`--in` is framing** (auto / ndjson / json / plain). **`--from` is meaning** (wif / hex / dec / text / file / …). Do not merge them. `--encoding` remains **output** encoding only (`privkey`).
 3. **Typed objects in the pipe always win.** `{` / `[` under `--in auto` is the object stream. `--from` applies to **bare lines**, not to an object’s `type`/`data`.
-4. **`--from TYPE` is the override** where the guess is ambiguous (`privkey`, `pubkey`). Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--build`. `address` has no `--from` (`unknown option '--from'`).
+4. **`--from TYPE` is the override** where the guess is ambiguous (`privkey`, `pubkey`). Default is guess. Unknown `--from` is `invalid --from`. Cannot combine with generators like `--new` / `--sync`. `address` has no `--from` (`unknown option '--from'`).
 5. **Silent SHA-256 is not universal.** Only `privkey` hashes leftover text without `--from`. `pubkey` and `address` require an explicit key. A WIF-shaped bad checksum is never hashed.
-6. **`--out` / `--in` / `--network` / `--compressed` stay the global vocabulary.** Per-command flags (`--type`, `--match`, `--host`, `--build`) stay per-command.
+6. **`--out` / `--in` / `--network` / `--compressed` stay the global vocabulary.** Per-command flags (`--type`, `--match`, `--host`, `--sync`) stay per-command.
 
 ### Per-command
 
@@ -155,8 +155,8 @@ Split every command into:
 | `pubkey` | transformer | **yes** | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Leftover text / `--from text\|file` are errors |
 | `address` | transformer | **yes** | **none** (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Unknown string errors. Typed `privkey` / `pubkey` objects still work (any encoding on the object). Bare 64-hex / decimal / leftover text are errors |
 | `node` | parameterized one-shot | no | none | n/a | no. `--host HOST` required. Not a key pipe |
-| `balance` query | transformer | **yes** | optional `address` | Base58Check / bech32 address only | **no** (unknown → error, not a hash). `--from-rpc` / `--from-chainstate` are **build sources**, distinct flags, not `--from` |
-| `balance --build/--update` | parameterized generator | no | none | n/a | no. `--path`, `--host`, `--chainstate` stay flags |
+| `balance` query | transformer | **yes** | optional `address` | Base58Check / bech32 address only | **no** (unknown → error, not a hash). `--from-rpc` / `--from-chainstate` / `--path` are unknown |
+| `balance --sync` | parameterized generator | no | none | n/a | no. `--host` stays a flag. `--sync` is RPC (create or catch up). Index is always `~/.btk/balance`. `--build` / `--update` are unknown |
 | `config` | verb | n/a | none | n/a | no. `set`/`get`/`unset`/`dump` keep argv keys |
 
 ### Why pubkey does not silently hash
@@ -173,7 +173,7 @@ Bare lines are only WIF or a 66/130-char hex pubkey — the two shapes do not ov
 
 ### Naming clash
 
-`--from wif` (privkey/pubkey) and `--from-rpc` (balance build) are different options. Do not invent `--from rpc`. Keep `--from-rpc` / `--from-chainstate`. `address` does not take `--from`.
+`--from` is stdin-item meaning only (`wif` / `hex` / …). Do not invent `--from rpc`. `--from-rpc` and `--from-chainstate` are unknown. `--sync` is RPC (create or catch up). `--build` and `--update` are unknown. `address` does not take `--from`.
 
 ## Phase 2 contract (as shipped)
 
@@ -236,12 +236,29 @@ btk node --host HOST [--port 8333]
 - Offline: unit ser/de of the frozen 109-byte payload + a localhost mock peer in `test/cli/test_node.py`. Live handshake behind `BTK_RUN_NET=1` / `make test-net`.
 - `btk node --help` is pinned in `test/cli/test_node.py` (`NODE_HELP`) and the command’s raw string.
 
+## Phase 5 contract (planned)
+
+This is what `btk balance` will do. Carry these rules unless the user changes them.
+
+```text
+btk balance                                          # query stdin
+btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
+```
+
+- Query is a **transformer** on stdin. No positional addresses (`provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → Base58Check / bech32 address. No leftover-text hash. Empty stdin → empty stdout, exit 0. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`.
+- Index is always `~/.btk/balance`. `--path` is unknown. No `balance.path` config key.
+- `--sync` is RPC only. Missing/empty DB → walk `0 … tip`. Valid DB (`Mheight` + `Mtip`) → walk `Mheight+1 … tip` (already at tip → `complete`, exit 0). Non-empty junk → `balance database exists; rebuild with --sync --force`. Reorg → `reorg detected; rebuild with --sync --force`. `--force` only with `--sync`: wipe and walk from genesis.
+- `--build`, `--update`, `--from-rpc`, `--from-chainstate`, and `--chainstate` are unknown.
+- `--host` / `--port` default to config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332`. `--rpc-auth` is `user:pass` (Base64 at request time). No cookie file.
+- Progress on stderr (`syncing:` / `complete:`). Query is read-only.
+- `btk balance --help` will be pinned in `test/cli/test_balance.py` and the command’s raw string.
+
 ## How to continue (Phase 5)
 
 Implement `btk balance` from REBUILD.md §5:
 
-- Start with 5a: CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only.
-- Then 5b query, 5c chainstate `--build`, 5d RPC `--build` / `--update`.
+- Start with 5a: CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT.
+- Then 5b query, 5c RPC `--sync` (create or catch up). The index is always `~/.btk/balance`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are unknown.
 - There is no `help` or `version` command. Use `--help` / `--version`.
 - Phases 1–4 must not load `~/.btk/config.json`.
 

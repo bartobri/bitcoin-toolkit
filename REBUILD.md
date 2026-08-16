@@ -4,7 +4,7 @@
 |---|---|
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
-| **Date** | 2026-08-15 |
+| **Date** | 2026-08-16 |
 | **Status** | Phases 0–4 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`). Next: Phase 5 `balance`. No `help` or `version` command (`--help` / `--version` only). |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
@@ -31,7 +31,7 @@ Each line of the default pipe is one JSON object with a `type` field. A `--plain
 
 ## Background & Motivation
 
-3.1.2 proved the product shape: a single `btk` binary, Git-style subcommands, Unix pipes, optional Bitcoin Core RPC / chainstate for balances. It also accumulated accidents that users should not inherit:
+3.1.2 proved the product shape: a single `btk` binary, Git-style subcommands, Unix pipes, optional Bitcoin Core RPC for balances. It also accumulated accidents that users should not inherit:
 
 | Accident | Why it is not 4.0.0 |
 |---|---|
@@ -97,15 +97,15 @@ The rebuild is the chance to keep the *jobs* and replace the *contract*.
 | D10 | **Private keys must be in `[1, n-1]`** | `secp256k1_ec_seckey_verify`. Reject 0 and `≥ n`. |
 | D11 | **Address `--type p2pkh\|p2wpkh\|p2tr`** | Names the script. Default `p2wpkh` (modern, cheap, universally received). **No `--bech32m` flag.** `p2tr` is BIP-341 key-path, empty script tree. |
 | D12 | **Vanity is `--stream` + `--match`** | `btk privkey --new --stream \| btk address --type p2pkh --match '^1bri'`. `--match` includes `source` (the privkey). `--source` forces `source` without `--match`. |
-| D13 | **`--from` overrides the stdin guess where the guess is ambiguous; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`. `pubkey` has no `--from text` / `--from file`; leftover text is an error. `address` has no `--from`: bare lines are only WIF or a hex pubkey. `--from-rpc` / `--from-chainstate` are **different** flags (balance build sources). |
+| D13 | **`--from` overrides the stdin guess where the guess is ambiguous; item payloads are never positionals** | Transformers read stdin only (`provide input on stdin`). `--in` is framing; `--from` is meaning; `--encoding` is output. `--from text` is how `1` becomes SHA-256("1") on `privkey`. `pubkey` has no `--from text` / `--from file`; leftover text is an error. `address` has no `--from`: bare lines are only WIF or a hex pubkey. `--from-rpc` and `--from-chainstate` are unknown. `--sync` is RPC (create or catch up). |
 | D14 | **Help is embedded `--help`** | `btk --help` and `btk <cmd> --help`. No `help` command. Newly written man pages are optional install artifacts; help does not call `man`. |
 | D15 | **Version 4.0.0, GPL-3** | Greenfield break. New tree is GPL-3 throughout (match existing `LICENSE`). `btk --version` emits the typed object. No `version` command. |
 | D16 | **`btk node` is IPv4 mainnet, port 8333, 15 s timeout** | Cheap `--network` on node would also need magic bytes + default port; defer. Keys/addresses still take `--network`. |
-| D17 | **Balance store is a new LevelDB layout** | Address → uint64 LE sats; outpoint → address+amount; metadata for tip/height. BIP-141 txid. Single writer. Progress on stderr. 3.1.2 DBs are not readable. |
+| D17 | **Balance store is a new LevelDB layout at `~/.btk/balance`** | Address → uint64 LE sats; outpoint → address+amount; metadata for tip/height. BIP-141 txid. Single writer. Progress on stderr. 3.1.2 DBs are not readable. No `--path`. |
 | D18 | **Config dump redacts `rpc.auth` as `********`** | Exactly eight asterisks. File mode `0600`. |
 | D19 | **Exceptions internally, exit codes at `main`** | `BtkError` with a public message. `main` prints `btk <command>: <message>` on stderr and returns 1. No secrets in messages. |
 | D20 | **Default `make test` is offline** | Live P2P only under `BTK_RUN_NET=1` / `make test-net`. |
-| D21 | **`--new` not `--create`** | Reads as “make a key”. Used on `privkey` (CSPRNG) and `balance` (build index) is *not* overloaded: balance uses `--build`. |
+| D21 | **`--new` not `--create`** | Reads as “make a key”. Used on `privkey` (CSPRNG) only. Balance uses `--sync` (create the index or catch it up). |
 | D22 | **TTY does not change the contract** | Default stdout is always NDJSON. No hidden pretty-print when isatty. `--out json` is the human pretty form. |
 | D23 | **`--host` (not a leftover argv host) for `node`** | Host/path/port are flags. `config` verbs stay argv. |
 
@@ -154,7 +154,6 @@ flowchart TB
         TX[chain/tx]
         BLK[chain/block]
         SCR[chain/script]
-        CS[chain/chainstate]
         BDB[chain/balance_db]
     end
 
@@ -171,7 +170,6 @@ flowchart TB
     ADDR --> ENC
     NODE --> P2P
     BAL --> BDB
-    BAL --> CS
     BAL --> RPC
     KEY --> SECP[libsecp256k1]
     HASH --> SHA[src/core/sha256 + ripemd160]
@@ -196,7 +194,7 @@ sequenceDiagram
         D-->>O: embedded text / version object
     else command
         D->>D: load config only for config / balance (file must already exist)
-        alt generator (--new / --from file / node / config / balance --build|--update)
+        alt generator (--new / --from file / node / config / balance --sync)
             loop once, --count times, or forever if --stream
                 D->>C: run()
                 D->>O: write object, flush if stream or ndjson
@@ -268,11 +266,9 @@ bitcoin-toolkit/
 │   │   └── jsonrpc.cpp / .hpp
 │   ├── chain/
 │   │   ├── compactsize.cpp / .hpp
-│   │   ├── varint.cpp / .hpp        # Bitcoin Core varint (chainstate)
 │   │   ├── script.cpp / .hpp
 │   │   ├── transaction.cpp / .hpp
 │   │   ├── block.cpp / .hpp
-│   │   ├── chainstate.cpp / .hpp
 │   │   └── balance_db.cpp / .hpp
 │   └── util/
 │       ├── error.cpp / .hpp
@@ -409,11 +405,11 @@ Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`
 | Kind | Argv | Stdin |
 |---|---|---|
 | **Transformer** (`privkey`, `pubkey`, `address`, `balance` query) | flags only | items |
-| **Generator** (`--new`, `--from file`, `--build`) | flags only | none, or raw bytes for `--from file` |
-| **Parameterized one-shot** (`node`, `balance --build/--update`) | flags for host/path/port | none |
+| **Generator** (`--new`, `--from file`, `--sync`) | flags only | none, or raw bytes for `--from file` |
+| **Parameterized one-shot** (`node`, `balance --sync`) | flags for host/port | none |
 | **Verb** (`config`) | `set`/`get`/`unset`/`dump` + keys | none |
 
-`--from` applies to **bare lines**, not to a typed object’s `type`/`data`. Typed objects in the pipe always win. `--from` cannot combine with `--new` or `--build`. `--from-rpc` / `--from-chainstate` are **different options** (balance build sources).
+`--from` applies to **bare lines**, not to a typed object’s `type`/`data`. Typed objects in the pipe always win. `--from` cannot combine with `--new` or `--sync`. `--from-rpc` and `--from-chainstate` are unknown. `--sync` always walks Core JSON-RPC.
 
 | Command | `--from` values | Bare-line guess | Silent SHA-256 of leftover text? |
 |---|---|---|---|
@@ -421,7 +417,7 @@ Item **payloads** (keys, addresses) travel on stdin. Flag arguments (`--count 5`
 | `pubkey` | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Error. No `--from text` / `--from file` |
 | `address` | none (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Error. Typed `privkey`/`pubkey` objects still work. Bare 64-hex / decimal / leftover text are errors |
 | `balance` query | optional `address` | Base58Check / bech32 address | **no** |
-| `node` / `config` / `balance --build` | none | n/a | no |
+| `node` / `config` / `balance --sync` | none | n/a | no |
 
 On a **pipe** (`--in auto`, not a TTY), I/O peeks 8KiB. Binary (NUL, C0 controls other than tab/LF/CR, or invalid UTF-8) is one raw item. `privkey` SHA-256s it (same as `--from file`). Other transformers do not. A TTY stays line-oriented.
 
@@ -551,9 +547,7 @@ Query input (stdin), in order:
   "type": "config",
   "rpc.host": "127.0.0.1",
   "rpc.port": 8332,
-  "rpc.auth": "********",
-  "balance.path": "/home/alice/.btk/balance",
-  "chainstate.path": "/home/alice/.bitcoin/chainstate"
+  "rpc.auth": "********"
 }
 ```
 
@@ -842,44 +836,44 @@ P2P framing (mainnet only): magic on the wire `f9 be b4 d9`; 12-byte command; ui
 
 `btk --version` emits the typed `version` object. `--out plain` prints `4.0.0`. There is no `version` command.
 
-### 5. `btk balance` — Phases 5a–5d
+### 5. `btk balance` — Phases 5a–5c
 
-Local address → satoshi index.
+Local address → satoshi index. The only writer is Bitcoin Core JSON-RPC. `--sync` walks RPC: first run creates the index, later runs catch it up. The index always lives at `~/.btk/balance`. `--path`, `--from-rpc`, `--from-chainstate`, `--chainstate`, `--build`, and `--update` are unknown options.
 
 ```text
-btk balance [--path DIR]                             # query stdin
-btk balance --build --from-rpc [--host H] [--port P] [--rpc-auth USER:PASS]
-btk balance --build --from-chainstate [--chainstate DIR]
-btk balance --update                                 # RPC, from last height+1
+btk balance                                          # query stdin
+btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
 | Long | Default |
 |---|---|
-| `--path` | config `balance.path` or `~/.btk/balance` |
 | `--host` / `--port` | config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332` |
 | `--rpc-auth` | config `rpc.auth` (form `user:pass`; we Base64 at request time). No cookie file. |
-| `--chainstate` | config `chainstate.path` or `~/.bitcoin/chainstate` |
-| `--force` | Only with `--build`. Overwrite a non-empty `--path`. |
+| `--force` | Only with `--sync`. Wipe `~/.btk/balance` and walk from genesis. |
 
-Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --build)`. Do not SHA-256 leftover text. `--from-rpc` / `--from-chainstate` are build-source flags, not `--from`.
+Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`. Do not SHA-256 leftover text.
 
-`--build` refuses to overwrite a non-empty directory unless `--force`.
+**`--sync`**
+
+| State of `~/.btk/balance` | Action |
+|---|---|
+| Missing, or empty directory | Create the DB and walk heights `0 … tip` |
+| Valid index (`Mheight` and `Mtip` present) | Walk `Mheight+1 … tip`. Already at tip → `complete` and exit 0 |
+| Non-empty directory without valid metadata | `balance database exists; rebuild with --sync --force` |
+| `--force` (any of the above) | Wipe the directory and walk `0 … tip` |
+
+A valid index whose stored hash at `Mheight` does not match the RPC block hash at that height: `reorg detected; rebuild with --sync --force`.
 
 **Illegal combinations**
 
 | Combo | Error |
 |---|---|
-| `--from-rpc` and `--from-chainstate` | `specify one of --from-rpc or --from-chainstate` |
-| `--build` without a source | `--build requires --from-rpc or --from-chainstate` |
-| `--force` without `--build` | `--force requires --build` |
-| `--update` with `--build` | `cannot combine --update and --build` |
-| `--update` and no database | `balance database not found (run btk balance --build)` |
-| `--from-rpc` / `--from-chainstate` without `--build` | `--from-rpc requires --build` (same for chainstate) |
+| `--force` without `--sync` | `--force requires --sync` |
 
 Progress goes to **stderr** so pipes stay clean:
 
 ```text
-building: height 800000/850000 (94.1%)
+syncing: height 800000/850000 (94.1%)
 complete: height 850000
 ```
 
@@ -887,7 +881,7 @@ complete: height 850000
 
 #### Storage (new layout — not compatible with 3.1.2)
 
-LevelDB, directory `--path`.
+LevelDB, directory `~/.btk/balance`. The writer library may take a directory for tests; the CLI never does.
 
 | Key | Value |
 |---|---|
@@ -896,7 +890,7 @@ LevelDB, directory `--path`.
 | `Mheight` | `uint32` LE last consumed height |
 | `Mtip` | 32-byte tip hash (internal) |
 
-`A` is the query path. `O` is the UTXO/outpoint map so `--update` can debit the right address when an input spends. Both writers (RPC and chainstate) use this layout.
+`A` is the query path. `O` is the UTXO/outpoint map so an incremental `--sync` can debit the right address when an input spends. The RPC writer uses this layout.
 
 **txid is BIP-141:** HASH256 of the **non-witness** serialization (`nVersion || vin || vout || nLockTime`). Never hash marker/flag/witness. Display-hex txids in logs are byte-reversed; keys store internal order.
 
@@ -913,53 +907,9 @@ Extract a standard address from `scriptPubKey`:
 | `OP_1 32 <x>` | P2TR: encode the 32-byte `x` **as-is** (bech32m v1). Do **not** apply a BIP-341 tweak — the program on chain is already the output key. |
 | `<33/65-byte pubkey> OP_CHECKSIG` | P2PKH of that pubkey (historical P2PK) |
 
-Anything else is skipped (not an error). Network for encoding follows the node we are indexing: **mainnet** in 4.0.0. (Testnet index is a later `--network` on `--build`.)
+Anything else is skipped (not an error). Network for encoding follows the node we are indexing: **mainnet** in 4.0.0. (Testnet index is a later `--network` on `--sync`.)
 
-#### Build from chainstate (Bitcoin Core ≥ 0.15)
-
-Require a **stopped** bitcoind or a copy. Read-only.
-
-1. Open LevelDB at `--chainstate`.
-2. Read obfuscation key: raw key `0x0e 0x00` + `obfuscate_key`. Value is `0x08` + 8 XOR bytes. XOR every subsequent key and value, cycling those 8 bytes.
-3. Best block: deobfuscated key `'B'` → 32-byte tip. Record as `Mtip`. Height: we do not have a height index in chainstate; after iteration take the **max** decoded UTXO height and write `Mheight`. Also print it.
-4. UTXO records: deobfuscated key `'C'` (0x43) + 32-byte txid + Bitcoin Core **varint** vout. If a `'c'` (0x63) key appears, abort: `unsupported chainstate format (pre-0.15)`.
-5. Value (Bitcoin Core `Coin` compression):
-   - Core varint `nCode`. `height = nCode >> 1`, `coinbase = nCode & 1`.
-   - Core varint compressed amount → decompress (algorithm below).
-   - Compressed script (`nSize` + payload) → `scriptPubKey` → address.
-
-**Amount decompress** (Bitcoin Core `DecompressAmount`):
-
-```
-if x == 0: return 0
-x -= 1
-e = x % 10
-x /= 10
-if e < 9:
-    d = (x % 9) + 1
-    x /= 9
-    n = x * 10 + d
-else:
-    n = x + 1
-while e:
-    n *= 10
-    e -= 1
-return n
-```
-
-**Script decompress:**
-
-| nSize | Payload | scriptPubKey |
-|---|---|---|
-| 0 | 20 bytes | P2PKH |
-| 1 | 20 bytes | P2SH |
-| 2 or 3 | 32 bytes x | compressed pubkey `02/03\|\|x` then wrap as P2PK (`<pk> OP_CHECKSIG`) — we then address it as P2PKH of that pk |
-| 4 or 5 | 32 bytes x | Uncompressed P2PK. **Do not** implement √mod p. Build the 33-byte compressed key `02\|\|x` (nSize 4) or `03\|\|x` (nSize 5), then `secp256k1_ec_pubkey_parse` + `secp256k1_ec_pubkey_serialize(UNCOMPRESSED)` and wrap as `<65-byte pk> OP_CHECKSIG`. Parse failure → skip the UTXO. |
-| ≥ 6 | nSize − 6 bytes | raw script |
-
-6. Single-threaded iterate is fine for correctness. Batch-write `A` and `O`. Sum amounts per address (a second UTXO to the same address adds).
-
-**Bitcoin CompactSize** (P2P / blocks / txs / `var_str` — **not** chainstate):
+**Bitcoin CompactSize** (P2P / blocks / txs / `var_str`):
 
 | n | Encoding |
 |---|---|
@@ -968,37 +918,9 @@ return n
 | `≤ 0xffffffff` | `0xfe` + uint32 LE |
 | else | `0xff` + uint64 LE |
 
-Goldens: `0 → 00`, `23 → 17`, `252 → fc`, `253 → fd fd 00`.
+Goldens: `0 → 00`, `23 → 17`, `252 → fc`, `253 → fd fd 00`. Do **not** implement Bitcoin Core’s chainstate VARINT — it is a different encoding and unused in 4.0.0.
 
-**Bitcoin Core VARINT** (chainstate keys/values only — **not** CompactSize):
-
-Read:
-
-```
-n = 0
-loop:
-    ch = next byte
-    n = (n << 7) | (ch & 0x7f)
-    if ch & 0x80: n = n + 1
-    else: return n
-```
-
-Write:
-
-```
-// produce least-significant group first in tmp[0], then emit tmp[len] .. tmp[0]
-len = 0
-loop:
-    tmp[len] = (n & 0x7f) | (len ? 0x80 : 0x00)
-    if n <= 0x7f: break
-    n = (n >> 7) - 1
-    len++
-emit tmp[len] .. tmp[0]
-```
-
-Goldens: `0 → 00`, `1 → 01`, `127 → 7f`, `128 → 80 00`, `255 → 80 7f`, `256 → 81 00`, `200 → 80 48`.
-
-#### Block and tx layout (needed for RPC `--build` and BIP-141 txid)
+#### Block and tx layout (needed for RPC `--sync` and BIP-141 txid)
 
 Block: `int32 version | 32-byte prev | 32-byte merkle | uint32 time | uint32 bits | uint32 nonce | CompactSize tx_count | tx…`.
 
@@ -1017,7 +939,7 @@ uint32 nLockTime
 
 **BIP-141 txid** = HASH256(`nVersion || vin || vout || nLockTime`) — strip marker, flag, and every witness. **wtxid** = HASH256(the full serialization). Appendix A.10 is the frozen pair.
 
-#### Build / update from RPC
+#### Sync from RPC
 
 HTTP/1.0 or 1.1, `Content-Type: application/json`, `Authorization: Basic <base64(user:pass)>`.
 
@@ -1027,9 +949,9 @@ Methods:
 - `getblockhash height` → hash
 - `getblock hash 0` → raw block hex (we parse; one code path, our BIP-141 txid)
 
-`--build --from-rpc` walks `0 … tip`. `--update` walks `Mheight+1 … tip`. If the RPC tip hash at `Mheight` does not match `Mtip`, abort: `reorg detected; rebuild with --build --force`.
+`--sync` without `--force`: if there is no valid index, walk `0 … tip`; if there is, check the RPC hash at `Mheight` against `Mtip` and walk `Mheight+1 … tip`. `--sync --force` always walks `0 … tip`. A genesis walk needs a Core node that can serve every historical block (`getblock … 0`); a pruned node cannot complete it. A mainnet first sync takes days — that is accepted. Later `--sync` runs are incremental.
 
-For each block, for each tx, for each input (skip coinbase): look up `O[prevout]`; if found, debit that address by that amount (floor at 0 and warn on stderr if missing — a missing prevout on a full `--build` from genesis should not happen; on `--update` it means the DB was incomplete). Delete the outpoint. For each output with a recognized address: credit `A[addr]`, write `O[this_outpoint]`.
+For each block, for each tx, for each input (skip coinbase): look up `O[prevout]`; if found, debit that address by that amount (floor at 0 and warn on stderr if missing — a missing prevout on a full walk from genesis should not happen; on an incremental `--sync` it means the DB was incomplete). Delete the outpoint. For each output with a recognized address: credit `A[addr]`, write `O[this_outpoint]`.
 
 **Concurrency:** one fetch thread, one parse thread, one DB-writer thread. Shared queue of parsed block effects, mutex + condvar, max depth 100. No lock-free shared lists.
 
@@ -1051,10 +973,8 @@ Allowed keys:
 | `rpc.host` | JSON-RPC host |
 | `rpc.port` | JSON-RPC port (integer) |
 | `rpc.auth` | `user:pass` |
-| `balance.path` | Index directory |
-| `chainstate.path` | Bitcoin Core chainstate directory |
 
-File: `$BTK_CONFIG` or `--config` or `~/.btk/config.json`. Nested JSON. Types: `rpc.host` string, `rpc.port` JSON number (integer 1–65535), `rpc.auth` string, `balance.path` string, `chainstate.path` string. Unknown keys on disk are ignored. Unknown keys on `set`/`unset`/`get`: `unknown config key 'foo'`.
+File: `$BTK_CONFIG` or `--config` or `~/.btk/config.json`. Nested JSON. Types: `rpc.host` string, `rpc.port` JSON number (integer 1–65535), `rpc.auth` string. Unknown keys on disk are ignored. Unknown keys on `set`/`unset`/`get`: `unknown config key 'foo'`. There is no `balance.path` or `chainstate.path`. The index is always `~/.btk/balance`.
 
 Create the file (mode `0600`) and parents (`0700`) only on `set`. Missing file:
 
@@ -1074,16 +994,14 @@ On-disk example (`~/.btk/config.json`):
     "host": "127.0.0.1",
     "port": 8332,
     "auth": "alice:s3cret"
-  },
-  "balance": { "path": "/home/alice/.btk/balance" },
-  "chainstate": { "path": "/home/alice/.bitcoin/chainstate" }
+  }
 }
 ```
 
 Corresponding `btk config dump` (ndjson):
 
 ```json
-{"type":"config","rpc.host":"127.0.0.1","rpc.port":8332,"rpc.auth":"********","balance.path":"/home/alice/.btk/balance","chainstate.path":"/home/alice/.bitcoin/chainstate"}
+{"type":"config","rpc.host":"127.0.0.1","rpc.port":8332,"rpc.auth":"********"}
 ```
 
 Corresponding `--out plain`:
@@ -1092,8 +1010,6 @@ Corresponding `--out plain`:
 rpc.host=127.0.0.1
 rpc.port=8332
 rpc.auth=********
-balance.path=/home/alice/.btk/balance
-chainstate.path=/home/alice/.bitcoin/chainstate
 ```
 
 ---
@@ -1176,7 +1092,7 @@ btk privkey --new --stream | btk address --type p2tr --match '^bc1p73'
 btk node --host seed.bitcoin.sipa.be
 
 # balance
-btk balance --build --from-chainstate
+btk balance --sync
 printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 ```
 
@@ -1187,7 +1103,7 @@ printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 No 3.1.2 database is migrated.
 
 - **Config:** `~/.btk/config.json` (new path vs `~/.btk/btk.conf`). Nested JSON. Mode 0600.
-- **Balance:** `~/.btk/balance/` LevelDB as specified. Rebuild from chainstate or RPC. 3.1.2 TXOA files are trash after the wipe.
+- **Balance:** `~/.btk/balance/` LevelDB as specified. `--sync` from Core JSON-RPC only (create or catch up). 3.1.2 TXOA files are trash after the wipe.
 - **No in-tree fixture copied from `test/balance/`.** Phase 5 tests create a tiny DB with the new writer and query it.
 
 ---
@@ -1224,11 +1140,11 @@ The wipe forbids *copying* `src/mods/cJSON`; it does not ban cJSON as a project.
 
 ### H. SQLite vs LevelDB for the new balance store
 
-SQLite would give SQL and one file. LevelDB is what Bitcoin Core’s chainstate already is, so Phase 5c’s reader and 5b’s writer share a link and an iteration style. One optional package (`libleveldb-dev`) covers both. **LevelDB chosen.**
+SQLite would give SQL and one file. LevelDB is a small optional package (`libleveldb-dev`) with the same kv/batch style the index needs (`A` / `O` / metadata). We do not read Core’s chainstate in 4.0.0, so sharing a decoder with that format is not a reason. **LevelDB chosen.**
 
 ### I. RPC-only balance (skip the chainstate parser)
 
-Avoids VARINT, obfuscation, and `Coin` compression. A mainnet `--build --from-rpc` walks ~850k hex blocks and takes days; the intended first build is “point at a stopped Core datadir.” **RPC is `--update` and small/test chains; chainstate is the initial path.**
+A mainnet first `--sync` walks every hex block and takes days; a pruned node cannot serve genesis. That cost is accepted: 4.0.0 does not parse Core’s UTXO set (no VARINT, obfuscation, or `Coin` compression). **`--sync` is the only writer** (create or catch up). `--build`, `--update`, `--from-rpc`, `--from-chainstate`, and `--path` are unknown.
 
 ### J. Core cookie file vs `user:pass`
 
@@ -1249,7 +1165,7 @@ Core’s default RPC auth is a cookie at `~/.bitcoin/.cookie`. Convenient, but a
 | CSPRNG failure ignored | High | Short `getentropy`/`urandom` read is fatal. |
 | Balance data race / torn writes | Medium | Single writer thread, LevelDB write batches. |
 | wtxid used as outpoint | High | BIP-141 non-witness txid only. |
-| Reorg silently corrupts the index | Medium | Tip-hash check on `--update`; refuse and demand `--build --force`. |
+| Reorg silently corrupts the index | Medium | Tip-hash check on incremental `--sync`; refuse and demand `--sync --force`. |
 | SSRF via `btk node` / RPC host | Low | User-supplied host; no URL fetch. IPv4 only. |
 | Regex ReDoS on `--match` | Low | POSIX ERE; document that users pass the pattern. |
 
@@ -1305,10 +1221,9 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses (**done**, `3fb1427`) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. `--match` includes `source`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node (**done**, `d91fa5b`) | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
-| **5a** | Balance primitives | CompactSize, Core VARINT, block/tx (de)ser, BIP-141 txid. Unit tests only. | Appendix A.9–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
+| **5a** | Balance primitives | CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT. | Appendix A.10–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
 | **5b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
-| **5c** | Chainstate `--build` | Obfuscation, `'B'`/`'C'`, amount + script decompress, nSize 4/5 via libsecp256k1. | Appendix A.12 record → `1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH` = 5000000000. Pre-0.15 `'c'` aborts. |
-| **5d** | RPC `--build` / `--update` | Hex `getblock`, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. |
+| **5c** | RPC `--sync` | Hex `getblock`, create-or-catch-up, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. Missing DB → walk from 0; valid DB → walk from `Mheight+1`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are `unknown option`. |
 | **6** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
 
 PR 1 is implementable the day after the wipe from this file: all encodings, vectors, help body for privkey, Makefile flags, and the pipe schema are inlined.
@@ -1325,7 +1240,7 @@ Two layers, both required from Phase 1. **New files.** Do not copy `test/Tests/*
 
 No gtest. Each file is a `main` that returns 0/1. A tiny `CHECK(cond)` macro prints file:line and bails. `make test-unit` runs them.
 
-Cover: hex, Base58Check, bech32/bech32m (BIP-173 / BIP-350 strings; uppercase decode-only vs lowercase encode), HASH160/HASH256/tagged_hash, WIF round-trip, pubkey of G and of secret 6, P2PKH/P2WPKH/P2TR of A.2 / A.2b / A.6, amount decompress (A.9), CompactSize + VARINT (A.11), BIP-141 txid/wtxid of A.10.
+Cover: hex, Base58Check, bech32/bech32m (BIP-173 / BIP-350 strings; uppercase decode-only vs lowercase encode), HASH160/HASH256/tagged_hash, WIF round-trip, pubkey of G and of secret 6, P2PKH/P2WPKH/P2TR of A.2 / A.2b / A.6, CompactSize (A.11), BIP-141 txid/wtxid of A.10.
 
 ### Python CLI tests (`test/cli/`)
 
@@ -1343,7 +1258,7 @@ Required cases per phase are listed in the PR table. Cross-cutting:
 
 ### Balance fixtures
 
-Create at test time with the 5b writer (one address, 50 BTC, one outpoint). Phase 5c feeds Appendix A.12 as a mock LevelDB (or a byte-level unit test of the decoder — a full LevelDB is not required if the decoder is tested on the plaintext+XOR bytes). Do not check in 3.1.2 `000005.ldb`.
+Create at test time with the 5b writer (one address, 50 BTC, one outpoint). The writer API takes a directory; CLI tests set `HOME` so `~/.btk/balance` is isolated. Do not check in 3.1.2 `000005.ldb`. There is no `--path` and no chainstate fixture.
 
 ---
 
@@ -1351,8 +1266,9 @@ Create at test time with the 5b writer (one address, 50 BTC, one outpoint). Phas
 
 None remaining. Resolved:
 
-1. **`btk balance --build --from-rpc` does not take `--network testnet` in 4.0.0.** RPC and address HRP stay mainnet. A later release can add it cheaply.
+1. **`btk balance --sync` does not take `--network testnet` in 4.0.0.** RPC and address HRP stay mainnet. A later release can add it cheaply.
 2. **`btk address` default `--type` stays `p2wpkh`.** Not `p2tr`.
+3. **No chainstate writer in 4.0.0.** `--sync` is RPC (create or catch up). `--build` / `--update` / `--from-rpc` / `--from-chainstate` / `--path` / `balance.path` / `chainstate.path` are out.
 
 ---
 
@@ -1364,7 +1280,6 @@ None remaining. Resolved:
 - [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) `lift_x`, tagged hashes
 - [BIP-341](https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki) Taproot tweak; [wallet-test-vectors.json](https://github.com/bitcoin/bips/blob/master/bip-0341/wallet-test-vectors.json)
 - [BIP-350](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki) Bech32m
-- Bitcoin Core `src/compressor.cpp` (amount + script compression), `src/coins.h` (chainstate `Coin`), LevelDB XOR obfuscation (`0e00 obfuscate_key`)
 - picojson `111c9be5188f7350c2eac9ddaedd8cca3d7bf394`
 - libsecp256k1
 - FIPS 180-4 (SHA-256); RIPEMD-160 (DBNS-94)
@@ -1509,24 +1424,6 @@ Invalid: mixed case; bech32 checksum on a v1 address; bech32m checksum on a v0 a
 | hex `n` = `ffffffff…4141` | `private key out of range` |
 | hex `n+1` | `private key out of range` |
 
-### A.9 Amount decompress (chainstate)
-
-These match the `DecompressAmount` listing in the balance section (and Core’s inverse of `CompressAmount`). Do not “make a wrong table pass.”
-
-| Compressed x | Satoshis |
-|---|---|
-| 0 | 0 |
-| 1 | 1 |
-| 2 | 10 |
-| 3 | 100 |
-| 9 | 100000000 |
-| 10 | 1000000000 |
-| 11 | 2 |
-| 20 | 2000000000 |
-| 50 | 5000000000 |
-
-`50` is the `e == 9` row (50 × 10⁸ sats). Round-trip: `CompressAmount` of each right-hand value equals x.
-
 ### A.10 BIP-141 txid (handmade 1-in-1-out P2WPKH)
 
 Version 2. One input: 32-byte zero prevout, vout 0, empty scriptSig, `nSequence = 0xffffffff`. One output: 100000 sats, P2WPKH of G (`0014` \|\| `751e76e8199196d454941c45d1b3a323f1433bd6`). Witness: two items — 72-byte dummy (`30` + 70 zero bytes + `01`) and G’s compressed pubkey. `nLockTime = 0`.
@@ -1550,36 +1447,20 @@ Full witness serialization (wtxid preimage, **192 bytes**). After the 22-byte ou
 
 Assert txid ≠ wtxid. The indexer keys `O` with the **internal** txid. Phase 5a must HASH256 both preimages **and** round-trip-parse the 192-byte hex: one input, one output, **two** witness items of length 72 and 33.
 
-### A.11 CompactSize and Core VARINT
+### A.11 CompactSize
 
-| Value | CompactSize | Core VARINT |
-|---|---|---|
-| 0 | `00` | `00` |
-| 1 | `01` | `01` |
-| 23 | `17` | `17` |
-| 127 | `7f` | `7f` |
-| 128 | `80` | `80 00` |
-| 200 | `c8` | `80 48` |
-| 252 | `fc` | `80 7c` |
-| 253 | `fd fd 00` | `80 7d` |
-| 255 | `fd ff 00` | `80 7f` |
-| 256 | `fd 00 01` | `81 00` |
-
-### A.12 Synthetic chainstate record (no XOR on the obfuscation row)
-
-Obfuscation key (8 bytes): `0102030405060708`.
-
-| LevelDB key (raw) | LevelDB value (raw) | Notes |
-|---|---|---|
-| `0e006f62667573636174655f6b6579` (`0e00` \|\| `obfuscate_key`) | `080102030405060708` | **Not** XOR’d |
-| XOR(`42`) = `43` | XOR(`abab…ab` × 32) = `aaa9a8afaeadaca3` repeating | deobfuscated key `'B'`, tip 32 × `0xab` |
-| XOR(`431111…111100`) = `42131215141716191013121514171619101312151417161910131215141716191002` | XOR(`80483200751e76e8199196d454941c45d1b3a323f1433bd6`) = `814a3104701871e0189395d051921b4dd0b1a027f4453cde` | deobfuscated key `'C'` \|\| 32 × `0x11` \|\| VARINT(0); value nCode=200 (height 100), amount x=50 (5000000000 sats), nSize=0 + HASH160(G compressed) |
-
-Plaintext UTXO value: `80 48 32 00 751e76e8199196d454941c45d1b3a323f1433bd6`.
-
-After decode: address `1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH`, 5000000000 sats, outpoint txid 32 × `0x11` vout 0, height 100.
-
-XOR is cyclic over the 8-byte key. `'B'` XOR `01` is `0x43` — a decoder that skips deobfuscation will mistake the tip for a `'C'` key; tests should catch that.
+| Value | CompactSize |
+|---|---|
+| 0 | `00` |
+| 1 | `01` |
+| 23 | `17` |
+| 127 | `7f` |
+| 128 | `80` |
+| 200 | `c8` |
+| 252 | `fc` |
+| 253 | `fd fd 00` |
+| 255 | `fd ff 00` |
+| 256 | `fd 00 01` |
 
 ---
 
@@ -1603,7 +1484,7 @@ Enough to start coding the day after the wipe.
 if cmd.is_generator(opts):          # --new, --from file, node, …
     if --from file: raw = read_all_stdin(); emit sha256(raw) as one key; return
     if --new: emit count keys (infinite if --stream and no --count); return
-    # node / config / balance --build|--update: run once
+    # node / config / balance --sync: run once
     return
 
 if leftover argv on a transformer: error "provide input on stdin"
@@ -1670,8 +1551,8 @@ Commands:
   pubkey    Derive or recompress public keys
   address   Derive P2PKH, P2WPKH, or BIP-341 P2TR addresses
   node      Handshake a Bitcoin P2P peer (IPv4 mainnet)
-  balance   Build or query a local address-balance index
-  config    Get and set defaults (RPC, paths)
+  balance   Sync or query a local address-balance index
+  config    Get and set defaults (RPC)
 
 Output is one JSON object per line (ndjson) unless --out json|plain.
 Pipes compose:  btk privkey --new | btk address --type p2wpkh
@@ -1783,18 +1664,13 @@ Usage:
 btk balance — local address → satoshi index
 
 Usage:
-  btk balance [--path DIR]
-  btk balance --build --from-rpc [--host H] [--port P] [--rpc-auth user:pass]
-  btk balance --build --from-chainstate [--chainstate DIR]
-  btk balance --update
+  btk balance
+  btk balance --sync [--host H] [--port P] [--rpc-auth user:pass]
 
 Query prints {"type":"balance","address":"…","sats":N}. Missing = 0.
 Accepts address objects or bare address strings on stdin.
---build writes a new LevelDB at --path (default ~/.btk/balance).
---force overwrites a non-empty --path (only with --build).
---from-rpc walks blocks via Bitcoin Core JSON-RPC (hex blocks).
---from-chainstate reads a Core ≥0.15 UTXO set (bitcoind stopped).
---update applies new RPC blocks from the stored tip.
+--sync writes ~/.btk/balance from Core JSON-RPC (create or catch up).
+--force wipes ~/.btk/balance and walks from genesis (only with --sync).
 Progress is on stderr. Requires LevelDB at build time.
 No cookie file; use --rpc-auth user:pass or config rpc.auth.
 ```
@@ -1802,7 +1678,7 @@ No cookie file; use --rpc-auth user:pass or config rpc.auth.
 ### `btk config --help`
 
 ```
-btk config — defaults for RPC and paths
+btk config — defaults for RPC
 
 Usage:
   btk config set <key>=<value>
@@ -1810,7 +1686,7 @@ Usage:
   btk config get <key>
   btk config dump
 
-Keys: rpc.host, rpc.port, rpc.auth, balance.path, chainstate.path
+Keys: rpc.host, rpc.port, rpc.auth
 File: ~/.btk/config.json (or --config / $BTK_CONFIG), mode 0600.
 dump and get redact rpc.auth as ********.
 ```
@@ -1824,8 +1700,7 @@ dump and get redact rpc.auth as ********.
 | picojson rejects NDJSON edge cases (NaN, deep nest) | Low | We emit a tiny schema; parser tests cover our objects. |
 | In-tree SHA-256/RIPEMD-160 bug | High | Vectors in A.1 are mandatory unit tests; HASH160 of G is cross-checked against BIP-173. |
 | Distro `libsecp256k1` built without extrakeys | Medium | Probe `secp256k1_xonly_pubkey_tweak_add` in the Makefile; error with a rebuild hint. Most packages enable it. |
-| Chainstate format drift (Core 28+) | Medium | Abort on unknown key prefixes; document ≥0.15 `'C'` keys. |
-| Full-mainnet RPC `--build` takes days | Low | Document chainstate as the intended initial path; RPC is for `--update` and small test chains. |
+| Full-mainnet first `--sync` takes days | Medium | Document it. First run needs a Core node with full block history; later `--sync` is incremental. |
 | `--stream` + `--match` burns CPU | Low | Expected for vanity. No rate limit. |
 | Users treat leftover-text SHA-256 as a wallet | Medium | Help + README warning. `--from text` is explicit. |
 

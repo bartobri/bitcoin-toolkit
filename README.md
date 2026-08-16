@@ -6,7 +6,7 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 4 is implemented: `btk privkey`, `btk pubkey`, `btk address`, and `btk node`. Next is `btk balance`. Later: `config`. Help and version are `--help` / `--version` (no `help` or `version` command).
+Phase 4 is implemented: `btk privkey`, `btk pubkey`, `btk address`, and `btk node`. Next is `btk balance` (`--sync` from Core JSON-RPC into `~/.btk/balance`; query addresses on stdin). Later: `config`. Help and version are `--help` / `--version` (no `help` or `version` command).
 
 ```sh
 btk privkey --new
