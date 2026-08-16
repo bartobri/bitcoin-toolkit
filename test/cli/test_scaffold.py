@@ -48,7 +48,7 @@ def main():
     assert r.returncode == 1
     err = r.stderr.decode()
     assert "unknown command 'foo'" in err
-    assert "btk help" in err
+    assert "btk --help" in err
 
     r = run(["--help"])
     out = r.stdout.decode()

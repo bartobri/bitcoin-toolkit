@@ -110,7 +110,7 @@ void print_overview(std::ostream& out) {
     }
     out << "\nOutput is one JSON object per line (ndjson) unless --out json|plain.\n";
     out << "Pipes compose:  btk privkey --new | btk address --type p2wpkh\n\n";
-    out << "See 'btk help <command>' or 'btk <command> --help'.\n";
+    out << "See 'btk <command> --help'.\n";
 }
 
 int dispatch(int argc, char** argv) {
@@ -131,7 +131,7 @@ int dispatch(int argc, char** argv) {
 
     if (!opts.command.empty() && cmd == nullptr) {
         std::cerr << "btk: unknown command '" << opts.command << "'\n";
-        std::cerr << "See 'btk help' for a list of commands.\n";
+        std::cerr << "See 'btk --help' for a list of commands.\n";
         return 1;
     }
 

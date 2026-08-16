@@ -4,7 +4,7 @@ Hand-off for anyone (human or agent) continuing the 4.x rebuild. Read this first
 
 ## Where we are
 
-Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementable phase is **Phase 5 (`btk help`)**.
+Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementable phase is **Phase 5 (`btk version`)**. There is no `help` command; use `btk --help` / `btk <command> --help`.
 
 | Commit | What |
 |---|---|
@@ -34,10 +34,9 @@ Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementab
 | 2 `pubkey` | **Done** | See contract below. Man page `man/btk-pubkey.1` |
 | 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
 | 4 `node` | **Done** | See contract below. Man page `man/btk-node.1` |
-| 5 `help` | Partial | `btk --help` / `btk privkey --help` / `btk pubkey --help` / `btk address --help` / `btk node --help` exist. No `help` command yet. Appendix C pins overview + privkey/pubkey/address/node bodies |
-| 6 `version` | Stub | `btk --version` emits the typed object. No `version` command yet |
-| 7a–7d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
-| 8 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–6 must not open `~/.btk` |
+| 5 `version` | Stub | `btk --version` emits the typed object. No `version` command yet |
+| 6a–6d `balance` | Not started | LevelDB optional; primitives then query then chainstate then RPC |
+| 7 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–5 must not open `~/.btk` |
 
 ## Phase 1 contract (as shipped)
 
@@ -96,7 +95,7 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 
 - Secrets checked with `secp256k1_ec_seckey_verify`. CSPRNG: `getentropy` else `/dev/urandom`.
 - SHA-256 / RIPEMD-160 are in-tree (`src/core/hash.cpp`). No OpenSSL.
-- Required package: `libsecp256k1`. LevelDB probed, unused until Phase 7.
+- Required package: `libsecp256k1`. LevelDB probed, unused until Phase 6.
 - No GMP; 256-bit decimal is a 32-byte ×10/÷10 loop in `src/core/privkey.cpp`.
 
 ### Help
@@ -138,7 +137,7 @@ Split every command into:
 | **Transformer** | flags only | yes — items on stdin |
 | **Generator** | flags only (`--new`, `--build`, …) | no (or raw stdin if `--from file`) |
 | **Parameterized one-shot** | flags for host/path/port | no |
-| **Verb / topic** | subcommand + key names | no |
+| **Verb** | subcommand + key names | no |
 
 ### Rules that apply everywhere they make sense
 
@@ -157,7 +156,6 @@ Split every command into:
 | `pubkey` | transformer | **yes** | `wif\|hex\|dec` (`hex` = 64-char priv or 66/130-char pub) | WIF → 64-hex priv → dec → 66/130 hex pub | **no**. Leftover text / `--from text\|file` are errors |
 | `address` | transformer | **yes** | **none** (`--from` is unknown) | WIF → 66/130 hex pub | **no**. Unknown string errors. Typed `privkey` / `pubkey` objects still work (any encoding on the object). Bare 64-hex / decimal / leftover text are errors |
 | `node` | parameterized one-shot | no | none | n/a | no. `--host HOST` required. Not a key pipe |
-| `help` | topic | n/a | none | n/a | no. `btk help privkey` stays a topic token |
 | `version` | generator | n/a | none | n/a | no. Ignores stdin |
 | `balance` query | transformer | **yes** | optional `address` | Base58Check / bech32 address only | **no** (unknown → error, not a hash). `--from-rpc` / `--from-chainstate` are **build sources**, distinct flags, not `--from` |
 | `balance --build/--update` | parameterized generator | no | none | n/a | no. `--path`, `--host`, `--chainstate` stay flags |
@@ -242,12 +240,12 @@ btk node --host HOST [--port 8333]
 
 ## How to continue (Phase 5)
 
-Implement `btk help` from REBUILD.md §5:
+Implement `btk version` from REBUILD.md §5:
 
-- `btk help` and `btk help <command>` print Appendix C bodies. Not JSON. Unknown topic: `btk help: unknown command 'foo'`.
-- `btk <command> --help` already prints the same body as `btk help <command>` will. Phase 5 only adds the `help` command and the overview.
-- Help never execs `man`.
-- Phases 1–6 must not load `~/.btk/config.json`.
+- `btk version` and `btk --version` emit the typed `version` object. `--out plain` prints `4.0.0`.
+- `btk --version` already exists as a stub; Phase 5 replaces it with the typed command.
+- There is no `help` command. `btk --help` / `btk <command> --help` print Appendix C bodies and never exec `man`.
+- Phases 1–5 must not load `~/.btk/config.json`.
 
 ## Conventions
 
