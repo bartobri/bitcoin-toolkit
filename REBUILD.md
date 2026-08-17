@@ -5,7 +5,7 @@
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
 | **Date** | 2026-08-17 |
-| **Status** | Phases 0–5 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`, `balance`). Next: Phase 6 `config`. No `help` or `version` command (`--help` / `--version` only). |
+| **Status** | Phases 0–6 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`, `balance`, `config`). No `help` or `version` command (`--help` / `--version` only). |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -231,8 +231,7 @@ bitcoin-toolkit/
 │   ├── btk-pubkey.1
 │   ├── btk-address.1
 │   ├── btk-node.1
-│   ├── btk-balance.1
-│   └── btk-config.1
+│   └── btk-balance.1
 ├── src/
 │   ├── main.cpp
 │   ├── version.hpp                  # BTK_VERSION_{MAJOR,MINOR,PATCH} = 4,0,0
@@ -974,7 +973,7 @@ Allowed keys:
 | `rpc.port` | JSON-RPC port (integer) |
 | `rpc.auth` | `user:pass` |
 
-File: `$BTK_CONFIG` or `--config` or `~/.btk/config.json`. Nested JSON. Types: `rpc.host` string, `rpc.port` JSON number (integer 1–65535), `rpc.auth` string. Unknown keys on disk are ignored. Unknown keys on `set`/`unset`/`get`: `unknown config key 'foo'`. There is no `balance.path` or `chainstate.path`. The index is always `~/.btk/balance`.
+File: `$BTK_CONFIG` or `--config` or `~/.btk/config.json`. Nested JSON. Types: `rpc.host` string, `rpc.port` JSON number (integer 1–65535), `rpc.auth` string. Unknown keys on disk are ignored. Unknown keys on `set`/`unset`/`get`: `unknown config key 'foo'`. There is no `balance.path` or `chainstate.path`. The index is always `~/.btk/balance`. Phase 6 does not add a man page; help is `--help` only.
 
 Create the file (mode `0600`) and parents (`0700`) only on `set`. Missing file:
 
@@ -1224,7 +1223,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **5a** | Balance primitives (**done**, `fb4604f`) | CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT. | Appendix A.10–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
 | **5b** | Balance query (**done**, `fb4604f`) | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
 | **5c** | RPC `--sync` (**done**, `fb4604f`) | Hex `getblock`, create-or-catch-up, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. Missing DB → walk from 0; valid DB → walk from `Mheight+1`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are `unknown option`. |
-| **6** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
+| **6** | Config (**done**) | `cmd/config`, load only from `config` and `balance`. No man page. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
 
 PR 1 is implementable the day after the wipe from this file: all encodings, vectors, help body for privkey, Makefile flags, and the pipe schema are inlined.
 

@@ -6,6 +6,7 @@
 #include "cmd/address.hpp"
 #include "cmd/balance.hpp"
 #include "cmd/command.hpp"
+#include "cmd/config.hpp"
 #include "cmd/node.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
@@ -81,6 +82,7 @@ void register_builtin_commands() {
     register_command(make_address_command());
     register_command(make_node_command());
     register_command(make_balance_command());
+    register_command(make_config_command());
 }
 
 Command* find_command(const std::string& name) {

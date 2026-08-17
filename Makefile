@@ -45,6 +45,7 @@ SRC := \
 	src/cmd/address.cpp \
 	src/cmd/node.cpp \
 	src/cmd/balance.cpp \
+	src/cmd/config.cpp \
 	src/util/error.cpp \
 	src/util/config.cpp \
 	src/util/interrupt.cpp

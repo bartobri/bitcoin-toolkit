@@ -57,6 +57,7 @@ def main():
     assert "address" in out
     assert "node" in out
     assert "balance" in out
+    assert "config" in out
     return 0
 
 

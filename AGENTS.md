@@ -4,7 +4,7 @@ Hand-off for anyone (human or agent) continuing the 4.x rebuild. Read this first
 
 ## Where we are
 
-Branch `4.x`. Latest work is **Phase 5 complete** (`btk balance`). Next implementable phase is **Phase 6 (`btk config`)**. There is no `help` or `version` command; use `--help` / `--version`.
+Branch `4.x`. Latest work is **Phase 6 complete** (`btk config`). The 4.0.0 command set is shipped. There is no `help` or `version` command; use `--help` / `--version`.
 
 | Commit | What |
 |---|---|
@@ -37,7 +37,7 @@ Branch `4.x`. Latest work is **Phase 5 complete** (`btk balance`). Next implemen
 | 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
 | 4 `node` | **Done** | See contract below. Man page `man/btk-node.1` |
 | 5a–5c `balance` | **Done** | See contract below. Man page `man/btk-balance.1`. LevelDB optional; RPC `--sync` only |
-| 6 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk`. Balance already loads the file if it exists |
+| 6 `config` | **Done** | See contract below. No man page. Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk` |
 
 ## Phase 1 contract (as shipped)
 
@@ -108,11 +108,11 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 ```
 src/main.cpp
 src/cli/          dispatcher, options, io, output
-src/cmd/          command.hpp, privkey, pubkey, address, node, balance
+src/cmd/          command.hpp, privkey, pubkey, address, node, balance, config
 src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pubkey, address, network.hpp
 src/chain/        compactsize, transaction, script, balance_db, indexer
 src/net/          p2p, jsonrpc
-src/util/         error, config (load only)
+src/util/         error, config (load + save)
 src/version.hpp
 man/btk-privkey.1
 man/btk-pubkey.1
@@ -120,7 +120,7 @@ man/btk-address.1
 man/btk-node.1
 man/btk-balance.1
 test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p, compactsize, tx, balance_db
-test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py, test_node.py, test_balance.py
+test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py, test_node.py, test_balance.py, test_config.py
 test/runner.py    discovers test/cli/test_*.py
 third_party/picojson/
 ```
@@ -261,13 +261,31 @@ btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 - `btk balance --help` is pinned in `test/cli/test_balance.py` (`BALANCE_HELP`) and the command’s raw string.
 - Offline: unit CompactSize / A.10 txid / a tiny DB writer. CLI uses a localhost mock JSON-RPC server. SIGINT abort is tested against a hanging listener. No live bitcoind in `make test`.
 
-## How to continue (Phase 6)
+## Phase 6 contract (as shipped)
 
-Implement `btk config` from REBUILD.md §6:
+This is what `btk config` actually does.
 
-- `set` / `get` / `unset` / `dump`. Keys: `rpc.host`, `rpc.port`, `rpc.auth`.
-- Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk/config.json`. Balance already loads it for RPC defaults if the file exists.
-- There is no `help` or `version` command. Use `--help` / `--version`.
+```text
+btk config set <key>=<value>
+btk config unset <key>
+btk config get <key>
+btk config dump
+```
+
+- Verb, not a pipe. `is_generator` is true so stdin is ignored. Verbs and keys stay on argv.
+- Keys: `rpc.host`, `rpc.port`, `rpc.auth`. Anything else on `set`/`get`/`unset` is `unknown config key 'foo'`. No `balance.path`.
+- Path: `--config`, else `$BTK_CONFIG`, else `~/.btk/config.json`. Nested JSON. Types: host/auth string, port JSON number 1–65535. Unknown on-disk fields are ignored (and preserved on rewrite).
+- Create the file (mode `0600`) and parents (`0700`) **only on `set`**. Missing file: `dump` → `{"type":"config"}` exit 0; `get`/`unset` → `no such key` exit 1. None of those mkdir.
+- `get` of a present key emits a one-key `config` object. `--out plain` is the raw stored value (`8332` for the port). `rpc.auth` is always eight asterisks. Missing key in an existing file: `no such key`.
+- `dump` emits the typed `config` object (dotted keys). `--out plain` is `key=value` lines in order `rpc.host`, `rpc.port`, `rpc.auth`. Auth redacted; omitted when unset. No `--show-secrets`.
+- `set` / `unset` print nothing. `set` without `=` is `expected key=value`. Bad port is `invalid rpc.port`. Extra argv is `unexpected argument`. No verb is `expected set, get, unset, or dump`. Unknown verb is `unknown config verb '…'`.
+- `--stream` → `config does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
+- Load config **only** for `config` and `balance`. Phases 1–4 must not open the file. No man page.
+- `btk config --help` is pinned in `test/cli/test_config.py` (`CONFIG_HELP`) and the command’s raw string.
+
+## How to continue
+
+The 4.0.0 command set is complete (`privkey`, `pubkey`, `address`, `node`, `balance`, `config`). There is no `help` or `version` command. Use `--help` / `--version`.
 
 ## Conventions
 

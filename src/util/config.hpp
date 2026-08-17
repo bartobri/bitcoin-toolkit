@@ -4,6 +4,7 @@
 #include <string>
 
 #include "cli/options.hpp"
+#include "core/json_io.hpp"
 
 struct LoadedConfig {
     bool present = false;
@@ -12,5 +13,12 @@ struct LoadedConfig {
     std::string rpc_auth;
 };
 
+struct ConfigDocument {
+    bool present = false;
+    JsonObject root;
+};
+
 std::string resolve_config_path(const Options& opts);
 LoadedConfig load_config(const Options& opts);
+ConfigDocument load_config_document(const Options& opts);
+void save_config_document(const Options& opts, const JsonObject& root);

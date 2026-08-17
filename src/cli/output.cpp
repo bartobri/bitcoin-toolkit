@@ -45,23 +45,31 @@ std::string primary_string(const JsonObject& obj) {
         return get("host");
     }
     if (type == "config") {
+        const bool has_dotted = obj.find("rpc.host") != obj.end() ||
+                                obj.find("rpc.port") != obj.end() ||
+                                obj.find("rpc.auth") != obj.end();
+        if (!has_dotted) {
+            return get("data");
+        }
+        static const char* kOrder[] = {"rpc.host", "rpc.port", "rpc.auth"};
         std::ostringstream o;
         bool first = true;
-        for (const auto& kv : obj) {
-            if (kv.first == "type") {
+        for (const char* key : kOrder) {
+            auto it = obj.find(key);
+            if (it == obj.end()) {
                 continue;
             }
             if (!first) {
                 o << '\n';
             }
             first = false;
-            o << kv.first << '=';
-            if (kv.second.is<std::string>()) {
-                o << kv.second.get<std::string>();
-            } else if (kv.second.is<double>()) {
-                o << static_cast<unsigned long long>(kv.second.get<double>());
+            o << key << '=';
+            if (it->second.is<std::string>()) {
+                o << it->second.get<std::string>();
+            } else if (it->second.is<double>()) {
+                o << static_cast<unsigned long long>(it->second.get<double>());
             } else {
-                o << json_min(kv.second);
+                o << json_min(it->second);
             }
         }
         return o.str();
