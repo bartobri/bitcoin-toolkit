@@ -1223,7 +1223,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **5a** | Balance primitives (**done**, `fb4604f`) | CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT. | Appendix A.10–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
 | **5b** | Balance query (**done**, `fb4604f`) | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
 | **5c** | RPC `--sync` (**done**, `fb4604f`) | Hex `getblock`, create-or-catch-up, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. Missing DB → walk from 0; valid DB → walk from `Mheight+1`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are `unknown option`. |
-| **6** | Config (**done**) | `cmd/config`, load only from `config` and `balance`. No man page. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
+| **6** | Config (**done**, `f7e9c01`) | `cmd/config`, load only from `config` and `balance`. No man page. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
 
 PR 1 is implementable the day after the wipe from this file: all encodings, vectors, help body for privkey, Makefile flags, and the pipe schema are inlined.
 

@@ -18,6 +18,7 @@ Branch `4.x`. Latest work is **Phase 6 complete** (`btk config`). The 4.0.0 comm
 | `d91fa5b` | Phase 4 `btk node` IPv4 mainnet handshake |
 | `385ff08` | Plan balance as `--sync` over RPC into `~/.btk/balance` |
 | `fb4604f` | Phase 5 `btk balance` RPC `--sync` + LevelDB index |
+| `f7e9c01` | Phase 6 `btk config` set/get/unset/dump |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 
