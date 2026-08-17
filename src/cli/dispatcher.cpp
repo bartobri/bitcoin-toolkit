@@ -106,13 +106,24 @@ std::vector<Command*> all_commands() {
 void print_overview(std::ostream& out) {
     out << "btk — Bitcoin Toolkit " << BTK_VERSION_STRING << "\n\n";
     out << "Usage:\n";
-    out << "  btk [--config PATH] <command> [options]\n\n";
+    out << "  btk <command> [options]\n";
+    out << "  btk --help\n";
+    out << "  btk --version\n\n";
+    out << "Command-line tools for Bitcoin keys, addresses, a P2P handshake, a local\n";
+    out << "address-balance index, and a few RPC defaults. Item payloads travel on\n";
+    out << "stdin; compose commands with pipes. Default output is one typed JSON\n";
+    out << "object per line (ndjson).\n\n";
     out << "Commands:\n";
     for (Command* c : all_commands()) {
         out << "  " << std::left << std::setw(10) << c->name() << c->summary() << '\n';
     }
-    out << "\nOutput is one JSON object per line (ndjson) unless --out json|plain.\n";
-    out << "Pipes compose:  btk privkey --new | btk address --type p2wpkh\n\n";
+    out << "\n";
+    out << "Options:\n";
+    out << "  -h, --help             Show this help and exit\n";
+    out << "  -V, --version          Print a version object and exit\n\n";
+    out << "Examples:\n";
+    out << "  btk privkey --new | btk pubkey | btk address --type p2wpkh\n";
+    out << "  btk privkey --new --stream | btk address --type p2pkh --match '^1bri'\n\n";
     out << "See 'btk <command> --help'.\n";
 }
 

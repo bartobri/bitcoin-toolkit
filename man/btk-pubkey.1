@@ -14,10 +14,11 @@ Each stdin item is a typed
 .B privkey
 or
 .B pubkey
-object, or a bare line guessed as WIF, 64-character hex private key, a
-decimal digit string, then 66- or 130-character hex public key.
+object, or a bare line determined in this order: WIF, 64-character hex
+private key, a decimal digit string, then 66- or 130-character hex
+public key.
 .B \-\-from
-overrides that guess.
+overrides that determination.
 .B \-\-from hex
 accepts a 64-character private key or a 66- or 130-character public key.
 .PP
@@ -36,6 +37,9 @@ prefix). Flags override. Both flags emit two objects. Output
 is always hex.
 .SH OPTIONS
 .TP
+.BR \-h ", " \-\-help
+Show this help and exit.
+.TP
 .B \-\-compressed
 Emit a compressed public key (33 bytes,
 .B 02
@@ -49,7 +53,8 @@ Emit an uncompressed public key (65 bytes,
 prefix). Both flags emit two objects (compressed first).
 .TP
 .BI \-\-from " wif|hex|dec"
-Force how bare stdin lines are interpreted. Default is guess. Unknown
+Force how bare stdin lines are interpreted. Default is determined from
+the input. Unknown
 values are
 .BR "invalid \-\-from" .
 .TP

@@ -21,14 +21,56 @@ BALANCE_HELP = """btk balance — local address → satoshi index
 
 Usage:
   btk balance
-  btk balance --sync [--host H] [--port P] [--rpc-auth user:pass]
+  btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
+                     [--force]
 
-Query prints {"type":"balance","address":"…","sats":N}. Missing = 0.
-Accepts address objects or bare address strings on stdin.
---sync writes ~/.btk/balance from Core JSON-RPC (create or catch up).
---force wipes ~/.btk/balance and walks from genesis (only with --sync).
-Progress is on stderr. Requires LevelDB at build time.
-No cookie file; use --rpc-auth user:pass or config rpc.auth.
+Query a local address-to-satoshi index, or synchronize it from
+Bitcoin Core JSON-RPC. The index always lives at ~/.btk/balance.
+Requires LevelDB at build time. Mainnet only.
+
+Query is a transformer on stdin (no positional addresses). Items
+are a typed address object (data), a typed balance object
+(address), or a bare Base58Check / bech32 address. --from address
+forces the bare-line parse. Leftover text is an error, not a hash.
+Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
+A missing database is "balance database not found (run btk balance
+--sync)". Query is read-only.
+
+--sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
+hex). Missing or empty DB: walk 0…tip. Valid DB: walk
+Mheight+1…tip (already at tip → complete, exit 0). Junk or a reorg:
+rebuild with --sync --force. --force wipes the directory and walks
+from genesis. Ctrl-C / SIGTERM abort within ~200 ms; the next
+--sync continues from the last saved height. Progress is on stderr.
+
+No cookie file. Use --rpc-auth user:pass or config rpc.auth.
+--host / --port default to config rpc.host / rpc.port or
+127.0.0.1 / 8332. A first mainnet sync needs a node that can serve
+every historical block and can take days; later runs are
+incremental.
+
+Options:
+  -h, --help             Show this help and exit
+      --sync             Create the index or catch it up from RPC
+      --force            With --sync, wipe ~/.btk/balance and walk
+                         from genesis
+      --host HOST        RPC host. Default: config rpc.host or
+                         127.0.0.1. A host:port form sets the port.
+      --port PORT        RPC port. Default: config rpc.port or 8332
+      --rpc-auth USER:PASS
+                         HTTP Basic credentials. Default: config
+                         rpc.auth. No cookie file.
+      --from address     Force bare stdin lines as addresses
+      --config PATH      Config file. Default: $BTK_CONFIG, else
+                         ~/.btk/config.json
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the satoshi count.
+      --in FORMAT        auto (default), ndjson, json, or plain
+
+Examples:
+  btk balance --sync
+  printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
+  btk privkey --new | btk address | btk balance
 """
 
 P2WPKH_G = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"

@@ -40,14 +40,52 @@ PUBKEY_HELP = """btk pubkey — derive or recompress public keys
 Usage:
   btk pubkey [--compressed | --uncompressed]
              [--from wif|hex|dec] [--source]
+             [--network mainnet|testnet]
 
-Items are a privkey or pubkey object, or a stdin line that is
-already a key (WIF, hex priv, decimal, or hex pub). Guess order:
-WIF, 64-char hex priv, decimal, 66/130-char hex pub. --from
-overrides the guess (--from hex is 64-char priv or 66/130-char
-pub). Leftover text is an error. Default compression follows the
-input; flags override. Both flags emit two objects. Output is hex
-(33 or 65 bytes). --source includes the parent key on the object.
+Derive a secp256k1 public key from a private key, or parse and
+recompress an existing public key. Input is stdin only (no positional
+keys).
+
+Items are a typed privkey or pubkey object, or a bare line that is
+already a key. Determined in this order: WIF, 64-character hex
+private key, decimal, then 66- or 130-character hex public key.
+--from overrides that determination. --from hex accepts a 64-char
+private key or a 66/130-char public key. 64-digit all-numeric is hex
+priv. A 66- or 130-digit all-numeric string is decimal (determined
+before hex pub).
+
+This command does not invent a secret. Leftover text, --from text,
+and --from file are errors. Hash a passphrase first with
+btk privkey --from text, then pipe the typed object.
+
+Default compression follows the input (WIF flag, object field, or
+existing 02/03 vs 04 prefix). --compressed / --uncompressed override.
+Both flags emit two objects (compressed first). Output encoding is
+always hex (33 or 65 bytes).
+
+Network comes from the typed object or WIF version byte, else
+--network, else mainnet. --network does not override a WIF version.
+
+Options:
+  -h, --help             Show this help and exit
+      --compressed       Emit a compressed public key (33 bytes)
+      --uncompressed     Emit an uncompressed public key (65 bytes).
+                         Both flags emit two objects.
+      --from TYPE        Force bare-line type: wif, hex, or dec.
+                         Default: determined from the input. hex is
+                         64-char priv or 66/130-char pub.
+      --source           Include the parent key as a source object
+  -n, --network NET      mainnet (default) or testnet, when the input
+                         does not already name a network
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the hex public key.
+      --in FORMAT        auto (default), ndjson, json, or plain.
+                         --from with auto is coerced to plain.
+
+Examples:
+  btk privkey --new | btk pubkey
+  btk privkey --new | btk pubkey --source
+  printf '%s' <wif> | btk pubkey --out plain
 """
 
 

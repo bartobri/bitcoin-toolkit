@@ -57,21 +57,50 @@ Usage:
               [--network mainnet|testnet]
               [--source]
 
-  --type       Repeatable. Default: p2wpkh
-               p2pkh   Base58Check HASH160(pubkey)
-               p2wpkh  Bech32 v0 HASH160(compressed pubkey)
-               p2tr    Bech32m v1 BIP-341 key-path (empty tree)
-  --match      POSIX ERE on the address; drop non-matches; includes source
-  --source     Include a source object even without --match
+Derive a Bitcoin address from an explicit private or public key.
+Input is stdin only (no positional keys).
 
-Items are a privkey or pubkey object, or a stdin line that is
-already a WIF private key or a 66/130-char hex public key.
-Guess order: WIF, then hex pub. There is no --from.
-64-hex and leftover text are errors (not keys).
-p2wpkh and p2tr require a compressed key.
-There is no --bech32m flag; use --type p2tr for Taproot.
+Items are a typed privkey or pubkey object (any encoding on the
+object), or a bare line that is already a WIF private key or a
+66- or 130-character hex public key. Determined in this order:
+WIF, then hex pub.
+There is no --from. 64-character hex, decimal, leftover text, and
+binary stdin are errors (not keys). A WIF-shaped string with a bad
+checksum is "invalid WIF checksum". 64-hex is never an x-only key.
 
-Vanity:
+--type is repeatable; default is one p2wpkh. Addresses are emitted
+in flag order. p2wpkh and p2tr require a compressed key. p2tr is
+BIP-341 key-path with an empty script tree (tweaked), encoded as
+bech32m witness v1. There is no --bech32m flag.
+
+Network: WIF version byte, else the typed object's network, else
+--network, else mainnet. --network does not override a WIF version.
+source is not walked.
+
+--match is a POSIX extended regex on the address data, compiled in
+the C locale. Non-matches are dropped (empty stdout is still exit
+0). Implies --source. Pass --match at most once.
+
+Options:
+  -h, --help             Show this help and exit
+      --type TYPE        Address script. Repeatable. Default: p2wpkh.
+                         p2pkh   Base58Check HASH160(pubkey)
+                         p2wpkh  Bech32 v0 HASH160(compressed pubkey)
+                         p2tr    Bech32m v1 BIP-341 key-path
+                                 (empty tree)
+      --match REGEX      POSIX ERE on the address; drop non-matches;
+                         includes source
+      --ignore-case      Case-insensitive --match (REG_ICASE)
+      --source           Include a source object even without --match
+  -n, --network NET      mainnet (default) or testnet, when the input
+                         does not already name a network
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the address.
+      --in FORMAT        auto (default), ndjson, json, or plain
+
+Examples:
+  btk privkey --new | btk address --type p2wpkh
+  btk privkey --new | btk address --type p2pkh --type p2tr
   btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 """
 

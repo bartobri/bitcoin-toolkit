@@ -30,7 +30,17 @@ def main():
     assert r.returncode == 0
     out = r.stdout.decode()
     assert "Bitcoin Toolkit 4.0.0" in out
-    assert "btk [--config PATH] <command>" in out
+    assert "btk <command> [options]" in out
+    assert "  btk --help\n" in out
+    assert "  btk --version\n" in out
+    assert "-h, --help" in out
+    assert "-V, --version" in out
+    assert "--config PATH" not in out
+    assert "-n, --network" not in out
+    assert "-o, --out" not in out
+    assert "--in FORMAT" not in out
+    assert "-s, --stream" not in out
+    assert "-c, --count" not in out
 
     r = run(["--version"])
     assert r.returncode == 0

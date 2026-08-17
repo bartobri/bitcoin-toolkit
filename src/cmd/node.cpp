@@ -16,9 +16,31 @@ const char kHelp[] = R"help(btk node — Bitcoin P2P version handshake (IPv4 mai
 Usage:
   btk node --host HOST [--port 8333]
 
-Connects, sends version, prints the peer's version as a typed object,
-and closes. 15s timeout. Default port 8333.
---verbose includes raw P2P fields. --out plain prints ip:port.
+Connect to a Bitcoin P2P peer, send a version message (protocol
+70015, user agent /Bitcoin-Toolkit:4.0.0/), print the peer's
+version as a typed object, and close. Does not send verack. One
+shot; not a key pipe. --host is required (no positional host).
+
+IPv4 mainnet only (getaddrinfo AF_INET). Default port 8333. 15 s
+timeout on connect and read. --host may include :port (one colon).
+Combined with --port that is "port specified twice". --network is
+ignored. Does not load ~/.btk/config.json.
+
+Options:
+  -h, --help             Show this help and exit
+      --host HOST        IPv4 address or DNS name. Required. A
+                         host:port form sets the port.
+      --port PORT        TCP port. Default: 8333
+      --verbose          Include raw P2P fields: addr_recv,
+                         addr_trans, nonce (decimal string), and
+                         services_bits
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints ip:port.
+
+Examples:
+  btk node --host seed.bitcoin.sipa.be
+  btk node --host 127.0.0.1 --port 8333 --verbose
+  btk node --host seed.bitcoin.sipa.be --out plain
 )help";
 
 void set_int64(JsonObject& o, const char* key, std::int64_t value) {

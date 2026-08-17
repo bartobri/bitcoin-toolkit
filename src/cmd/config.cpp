@@ -19,9 +19,44 @@ Usage:
   btk config get <key>
   btk config dump
 
-Keys: rpc.host, rpc.port, rpc.auth
-File: ~/.btk/config.json (or --config / $BTK_CONFIG), mode 0600.
-dump and get redact rpc.auth as ********.
+Store a few RPC defaults used by btk balance --sync. Verbs and keys
+stay on argv; this command is not a pipe.
+
+Keys: rpc.host (string), rpc.port (integer 1–65535), rpc.auth
+(user:pass). Anything else is "unknown config key". There is no
+balance.path; the index is always ~/.btk/balance.
+
+File: --config, else $BTK_CONFIG, else ~/.btk/config.json. Nested
+JSON. Unknown on-disk fields are ignored and preserved on rewrite.
+The file (mode 0600) and parents (0700) are created only on set.
+Missing file: dump prints {"type":"config"} and exits 0; get and
+unset print "no such key" and exit 1. None of those mkdir.
+
+get of a present key emits a one-key config object. --out plain is
+the raw stored value (8332 for the port). dump emits the typed
+config object (dotted keys). --out plain is key=value lines in
+order rpc.host, rpc.port, rpc.auth. rpc.auth is always eight
+asterisks; omitted from dump when unset. set and unset print
+nothing.
+
+Only config and balance open this file. privkey, pubkey, address,
+and node never do.
+
+Options:
+  -h, --help             Show this help and exit
+      --config PATH      Config file. Default: $BTK_CONFIG, else
+                         ~/.btk/config.json
+  -o, --out FORMAT       ndjson (default), json, or plain. Affects
+                         get and dump. plain is the raw value or
+                         key=value lines.
+
+Examples:
+  btk config set rpc.host=127.0.0.1
+  btk config set rpc.port=8332
+  btk config set rpc.auth=user:pass
+  btk config get rpc.host --out plain
+  btk config dump
+  btk config unset rpc.auth
 )help";
 
 constexpr const char kRedacted[] = "********";

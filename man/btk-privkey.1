@@ -23,13 +23,13 @@ Without
 .B \-\-new
 and without
 .BR \-\-from ,
-each stdin item is guessed as WIF, 64-character hex, or a decimal digit
-string. 64-digit all-numeric strings are hex. Anything else is SHA-256'd
-as text. Piped binary (NUL, non-text control bytes, or invalid UTF-8) is
-hashed whole.
+each stdin item is determined in this order: WIF, 64-character hex, or
+a decimal digit string. 64-digit all-numeric strings are hex. Anything
+else is SHA-256'd as text. Piped binary (NUL, non-text control bytes,
+or invalid UTF-8) is hashed whole.
 .PP
 .B \-\-from
-overrides that guess. Use
+overrides that determination. Use
 .B \-\-from text
 when the bytes are also a valid key (for example
 .BR 1 ).
@@ -37,6 +37,9 @@ Use
 .B \-\-from file
 to hash stdin as raw bytes.
 .SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show this help and exit.
 .TP
 .B \-\-new
 CSPRNG key in [1, n\-1]. Generator: does not read stdin.
@@ -60,7 +63,7 @@ Set the WIF/pubkey compression flag (default).
 Clear the flag. Both flags emit two objects (compressed first).
 .TP
 .BI \-\-from " wif|hex|dec|text|file"
-Force how stdin is interpreted. Default is guess.
+Force how stdin is interpreted. Default is determined from the input.
 .B file
 hashes the entire stream (one key).
 .B text

@@ -1535,7 +1535,7 @@ endif
 
 ## Appendix C — Embedded help text
 
-Print exactly this (or an isomorphic wrap to 80 columns). This is also the body of the new man pages. Keep this appendix in lockstep with the command tables; CLI tests pin the overview and `privkey` bodies byte-for-byte and only require the other bodies to contain the flags listed in those tables.
+Print exactly this (or an isomorphic wrap to 80 columns). This is also the body of the new man pages. Keep this appendix in lockstep with the command tables; CLI tests pin every `--help` body byte-for-byte.
 
 ### `btk --help`
 
@@ -1543,7 +1543,14 @@ Print exactly this (or an isomorphic wrap to 80 columns). This is also the body 
 btk — Bitcoin Toolkit 4.0.0
 
 Usage:
-  btk [--config PATH] <command> [options]
+  btk <command> [options]
+  btk --help
+  btk --version
+
+Command-line tools for Bitcoin keys, addresses, a P2P handshake, a local
+address-balance index, and a few RPC defaults. Item payloads travel on
+stdin; compose commands with pipes. Default output is one typed JSON
+object per line (ndjson).
 
 Commands:
   privkey   Create or convert private keys
@@ -1553,8 +1560,13 @@ Commands:
   balance   Sync or query a local address-balance index
   config    Get and set defaults (RPC)
 
-Output is one JSON object per line (ndjson) unless --out json|plain.
-Pipes compose:  btk privkey --new | btk address --type p2wpkh
+Options:
+  -h, --help             Show this help and exit
+  -V, --version          Print a version object and exit
+
+Examples:
+  btk privkey --new | btk pubkey | btk address --type p2wpkh
+  btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 
 See 'btk <command> --help'.
 ```
@@ -1572,20 +1584,54 @@ Usage:
               [--compressed | --uncompressed]
               [--from wif|hex|dec|text|file]
 
-  --new              CSPRNG key in [1, n-1]
-  --encoding         Output wif (default), hex, or dec
-  --network          mainnet (default) or testnet; WIF version byte
-  --compressed       Set the WIF/pubkey compression flag (default)
-  --uncompressed     Clear the flag; both flags emit two objects
-  --from             Force stdin type (default: guess)
-  --count N          With --new, emit N keys
-  --stream           With --new, emit until SIGINT
-  --out ndjson|json|plain
-  --in  auto|ndjson|json|plain
+Create a private key from the CSPRNG, convert encodings, or derive a
+key from explicit bytes. Input is stdin only (no positional keys).
 
-Input is stdin only (no positional keys). Guess order: WIF, 64-char
-hex, decimal, text (SHA-256), then binary file (whole stdin).
---from text|file overrides the guess (e.g. printf 1 | btk privkey --from text).
+Without --new, each stdin item is determined in this order: WIF
+(base58check, version 0x80/0xEF), 64-character hex (case-insensitive;
+64-digit all-numeric is hex, not decimal), a decimal digit string,
+then SHA-256 of the line. Piped binary (NUL, other C0 controls, or
+invalid UTF-8) is SHA-256 of the entire stdin — same as --from file.
+A WIF-shaped string with a bad checksum is an error, not a hash.
+Scalar 0 or >= n is "private key out of range".
+
+--from overrides that determination on bare lines. Typed JSON objects
+(type=privkey) always win. --from text SHA-256s each line even when
+the text looks like a key (printf 1 | btk privkey --from text).
+--from file hashes the whole stream as one key. SHA-256 of a
+passphrase is not a KDF; do not use it as a wallet.
+
+Options:
+  -h, --help             Show this help and exit
+      --new              CSPRNG key in [1, n-1]. Does not read stdin.
+                         Cannot combine with --from.
+      --encoding FMT     Output encoding: wif (default), hex, or dec.
+                         Decimal data is a digit string with no
+                         leading zeros.
+  -n, --network NET      mainnet (default) or testnet. Sets the WIF
+                         version byte. Re-encodes WIF to this
+                         network.
+      --compressed       Set the WIF/pubkey compression flag
+                         (default)
+      --uncompressed     Clear the flag. Both flags emit two objects
+                         (compressed first).
+      --from TYPE        Force stdin type: wif, hex, dec, text, or
+                         file. Default: determined from the input.
+  -c, --count N          With --new, emit N keys. N must be >= 1.
+  -s, --stream           With --new, emit until SIGINT. Combined with
+                         --count N, emit exactly N.
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the key data.
+      --in FORMAT        auto (default), ndjson, json, or plain.
+                         --from text|wif|hex|dec with auto is coerced
+                         to plain. --from file does not read objects.
+
+Examples:
+  btk privkey --new
+  btk privkey --new --count 5 --encoding hex
+  printf 1 | btk privkey --encoding dec --out plain
+  printf 1 | btk privkey --from text --out plain
+  cat photo.jpg | btk privkey --from file --out plain
 ```
 
 ### `btk pubkey --help`
@@ -1596,14 +1642,52 @@ btk pubkey — derive or recompress public keys
 Usage:
   btk pubkey [--compressed | --uncompressed]
              [--from wif|hex|dec] [--source]
+             [--network mainnet|testnet]
 
-Items are a privkey or pubkey object, or a stdin line that is
-already a key (WIF, hex priv, decimal, or hex pub). Guess order:
-WIF, 64-char hex priv, decimal, 66/130-char hex pub. --from
-overrides the guess (--from hex is 64-char priv or 66/130-char
-pub). Leftover text is an error. Default compression follows the
-input; flags override. Both flags emit two objects. Output is hex
-(33 or 65 bytes). --source includes the parent key on the object.
+Derive a secp256k1 public key from a private key, or parse and
+recompress an existing public key. Input is stdin only (no positional
+keys).
+
+Items are a typed privkey or pubkey object, or a bare line that is
+already a key. Determined in this order: WIF, 64-character hex
+private key, decimal, then 66- or 130-character hex public key.
+--from overrides that determination. --from hex accepts a 64-char
+private key or a 66/130-char public key. 64-digit all-numeric is hex
+priv. A 66- or 130-digit all-numeric string is decimal (determined
+before hex pub).
+
+This command does not invent a secret. Leftover text, --from text,
+and --from file are errors. Hash a passphrase first with
+btk privkey --from text, then pipe the typed object.
+
+Default compression follows the input (WIF flag, object field, or
+existing 02/03 vs 04 prefix). --compressed / --uncompressed override.
+Both flags emit two objects (compressed first). Output encoding is
+always hex (33 or 65 bytes).
+
+Network comes from the typed object or WIF version byte, else
+--network, else mainnet. --network does not override a WIF version.
+
+Options:
+  -h, --help             Show this help and exit
+      --compressed       Emit a compressed public key (33 bytes)
+      --uncompressed     Emit an uncompressed public key (65 bytes).
+                         Both flags emit two objects.
+      --from TYPE        Force bare-line type: wif, hex, or dec.
+                         Default: determined from the input. hex is
+                         64-char priv or 66/130-char pub.
+      --source           Include the parent key as a source object
+  -n, --network NET      mainnet (default) or testnet, when the input
+                         does not already name a network
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the hex public key.
+      --in FORMAT        auto (default), ndjson, json, or plain.
+                         --from with auto is coerced to plain.
+
+Examples:
+  btk privkey --new | btk pubkey
+  btk privkey --new | btk pubkey --source
+  printf '%s' <wif> | btk pubkey --out plain
 ```
 
 ### `btk address --help`
@@ -1617,21 +1701,50 @@ Usage:
               [--network mainnet|testnet]
               [--source]
 
-  --type       Repeatable. Default: p2wpkh
-               p2pkh   Base58Check HASH160(pubkey)
-               p2wpkh  Bech32 v0 HASH160(compressed pubkey)
-               p2tr    Bech32m v1 BIP-341 key-path (empty tree)
-  --match      POSIX ERE on the address; drop non-matches; includes source
-  --source     Include a source object even without --match
+Derive a Bitcoin address from an explicit private or public key.
+Input is stdin only (no positional keys).
 
-Items are a privkey or pubkey object, or a stdin line that is
-already a WIF private key or a 66/130-char hex public key.
-Guess order: WIF, then hex pub. There is no --from.
-64-hex and leftover text are errors (not keys).
-p2wpkh and p2tr require a compressed key.
-There is no --bech32m flag; use --type p2tr for Taproot.
+Items are a typed privkey or pubkey object (any encoding on the
+object), or a bare line that is already a WIF private key or a
+66- or 130-character hex public key. Determined in this order:
+WIF, then hex pub.
+There is no --from. 64-character hex, decimal, leftover text, and
+binary stdin are errors (not keys). A WIF-shaped string with a bad
+checksum is "invalid WIF checksum". 64-hex is never an x-only key.
 
-Vanity:
+--type is repeatable; default is one p2wpkh. Addresses are emitted
+in flag order. p2wpkh and p2tr require a compressed key. p2tr is
+BIP-341 key-path with an empty script tree (tweaked), encoded as
+bech32m witness v1. There is no --bech32m flag.
+
+Network: WIF version byte, else the typed object's network, else
+--network, else mainnet. --network does not override a WIF version.
+source is not walked.
+
+--match is a POSIX extended regex on the address data, compiled in
+the C locale. Non-matches are dropped (empty stdout is still exit
+0). Implies --source. Pass --match at most once.
+
+Options:
+  -h, --help             Show this help and exit
+      --type TYPE        Address script. Repeatable. Default: p2wpkh.
+                         p2pkh   Base58Check HASH160(pubkey)
+                         p2wpkh  Bech32 v0 HASH160(compressed pubkey)
+                         p2tr    Bech32m v1 BIP-341 key-path
+                                 (empty tree)
+      --match REGEX      POSIX ERE on the address; drop non-matches;
+                         includes source
+      --ignore-case      Case-insensitive --match (REG_ICASE)
+      --source           Include a source object even without --match
+  -n, --network NET      mainnet (default) or testnet, when the input
+                         does not already name a network
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the address.
+      --in FORMAT        auto (default), ndjson, json, or plain
+
+Examples:
+  btk privkey --new | btk address --type p2wpkh
+  btk privkey --new | btk address --type p2pkh --type p2tr
   btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 ```
 
@@ -1643,9 +1756,31 @@ btk node — Bitcoin P2P version handshake (IPv4 mainnet)
 Usage:
   btk node --host HOST [--port 8333]
 
-Connects, sends version, prints the peer's version as a typed object,
-and closes. 15s timeout. Default port 8333.
---verbose includes raw P2P fields. --out plain prints ip:port.
+Connect to a Bitcoin P2P peer, send a version message (protocol
+70015, user agent /Bitcoin-Toolkit:4.0.0/), print the peer's
+version as a typed object, and close. Does not send verack. One
+shot; not a key pipe. --host is required (no positional host).
+
+IPv4 mainnet only (getaddrinfo AF_INET). Default port 8333. 15 s
+timeout on connect and read. --host may include :port (one colon).
+Combined with --port that is "port specified twice". --network is
+ignored. Does not load ~/.btk/config.json.
+
+Options:
+  -h, --help             Show this help and exit
+      --host HOST        IPv4 address or DNS name. Required. A
+                         host:port form sets the port.
+      --port PORT        TCP port. Default: 8333
+      --verbose          Include raw P2P fields: addr_recv,
+                         addr_trans, nonce (decimal string), and
+                         services_bits
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints ip:port.
+
+Examples:
+  btk node --host seed.bitcoin.sipa.be
+  btk node --host 127.0.0.1 --port 8333 --verbose
+  btk node --host seed.bitcoin.sipa.be --out plain
 ```
 
 ### `btk --version`
@@ -1664,14 +1799,56 @@ btk balance — local address → satoshi index
 
 Usage:
   btk balance
-  btk balance --sync [--host H] [--port P] [--rpc-auth user:pass]
+  btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
+                     [--force]
 
-Query prints {"type":"balance","address":"…","sats":N}. Missing = 0.
-Accepts address objects or bare address strings on stdin.
---sync writes ~/.btk/balance from Core JSON-RPC (create or catch up).
---force wipes ~/.btk/balance and walks from genesis (only with --sync).
-Progress is on stderr. Requires LevelDB at build time.
-No cookie file; use --rpc-auth user:pass or config rpc.auth.
+Query a local address-to-satoshi index, or synchronize it from
+Bitcoin Core JSON-RPC. The index always lives at ~/.btk/balance.
+Requires LevelDB at build time. Mainnet only.
+
+Query is a transformer on stdin (no positional addresses). Items
+are a typed address object (data), a typed balance object
+(address), or a bare Base58Check / bech32 address. --from address
+forces the bare-line parse. Leftover text is an error, not a hash.
+Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
+A missing database is "balance database not found (run btk balance
+--sync)". Query is read-only.
+
+--sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
+hex). Missing or empty DB: walk 0…tip. Valid DB: walk
+Mheight+1…tip (already at tip → complete, exit 0). Junk or a reorg:
+rebuild with --sync --force. --force wipes the directory and walks
+from genesis. Ctrl-C / SIGTERM abort within ~200 ms; the next
+--sync continues from the last saved height. Progress is on stderr.
+
+No cookie file. Use --rpc-auth user:pass or config rpc.auth.
+--host / --port default to config rpc.host / rpc.port or
+127.0.0.1 / 8332. A first mainnet sync needs a node that can serve
+every historical block and can take days; later runs are
+incremental.
+
+Options:
+  -h, --help             Show this help and exit
+      --sync             Create the index or catch it up from RPC
+      --force            With --sync, wipe ~/.btk/balance and walk
+                         from genesis
+      --host HOST        RPC host. Default: config rpc.host or
+                         127.0.0.1. A host:port form sets the port.
+      --port PORT        RPC port. Default: config rpc.port or 8332
+      --rpc-auth USER:PASS
+                         HTTP Basic credentials. Default: config
+                         rpc.auth. No cookie file.
+      --from address     Force bare stdin lines as addresses
+      --config PATH      Config file. Default: $BTK_CONFIG, else
+                         ~/.btk/config.json
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the satoshi count.
+      --in FORMAT        auto (default), ndjson, json, or plain
+
+Examples:
+  btk balance --sync
+  printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
+  btk privkey --new | btk address | btk balance
 ```
 
 ### `btk config --help`
@@ -1685,9 +1862,44 @@ Usage:
   btk config get <key>
   btk config dump
 
-Keys: rpc.host, rpc.port, rpc.auth
-File: ~/.btk/config.json (or --config / $BTK_CONFIG), mode 0600.
-dump and get redact rpc.auth as ********.
+Store a few RPC defaults used by btk balance --sync. Verbs and keys
+stay on argv; this command is not a pipe.
+
+Keys: rpc.host (string), rpc.port (integer 1–65535), rpc.auth
+(user:pass). Anything else is "unknown config key". There is no
+balance.path; the index is always ~/.btk/balance.
+
+File: --config, else $BTK_CONFIG, else ~/.btk/config.json. Nested
+JSON. Unknown on-disk fields are ignored and preserved on rewrite.
+The file (mode 0600) and parents (0700) are created only on set.
+Missing file: dump prints {"type":"config"} and exits 0; get and
+unset print "no such key" and exit 1. None of those mkdir.
+
+get of a present key emits a one-key config object. --out plain is
+the raw stored value (8332 for the port). dump emits the typed
+config object (dotted keys). --out plain is key=value lines in
+order rpc.host, rpc.port, rpc.auth. rpc.auth is always eight
+asterisks; omitted from dump when unset. set and unset print
+nothing.
+
+Only config and balance open this file. privkey, pubkey, address,
+and node never do.
+
+Options:
+  -h, --help             Show this help and exit
+      --config PATH      Config file. Default: $BTK_CONFIG, else
+                         ~/.btk/config.json
+  -o, --out FORMAT       ndjson (default), json, or plain. Affects
+                         get and dump. plain is the raw value or
+                         key=value lines.
+
+Examples:
+  btk config set rpc.host=127.0.0.1
+  btk config set rpc.port=8332
+  btk config set rpc.auth=user:pass
+  btk config get rpc.host --out plain
+  btk config dump
+  btk config unset rpc.auth
 ```
 
 ---

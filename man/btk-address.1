@@ -16,8 +16,8 @@ Each stdin item is a typed
 .B privkey
 or
 .B pubkey
-object, or a bare line guessed as WIF then a 66- or 130-character hex
-public key. There is no
+object, or a bare line determined in this order: WIF, then a 66- or
+130-character hex public key. There is no
 .BR \-\-from .
 64-character hex, decimal, leftover text, and binary stdin are
 .BR "not a private or public key" .
@@ -39,6 +39,9 @@ bech32m witness v1. There is no
 .B \-\-bech32m
 flag.
 .SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show this help and exit.
 .TP
 .BI \-\-type " p2pkh|p2wpkh|p2tr"
 Address script to produce. Repeatable. Default

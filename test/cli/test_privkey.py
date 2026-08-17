@@ -47,20 +47,54 @@ Usage:
               [--compressed | --uncompressed]
               [--from wif|hex|dec|text|file]
 
-  --new              CSPRNG key in [1, n-1]
-  --encoding         Output wif (default), hex, or dec
-  --network          mainnet (default) or testnet; WIF version byte
-  --compressed       Set the WIF/pubkey compression flag (default)
-  --uncompressed     Clear the flag; both flags emit two objects
-  --from             Force stdin type (default: guess)
-  --count N          With --new, emit N keys
-  --stream           With --new, emit until SIGINT
-  --out ndjson|json|plain
-  --in  auto|ndjson|json|plain
+Create a private key from the CSPRNG, convert encodings, or derive a
+key from explicit bytes. Input is stdin only (no positional keys).
 
-Input is stdin only (no positional keys). Guess order: WIF, 64-char
-hex, decimal, text (SHA-256), then binary file (whole stdin).
---from text|file overrides the guess (e.g. printf 1 | btk privkey --from text).
+Without --new, each stdin item is determined in this order: WIF
+(base58check, version 0x80/0xEF), 64-character hex (case-insensitive;
+64-digit all-numeric is hex, not decimal), a decimal digit string,
+then SHA-256 of the line. Piped binary (NUL, other C0 controls, or
+invalid UTF-8) is SHA-256 of the entire stdin — same as --from file.
+A WIF-shaped string with a bad checksum is an error, not a hash.
+Scalar 0 or >= n is "private key out of range".
+
+--from overrides that determination on bare lines. Typed JSON objects
+(type=privkey) always win. --from text SHA-256s each line even when
+the text looks like a key (printf 1 | btk privkey --from text).
+--from file hashes the whole stream as one key. SHA-256 of a
+passphrase is not a KDF; do not use it as a wallet.
+
+Options:
+  -h, --help             Show this help and exit
+      --new              CSPRNG key in [1, n-1]. Does not read stdin.
+                         Cannot combine with --from.
+      --encoding FMT     Output encoding: wif (default), hex, or dec.
+                         Decimal data is a digit string with no
+                         leading zeros.
+  -n, --network NET      mainnet (default) or testnet. Sets the WIF
+                         version byte. Re-encodes WIF to this
+                         network.
+      --compressed       Set the WIF/pubkey compression flag
+                         (default)
+      --uncompressed     Clear the flag. Both flags emit two objects
+                         (compressed first).
+      --from TYPE        Force stdin type: wif, hex, dec, text, or
+                         file. Default: determined from the input.
+  -c, --count N          With --new, emit N keys. N must be >= 1.
+  -s, --stream           With --new, emit until SIGINT. Combined with
+                         --count N, emit exactly N.
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the key data.
+      --in FORMAT        auto (default), ndjson, json, or plain.
+                         --from text|wif|hex|dec with auto is coerced
+                         to plain. --from file does not read objects.
+
+Examples:
+  btk privkey --new
+  btk privkey --new --count 5 --encoding hex
+  printf 1 | btk privkey --encoding dec --out plain
+  printf 1 | btk privkey --from text --out plain
+  cat photo.jpg | btk privkey --from file --out plain
 """
 
 
