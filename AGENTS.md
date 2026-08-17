@@ -16,6 +16,8 @@ Branch `4.x`. Latest work is **Phase 5 complete** (`btk balance`). Next implemen
 | `3fb1427` | Phase 3 `btk address` + `--match` implies `source` |
 | `76bb1d9` | Record Phase 3 as shipped |
 | `d91fa5b` | Phase 4 `btk node` IPv4 mainnet handshake |
+| `385ff08` | Plan balance as `--sync` over RPC into `~/.btk/balance` |
+| `fb4604f` | Phase 5 `btk balance` RPC `--sync` + LevelDB index |
 
 `make test` is the gate (unit + offline CLI). No network. Version is `4.0.0` (`src/version.hpp`).
 
