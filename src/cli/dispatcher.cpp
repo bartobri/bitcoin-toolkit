@@ -4,11 +4,13 @@
 #include "cli/options.hpp"
 #include "cli/output.hpp"
 #include "cmd/address.hpp"
+#include "cmd/balance.hpp"
 #include "cmd/command.hpp"
 #include "cmd/node.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
 #include "util/error.hpp"
+#include "util/interrupt.hpp"
 #include "version.hpp"
 
 #include <csignal>
@@ -26,9 +28,7 @@ std::vector<std::unique_ptr<Command>>& registry() {
     return cmds;
 }
 
-volatile std::sig_atomic_t g_stop = 0;
-
-void on_sigint(int) { g_stop = 1; }
+void on_stop(int) { request_stop(); }
 
 void run_transformer(Command& cmd, const Options& opts, OutputWriter& out) {
     auto handle = [&](const JsonObject& item) {
@@ -52,7 +52,7 @@ void run_generator(Command& cmd, const Options& opts, OutputWriter& out) {
     const bool infinite = repeatable && opts.stream && !opts.count_set;
     const std::uint64_t n = opts.count_set ? opts.count : 1;
     std::uint64_t i = 0;
-    while (!g_stop && (infinite || i < n)) {
+    while (!stop_requested() && (infinite || i < n)) {
         const std::vector<JsonObject> produced = cmd.run(opts, std::nullopt);
         for (const JsonObject& o : produced) {
             out.write(o);
@@ -80,6 +80,7 @@ void register_builtin_commands() {
     register_command(make_pubkey_command());
     register_command(make_address_command());
     register_command(make_node_command());
+    register_command(make_balance_command());
 }
 
 Command* find_command(const std::string& name) {
@@ -163,7 +164,8 @@ int dispatch(int argc, char** argv) {
 
     cmd->init(opts);
 
-    std::signal(SIGINT, on_sigint);
+    std::signal(SIGINT, on_stop);
+    std::signal(SIGTERM, on_stop);
 
     OutputWriter out(opts);
     if (cmd->is_generator(opts)) {

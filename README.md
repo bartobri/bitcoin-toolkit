@@ -6,7 +6,7 @@ This tree is a ground-up C++17 rewrite. The 3.1.2 C sources live on the `legacy/
 
 ## Status
 
-Phase 4 is implemented: `btk privkey`, `btk pubkey`, `btk address`, and `btk node`. Next is `btk balance` (`--sync` from Core JSON-RPC into `~/.btk/balance`; query addresses on stdin). Later: `config`. Help and version are `--help` / `--version` (no `help` or `version` command).
+Phase 5 is implemented: `btk privkey`, `btk pubkey`, `btk address`, `btk node`, and `btk balance`. Next is `btk config`. Help and version are `--help` / `--version` (no `help` or `version` command).
 
 ```sh
 btk privkey --new
@@ -24,6 +24,8 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 btk node --host seed.bitcoin.sipa.be
 btk node --host seed.bitcoin.sipa.be --out plain
+btk balance --sync
+printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 ```
 
 Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.
@@ -33,6 +35,8 @@ Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (S
 `address` has no `--from`. Bare lines are WIF or a 66/130-char hex public key. Typed `privkey` / `pubkey` objects still compose. `--type` is `p2pkh`, `p2wpkh` (default), or `p2tr` (BIP-341 empty-tree). `source` is included on `--match`, or when `--source` is set.
 
 `node` is a one-shot IPv4 mainnet handshake. `--host` is required (no positional host). It sends `version`, prints the peer’s `version`, and closes without `verack`. `--out plain` prints `ip:port`.
+
+`balance` queries a local address→satoshi index at `~/.btk/balance`. `--sync` creates or catches it up from Core JSON-RPC (`--host` / `--port` / `--rpc-auth`). Query is stdin-only; missing addresses are `sats: 0`. `--out plain` prints the satoshi count. Ctrl-C stops `--sync`; the next `--sync` continues from the last saved height.
 
 Output is one JSON object per line (ndjson) unless `--out json` or `--out plain`.
 
@@ -55,7 +59,7 @@ make test          # unit + offline CLI; no network
 sudo make install  # prefix=/usr/local
 ```
 
-LevelDB is optional and unused until the balance command. JSON parsing uses vendored [picojson](third_party/README.md). SHA-256 and RIPEMD-160 are implemented in-tree.
+LevelDB is optional and required for `btk balance`. JSON parsing uses vendored [picojson](third_party/README.md). SHA-256 and RIPEMD-160 are implemented in-tree.
 
 ## License
 

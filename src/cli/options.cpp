@@ -238,16 +238,10 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.verbose = true;
         } else if (name == "force") {
             opts.force = true;
-        } else if (name == "build") {
-            opts.build = true;
-        } else if (name == "update") {
-            opts.update = true;
-        } else if (name == "from-rpc") {
-            opts.from_rpc = true;
-        } else if (name == "from-chainstate") {
-            opts.from_chainstate = true;
-        } else if (name == "path") {
-            opts.path = optarg ? optarg : "";
+        } else if (name == "sync") {
+            opts.sync = true;
+        } else if (name == "rpc-auth") {
+            opts.rpc_auth = optarg ? optarg : "";
         } else {
             throw BtkError(opts.command, std::string("unknown option '--") + name + "'");
         }

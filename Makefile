@@ -34,11 +34,20 @@ SRC := \
 	src/core/bech32.cpp \
 	src/core/address.cpp \
 	src/net/p2p.cpp \
+	src/net/jsonrpc.cpp \
+	src/chain/compactsize.cpp \
+	src/chain/transaction.cpp \
+	src/chain/script.cpp \
+	src/chain/balance_db.cpp \
+	src/chain/indexer.cpp \
 	src/cmd/privkey.cpp \
 	src/cmd/pubkey.cpp \
 	src/cmd/address.cpp \
 	src/cmd/node.cpp \
-	src/util/error.cpp
+	src/cmd/balance.cpp \
+	src/util/error.cpp \
+	src/util/config.cpp \
+	src/util/interrupt.cpp
 
 OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
 
@@ -86,7 +95,19 @@ bin/test_p2p: test/unit/p2p_test.cpp src/net/p2p.cpp src/core/hash.cpp src/core/
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address bin/test_p2p
+bin/test_compactsize: test/unit/compactsize_test.cpp src/chain/compactsize.cpp src/core/hex.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
+
+bin/test_tx: test/unit/tx_test.cpp src/chain/compactsize.cpp src/chain/transaction.cpp src/chain/script.cpp src/core/hash.cpp src/core/hex.cpp src/core/base58.cpp src/core/bech32.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
+
+bin/test_balance_db: test/unit/balance_db_test.cpp src/chain/balance_db.cpp src/chain/compactsize.cpp src/chain/transaction.cpp src/chain/script.cpp src/chain/indexer.cpp src/core/hash.cpp src/core/hex.cpp src/core/base58.cpp src/core/bech32.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address bin/test_p2p bin/test_compactsize bin/test_tx bin/test_balance_db
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
@@ -95,6 +116,9 @@ test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_
 	bin/test_bech32
 	bin/test_address
 	bin/test_p2p
+	bin/test_compactsize
+	bin/test_tx
+	bin/test_balance_db
 
 test-cli: bin/btk
 	python3 test/runner.py

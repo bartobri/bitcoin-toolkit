@@ -56,11 +56,8 @@ struct Options {
     std::uint16_t port = 0;
     bool verbose = false;
     bool force = false;
-    bool build = false;
-    bool update = false;
-    bool from_rpc = false;
-    bool from_chainstate = false;
-    std::string path;
+    bool sync = false;
+    std::string rpc_auth;
 };
 
 void add_global_flags(OptionSpec& spec);

@@ -4,7 +4,7 @@ Hand-off for anyone (human or agent) continuing the 4.x rebuild. Read this first
 
 ## Where we are
 
-Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementable phase is **Phase 5 (`btk balance`)**. There is no `help` or `version` command; use `--help` / `--version`.
+Branch `4.x`. Latest work is **Phase 5 complete** (`btk balance`). Next implementable phase is **Phase 6 (`btk config`)**. There is no `help` or `version` command; use `--help` / `--version`.
 
 | Commit | What |
 |---|---|
@@ -34,8 +34,8 @@ Branch `4.x`. Latest work is **Phase 4 complete** (`btk node`). Next implementab
 | 2 `pubkey` | **Done** | See contract below. Man page `man/btk-pubkey.1` |
 | 3 `address` | **Done** | See contract below. Man page `man/btk-address.1` |
 | 4 `node` | **Done** | See contract below. Man page `man/btk-node.1` |
-| 5a–5c `balance` | Not started | LevelDB optional; primitives then query then RPC `--sync`. No chainstate reader |
-| 6 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk` |
+| 5a–5c `balance` | **Done** | See contract below. Man page `man/btk-balance.1`. LevelDB optional; RPC `--sync` only |
+| 6 `config` | Not started | Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk`. Balance already loads the file if it exists |
 
 ## Phase 1 contract (as shipped)
 
@@ -94,7 +94,7 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 
 - Secrets checked with `secp256k1_ec_seckey_verify`. CSPRNG: `getentropy` else `/dev/urandom`.
 - SHA-256 / RIPEMD-160 are in-tree (`src/core/hash.cpp`). No OpenSSL.
-- Required package: `libsecp256k1`. LevelDB probed, unused until Phase 5.
+- Required package: `libsecp256k1`. LevelDB optional (`btk balance`).
 - No GMP; 256-bit decimal is a 32-byte ×10/÷10 loop in `src/core/privkey.cpp`.
 
 ### Help
@@ -106,17 +106,19 @@ Typed JSON objects still work (`type=privkey`, `encoding`, `data` as a **string*
 ```
 src/main.cpp
 src/cli/          dispatcher, options, io, output
-src/cmd/          command.hpp, privkey.{hpp,cpp}, pubkey.{hpp,cpp}, address.{hpp,cpp}, node.{hpp,cpp}
+src/cmd/          command.hpp, privkey, pubkey, address, node, balance
 src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pubkey, address, network.hpp
-src/net/          p2p.{hpp,cpp}
-src/util/         error
+src/chain/        compactsize, transaction, script, balance_db, indexer
+src/net/          p2p, jsonrpc
+src/util/         error, config (load only)
 src/version.hpp
 man/btk-privkey.1
 man/btk-pubkey.1
 man/btk-address.1
 man/btk-node.1
-test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p  (CHECK() macro, no gtest)
-test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py, test_node.py
+man/btk-balance.1
+test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p, compactsize, tx, balance_db
+test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py, test_node.py, test_balance.py
 test/runner.py    discovers test/cli/test_*.py
 third_party/picojson/
 ```
@@ -236,9 +238,9 @@ btk node --host HOST [--port 8333]
 - Offline: unit ser/de of the frozen 109-byte payload + a localhost mock peer in `test/cli/test_node.py`. Live handshake behind `BTK_RUN_NET=1` / `make test-net`.
 - `btk node --help` is pinned in `test/cli/test_node.py` (`NODE_HELP`) and the command’s raw string.
 
-## Phase 5 contract (planned)
+## Phase 5 contract (as shipped)
 
-This is what `btk balance` will do. Carry these rules unless the user changes them.
+This is what `btk balance` actually does.
 
 ```text
 btk balance                                          # query stdin
@@ -247,20 +249,23 @@ btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 
 - Query is a **transformer** on stdin. No positional addresses (`provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → Base58Check / bech32 address. No leftover-text hash. Empty stdin → empty stdout, exit 0. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`.
 - Index is always `~/.btk/balance`. `--path` is unknown. No `balance.path` config key.
-- `--sync` is RPC only. Missing/empty DB → walk `0 … tip`. Valid DB (`Mheight` + `Mtip`) → walk `Mheight+1 … tip` (already at tip → `complete`, exit 0). Non-empty junk → `balance database exists; rebuild with --sync --force`. Reorg → `reorg detected; rebuild with --sync --force`. `--force` only with `--sync`: wipe and walk from genesis.
+- `--sync` is RPC only. Missing/empty DB → walk `0 … tip`. Valid DB (`Mheight` + `Mtip`) → walk `Mheight+1 … tip` (already at tip → `complete`, exit 0). Non-empty junk → `balance database exists; rebuild with --sync --force`. Reorg → `reorg detected; rebuild with --sync --force`. `--force` only with `--sync`: wipe and walk from genesis. Wipe failure (DB locked) → `cannot remove balance database`.
+- SIGINT / SIGTERM abort `--sync` within ~200 ms. Queued blocks are applied first. Stderr: `interrupted: height N`. Exit 1. The next `--sync` continues from `Mheight+1`.
+- A missing prevout is skipped with no warning. We never store non-standard scripts, so those spends are expected. Do not spam `missing prevout` on incremental `--sync`.
+- `--from address` is allowed on query. Other `--from` values are `invalid --from`. `--from` with `--sync` is `cannot combine --sync and --from`.
 - `--build`, `--update`, `--from-rpc`, `--from-chainstate`, and `--chainstate` are unknown.
 - `--host` / `--port` default to config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332`. `--rpc-auth` is `user:pass` (Base64 at request time). No cookie file.
 - Progress on stderr (`syncing:` / `complete:`). Query is read-only.
-- `btk balance --help` will be pinned in `test/cli/test_balance.py` and the command’s raw string.
+- `btk balance --help` is pinned in `test/cli/test_balance.py` (`BALANCE_HELP`) and the command’s raw string.
+- Offline: unit CompactSize / A.10 txid / a tiny DB writer. CLI uses a localhost mock JSON-RPC server. SIGINT abort is tested against a hanging listener. No live bitcoind in `make test`.
 
-## How to continue (Phase 5)
+## How to continue (Phase 6)
 
-Implement `btk balance` from REBUILD.md §5:
+Implement `btk config` from REBUILD.md §6:
 
-- Start with 5a: CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT.
-- Then 5b query, 5c RPC `--sync` (create or catch up). The index is always `~/.btk/balance`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are unknown.
+- `set` / `get` / `unset` / `dump`. Keys: `rpc.host`, `rpc.port`, `rpc.auth`.
+- Load config **only** for `config` and `balance`. Phases 1–4 must not open `~/.btk/config.json`. Balance already loads it for RPC defaults if the file exists.
 - There is no `help` or `version` command. Use `--help` / `--version`.
-- Phases 1–4 must not load `~/.btk/config.json`.
 
 ## Conventions
 

@@ -1,0 +1,82 @@
+.TH BTK-BALANCE 1 "16 August 2026" "Bitcoin Toolkit 4.0.0" "User Commands"
+.SH NAME
+btk-balance \- local address \-> satoshi index
+.SH SYNOPSIS
+.B btk balance
+.br
+.B btk balance \-\-sync
+[\fB\-\-host\fR \fIH\fR]
+[\fB\-\-port\fR \fIP\fR]
+[\fB\-\-rpc-auth\fR \fIuser:pass\fR]
+.SH DESCRIPTION
+Query a local address-to-satoshi index, or synchronize it from Bitcoin Core
+JSON-RPC.
+.PP
+Query is a transformer on stdin. Items are typed
+.B address
+or
+.B balance
+objects, or a bare Base58Check / bech32 address. Missing addresses print
+.BR sats
+0. A leftover positional is
+.BR "provide input on stdin" .
+The index always lives at
+.IR ~/.btk/balance .
+.PP
+.B \-\-sync
+creates the index if it does not exist and catches it up if it does.
+.B \-\-force
+wipes the directory and walks from genesis.
+A reorg is
+.BR "reorg detected; rebuild with --sync --force" .
+.SH OPTIONS
+.TP
+.B \-\-sync
+Walk Core JSON-RPC
+.RB ( getblock
+hex). First run walks 0..tip. Later runs walk from the stored tip.
+.TP
+.B \-\-force
+Only with
+.BR \-\-sync .
+Wipe
+.I ~/.btk/balance
+and walk from genesis.
+.TP
+.BI \-\-host " H"
+RPC host. Default 127.0.0.1, or
+.B rpc.host
+in config. A
+.I host:port
+form sets the port.
+.TP
+.BI \-\-port " P"
+RPC port. Default 8332, or
+.B rpc.port
+in config.
+.TP
+.BI \-\-rpc-auth " user:pass"
+HTTP Basic credentials. Default
+.B rpc.auth
+in config. No cookie file.
+.TP
+.BI \-\-out " ndjson|json|plain"
+Output framing. Default ndjson.
+.B \-\-out plain
+prints the satoshi count.
+.SH OUTPUT
+.BR type=balance ,
+.BR address ,
+.BR sats .
+Progress is on stderr.
+.SH NOTES
+Requires LevelDB at compile time. Mainnet only. Does not read Core's chainstate.
+.B \-\-path ,
+.BR \-\-build ,
+.BR \-\-update ,
+.BR \-\-from-rpc ,
+and
+.B \-\-from-chainstate
+are unknown.
+.SH SEE ALSO
+.BR btk (1)

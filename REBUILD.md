@@ -4,8 +4,8 @@
 |---|---|
 | **Document** | Product spec + incremental implementation plan |
 | **Author** | Bitcoin Toolkit maintainers |
-| **Date** | 2026-08-16 |
-| **Status** | Phases 0–4 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`). Next: Phase 5 `balance`. No `help` or `version` command (`--help` / `--version` only). |
+| **Date** | 2026-08-17 |
+| **Status** | Phases 0–5 implemented on `4.x` (`privkey`, `pubkey`, `address`, `node`, `balance`). Next: Phase 6 `config`. No `help` or `version` command (`--help` / `--version` only). |
 | **Target product** | Bitcoin Toolkit 4.0.0 |
 | **Language** | C++17 (GNU Makefile, no Boost, no CMake) |
 | **License** | GNU GPL v3 |
@@ -951,7 +951,7 @@ Methods:
 
 `--sync` without `--force`: if there is no valid index, walk `0 … tip`; if there is, check the RPC hash at `Mheight` against `Mtip` and walk `Mheight+1 … tip`. `--sync --force` always walks `0 … tip`. A genesis walk needs a Core node that can serve every historical block (`getblock … 0`); a pruned node cannot complete it. A mainnet first sync takes days — that is accepted. Later `--sync` runs are incremental.
 
-For each block, for each tx, for each input (skip coinbase): look up `O[prevout]`; if found, debit that address by that amount (floor at 0 and warn on stderr if missing — a missing prevout on a full walk from genesis should not happen; on an incremental `--sync` it means the DB was incomplete). Delete the outpoint. For each output with a recognized address: credit `A[addr]`, write `O[this_outpoint]`.
+For each block, for each tx, for each input (skip coinbase): look up `O[prevout]`; if found, debit that address by that amount (floor at 0) and delete the outpoint. A missing prevout is skipped with no warning — we never store non-standard / unaddressable scripts, so those spends are expected. For each output with a recognized address: credit `A[addr]`, write `O[this_outpoint]`.
 
 **Concurrency:** one fetch thread, one parse thread, one DB-writer thread. Shared queue of parsed block effects, mutex + condvar, max depth 100. No lock-free shared lists.
 
@@ -1221,9 +1221,9 @@ Each phase after the scaffold is one command and the tests that make it real.
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses (**done**, `3fb1427`) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. `--match` includes `source`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node (**done**, `d91fa5b`) | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
-| **5a** | Balance primitives | CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT. | Appendix A.10–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
-| **5b** | Balance query | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
-| **5c** | RPC `--sync` | Hex `getblock`, create-or-catch-up, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. Missing DB → walk from 0; valid DB → walk from `Mheight+1`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are `unknown option`. |
+| **5a** | Balance primitives (**done**) | CompactSize, block/tx (de)ser, BIP-141 txid. Unit tests only. No Core VARINT. | Appendix A.10–A.11 goldens. A.10: both HASH256 values, and a parse of the 192-byte hex yields 2 witness items (72 + 33). txid ≠ wtxid. |
+| **5b** | Balance query (**done**) | New LevelDB layout + `btk balance` query (`address` / `balance` objects and bare strings on stdin). | Write a tiny DB in the test, query known address, unknown → 0, `address \| balance` pipe. |
+| **5c** | RPC `--sync` (**done**) | Hex `getblock`, create-or-catch-up, three-thread queue, reorg check, stderr progress. | Offline: parse A.10 as a 1-tx “block” body; do not hit the network. Missing DB → walk from 0; valid DB → walk from `Mheight+1`. `--build`, `--update`, `--path`, `--from-rpc`, and `--from-chainstate` are `unknown option`. |
 | **6** | Config | `cmd/config`, load only from `config` and `balance`. | `dump` redacts `rpc.auth`. `get` of missing file is `no such key`. Failed parse does not mkdir. |
 
 PR 1 is implementable the day after the wipe from this file: all encodings, vectors, help body for privkey, Makefile flags, and the pipe schema are inlined.
