@@ -3,6 +3,7 @@
 btk-balance \- local address \-> satoshi index
 .SH SYNOPSIS
 .B btk balance
+[\fB\-\-source\fR]
 .br
 .B btk balance \-\-sync
 [\fB\-\-host\fR \fIH\fR]
@@ -66,6 +67,25 @@ in config. No cookie file.
 .B \-\-from address
 Force bare stdin lines to be parsed as addresses.
 .TP
+.B \-\-source
+Include the input item as a
+.B source
+object. A typed
+.B address
+or
+.B balance
+object is copied as received, including a nested
+.B source
+if present. A bare address is synthesized
+.RB ( type ,
+.BR style ,
+.BR network ,
+.BR data ).
+Cannot combine with
+.BR \-\-sync .
+.B \-\-out plain
+still prints only the satoshi count.
+.TP
 .BI \-\-config " PATH"
 Config file. Default
 .B $BTK_CONFIG
@@ -82,8 +102,12 @@ Stdin framing. Default auto.
 .SH OUTPUT
 .BR type=balance ,
 .BR address ,
-.BR sats .
-Progress is on stderr.
+.BR sats ,
+and optional
+.B source
+when
+.B \-\-source
+is set. Progress is on stderr.
 .SH NOTES
 Requires LevelDB at compile time. Mainnet only. Does not read Core's chainstate.
 .B \-\-path ,

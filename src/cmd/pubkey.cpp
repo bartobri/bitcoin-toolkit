@@ -50,7 +50,7 @@ Options:
       --from TYPE        Force bare-line type: wif, hex, or dec.
                          Default: determined from the input. hex is
                          64-char priv or 66/130-char pub.
-      --source           Include the parent key as a source object
+      --source           Include the input item as a source object
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -271,9 +271,7 @@ InputKey parse_privkey_object(const JsonObject& item) {
             in.pk = recompress_pubkey(in.pk, c_it->second.get<bool>());
         }
     }
-    JsonObject src = item;
-    src.erase("source");
-    in.source = std::move(src);
+    in.source = item;
     return in;
 }
 
@@ -288,9 +286,7 @@ InputKey parse_pubkey_object(const JsonObject& item) {
     }
     InputKey in = from_pub_hex(*data, Network::Main);
     apply_object_meta(in, item, true);
-    JsonObject src = item;
-    src.erase("source");
-    in.source = std::move(src);
+    in.source = item;
     return in;
 }
 

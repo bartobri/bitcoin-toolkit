@@ -471,7 +471,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 }
 ```
 
-`data` is 66-char (`02`/`03`) or 130-char (`04`) lowercase hex. `network` is copied from the parent privkey, or from `--network`, or `mainnet` for a bare hex pubkey. Optional `source` (the parent `privkey` or `pubkey` object) only when `--source` is set. Address must **not** walk `source` for network (one level only).
+`data` is 66-char (`02`/`03`) or 130-char (`04`) lowercase hex. `network` is copied from the parent privkey, or from `--network`, or `mainnet` for a bare hex pubkey. Optional `source` is the input item (typed object as received, including a nested `source`, or a synthesized key for a bare string) only when `--source` is set. Address must **not** walk `source` for network.
 
 #### `address`
 
@@ -486,7 +486,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 
 `style`: `p2pkh` \| `p2wpkh` \| `p2tr` \| `p2sh` \| `p2wsh`. The last two appear on **balance** output only (we index them; we do not generate them).
 
-`--match` filters on `data`. Optional `source` is the immediate parent object (privkey or pubkey).
+`--match` filters on `data`. Optional `source` is the input item (typed privkey/pubkey as received, including a nested `source`, or a synthesized key for a bare string).
 
 #### `node`
 
@@ -515,7 +515,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 }
 ```
 
-`sats` is a JSON number (uint64, decimal integer — see above). Unknown address → `0`, not an error.
+`sats` is a JSON number (uint64, decimal integer — see above). Unknown address → `0`, not an error. Optional `source` is the input item when `--source` is set (typed `address` / `balance` as received, or a synthesized address for a bare string).
 
 Query input (stdin), in order:
 
@@ -595,17 +595,19 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 
 #### Provenance (`source`)
 
-`source` is the immediate parent object (one level, not a deep chain).
+`--source` puts the **input item** on the output as `source`. A typed object is copied as received, including its own `source` if it has one. A bare string is synthesized into the equivalent typed object. Without `--source` the field is omitted. `--match` still implies `--source` on `address`. `--no-source` is an unknown flag.
 
-On **`pubkey`**, `source` is omitted unless `--source` is set. `--no-source` is an unknown flag.
+Each stage that opts in extends the chain. A stage that does not opt in drops it. `privkey` has no `--source` (it is the start of the chain). Network is still not walked from `source` (D9).
 
-On **`address`**, `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--no-source` is an unknown flag. `--source` / `--match` on a typed object copies the parent (one level). On a bare string the source is synthesized:
+On **`pubkey`** and **`address`**, a bare WIF / hex / dec key is synthesized as today:
 
 ```json
 {"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"<the-bare-WIF>"}
 ```
 
 or `{"type":"pubkey","encoding":"hex",…}` if the bare string was a 66/130-char hex pubkey. The synthetic `data` is the bare input; do not re-encode.
+
+On **`balance`**, a typed `address` or `balance` object is copied as received. A bare address is synthesized as `{type, style, network, data}` (`style` is `p2pkh` / `p2sh` / `p2wpkh` / `p2wsh` / `p2tr` when the string classifies; `network` is `mainnet`). `--source` cannot combine with `--sync`. `--out plain` is still only `sats`.
 
 Vanity relies on `--match` implying `source`:
 
@@ -617,7 +619,17 @@ btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
 {"type":"address","style":"p2pkh","network":"mainnet","data":"1BRi…","source":{"type":"privkey","encoding":"wif","network":"mainnet","compressed":true,"data":"L3Uq…"}}
 ```
 
-Pipe `privkey | pubkey | address --source` if you want the pubkey as `source` without `--match` (not spendable from the address object alone). Vanity should be `privkey | address --match`.
+Pipe every stage with `--source` to keep the whole chain:
+
+```bash
+btk privkey --new | btk address --source | btk balance --source
+```
+
+```json
+{"type":"balance","address":"bc1q…","sats":0,"source":{"type":"address","style":"p2wpkh","network":"mainnet","data":"bc1q…","source":{"type":"privkey",…}}}
+```
+
+`privkey | pubkey --source | address --source` nests the privkey under the pubkey. Vanity that needs the spendable key should still be `privkey | address --match`.
 
 ### Error handling
 
@@ -723,7 +735,7 @@ Default compression: follow the input’s `compressed` field / WIF flag / existi
 
 Output `encoding` is always `hex`. `network` on the output object: from a typed input’s `network`; else from a WIF version byte; else `--network`; else `mainnet`.
 
-Message on bad input when `--from` is a key type, when a typed object is the wrong `type`, or when a bare line matches no guess: `not a private or public key`. `--match` is an unknown flag here. `--source` includes the parent key (`source`); without it the field is omitted. On a bare string, `--source` synthesizes a `privkey` or `pubkey` object (data is the bare input). `--no-source` is unknown here.
+Message on bad input when `--from` is a key type, when a typed object is the wrong `type`, or when a bare line matches no guess: `not a private or public key`. `--match` is an unknown flag here. `--source` includes the input item (`source`); without it the field is omitted. A typed object is copied as received (including a nested `source`). On a bare string, `--source` synthesizes a `privkey` or `pubkey` object (data is the bare input). `--no-source` is unknown here.
 
 ### 3. `btk address` — Phase 3
 
@@ -739,7 +751,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 | `--type` | Repeatable. Default: one `p2wpkh`. Order of emission = order of flags. Unknown style: `unknown address type`. |
 | `--match` | POSIX ERE on the address `data`. Inclusive. Once. **Address only** (unknown flag on every other command). Implies `--source`. |
 | `--ignore-case` | Adds `REG_ICASE`. Address only. |
-| `--source` | Include a `source` object (typed parent, or a synthesized object for a bare string). Implied by `--match`. |
+| `--source` | Include the input item as `source` (typed object as received, including a nested `source`; or a synthesized object for a bare string). Implied by `--match`. |
 
 `--match` compilation: `regcomp(pattern, REG_EXTENDED | REG_NOSUB [| REG_ICASE])` with the C locale in effect (`setlocale(LC_CTYPE, "C")` and `LC_COLLATE` C before `regcomp`, or `newlocale`/`uselocale` so `LC_COLLATE` cannot change `^1bri`). Invalid pattern: exit 1, `invalid match pattern`. `regexec` uses the same locale.
 
@@ -840,7 +852,7 @@ P2P framing (mainnet only): magic on the wire `f9 be b4 d9`; 12-byte command; ui
 Local address → satoshi index. The only writer is Bitcoin Core JSON-RPC. `--sync` walks RPC: first run creates the index, later runs catch it up. The index always lives at `~/.btk/balance`. `--path`, `--from-rpc`, `--from-chainstate`, `--chainstate`, `--build`, and `--update` are unknown options.
 
 ```text
-btk balance                                          # query stdin
+btk balance [--source] [--from address]
 btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
@@ -849,8 +861,9 @@ btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 | `--host` / `--port` | config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332` |
 | `--rpc-auth` | config `rpc.auth` (form `user:pass`; we Base64 at request time). No cookie file. |
 | `--force` | Only with `--sync`. Wipe `~/.btk/balance` and walk from genesis. |
+| `--source` | Query only. Attach the input item as `source`. Cannot combine with `--sync`. |
 
-Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`. Do not SHA-256 leftover text.
+Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`. Do not SHA-256 leftover text. `--source` + `--sync` is `cannot combine --sync and --source`.
 
 **`--sync`**
 
@@ -1093,6 +1106,7 @@ btk node --host seed.bitcoin.sipa.be
 # balance
 btk balance --sync
 printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
+btk privkey --new | btk address --source | btk balance --source
 ```
 
 ---
@@ -1676,7 +1690,7 @@ Options:
       --from TYPE        Force bare-line type: wif, hex, or dec.
                          Default: determined from the input. hex is
                          64-char priv or 66/130-char pub.
-      --source           Include the parent key as a source object
+      --source           Include the input item as a source object
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -1735,7 +1749,7 @@ Options:
       --match REGEX      POSIX ERE on the address; drop non-matches;
                          includes source
       --ignore-case      Case-insensitive --match (REG_ICASE)
-      --source           Include a source object even without --match
+      --source           Include the input item as a source object
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -1839,6 +1853,7 @@ Options:
                          HTTP Basic credentials. Default: config
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
+      --source           Include the input item as a source object
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -1849,6 +1864,7 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address --source | btk balance --source
 ```
 
 ### `btk config --help`

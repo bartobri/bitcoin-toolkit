@@ -91,7 +91,7 @@ Options:
       --match REGEX      POSIX ERE on the address; drop non-matches;
                          includes source
       --ignore-case      Case-insensitive --match (REG_ICASE)
-      --source           Include a source object even without --match
+      --source           Include the input item as a source object
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -281,6 +281,12 @@ def main():
     from_pub = obj(["address", "--source"], json.dumps(via_pub) + "\n")
     assert from_pub["data"] == derived["data"]
     assert from_pub["source"]["type"] == "pubkey"
+
+    via_pub_src = obj(["pubkey", "--source"], json.dumps(generated) + "\n")
+    nested = obj(["address", "--source"], json.dumps(via_pub_src) + "\n")
+    assert nested["source"]["type"] == "pubkey"
+    assert nested["source"]["source"]["type"] == "privkey"
+    assert nested["source"]["source"]["data"] == generated["data"]
 
     r = expect_ok(["address", "--type", "p2pkh", "--match", "^1BgGZ9"], WIF_G_COMP_MAIN)
     matched = ndjson(r.stdout)[0]

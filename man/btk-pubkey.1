@@ -59,9 +59,11 @@ values are
 .BR "invalid \-\-from" .
 .TP
 .B \-\-source
-Include a
+Include the input item as a
 .B source
-object for the parent key. Omitted unless this flag is set. On a
+object. A typed object is copied as received, including a nested
+.B source
+if present. Omitted unless this flag is set. On a
 bare string the source is synthesized (WIF/hex/dec private key or
 hex public key); the
 .B data
@@ -83,7 +85,7 @@ is omitted unless
 .B \-\-source
 is given. Address must not walk
 .B source
-for network (one level only).
+for network.
 .SH SEE ALSO
 .BR btk (1),
 .BR btk-privkey (1)

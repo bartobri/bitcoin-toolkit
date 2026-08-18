@@ -73,6 +73,47 @@ std::optional<std::string> address_from_script(const std::vector<std::uint8_t>& 
     return std::nullopt;
 }
 
+std::optional<std::string> classify_mainnet_address(const std::string& s) {
+    if (s.empty()) {
+        return std::nullopt;
+    }
+
+    std::string hrp;
+    int witver = 0;
+    std::vector<std::uint8_t> program;
+    if (segwit_decode(s, hrp, witver, program)) {
+        if (hrp != "bc") {
+            return std::nullopt;
+        }
+        if (witver == 0 && program.size() == 20) {
+            return std::string("p2wpkh");
+        }
+        if (witver == 0 && program.size() == 32) {
+            return std::string("p2wsh");
+        }
+        if (witver == 1 && program.size() == 32) {
+            return std::string("p2tr");
+        }
+        return std::nullopt;
+    }
+
+    try {
+        const std::vector<std::uint8_t> payload = base58check_decode(s);
+        if (payload.size() != 21) {
+            return std::nullopt;
+        }
+        if (payload[0] == kP2pkhVer) {
+            return std::string("p2pkh");
+        }
+        if (payload[0] == kP2shVer) {
+            return std::string("p2sh");
+        }
+        return std::nullopt;
+    } catch (const BtkError&) {
+        return std::nullopt;
+    }
+}
+
 bool is_mainnet_address(const std::string& s) {
     if (s.empty()) {
         return false;

@@ -54,6 +54,10 @@ int main() {
     CHECK(is_mainnet_address("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH"));
     CHECK(!is_mainnet_address("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"));
     CHECK(!is_mainnet_address("not-an-address"));
+    CHECK(classify_mainnet_address(*addr) == "p2wpkh");
+    CHECK(classify_mainnet_address("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH") == "p2pkh");
+    CHECK(!classify_mainnet_address("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"));
+    CHECK(!classify_mainnet_address("not-an-address"));
 
     // P2PKH of G compressed HASH160
     const auto p2pkh = hex_decode("76a914751e76e8199196d454941c45d1b3a323f1433bd688ac");
@@ -69,6 +73,18 @@ int main() {
         "512079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798");
     CHECK(address_from_script(p2tr) ==
           "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0");
+    CHECK(classify_mainnet_address(*address_from_script(p2tr)) == "p2tr");
+
+    const auto p2sh = hex_decode("a914000000000000000000000000000000000000000087");
+    const auto p2sh_addr = address_from_script(p2sh);
+    CHECK(p2sh_addr.has_value());
+    CHECK(classify_mainnet_address(*p2sh_addr) == "p2sh");
+
+    const auto p2wsh = hex_decode(
+        "00200000000000000000000000000000000000000000000000000000000000000000");
+    const auto p2wsh_addr = address_from_script(p2wsh);
+    CHECK(p2wsh_addr.has_value());
+    CHECK(classify_mainnet_address(*p2wsh_addr) == "p2wsh");
 
     Block blk;
     blk.version = 1;

@@ -65,11 +65,13 @@ to
 .BR \-\-match .
 .TP
 .B \-\-source
-Include a
+Include the input item as a
 .B source
-object for the parent key even without
+object even without
 .BR \-\-match .
-On a bare string the source is synthesized (WIF private key or hex
+A typed object is copied as received, including a nested
+.B source
+if present. On a bare string the source is synthesized (WIF private key or hex
 public key); the
 .B data
 field is the bare input.

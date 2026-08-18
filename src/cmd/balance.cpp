@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <exception>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <thread>
 #include <utility>
@@ -69,6 +70,7 @@ Options:
                          HTTP Basic credentials. Default: config
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
+      --source           Include the input item as a source object
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -79,6 +81,7 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address --source | btk balance --source
 )help";
 
 [[noreturn]] void fail(const std::string& message) {
@@ -115,11 +118,36 @@ std::string item_address(const JsonObject& item) {
     fail("expected an address");
 }
 
-JsonObject balance_object(const std::string& addr, std::uint64_t sats) {
+JsonObject synthesized_address_source(const std::string& addr) {
+    JsonObject o;
+    set_string(o, "type", "address");
+    if (const auto style = classify_mainnet_address(addr)) {
+        set_string(o, "style", *style);
+    }
+    set_string(o, "network", "mainnet");
+    set_string(o, "data", addr);
+    return o;
+}
+
+std::optional<JsonObject> source_from_item(const JsonObject& item, bool want) {
+    if (!want) {
+        return std::nullopt;
+    }
+    if (is_bare(item)) {
+        return synthesized_address_source(bare_text(item));
+    }
+    return item;
+}
+
+JsonObject balance_object(const std::string& addr, std::uint64_t sats,
+                          const std::optional<JsonObject>& source) {
     JsonObject o;
     set_string(o, "type", "balance");
     set_string(o, "address", addr);
     set_uint64(o, "sats", sats);
+    if (source) {
+        o["source"] = JsonValue(*source);
+    }
     return o;
 }
 
@@ -359,6 +387,7 @@ public:
         spec.add(0, "port", true);
         spec.add(0, "rpc-auth", true);
         spec.add(0, "from", true);
+        spec.add(0, "source", false);
     }
 
     bool is_generator(const Options& opts) const override { return opts.sync; }
@@ -378,6 +407,9 @@ public:
         }
         if (opts.force && !opts.sync) {
             fail("--force requires --sync");
+        }
+        if (opts.source && opts.sync) {
+            fail("cannot combine --sync and --source");
         }
         if (!opts.from.empty()) {
             if (opts.sync) {
@@ -435,7 +467,7 @@ public:
             fail("balance database not found (run btk balance --sync)");
         }
         auto db = BalanceDb::open(dir, false);
-        return {balance_object(addr, db->get_sats(addr))};
+        return {balance_object(addr, db->get_sats(addr), source_from_item(*item, opts.source))};
     }
 
 private:

@@ -196,7 +196,7 @@ btk pubkey [--compressed | --uncompressed]
 - From a private key: `secp256k1_ec_pubkey_create` + serialize. From a pubkey: parse + recompress.
 - Default compression follows the input; `--compressed` / `--uncompressed` override; both flags → two objects.
 - Output `encoding` is always `hex`. `network` from the typed input or WIF version, else `--network`, else mainnet. `--network` does **not** override a WIF version byte.
-- `source` is omitted unless `--source` is set (typed parent object, or a synthesized object for a bare string). `--match` and `--no-source` are unknown flags.
+- `source` is omitted unless `--source` is set. `--source` copies the input item (typed object as received, including a nested `source`, or a synthesized object for a bare string). `--match` and `--no-source` are unknown flags.
 - `btk pubkey --help` is pinned in `test/cli/test_pubkey.py` (`PUBKEY_HELP`) and the command’s raw string.
 
 ## Phase 3 contract (as shipped)
@@ -217,7 +217,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 - `--type` is repeatable; default one `p2wpkh`; emission order = flag order. Unknown style: `unknown address type`.
 - Uncompressed + `p2wpkh`/`p2tr`: `uncompressed key cannot produce p2wpkh or p2tr`. P2PKH of an uncompressed key is allowed. `p2tr` is BIP-341 key-path, empty tree (`lift_x` + `TapTweak`); odd-Y and even-Y with the same X share an address.
 - Network: WIF version → typed object `network` → `--network` → mainnet. Do not walk `source`. `--network` does not override a WIF version byte.
-- `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--source` on a bare string synthesizes a `privkey` (WIF) or `pubkey` (hex pub); `data` is the bare input. `--no-source` is an unknown flag.
+- `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--source` copies the input item (typed object as received, including a nested `source`). On a bare string it synthesizes a `privkey` (WIF) or `pubkey` (hex pub); `data` is the bare input. `--no-source` is an unknown flag.
 - `--match` is POSIX ERE on `data`, compiled in the C locale (`REG_EXTENDED | REG_NOSUB`, plus `REG_ICASE` if `--ignore-case`). More than once: `cannot pass --match more than once`. Invalid pattern: `invalid match pattern`. All filtered → empty stdout, exit 0. Implies `source`.
 - `btk address --help` is pinned in `test/cli/test_address.py` (`ADDRESS_HELP`) and the command’s raw string.
 
@@ -246,16 +246,17 @@ btk node --host HOST [--port 8333]
 This is what `btk balance` actually does.
 
 ```text
-btk balance                                          # query stdin
+btk balance [--source] [--from address]
 btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
 - Query is a **transformer** on stdin. No positional addresses (`provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → Base58Check / bech32 address. No leftover-text hash. Empty stdin → empty stdout, exit 0. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`.
+- `--source` copies the input item onto the output (typed `address` / `balance` as received, including a nested `source`; bare address → synthesized `{type, style, network, data}`). Without `--source` the field is omitted. `--source` + `--sync` is `cannot combine --sync and --source`. `--out plain` is still only `sats`.
 - Index is always `~/.btk/balance`. `--path` is unknown. No `balance.path` config key.
 - `--sync` is RPC only. Missing/empty DB → walk `0 … tip`. Valid DB (`Mheight` + `Mtip`) → walk `Mheight+1 … tip` (already at tip → `complete`, exit 0). Non-empty junk → `balance database exists; rebuild with --sync --force`. Reorg → `reorg detected; rebuild with --sync --force`. `--force` only with `--sync`: wipe and walk from genesis. Wipe failure (DB locked) → `cannot remove balance database`.
 - SIGINT / SIGTERM abort `--sync` within ~200 ms. Queued blocks are applied first. Stderr: `interrupted: height N`. Exit 1. The next `--sync` continues from `Mheight+1`.
 - A missing prevout is skipped with no warning. We never store non-standard scripts, so those spends are expected. Do not spam `missing prevout` on incremental `--sync`.
-- `--from address` is allowed on query. Other `--from` values are `invalid --from`. `--from` with `--sync` is `cannot combine --sync and --from`.
+- `--from address` is allowed on query. Other `--from` values are `invalid --from`. `--from` with `--sync` is `cannot combine --sync and --from`. `--source` with `--sync` is `cannot combine --sync and --source`.
 - `--build`, `--update`, `--from-rpc`, `--from-chainstate`, and `--chainstate` are unknown.
 - `--host` / `--port` default to config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332`. `--rpc-auth` is `user:pass` (Base64 at request time). No cookie file.
 - Progress on stderr (`syncing:` / `complete:`). Query is read-only.

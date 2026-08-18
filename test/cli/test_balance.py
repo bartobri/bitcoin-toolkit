@@ -61,6 +61,7 @@ Options:
                          HTTP Basic credentials. Default: config
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
+      --source           Include the input item as a source object
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -71,11 +72,14 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address --source | btk balance --source
 """
 
 P2WPKH_G = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
 P2PKH_G = "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH"
 P2TR_UNTWEAKED_G = "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0"
+WIF_G_COMP_MAIN = "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn"
+SECRET1 = "0000000000000000000000000000000000000000000000000000000000000001"
 
 A10 = bytes.fromhex(
     "0200000000010100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff01a086010000000000160014751e76e8199196d454941c45d1b3a323f1433bd60248300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001210279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f8179800000000"
@@ -339,6 +343,82 @@ def main():
         r = run(["balance", "--from", "wif"], input_bytes=P2WPKH_G + "\n", home=home)
         assert r.returncode == 1
         assert "invalid --from" in r.stderr.decode()
+
+        r = run(["balance", "--sync", "--source"], home=home)
+        assert r.returncode == 1
+        assert "cannot combine --sync and --source" in r.stderr.decode()
+
+        addr_r = run(["address", "--source"], input_bytes=WIF_G_COMP_MAIN + "\n", home=home)
+        assert addr_r.returncode == 0, addr_r.stderr.decode()
+        r = run(["balance", "--source"], input_bytes=addr_r.stdout, home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        sourced = ndjson(r.stdout)[0]
+        assert sourced["address"] == P2WPKH_G
+        assert sourced["sats"] == 100000
+        assert sourced["source"]["type"] == "address"
+        assert sourced["source"]["data"] == P2WPKH_G
+        assert sourced["source"]["source"]["type"] == "privkey"
+        assert sourced["source"]["source"]["data"] == WIF_G_COMP_MAIN
+
+        r = run(["balance"], input_bytes=addr_r.stdout, home=home)
+        assert r.returncode == 0
+        assert "source" not in ndjson(r.stdout)[0]
+
+        r = run(
+            ["balance", "--source"],
+            input_bytes=json.dumps({"type": "address", "data": P2WPKH_G}) + "\n",
+            home=home,
+        )
+        assert r.returncode == 0
+        no_key = ndjson(r.stdout)[0]
+        assert no_key["source"]["type"] == "address"
+        assert no_key["source"]["data"] == P2WPKH_G
+        assert "source" not in no_key["source"]
+
+        r = run(["balance", "--source"], input_bytes=P2WPKH_G + "\n", home=home)
+        assert r.returncode == 0
+        bare_src = ndjson(r.stdout)[0]["source"]
+        assert bare_src["type"] == "address"
+        assert bare_src["style"] == "p2wpkh"
+        assert bare_src["network"] == "mainnet"
+        assert bare_src["data"] == P2WPKH_G
+        assert "source" not in bare_src
+
+        r = run(
+            ["balance", "--source", "--out", "plain"],
+            input_bytes=P2WPKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0
+        assert r.stdout.decode().strip() == "100000"
+
+        pub = {
+            "type": "pubkey",
+            "encoding": "hex",
+            "network": "mainnet",
+            "compressed": True,
+            "data": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+            "source": {
+                "type": "privkey",
+                "encoding": "hex",
+                "network": "mainnet",
+                "compressed": True,
+                "data": SECRET1,
+            },
+        }
+        addr_from_pub = run(
+            ["address", "--source"],
+            input_bytes=json.dumps(pub) + "\n",
+            home=home,
+        )
+        assert addr_from_pub.returncode == 0, addr_from_pub.stderr.decode()
+        r = run(["balance", "--source"], input_bytes=addr_from_pub.stdout, home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        chain = ndjson(r.stdout)[0]
+        assert chain["source"]["type"] == "address"
+        assert chain["source"]["source"]["type"] == "pubkey"
+        assert chain["source"]["source"]["source"]["type"] == "privkey"
+        assert chain["source"]["source"]["source"]["data"] == SECRET1
 
         # Already at tip: incremental no-op
         port, stop, thread, errors = start_rpc([blk0])
