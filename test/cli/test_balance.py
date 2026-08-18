@@ -320,6 +320,13 @@ def main():
         assert r.returncode == 0
         assert ndjson(r.stdout)[0]["sats"] == 100000
 
+        many = (json.dumps({"type": "address", "data": P2WPKH_G}) + "\n") * 10
+        r = run(["balance"], input_bytes=many, home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        objs = ndjson(r.stdout)
+        assert len(objs) == 10
+        assert all(o["sats"] == 100000 for o in objs)
+
         r = run(
             ["balance"],
             input_bytes=json.dumps({"type": "balance", "address": P2WPKH_G, "sats": 1}) + "\n",

@@ -463,11 +463,14 @@ public:
         if (!is_mainnet_address(addr)) {
             fail("not a bitcoin address");
         }
-        if (inspect_index(dir) != IndexState::Valid) {
-            fail("balance database not found (run btk balance --sync)");
+        if (!db_) {
+            db_ = BalanceDb::open(dir, false);
+            if (!db_->has_metadata()) {
+                db_.reset();
+                fail("balance database not found (run btk balance --sync)");
+            }
         }
-        auto db = BalanceDb::open(dir, false);
-        return {balance_object(addr, db->get_sats(addr), source_from_item(*item, opts.source))};
+        return {balance_object(addr, db_->get_sats(addr), source_from_item(*item, opts.source))};
     }
 
 private:
@@ -497,6 +500,7 @@ private:
     std::string host_;
     std::uint16_t port_ = 8332;
     std::string auth_;
+    std::unique_ptr<BalanceDb> db_;
 };
 
 }  // namespace
