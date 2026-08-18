@@ -743,7 +743,7 @@ Message on bad input when `--from` is a key type, when a typed object is the wro
 btk address [--type p2pkh|p2wpkh|p2tr]...
             [--network mainnet|testnet]
             [--match REGEX] [--ignore-case]
-            [--source]
+            [--source] [--skip-incompatible]
 ```
 
 | Long | Notes |
@@ -752,6 +752,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 | `--match` | POSIX ERE on the address `data`. Inclusive. Once. **Address only** (unknown flag on every other command). Implies `--source`. |
 | `--ignore-case` | Adds `REG_ICASE`. Address only. |
 | `--source` | Include the input item as `source` (typed object as received, including a nested `source`; or a synthesized object for a bare string). Implied by `--match`. |
+| `--skip-incompatible` | Drop `p2wpkh`/`p2tr` for an uncompressed key and continue. Address only. Other errors stay fatal. Empty stdout is still exit 0. |
 
 `--match` compilation: `regcomp(pattern, REG_EXTENDED | REG_NOSUB [| REG_ICASE])` with the C locale in effect (`setlocale(LC_CTYPE, "C")` and `LC_COLLATE` C before `regcomp`, or `newlocale`/`uselocale` so `LC_COLLATE` cannot change `^1bri`). Invalid pattern: exit 1, `invalid match pattern`. `regexec` uses the same locale.
 
@@ -763,7 +764,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 | `p2wpkh` | Bech32 (BIP-173), witness v0, 20-byte HASH160(**compressed** pubkey). | `bc` / `tb` |
 | `p2tr` | Bech32m (BIP-350), witness v1, 32-byte **tweaked** x-only output key. BIP-341 key-path, empty script tree. | `bc` / `tb` |
 
-Uncompressed key + `p2wpkh` or `p2tr`: error `uncompressed key cannot produce p2wpkh or p2tr`. (P2PKH of an uncompressed key is allowed.)
+Uncompressed key + `p2wpkh` or `p2tr`: error `uncompressed key cannot produce p2wpkh or p2tr`. (P2PKH of an uncompressed key is allowed.) `--skip-incompatible` drops those types for the current key and continues; empty stdout is still exit 0. Other errors stay fatal.
 
 No `--bech32m` name. No HASH160-as-v1 path.
 
@@ -1713,7 +1714,7 @@ Usage:
   btk address [--type p2pkh|p2wpkh|p2tr]...
               [--match REGEX] [--ignore-case]
               [--network mainnet|testnet]
-              [--source]
+              [--source] [--skip-incompatible]
 
 Derive a Bitcoin address from an explicit private or public key.
 Input is stdin only (no positional keys).
@@ -1727,8 +1728,10 @@ binary stdin are errors (not keys). A WIF-shaped string with a bad
 checksum is "invalid WIF checksum". 64-hex is never an x-only key.
 
 --type is repeatable; default is one p2wpkh. Addresses are emitted
-in flag order. p2wpkh and p2tr require a compressed key. p2tr is
-BIP-341 key-path with an empty script tree (tweaked), encoded as
+in flag order. p2wpkh and p2tr require a compressed key.
+--skip-incompatible drops those types for an uncompressed key
+and continues (empty stdout is still exit 0). p2tr is BIP-341
+key-path with an empty script tree (tweaked), encoded as
 bech32m witness v1. There is no --bech32m flag.
 
 Network: WIF version byte, else the typed object's network, else
@@ -1750,6 +1753,9 @@ Options:
                          includes source
       --ignore-case      Case-insensitive --match (REG_ICASE)
       --source           Include the input item as a source object
+      --skip-incompatible
+                         Drop p2wpkh/p2tr for an uncompressed key
+                         and continue
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -1760,6 +1766,9 @@ Examples:
   btk privkey --new | btk address --type p2wpkh
   btk privkey --new | btk address --type p2pkh --type p2tr
   btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
+  btk privkey --new --count 5 --compressed --uncompressed \
+    | btk address --type p2pkh --type p2wpkh --type p2tr \
+                  --skip-incompatible
 ```
 
 ### `btk node --help`

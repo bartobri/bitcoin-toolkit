@@ -8,6 +8,7 @@ btk-address \- derive P2PKH, P2WPKH, or BIP-341 P2TR addresses
 [\fB\-\-ignore-case\fR]
 [\fB\-\-network\fR \fImainnet\fR|\fItestnet\fR]
 [\fB\-\-source\fR]
+[\fB\-\-skip-incompatible\fR]
 .SH DESCRIPTION
 Derive a Bitcoin address from an explicit private or public key. Items are
 read from stdin. There are no positional key arguments.
@@ -33,6 +34,9 @@ The flag is repeatable; addresses are emitted in flag order.
 and
 .B p2tr
 require a compressed key.
+.B \-\-skip-incompatible
+drops those types for an uncompressed key and continues; empty
+stdout is still exit 0.
 .B p2tr
 is BIP-341 key-path with an empty script tree (tweaked), encoded as
 bech32m witness v1. There is no
@@ -75,6 +79,14 @@ if present. On a bare string the source is synthesized (WIF private key or hex
 public key); the
 .B data
 field is the bare input.
+.TP
+.B \-\-skip-incompatible
+Drop
+.B p2wpkh
+and
+.B p2tr
+for an uncompressed key and continue. Other errors remain fatal.
+Empty stdout is still exit 0.
 .TP
 .BI \-\-network " mainnet|testnet"
 Network for hex public keys and typed objects that omit

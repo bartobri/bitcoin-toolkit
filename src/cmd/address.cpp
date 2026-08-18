@@ -21,7 +21,7 @@ Usage:
   btk address [--type p2pkh|p2wpkh|p2tr]...
               [--match REGEX] [--ignore-case]
               [--network mainnet|testnet]
-              [--source]
+              [--source] [--skip-incompatible]
 
 Derive a Bitcoin address from an explicit private or public key.
 Input is stdin only (no positional keys).
@@ -35,8 +35,10 @@ binary stdin are errors (not keys). A WIF-shaped string with a bad
 checksum is "invalid WIF checksum". 64-hex is never an x-only key.
 
 --type is repeatable; default is one p2wpkh. Addresses are emitted
-in flag order. p2wpkh and p2tr require a compressed key. p2tr is
-BIP-341 key-path with an empty script tree (tweaked), encoded as
+in flag order. p2wpkh and p2tr require a compressed key.
+--skip-incompatible drops those types for an uncompressed key
+and continues (empty stdout is still exit 0). p2tr is BIP-341
+key-path with an empty script tree (tweaked), encoded as
 bech32m witness v1. There is no --bech32m flag.
 
 Network: WIF version byte, else the typed object's network, else
@@ -58,6 +60,9 @@ Options:
                          includes source
       --ignore-case      Case-insensitive --match (REG_ICASE)
       --source           Include the input item as a source object
+      --skip-incompatible
+                         Drop p2wpkh/p2tr for an uncompressed key
+                         and continue
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -68,6 +73,9 @@ Examples:
   btk privkey --new | btk address --type p2wpkh
   btk privkey --new | btk address --type p2pkh --type p2tr
   btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
+  btk privkey --new --count 5 --compressed --uncompressed \
+    | btk address --type p2pkh --type p2wpkh --type p2tr \
+                  --skip-incompatible
 )help";
 
 [[noreturn]] void fail_not_a_key() {
@@ -306,6 +314,13 @@ std::vector<JsonObject> emit_address(const Options& opts, InputKey in, const reg
         if (!parse_address_style(name, style)) {
             throw BtkError("address", "unknown address type");
         }
+        if ((style == AddressStyle::P2wpkh || style == AddressStyle::P2tr) &&
+            (!in.pk.compressed || in.pk.serialized.size() != 33)) {
+            if (opts.skip_incompatible) {
+                continue;
+            }
+            throw BtkError("address", "uncompressed key cannot produce p2wpkh or p2tr");
+        }
         const std::string data = encode_address(in.pk, style);
         if (!match_keeps(re, compiled, data)) {
             continue;
@@ -332,6 +347,7 @@ public:
         spec.add(0, "match", true);
         spec.add(0, "ignore-case", false);
         spec.add(0, "source", false);
+        spec.add(0, "skip-incompatible", false);
     }
 
     bool is_generator(const Options&) const override { return false; }

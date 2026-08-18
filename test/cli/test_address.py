@@ -55,7 +55,7 @@ Usage:
   btk address [--type p2pkh|p2wpkh|p2tr]...
               [--match REGEX] [--ignore-case]
               [--network mainnet|testnet]
-              [--source]
+              [--source] [--skip-incompatible]
 
 Derive a Bitcoin address from an explicit private or public key.
 Input is stdin only (no positional keys).
@@ -69,8 +69,10 @@ binary stdin are errors (not keys). A WIF-shaped string with a bad
 checksum is "invalid WIF checksum". 64-hex is never an x-only key.
 
 --type is repeatable; default is one p2wpkh. Addresses are emitted
-in flag order. p2wpkh and p2tr require a compressed key. p2tr is
-BIP-341 key-path with an empty script tree (tweaked), encoded as
+in flag order. p2wpkh and p2tr require a compressed key.
+--skip-incompatible drops those types for an uncompressed key
+and continues (empty stdout is still exit 0). p2tr is BIP-341
+key-path with an empty script tree (tweaked), encoded as
 bech32m witness v1. There is no --bech32m flag.
 
 Network: WIF version byte, else the typed object's network, else
@@ -92,6 +94,9 @@ Options:
                          includes source
       --ignore-case      Case-insensitive --match (REG_ICASE)
       --source           Include the input item as a source object
+      --skip-incompatible
+                         Drop p2wpkh/p2tr for an uncompressed key
+                         and continue
   -n, --network NET      mainnet (default) or testnet, when the input
                          does not already name a network
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -102,6 +107,9 @@ Examples:
   btk privkey --new | btk address --type p2wpkh
   btk privkey --new | btk address --type p2pkh --type p2tr
   btk privkey --new --stream | btk address --type p2pkh --match '^1bri'
+  btk privkey --new --count 5 --compressed --uncompressed \\
+    | btk address --type p2pkh --type p2wpkh --type p2tr \\
+                  --skip-incompatible
 """
 
 
@@ -352,6 +360,36 @@ def main():
         ["address", "--match", "a", "--match", "b"],
         "cannot pass --match more than once",
         WIF_G_COMP_MAIN,
+    )
+
+    types3 = ["address", "--type", "p2pkh", "--type", "p2wpkh", "--type", "p2tr",
+              "--skip-incompatible"]
+    r = expect_ok(types3, WIF_G_UNC_MAIN)
+    skipped = ndjson(r.stdout)
+    assert [x["style"] for x in skipped] == ["p2pkh"]
+    assert skipped[0]["data"] == P2PKH_G_UNC
+    assert r.stderr == b""
+
+    mixed = (WIF_G_COMP_MAIN + "\n" + WIF_G_UNC_MAIN + "\n").encode()
+    r = expect_ok(types3, mixed)
+    assert [x["data"] for x in ndjson(r.stdout)] == [
+        P2PKH_G,
+        P2WPKH_G,
+        P2TR_G,
+        P2PKH_G_UNC,
+    ]
+    assert r.stderr == b""
+
+    r = expect_ok(
+        ["address", "--type", "p2wpkh", "--skip-incompatible"], WIF_G_UNC_MAIN
+    )
+    assert r.stdout == b""
+    assert r.returncode == 0
+
+    expect_err(
+        ["address", "--skip-incompatible"],
+        "not a private or public key",
+        "not-a-key",
     )
 
     r = expect_ok(["address", "--help"])

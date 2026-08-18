@@ -207,7 +207,7 @@ This is what `btk address` actually does.
 btk address [--type p2pkh|p2wpkh|p2tr]...
             [--network mainnet|testnet]
             [--match REGEX] [--ignore-case]
-            [--source]
+            [--source] [--skip-incompatible]
 ```
 
 - **Stdin only.** Positional keys are `provide input on stdin`.
@@ -215,7 +215,7 @@ btk address [--type p2pkh|p2wpkh|p2tr]...
 - Bare-line guess: WIF → 66/130 hex pub. 64-hex, decimal, leftover text, and binary are `not a private or public key`. A WIF-shaped bad checksum is `invalid WIF checksum`. 64-hex is never an x-only key.
 - `--from` is `unknown option '--from'`. `--count` is `unknown option '--count'`. `--stream` is accepted (already flushes).
 - `--type` is repeatable; default one `p2wpkh`; emission order = flag order. Unknown style: `unknown address type`.
-- Uncompressed + `p2wpkh`/`p2tr`: `uncompressed key cannot produce p2wpkh or p2tr`. P2PKH of an uncompressed key is allowed. `p2tr` is BIP-341 key-path, empty tree (`lift_x` + `TapTweak`); odd-Y and even-Y with the same X share an address.
+- Uncompressed + `p2wpkh`/`p2tr`: `uncompressed key cannot produce p2wpkh or p2tr`. P2PKH of an uncompressed key is allowed. `--skip-incompatible` drops those types for the current key and continues (empty stdout is still exit 0). Other errors stay fatal. `p2tr` is BIP-341 key-path, empty tree (`lift_x` + `TapTweak`); odd-Y and even-Y with the same X share an address.
 - Network: WIF version → typed object `network` → `--network` → mainnet. Do not walk `source`. `--network` does not override a WIF version byte.
 - `source` is included when `--match` is set, or when `--source` is set. Otherwise omitted. `--source` copies the input item (typed object as received, including a nested `source`). On a bare string it synthesizes a `privkey` (WIF) or `pubkey` (hex pub); `data` is the bare input. `--no-source` is an unknown flag.
 - `--match` is POSIX ERE on `data`, compiled in the C locale (`REG_EXTENDED | REG_NOSUB`, plus `REG_ICASE` if `--ignore-case`). More than once: `cannot pass --match more than once`. Invalid pattern: `invalid match pattern`. All filtered → empty stdout, exit 0. Implies `source`.

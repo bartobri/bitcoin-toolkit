@@ -51,6 +51,7 @@ struct Options {
     bool match_set = false;
     bool ignore_case = false;
     bool source = false;
+    bool skip_incompatible = false;
     std::string host;
     bool port_set = false;
     std::uint16_t port = 0;
