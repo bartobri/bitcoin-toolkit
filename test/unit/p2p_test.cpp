@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-// Frozen vector from REBUILD.md §4. timestamp 1700000000, nonce 0. Tests must
+// Frozen version payload: timestamp 1700000000, nonce 0. Tests must
 // not call time(NULL).
 const char* kPayloadHex =
     "7f110100000000000000000000f1536500000000000000000000000000000000000000000000"
