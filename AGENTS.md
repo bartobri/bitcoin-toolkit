@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.0.0
+# Agent notes — Bitcoin Toolkit 4.0.1
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,19 +6,23 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.0.0` (`src/version.hpp`).
+is `4.0.1` (`src/version.hpp`). Every landing commit increments it (see
+[Version](#version)).
 
-## Keep README.md and AGENTS.md current
+## Keep README.md, AGENTS.md, and the version current
 
 **Every commit that would make either file stale must update it in the same
 change, even when the user does not ask.** Do not wait for a docs pass.
+
+**Every landing commit increments the version in the same change.** Do not
+wait for a release pass. See [Version](#version).
 
 Update **README.md** when the user-facing story changes: what the program is,
 how it works, commands, examples, build/install, warnings, or license.
 
 Update **AGENTS.md** when the development contract changes: CLI behavior,
 input/output, algorithms, layout, tests, dependencies, conventions, asserted
-error strings, help text, or golden vectors.
+error strings, help text, golden vectors, or the versioning rules.
 
 README stays high-level and interesting. This file stays complete enough that
 an agent can implement or review a change without inventing a contract. If
@@ -56,6 +60,76 @@ RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 8. Network is per object, never process-global. Do not walk `source` for network. `--network` does not override a WIF version byte. `node` ignores `--network`.
 9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`.
 10. `make test` is the gate (unit + offline CLI). No network. Live P2P is `make test-net` / `BTK_RUN_NET=1`.
+11. Every landing commit increments `BTK_VERSION_*` in `src/version.hpp` and every pin listed under [Version](#version). Never bump major unless the user explicitly asks. Choose minor vs patch from the commit’s contents.
+
+## Version
+
+Every landing commit increments the toolkit version **in the same change**.
+A commit that leaves `BTK_VERSION_*` unchanged is not done. Do not land a
+follow-up “bump version” commit.
+
+Source of truth: `src/version.hpp` (`BTK_VERSION_MAJOR`, `BTK_VERSION_MINOR`,
+`BTK_VERSION_PATCH`, `BTK_VERSION_STRING`). The string is `MAJOR.MINOR.PATCH`
+with no `v` prefix. The four macros must agree.
+
+Version only increases. A revert is a new commit and still bumps. Do not skip
+a number. If a commit contains both minor and patch work, bump **minor once**
+and reset patch to 0.
+
+### Which component
+
+Decide from the commit’s contents (the agent landing it chooses; two agents
+should still land the same number if they read this section):
+
+- **Major** — only when the user explicitly asks (for example “bump major”,
+  “this is 5.0”, “increment the major version”). A breaking CLI or wire-format
+  change does **not** bump major on its own.
+- **Minor** — the commit adds user-facing capability: a new command, a new
+  flag / option / verb, a new accepted `--from` / `--type` / `--encoding` /
+  `--in` / `--out` value, a new output `type` or a new contracted field on an
+  existing type, a new address style you can generate, a new generator mode,
+  or a newly accepted input kind. Reset patch to 0.
+- **Patch** — everything else that lands: bug fixes, error-string or help
+  wording, tests, docs, refactors, performance, build, comments, dependency
+  pins, and corrections of wrong goldens that do not add capability.
+
+When unsure, pick **minor** if a user could do something with `btk` they
+could not do before; otherwise patch.
+
+### Pins that must move together
+
+`src/net/p2p.cpp` builds the user agent from `BTK_VERSION_STRING`; do not
+hardcode it there. These literals must match the new string:
+
+| Location | What |
+|---|---|
+| `src/version.hpp` | the four macros |
+| This file | title, “Version is `X.Y.Z`”, `--out plain` example, `version` object example, node UA strings, CompactSize UA length, frozen version-message hex |
+| `README.md` | `btk --version --out plain` example |
+| `src/cmd/node.cpp` `kHelp` and `test/cli/test_node.py` `NODE_HELP` | UA in help (byte-for-byte pair) |
+| `test/cli/test_scaffold.py` | overview help `"Bitcoin Toolkit X.Y.Z"` and `--version` assertions |
+| `test/cli/test_node.py` | `user_agent` assertion |
+| `test/unit/p2p_test.cpp` | `user_agent` check and frozen `kPayloadHex` / `kFullHex` |
+
+Historical mentions of 3.1.2 and “mainnet encoding in 4.0.0” are not version
+pins. Do not rewrite them when bumping.
+
+The Makefile has no header deps. After editing `version.hpp`,
+`make clean && make test`.
+
+### Regenerating the frozen `version` hex
+
+UA is `/Bitcoin-Toolkit:` + `BTK_VERSION_STRING` + `/`. Tests freeze
+timestamp `1700000000` and nonce `0` — they must not call `time(NULL)`.
+
+1. Rebuild the payload from the table under `btk node`.
+2. CompactSize of the UA is one byte while `len(UA) < 253`.
+   `/Bitcoin-Toolkit:X.Y.Z/` with one digit per component is 23 bytes (`17`);
+   `4.0.10` and `4.10.0` are 24 (`18`). Payload length is no longer 109 when
+   the UA length changes — update the table offsets after the UA,
+   `test/unit/p2p_test.cpp` size checks, and the P2P header length field.
+3. Checksum = first 4 bytes of HASH256(payload). Put it in the 24-byte header.
+4. This file and `test/unit/p2p_test.cpp` must carry the same hex.
 
 ## Layout
 
@@ -124,7 +198,7 @@ in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.0.0`.
+  `--out plain` prints `4.0.1`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
@@ -265,7 +339,7 @@ object → `expected an address`; bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.0.0","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.0.1","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -424,7 +498,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.1/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -448,22 +522,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.0/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.1/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `d2a9d2ea`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `f90c060a`):
 
 ```
-f9beb4d976657273696f6e00000000006d000000d2a9d2ea7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e302f0000000000
+f9beb4d976657273696f6e00000000006d000000f90c060a7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e312f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e302f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e312f0000000000
 ```
 
 ## `btk balance`
@@ -780,7 +854,8 @@ Assert txid ≠ wtxid. Round-trip-parse the 192-byte hex: one input, one output,
 - Exceptions internally; `main` maps them to exit 1.
 - Tests compare parsed JSON objects, not string tables. CLI tests spawn `bin/btk`.
 - When adding a command: register it, add `SRC`, add `test/cli/test_<cmd>.py`
-  (and unit tests if there is new core), pin `--help`, and update README.md +
-  this file. Do not add a man page.
+  (and unit tests if there is new core), pin `--help`, update README.md +
+  this file, and bump the **minor** version (see [Version](#version)). Do not
+  add a man page.
 - Keep user-facing examples in README.md working. Prefer Vector G when a
   documented WIF/address is needed.
