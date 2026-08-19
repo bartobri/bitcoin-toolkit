@@ -132,14 +132,9 @@ test: test-unit test-cli
 install: bin/btk
 	install -d $(DESTDIR)$(prefix)/bin
 	install -m 755 bin/btk $(DESTDIR)$(prefix)/bin/btk
-	@if [ -d man ]; then \
-		install -d $(DESTDIR)$(prefix)/share/man/man1; \
-		install -m 644 man/btk*.1 $(DESTDIR)$(prefix)/share/man/man1/; \
-	fi
 
 uninstall:
 	rm -f $(DESTDIR)$(prefix)/bin/btk
-	rm -f $(DESTDIR)$(prefix)/share/man/man1/btk*.1
 
 clean:
 	rm -rf bin obj

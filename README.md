@@ -96,7 +96,7 @@ btk privkey --new | btk address --source | btk balance --source
 | `btk config` | `set` / `get` / `unset` / `dump` RPC defaults |
 
 There is no `help` or `version` command. Use `btk --help`, `btk <command> --help`,
-and `btk --version`. Man pages install for every command except `config`.
+and `btk --version`.
 
 `--network mainnet|testnet` applies to keys and addresses. Network is per
 object (a WIF version byte wins over the flag). `btk node` is IPv4 mainnet

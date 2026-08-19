@@ -42,7 +42,7 @@ invocation, composition via pipes. Default wire format is typed NDJSON.
 Out of scope (do not add unless the user asks): QR, HD / BIP-32 / BIP-39,
 PSBT, message sign, tx build, P2SH/P2WSH generation, IPv6 P2P, signet,
 regtest, Windows, CMake, OpenSSL, a `help`/`version` command, cookie-file
-RPC auth, `balance.path`, cloning 3.1.2 flags.
+RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 
 ## Hard rules
 
@@ -54,7 +54,7 @@ RPC auth, `balance.path`, cloning 3.1.2 flags.
 6. Load `~/.btk/config.json` **only** for `config` and `balance`. `privkey` / `pubkey` / `address` / `node` must not open `~/.btk`.
 7. Errors: `BtkError(command, message)` → `btk <command>: <message>` on stderr, exit 1. Never put WIF, hex keys, passphrases, or `rpc.auth` in messages.
 8. Network is per object, never process-global. Do not walk `source` for network. `--network` does not override a WIF version byte. `node` ignores `--network`.
-9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. Man pages wrap the same ideas (no `config` man page; help never execs `man`).
+9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`.
 10. `make test` is the gate (unit + offline CLI). No network. Live P2P is `make test-net` / `BTK_RUN_NET=1`.
 
 ## Layout
@@ -68,7 +68,6 @@ src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pub
 src/chain/        compactsize, transaction, script, balance_db, indexer
 src/net/          p2p, jsonrpc
 src/util/         error, config (load + save), interrupt
-man/btk-privkey.1 man/btk-pubkey.1 man/btk-address.1 man/btk-node.1 man/btk-balance.1
 test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p, compactsize, tx, balance_db
 test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py,
                   test_node.py, test_balance.py, test_config.py
@@ -100,7 +99,7 @@ C++17, GNU Makefile, no Boost, no CMake. Unix only.
   (see `third_party/README.md`).
 - No GMP. 256-bit decimal is a 32-byte ×10/÷10 loop in `src/core/privkey.cpp`.
 - CSPRNG: `getentropy` else `/dev/urandom`. Short read is `could not read CSPRNG`.
-- `prefix ?= /usr/local`. `make install` installs `bin/btk` and `man/btk*.1`.
+- `prefix ?= /usr/local`. `make install` installs `bin/btk`.
 
 ```sh
 make
@@ -567,7 +566,6 @@ btk config dump
 - `dump` emits the typed `config` object (dotted keys). `--out plain` is `key=value` lines in order `rpc.host`, `rpc.port`, `rpc.auth`. Auth redacted; omitted when unset. No `--show-secrets`.
 - `set` / `unset` print nothing. `set` without `=` is `expected key=value`. Extra argv is `unexpected argument`. No verb is `expected set, get, unset, or dump`. Unknown verb is `unknown config verb '…'`.
 - `--stream` → `config does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
-- No man page.
 
 On-disk (`~/.btk/config.json`):
 
@@ -782,7 +780,7 @@ Assert txid ≠ wtxid. Round-trip-parse the 192-byte hex: one input, one output,
 - Exceptions internally; `main` maps them to exit 1.
 - Tests compare parsed JSON objects, not string tables. CLI tests spawn `bin/btk`.
 - When adding a command: register it, add `SRC`, add `test/cli/test_<cmd>.py`
-  (and unit tests if there is new core), pin `--help`, update man pages if the
-  command has one, and update README.md + this file.
+  (and unit tests if there is new core), pin `--help`, and update README.md +
+  this file. Do not add a man page.
 - Keep user-facing examples in README.md working. Prefer Vector G when a
   documented WIF/address is needed.
