@@ -246,17 +246,18 @@ btk node --host HOST [--port 8333]
 This is what `btk balance` actually does.
 
 ```text
-btk balance [--source] [--from address]
+btk balance [--source] [--from address] [--skip-zero]
 btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
 - Query is a **transformer** on stdin. No positional addresses (`provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → Base58Check / bech32 address. No leftover-text hash. Empty stdin → empty stdout, exit 0. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`.
 - `--source` copies the input item onto the output (typed `address` / `balance` as received, including a nested `source`; bare address → synthesized `{type, style, network, data}`). Without `--source` the field is omitted. `--source` + `--sync` is `cannot combine --sync and --source`. `--out plain` is still only `sats`.
+- `--skip-zero` omits items whose `sats` is 0 (unknown / spent / never-seen). Empty stdout is still exit 0. Compatible with `--source` and `--out plain`. `--skip-zero` + `--sync` is `cannot combine --sync and --skip-zero`.
 - Index is always `~/.btk/balance`. `--path` is unknown. No `balance.path` config key.
 - `--sync` is RPC only. Missing/empty DB → walk `0 … tip`. Valid DB (`Mheight` + `Mtip`) → walk `Mheight+1 … tip` (already at tip → `complete`, exit 0). Non-empty junk → `balance database exists; rebuild with --sync --force`. Reorg → `reorg detected; rebuild with --sync --force`. `--force` only with `--sync`: wipe and walk from genesis. Wipe failure (DB locked) → `cannot remove balance database`.
 - SIGINT / SIGTERM abort `--sync` within ~200 ms. Queued blocks are applied first. Stderr: `interrupted: height N`. Exit 1. The next `--sync` continues from `Mheight+1`.
 - A missing prevout is skipped with no warning. We never store non-standard scripts, so those spends are expected. Do not spam `missing prevout` on incremental `--sync`.
-- `--from address` is allowed on query. Other `--from` values are `invalid --from`. `--from` with `--sync` is `cannot combine --sync and --from`. `--source` with `--sync` is `cannot combine --sync and --source`.
+- `--from address` is allowed on query. Other `--from` values are `invalid --from`. `--from` with `--sync` is `cannot combine --sync and --from`. `--source` with `--sync` is `cannot combine --sync and --source`. `--skip-zero` with `--sync` is `cannot combine --sync and --skip-zero`.
 - `--build`, `--update`, `--from-rpc`, `--from-chainstate`, and `--chainstate` are unknown.
 - `--host` / `--port` default to config `rpc.host` / `rpc.port` or `127.0.0.1` / `8332`. `--rpc-auth` is `user:pass` (Base64 at request time). No cookie file.
 - Progress on stderr (`syncing:` / `complete:`). Query is read-only.

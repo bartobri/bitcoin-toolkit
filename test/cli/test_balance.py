@@ -33,8 +33,9 @@ are a typed address object (data), a typed balance object
 (address), or a bare Base58Check / bech32 address. --from address
 forces the bare-line parse. Leftover text is an error, not a hash.
 Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
-A missing database is "balance database not found (run btk balance
---sync)". Query is read-only.
+--skip-zero drops zero-balance addresses (empty stdout is still
+exit 0). A missing database is "balance database not found (run
+btk balance --sync)". Query is read-only.
 
 --sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
 hex). Missing or empty DB: walk 0…tip. Valid DB: walk
@@ -62,6 +63,7 @@ Options:
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
       --source           Include the input item as a source object
+      --skip-zero        Omit addresses with sats: 0
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -72,6 +74,7 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address | btk balance --skip-zero
   btk privkey --new | btk address --source | btk balance --source
 """
 
@@ -311,6 +314,60 @@ def main():
         r = run(["balance"], input_bytes=P2PKH_G + "\n", home=home)
         assert r.returncode == 0
         assert ndjson(r.stdout)[0]["sats"] == 0
+
+        r = run(["balance", "--skip-zero"], input_bytes=P2WPKH_G + "\n", home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        assert ndjson(r.stdout)[0]["sats"] == 100000
+
+        r = run(["balance", "--skip-zero"], input_bytes=P2PKH_G + "\n", home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout == b""
+
+        mixed = (
+            json.dumps({"type": "address", "data": P2PKH_G})
+            + "\n"
+            + json.dumps({"type": "address", "data": P2WPKH_G})
+            + "\n"
+            + json.dumps({"type": "address", "data": P2PKH_G})
+            + "\n"
+        )
+        r = run(["balance", "--skip-zero"], input_bytes=mixed, home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        objs = ndjson(r.stdout)
+        assert len(objs) == 1
+        assert objs[0]["address"] == P2WPKH_G
+        assert objs[0]["sats"] == 100000
+
+        r = run(
+            ["balance", "--skip-zero", "--out", "plain"],
+            input_bytes=P2PKH_G + "\n" + P2WPKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout.decode() == "100000\n"
+
+        r = run(
+            ["balance", "--skip-zero", "--source"],
+            input_bytes=json.dumps({"type": "address", "data": P2WPKH_G}) + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        sourced_nz = ndjson(r.stdout)[0]
+        assert sourced_nz["sats"] == 100000
+        assert sourced_nz["source"]["type"] == "address"
+        assert sourced_nz["source"]["data"] == P2WPKH_G
+
+        r = run(
+            ["balance", "--skip-zero", "--source"],
+            input_bytes=json.dumps({"type": "address", "data": P2PKH_G}) + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout == b""
+
+        r = run(["balance", "--sync", "--skip-zero"], home=home)
+        assert r.returncode == 1
+        assert "cannot combine --sync and --skip-zero" in r.stderr.decode()
 
         r = run(
             ["balance"],

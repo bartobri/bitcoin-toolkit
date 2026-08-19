@@ -515,7 +515,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 }
 ```
 
-`sats` is a JSON number (uint64, decimal integer — see above). Unknown address → `0`, not an error. Optional `source` is the input item when `--source` is set (typed `address` / `balance` as received, or a synthesized address for a bare string).
+`sats` is a JSON number (uint64, decimal integer — see above). Unknown address → `0`, not an error. `--skip-zero` omits those objects (empty stdout is still exit 0). Optional `source` is the input item when `--source` is set (typed `address` / `balance` as received, or a synthesized address for a bare string).
 
 Query input (stdin), in order:
 
@@ -607,7 +607,7 @@ On **`pubkey`** and **`address`**, a bare WIF / hex / dec key is synthesized as 
 
 or `{"type":"pubkey","encoding":"hex",…}` if the bare string was a 66/130-char hex pubkey. The synthetic `data` is the bare input; do not re-encode.
 
-On **`balance`**, a typed `address` or `balance` object is copied as received. A bare address is synthesized as `{type, style, network, data}` (`style` is `p2pkh` / `p2sh` / `p2wpkh` / `p2wsh` / `p2tr` when the string classifies; `network` is `mainnet`). `--source` cannot combine with `--sync`. `--out plain` is still only `sats`.
+On **`balance`**, a typed `address` or `balance` object is copied as received. A bare address is synthesized as `{type, style, network, data}` (`style` is `p2pkh` / `p2sh` / `p2wpkh` / `p2wsh` / `p2tr` when the string classifies; `network` is `mainnet`). `--source` cannot combine with `--sync`. `--out plain` is still only `sats`. `--skip-zero` omits objects whose `sats` is 0 (empty stdout is still exit 0) and cannot combine with `--sync`.
 
 Vanity relies on `--match` implying `source`:
 
@@ -853,7 +853,7 @@ P2P framing (mainnet only): magic on the wire `f9 be b4 d9`; 12-byte command; ui
 Local address → satoshi index. The only writer is Bitcoin Core JSON-RPC. `--sync` walks RPC: first run creates the index, later runs catch it up. The index always lives at `~/.btk/balance`. `--path`, `--from-rpc`, `--from-chainstate`, `--chainstate`, `--build`, and `--update` are unknown options.
 
 ```text
-btk balance [--source] [--from address]
+btk balance [--source] [--from address] [--skip-zero]
 btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
@@ -863,8 +863,9 @@ btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 | `--rpc-auth` | config `rpc.auth` (form `user:pass`; we Base64 at request time). No cookie file. |
 | `--force` | Only with `--sync`. Wipe `~/.btk/balance` and walk from genesis. |
 | `--source` | Query only. Attach the input item as `source`. Cannot combine with `--sync`. |
+| `--skip-zero` | Query only. Omit addresses whose `sats` is 0. Empty stdout is still exit 0. Cannot combine with `--sync`. |
 
-Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. Missing database → `balance database not found (run btk balance --sync)`. Do not SHA-256 leftover text. `--source` + `--sync` is `cannot combine --sync and --source`.
+Query is a **transformer** on stdin (no positional addresses: `provide input on stdin`). `type=address` → `data`; `type=balance` → `address`; bare string → parse as address. Empty stdin → empty stdout, exit 0. Query does **not** open a write handle. Missing address → `sats: 0`. `--skip-zero` drops those. Missing database → `balance database not found (run btk balance --sync)`. Do not SHA-256 leftover text. `--source` + `--sync` is `cannot combine --sync and --source`. `--skip-zero` + `--sync` is `cannot combine --sync and --skip-zero`.
 
 **`--sync`**
 
@@ -882,6 +883,7 @@ A valid index whose stored hash at `Mheight` does not match the RPC block hash a
 | Combo | Error |
 |---|---|
 | `--force` without `--sync` | `--force requires --sync` |
+| `--skip-zero` with `--sync` | `cannot combine --sync and --skip-zero` |
 
 Progress goes to **stderr** so pipes stay clean:
 
@@ -1108,6 +1110,7 @@ btk node --host seed.bitcoin.sipa.be
 btk balance --sync
 printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 btk privkey --new | btk address --source | btk balance --source
+btk privkey --new | btk address | btk balance --skip-zero
 ```
 
 ---
@@ -1834,8 +1837,9 @@ are a typed address object (data), a typed balance object
 (address), or a bare Base58Check / bech32 address. --from address
 forces the bare-line parse. Leftover text is an error, not a hash.
 Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
-A missing database is "balance database not found (run btk balance
---sync)". Query is read-only.
+--skip-zero drops zero-balance addresses (empty stdout is still
+exit 0). A missing database is "balance database not found (run
+btk balance --sync)". Query is read-only.
 
 --sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
 hex). Missing or empty DB: walk 0…tip. Valid DB: walk
@@ -1863,6 +1867,7 @@ Options:
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
       --source           Include the input item as a source object
+      --skip-zero        Omit addresses with sats: 0
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -1873,6 +1878,7 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address | btk balance --skip-zero
   btk privkey --new | btk address --source | btk balance --source
 ```
 

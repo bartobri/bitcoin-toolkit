@@ -4,6 +4,7 @@ btk-balance \- local address \-> satoshi index
 .SH SYNOPSIS
 .B btk balance
 [\fB\-\-source\fR]
+[\fB\-\-skip-zero\fR]
 .br
 .B btk balance \-\-sync
 [\fB\-\-host\fR \fIH\fR]
@@ -19,7 +20,9 @@ or
 .B balance
 objects, or a bare Base58Check / bech32 address. Missing addresses print
 .BR sats
-0. A leftover positional is
+0.
+.B \-\-skip-zero
+omits those (empty stdout is still exit 0). A leftover positional is
 .BR "provide input on stdin" .
 The index always lives at
 .IR ~/.btk/balance .
@@ -85,6 +88,12 @@ Cannot combine with
 .BR \-\-sync .
 .B \-\-out plain
 still prints only the satoshi count.
+.TP
+.B \-\-skip-zero
+Omit addresses whose
+.B sats
+is 0. Empty stdout is still exit 0. Cannot combine with
+.BR \-\-sync .
 .TP
 .BI \-\-config " PATH"
 Config file. Default

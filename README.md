@@ -27,6 +27,7 @@ btk node --host seed.bitcoin.sipa.be --out plain
 btk balance --sync
 printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
 btk privkey --new | btk address --source | btk balance --source
+btk privkey --new | btk address | btk balance --skip-zero
 btk config set rpc.host=127.0.0.1
 btk config set rpc.port=8332
 btk config set rpc.auth=user:pass
@@ -42,7 +43,7 @@ Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (S
 
 `node` is a one-shot IPv4 mainnet handshake. `--host` is required (no positional host). It sends `version`, prints the peer’s `version`, and closes without `verack`. `--out plain` prints `ip:port`.
 
-`balance` queries a local address→satoshi index at `~/.btk/balance`. `--sync` creates or catches it up from Core JSON-RPC (`--host` / `--port` / `--rpc-auth`). Query is stdin-only; missing addresses are `sats: 0`. `--source` attaches the input item (so `privkey | address --source | balance --source` keeps the key under `source.source`). `--out plain` prints the satoshi count. Ctrl-C stops `--sync`; the next `--sync` continues from the last saved height.
+`balance` queries a local address→satoshi index at `~/.btk/balance`. `--sync` creates or catches it up from Core JSON-RPC (`--host` / `--port` / `--rpc-auth`). Query is stdin-only; missing addresses are `sats: 0`. `--skip-zero` omits those. `--source` attaches the input item (so `privkey | address --source | balance --source` keeps the key under `source.source`). `--out plain` prints the satoshi count. Ctrl-C stops `--sync`; the next `--sync` continues from the last saved height.
 
 `config` stores RPC defaults in `~/.btk/config.json` (or `--config` / `$BTK_CONFIG`). Verbs are `set` / `get` / `unset` / `dump`. Keys are `rpc.host`, `rpc.port`, and `rpc.auth`. The file is created only on `set` (mode `0600`). `dump` and `get` always redact `rpc.auth` as eight asterisks. Only `config` and `balance` open this file.
 

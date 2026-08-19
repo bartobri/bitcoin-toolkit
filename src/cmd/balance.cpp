@@ -42,8 +42,9 @@ are a typed address object (data), a typed balance object
 (address), or a bare Base58Check / bech32 address. --from address
 forces the bare-line parse. Leftover text is an error, not a hash.
 Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
-A missing database is "balance database not found (run btk balance
---sync)". Query is read-only.
+--skip-zero drops zero-balance addresses (empty stdout is still
+exit 0). A missing database is "balance database not found (run
+btk balance --sync)". Query is read-only.
 
 --sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
 hex). Missing or empty DB: walk 0…tip. Valid DB: walk
@@ -71,6 +72,7 @@ Options:
                          rpc.auth. No cookie file.
       --from address     Force bare stdin lines as addresses
       --source           Include the input item as a source object
+      --skip-zero        Omit addresses with sats: 0
       --config PATH      Config file. Default: $BTK_CONFIG, else
                          ~/.btk/config.json
   -o, --out FORMAT       ndjson (default), json, or plain. plain
@@ -81,6 +83,7 @@ Examples:
   btk balance --sync
   printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
   btk privkey --new | btk address | btk balance
+  btk privkey --new | btk address | btk balance --skip-zero
   btk privkey --new | btk address --source | btk balance --source
 )help";
 
@@ -388,6 +391,7 @@ public:
         spec.add(0, "rpc-auth", true);
         spec.add(0, "from", true);
         spec.add(0, "source", false);
+        spec.add(0, "skip-zero", false);
     }
 
     bool is_generator(const Options& opts) const override { return opts.sync; }
@@ -410,6 +414,9 @@ public:
         }
         if (opts.source && opts.sync) {
             fail("cannot combine --sync and --source");
+        }
+        if (opts.skip_zero && opts.sync) {
+            fail("cannot combine --sync and --skip-zero");
         }
         if (!opts.from.empty()) {
             if (opts.sync) {
@@ -470,7 +477,11 @@ public:
                 fail("balance database not found (run btk balance --sync)");
             }
         }
-        return {balance_object(addr, db_->get_sats(addr), source_from_item(*item, opts.source))};
+        const std::uint64_t sats = db_->get_sats(addr);
+        if (opts.skip_zero && sats == 0) {
+            return {};
+        }
+        return {balance_object(addr, sats, source_from_item(*item, opts.source))};
     }
 
 private:

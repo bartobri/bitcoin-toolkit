@@ -222,6 +222,8 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.source = true;
         } else if (name == "skip-incompatible") {
             opts.skip_incompatible = true;
+        } else if (name == "skip-zero") {
+            opts.skip_zero = true;
         } else if (name == "host") {
             opts.host = optarg ? optarg : "";
         } else if (name == "port") {
