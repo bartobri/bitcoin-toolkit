@@ -19,32 +19,6 @@ JsonObject item_from_text(const std::string& text) {
     return make_bare(text);
 }
 
-namespace {
-
-void walk_json_value(const JsonValue& v, const ItemHandler& handler, const std::string& command) {
-    if (v.is<JsonArray>()) {
-        for (const JsonValue& el : v.get<JsonArray>()) {
-            if (el.is<JsonObject>()) {
-                handler(el.get<JsonObject>());
-            } else if (el.is<std::string>()) {
-                handler(item_from_text(el.get<std::string>()));
-            } else {
-                throw BtkError(command, "expected a JSON object or string");
-            }
-        }
-        return;
-    }
-    if (v.is<JsonObject>()) {
-        handler(v.get<JsonObject>());
-        return;
-    }
-    if (v.is<std::string>()) {
-        handler(item_from_text(v.get<std::string>()));
-        return;
-    }
-    throw BtkError(command, "expected a JSON object or string");
-}
-
 bool looks_like_binary(const std::string& buf) {
     const auto* p = reinterpret_cast<const unsigned char*>(buf.data());
     const std::size_t n = buf.size();
@@ -88,6 +62,32 @@ bool looks_like_binary(const std::string& buf) {
         i += 1 + static_cast<std::size_t>(need);
     }
     return false;
+}
+
+namespace {
+
+void walk_json_value(const JsonValue& v, const ItemHandler& handler, const std::string& command) {
+    if (v.is<JsonArray>()) {
+        for (const JsonValue& el : v.get<JsonArray>()) {
+            if (el.is<JsonObject>()) {
+                handler(el.get<JsonObject>());
+            } else if (el.is<std::string>()) {
+                handler(item_from_text(el.get<std::string>()));
+            } else {
+                throw BtkError(command, "expected a JSON object or string");
+            }
+        }
+        return;
+    }
+    if (v.is<JsonObject>()) {
+        handler(v.get<JsonObject>());
+        return;
+    }
+    if (v.is<std::string>()) {
+        handler(item_from_text(v.get<std::string>()));
+        return;
+    }
+    throw BtkError(command, "expected a JSON object or string");
 }
 
 std::string read_n(std::istream& in, std::size_t n) {

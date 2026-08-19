@@ -35,7 +35,7 @@ btk config dump
 btk config get rpc.host --out plain
 ```
 
-Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet.
+Input is stdin only. `privkey` guess order is WIF, 64-char hex, decimal, text (SHA-256), then binary (whole stream). `--from wif|hex|dec|text|file` overrides the guess — e.g. `printf 1 | btk privkey --from text` hashes the character `1` instead of treating it as secret 1. SHA-256 of a passphrase is not a KDF. Do not use it as a wallet. `privkey --source` records origin: `{from, data}` for a bare string, `{from: new}` for CSPRNG, `{from: file}` for a hashed stream.
 
 `pubkey` does not hash leftover text. Guess order is WIF, 64-char hex priv, decimal, then 66/130-char hex pub. `--from` is only `wif|hex|dec`. `source` is omitted unless `--source` is set; `--source` copies the input item (nested if that item already had `source`).
 

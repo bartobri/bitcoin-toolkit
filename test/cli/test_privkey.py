@@ -42,10 +42,10 @@ PRIVKEY_HELP = """btk privkey — create or convert private keys
 Usage:
   btk privkey --new [--count N] [--stream]
               [--encoding wif|hex|dec] [--network mainnet|testnet]
-              [--compressed | --uncompressed]
+              [--compressed | --uncompressed] [--source]
   btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
               [--compressed | --uncompressed]
-              [--from wif|hex|dec|text|file]
+              [--from wif|hex|dec|text|file] [--source]
 
 Create a private key from the CSPRNG, convert encodings, or derive a
 key from explicit bytes. Input is stdin only (no positional keys).
@@ -64,6 +64,12 @@ the text looks like a key (printf 1 | btk privkey --from text).
 --from file hashes the whole stream as one key. SHA-256 of a
 passphrase is not a KDF; do not use it as a wallet.
 
+--source records how the key was made. --new is {from: new}. --from
+file and binary stdin are {from: file} (no path or bytes). A bare
+line is {from, data} with the guessed or forced type and the input
+string. A typed privkey object is copied as received. Without
+--source the field is omitted. --no-source is unknown.
+
 Options:
   -h, --help             Show this help and exit
       --new              CSPRNG key in [1, n-1]. Does not read stdin.
@@ -80,6 +86,7 @@ Options:
                          (compressed first).
       --from TYPE        Force stdin type: wif, hex, dec, text, or
                          file. Default: determined from the input.
+      --source           Include how the key was made as a source object
   -c, --count N          With --new, emit N keys. N must be >= 1.
   -s, --stream           With --new, emit until SIGINT. Combined with
                          --count N, emit exactly N.
@@ -91,6 +98,7 @@ Options:
 
 Examples:
   btk privkey --new
+  btk privkey --new --source
   btk privkey --new --count 5 --encoding hex
   printf 1 | btk privkey --encoding dec --out plain
   printf 1 | btk privkey --from text --out plain
@@ -133,6 +141,10 @@ def expect_err(args, needle, input_bytes=None):
 def plain(args, data):
     r = expect_ok(args, input_bytes=data)
     return r.stdout.decode().strip()
+
+
+def first_obj(args, data=None):
+    return ndjson(expect_ok(args, input_bytes=data).stdout)[0]
 
 
 def main():
@@ -301,6 +313,54 @@ def main():
     assert plain(["privkey", "--out", "plain"], zip_magic) == plain(
         ["privkey", "--from", "file", "--out", "plain"], zip_magic
     )
+
+    o = first_obj(["privkey", "--new"])
+    assert "source" not in o
+    o = first_obj(["privkey", "--new", "--source"])
+    assert o["type"] == "privkey"
+    assert o["source"] == {"from": "new"}
+
+    o = first_obj(["privkey", "--source"], WIF_G_COMP_MAIN)
+    assert o["source"] == {"from": "wif", "data": WIF_G_COMP_MAIN}
+    o = first_obj(["privkey", "--source"], SECRET1)
+    assert o["source"] == {"from": "hex", "data": SECRET1}
+    o = first_obj(["privkey", "--source"], "1")
+    assert o["source"] == {"from": "dec", "data": "1"}
+    o = first_obj(["privkey", "--source"], "not-a-key")
+    assert o["source"] == {"from": "text", "data": "not-a-key"}
+    o = first_obj(["privkey", "--from", "text", "--source"], "1")
+    assert o["source"] == {"from": "text", "data": "1"}
+
+    o = first_obj(["privkey", "--from", "file", "--source"], b"test01")
+    assert o["source"] == {"from": "file"}
+    blob = b"\xff\xd8\xff\x00not-a-key"
+    o = first_obj(["privkey", "--source"], blob)
+    assert o["source"] == {"from": "file"}
+    zip_magic = b"PK\x03\x04" + b"\x00\x01\x02\x03"
+    o = first_obj(["privkey", "--source"], zip_magic)
+    assert o["source"] == {"from": "file"}
+
+    typed = {
+        "type": "privkey",
+        "encoding": "hex",
+        "network": "testnet",
+        "compressed": False,
+        "data": SECRET1,
+    }
+    o = first_obj(["privkey", "--source"], json.dumps(typed) + "\n")
+    assert o["source"] == typed
+    nested = dict(typed)
+    nested["source"] = {"from": "new"}
+    o = first_obj(["privkey", "--source"], json.dumps(nested) + "\n")
+    assert o["source"] == nested
+
+    r = expect_ok(["privkey", "--compressed", "--uncompressed", "--source"], SECRET1)
+    pair = ndjson(r.stdout)
+    assert len(pair) == 2
+    assert pair[0]["source"] == pair[1]["source"] == {"from": "hex", "data": SECRET1}
+
+    assert plain(["privkey", "--source", "--out", "plain"], SECRET1) == WIF_G_COMP_MAIN
+    expect_err(["privkey", "--no-source"], "unknown option '--no-source'")
 
     r = expect_ok(["privkey", "--help"])
     assert r.stdout.decode() == PRIVKEY_HELP

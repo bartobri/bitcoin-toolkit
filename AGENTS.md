@@ -49,10 +49,10 @@ This is what `btk privkey` actually does. Carry these rules forward unless the u
 ```text
 btk privkey --new [--count N] [--stream]
             [--encoding wif|hex|dec] [--network mainnet|testnet]
-            [--compressed | --uncompressed]
+            [--compressed | --uncompressed] [--source]
 btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
             [--compressed | --uncompressed]
-            [--from wif|hex|dec|text|file]
+            [--from wif|hex|dec|text|file] [--source]
 ```
 
 - **Stdin only.** Positional keys are an error: `provide input on stdin`. `--count 5` is still a flag argument.
@@ -60,6 +60,7 @@ btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
 - `--new` and `--from` cannot be combined.
 - `--count` / `--stream` require `--new`.
 - Default output is NDJSON, one typed object per line, `fflush` after each. `--out plain` prints `data`. `--out json` pretty-prints (array if N>1) unless `--stream`.
+- `--source` is opt-in. It records **origin**, not a copy of a prior item: `--new` → `{from: new}`; `--from file` / binary stdin → `{from: file}` (no path, no bytes); a bare line → `{from, data}` with the guessed or forced type and the input string; a typed `privkey` object is copied as received (including a nested `source`). `--no-source` is unknown.
 
 ### Stdin guess (`--from` omitted, `--in auto`)
 

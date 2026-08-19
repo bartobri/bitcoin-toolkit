@@ -1,11 +1,14 @@
 #include "cmd/privkey.hpp"
 
+#include "cli/io.hpp"
 #include "core/hash.hpp"
 #include "core/json_io.hpp"
 #include "core/privkey.hpp"
 #include "util/error.hpp"
 
+#include <cctype>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 namespace {
@@ -15,10 +18,10 @@ const char kHelp[] = R"help(btk privkey — create or convert private keys
 Usage:
   btk privkey --new [--count N] [--stream]
               [--encoding wif|hex|dec] [--network mainnet|testnet]
-              [--compressed | --uncompressed]
+              [--compressed | --uncompressed] [--source]
   btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
               [--compressed | --uncompressed]
-              [--from wif|hex|dec|text|file]
+              [--from wif|hex|dec|text|file] [--source]
 
 Create a private key from the CSPRNG, convert encodings, or derive a
 key from explicit bytes. Input is stdin only (no positional keys).
@@ -37,6 +40,12 @@ the text looks like a key (printf 1 | btk privkey --from text).
 --from file hashes the whole stream as one key. SHA-256 of a
 passphrase is not a KDF; do not use it as a wallet.
 
+--source records how the key was made. --new is {from: new}. --from
+file and binary stdin are {from: file} (no path or bytes). A bare
+line is {from, data} with the guessed or forced type and the input
+string. A typed privkey object is copied as received. Without
+--source the field is omitted. --no-source is unknown.
+
 Options:
   -h, --help             Show this help and exit
       --new              CSPRNG key in [1, n-1]. Does not read stdin.
@@ -53,6 +62,7 @@ Options:
                          (compressed first).
       --from TYPE        Force stdin type: wif, hex, dec, text, or
                          file. Default: determined from the input.
+      --source           Include how the key was made as a source object
   -c, --count N          With --new, emit N keys. N must be >= 1.
   -s, --stream           With --new, emit until SIGINT. Combined with
                          --count N, emit exactly N.
@@ -64,6 +74,7 @@ Options:
 
 Examples:
   btk privkey --new
+  btk privkey --new --source
   btk privkey --new --count 5 --encoding hex
   printf 1 | btk privkey --encoding dec --out plain
   printf 1 | btk privkey --from text --out plain
@@ -77,7 +88,61 @@ std::string output_encoding(const Options& opts) {
     return opts.encoding;
 }
 
-JsonObject privkey_object(const Privkey& key, const std::string& encoding) {
+JsonObject origin_new() {
+    JsonObject o;
+    set_string(o, "from", "new");
+    return o;
+}
+
+JsonObject origin_file() {
+    JsonObject o;
+    set_string(o, "from", "file");
+    return o;
+}
+
+bool is_hex64(const std::string& s) {
+    if (s.size() != 64) {
+        return false;
+    }
+    for (unsigned char c : s) {
+        if (!std::isxdigit(c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string classify_bare(const std::string& text, const Options& opts) {
+    if (!opts.from.empty()) {
+        return opts.from;
+    }
+    if (looks_like_wif(text)) {
+        return "wif";
+    }
+    if (is_hex64(text)) {
+        return "hex";
+    }
+    if (looks_like_decimal(text)) {
+        return "dec";
+    }
+    if (looks_like_binary(text)) {
+        return "file";
+    }
+    return "text";
+}
+
+JsonObject origin_from_bare(const std::string& text, const Options& opts) {
+    JsonObject o;
+    const std::string from = classify_bare(text, opts);
+    set_string(o, "from", from);
+    if (from != "file") {
+        set_string(o, "data", text);
+    }
+    return o;
+}
+
+JsonObject privkey_object(const Privkey& key, const std::string& encoding,
+                          const std::optional<JsonObject>& source) {
     JsonObject o;
     set_string(o, "type", "privkey");
     set_string(o, "encoding", encoding);
@@ -89,6 +154,9 @@ JsonObject privkey_object(const Privkey& key, const std::string& encoding) {
         set_string(o, "data", encode_secret_dec(key.secret));
     } else {
         set_string(o, "data", encode_wif(key));
+    }
+    if (source) {
+        o["source"] = JsonValue(*source);
     }
     return o;
 }
@@ -106,7 +174,8 @@ std::vector<bool> compression_modes(const Options& opts, bool fallback) {
     return {fallback};
 }
 
-std::vector<JsonObject> emit_key(const Options& opts, Privkey key) {
+std::vector<JsonObject> emit_key(const Options& opts, Privkey key,
+                                 const std::optional<JsonObject>& source) {
     if (opts.network_set) {
         key.network = opts.network;
     }
@@ -115,7 +184,7 @@ std::vector<JsonObject> emit_key(const Options& opts, Privkey key) {
     for (bool compressed : compression_modes(opts, key.compressed)) {
         Privkey copy = key;
         copy.compressed = compressed;
-        out.push_back(privkey_object(copy, enc));
+        out.push_back(privkey_object(copy, enc, source));
     }
     return out;
 }
@@ -227,6 +296,7 @@ public:
         spec.add(0, "compressed", false);
         spec.add(0, "uncompressed", false);
         spec.add(0, "from", true);
+        spec.add(0, "source", false);
     }
 
     bool is_generator(const Options& opts) const override {
@@ -261,20 +331,29 @@ public:
     std::vector<JsonObject> run(const Options& opts,
                                 const std::optional<JsonObject>& item) override {
         if (opts.flag_new) {
-            return emit_key(opts, generate_privkey(opts.network, true));
+            const std::optional<JsonObject> source =
+                opts.source ? std::optional<JsonObject>(origin_new()) : std::nullopt;
+            return emit_key(opts, generate_privkey(opts.network, true), source);
         }
         if (opts.from == "file") {
             const std::vector<std::uint8_t> bytes = read_all_stdin();
             const Network net = opts.network_set ? opts.network : Network::Main;
-            return emit_key(opts, privkey_from_digest(sha256(bytes), net, true));
+            const std::optional<JsonObject> source =
+                opts.source ? std::optional<JsonObject>(origin_file()) : std::nullopt;
+            return emit_key(opts, privkey_from_digest(sha256(bytes), net, true), source);
         }
         if (!item) {
             throw BtkError("privkey", "expected a privkey");
         }
         if (is_bare(*item)) {
-            return emit_key(opts, key_from_bare_string(bare_text(*item), opts));
+            const std::string text = bare_text(*item);
+            const std::optional<JsonObject> source =
+                opts.source ? std::optional<JsonObject>(origin_from_bare(text, opts)) : std::nullopt;
+            return emit_key(opts, key_from_bare_string(text, opts), source);
         }
-        return emit_key(opts, parse_object(*item));
+        const std::optional<JsonObject> source =
+            opts.source ? std::optional<JsonObject>(*item) : std::nullopt;
+        return emit_key(opts, parse_object(*item), source);
     }
 };
 

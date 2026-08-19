@@ -458,6 +458,7 @@ Unknown `type` on stdin: error, exit 1 (do not guess) **except** where a command
 | `network` | `mainnet` \| `testnet` |
 | `compressed` | bool. WIF compression flag / “prefer compressed pubkey”. |
 | `data` | WIF string, 64 lowercase hex chars (the 32-byte scalar), or a decimal digit string (`encoding=dec`). Hex never includes a trailing `01`/`00` flag — compression is the boolean. Decimal `data` is a JSON string, never a JSON number. |
+| `source` | Optional. Present only when `--source` is set. Origin of the secret: `{from: new}` for `--new`; `{from: file}` for `--from file` or binary stdin; `{from, data}` for a bare line (guessed or `--from` type plus the input string); or the typed input object as received. |
 
 #### `pubkey`
 
@@ -595,9 +596,20 @@ btk privkey --new --out plain | btk address --type p2tr --out plain
 
 #### Provenance (`source`)
 
-`--source` puts the **input item** on the output as `source`. A typed object is copied as received, including its own `source` if it has one. A bare string is synthesized into the equivalent typed object. Without `--source` the field is omitted. `--match` still implies `--source` on `address`. `--no-source` is an unknown flag.
+`--source` is opt-in. Without it the field is omitted. `--match` still implies `--source` on `address`. `--no-source` is an unknown flag.
 
-Each stage that opts in extends the chain. A stage that does not opt in drops it. `privkey` has no `--source` (it is the start of the chain). Network is still not walked from `source` (D9).
+On **`privkey`**, `source` is **origin** (how the secret was made), not a copy of a prior item:
+
+| How the key was made | `source` |
+|---|---|
+| `--new` (CSPRNG) | `{"from":"new"}` |
+| Bare line / `--from wif\|hex\|dec\|text` | `{"from":"<kind>","data":"<the line as received>"}`. `from` is the `--from` override if present, otherwise the guess. |
+| `--from file`, or binary stdin (NUL / C0 / invalid UTF-8) | `{"from":"file"}` — no `data`, no `path`. `--from file` stays stdin-only. |
+| Typed `privkey` object | the input object as received (including a nested `source`) |
+
+On **`pubkey`**, **`address`**, and **`balance`**, `--source` puts the **input item** on the output. A typed object is copied as received, including its own `source` if it has one. A bare string is synthesized into the equivalent typed object.
+
+Each stage that opts in extends the chain. A stage that does not opt in drops it. `privkey --new --source | address --source` nests `{from: new}` under the privkey under the address. Network is still not walked from `source` (D9).
 
 On **`pubkey`** and **`address`**, a bare WIF / hex / dec key is synthesized as today:
 
@@ -666,10 +678,10 @@ Create a private key from the CSPRNG, convert encodings, or derive a key from ex
 ```text
 btk privkey --new [--count N] [--stream]
             [--encoding wif|hex|dec] [--network mainnet|testnet]
-            [--compressed | --uncompressed]
+            [--compressed | --uncompressed] [--source]
 btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
             [--compressed | --uncompressed]
-            [--from wif|hex|dec|text|file]
+            [--from wif|hex|dec|text|file] [--source]
 ```
 
 | Long | Notes |
@@ -678,6 +690,7 @@ btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
 | `--encoding` | Output encoding: `wif` (default), `hex`, or `dec`. |
 | `--compressed` / `--uncompressed` | Set the compression flag. If **both**, emit two objects (compressed first). Default compressed. |
 | `--from` | Force stdin interpretation: `wif`, `hex`, `dec`, `text` (SHA-256 each line), or `file` (SHA-256 entire stdin, one key). Default: guess. Cannot combine with `--new`. |
+| `--source` | Include origin as `source`. `--new` → `{from: new}`; file/binary → `{from: file}`; bare line → `{from, data}`; typed object copied as received. Omitted unless set. `--no-source` is unknown. |
 | `--count N` | Only with `--new`. Emit N keys. Default 1. N must be `≥ 1`. |
 | `--stream` | Only with `--new`. Alone: emit until SIGINT. With `--count N`: emit N, then stop. |
 
@@ -1234,7 +1247,7 @@ Each phase after the scaffold is one command and the tests that make it real.
 | PR | Phase | Delivers | Acceptance |
 |---|---|---|---|
 | **0** | Scaffold | Layout, Makefile, `main`/dispatcher, options, NDJSON I/O, hash, hex, base58, error, secp RAII, `third_party/picojson`, `--help`/`--version` stubs. `bin/btk` runs and rejects unknown commands. | `make` produces `bin/btk`. Unit tests for SHA256, RIPEMD160, HASH160, HASH256, Base58Check, hex. |
-| **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. |
+| **1** | Private keys | `cmd/privkey`, WIF, CSPRNG, `--new/--encoding/--network/--compressed/--from/--stream/--count/--source`. Stdin only. CLI tests. New `btk-privkey.1`. | Appendix A Vector G + Wiki + WIF-wiki + `test01`/`Secret Passphrase` via `--from text`. Range reject 0 and `n`. Stream flush test. `--source` origin objects. |
 | **2** | Public keys (**done**, `38855af`) | `cmd/pubkey`. Stdin-only. `--from` is only `wif\|hex\|dec` (no `text`/`file`). Guess: WIF → 64-hex priv → dec → 66/130 hex pub. `--source` opt-in. | Vector G and Wiki compressed/uncompressed hex. WIF → pubkey. Recompress. Testnet privkey object → pubkey object with `network=testnet`. Leftover text / `--from text` / `--from file` are errors. `source` only with `--source`. |
 | **3** | Addresses (**done**, `3fb1427`) | `cmd/address`, bech32, bech32m, BIP-341 tweak, `--type`, `--match`. Stdin only; no `--from`; no silent hash. `--match` includes `source`. | BIP-173 P2WPKH of G, BIP-341 empty-tree (A.6), Wiki P2PKH, G P2TR (A.2), **odd-Y secret 6 P2TR (A.2b)**. Uncompressed+p2wpkh errors. Bare 64-hex / decimal / leftover text error. `--from` is unknown. Vanity pipe test with a fixture key whose P2PKH is known, not a live grind. |
 | **4** | Node (**done**, `d91fa5b`) | `net/p2p`, `cmd/node`. `--host` required (no positional host). Offline unit test of version message ser/de. Live test behind `BTK_RUN_NET=1`. | Parse/serialize the frozen 109-byte payload and full header+payload hex in the node section. Port is BE `208d`. UA is CompactSize. `make test` does not touch the network. |
@@ -1597,10 +1610,10 @@ btk privkey — create or convert private keys
 Usage:
   btk privkey --new [--count N] [--stream]
               [--encoding wif|hex|dec] [--network mainnet|testnet]
-              [--compressed | --uncompressed]
+              [--compressed | --uncompressed] [--source]
   btk privkey [--encoding wif|hex|dec] [--network mainnet|testnet]
               [--compressed | --uncompressed]
-              [--from wif|hex|dec|text|file]
+              [--from wif|hex|dec|text|file] [--source]
 
 Create a private key from the CSPRNG, convert encodings, or derive a
 key from explicit bytes. Input is stdin only (no positional keys).
@@ -1619,6 +1632,12 @@ the text looks like a key (printf 1 | btk privkey --from text).
 --from file hashes the whole stream as one key. SHA-256 of a
 passphrase is not a KDF; do not use it as a wallet.
 
+--source records how the key was made. --new is {from: new}. --from
+file and binary stdin are {from: file} (no path or bytes). A bare
+line is {from, data} with the guessed or forced type and the input
+string. A typed privkey object is copied as received. Without
+--source the field is omitted. --no-source is unknown.
+
 Options:
   -h, --help             Show this help and exit
       --new              CSPRNG key in [1, n-1]. Does not read stdin.
@@ -1635,6 +1654,7 @@ Options:
                          (compressed first).
       --from TYPE        Force stdin type: wif, hex, dec, text, or
                          file. Default: determined from the input.
+      --source           Include how the key was made as a source object
   -c, --count N          With --new, emit N keys. N must be >= 1.
   -s, --stream           With --new, emit until SIGINT. Combined with
                          --count N, emit exactly N.
@@ -1646,6 +1666,7 @@ Options:
 
 Examples:
   btk privkey --new
+  btk privkey --new --source
   btk privkey --new --count 5 --encoding hex
   printf 1 | btk privkey --encoding dec --out plain
   printf 1 | btk privkey --from text --out plain
