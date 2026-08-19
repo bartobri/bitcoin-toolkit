@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.0.1
+# Agent notes — Bitcoin Toolkit 4.0.2
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,8 +6,8 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.0.1` (`src/version.hpp`). Every landing commit increments it (see
-[Version](#version)).
+is `4.0.2` (`src/version.hpp`). Every landing commit increments it (see
+[Version](#version)). All development is on `4.x` (see [Git](#git)).
 
 ## Keep README.md, AGENTS.md, and the version current
 
@@ -22,7 +22,8 @@ how it works, commands, examples, build/install, warnings, or license.
 
 Update **AGENTS.md** when the development contract changes: CLI behavior,
 input/output, algorithms, layout, tests, dependencies, conventions, asserted
-error strings, help text, golden vectors, or the versioning rules.
+error strings, help text, golden vectors, the versioning rules, or the git
+workflow.
 
 README stays high-level and interesting. This file stays complete enough that
 an agent can implement or review a change without inventing a contract. If
@@ -61,6 +62,7 @@ RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`.
 10. `make test` is the gate (unit + offline CLI). No network. Live P2P is `make test-net` / `BTK_RUN_NET=1`.
 11. Every landing commit increments `BTK_VERSION_*` in `src/version.hpp` and every pin listed under [Version](#version). Never bump major unless the user explicitly asks. Choose minor vs patch from the commit’s contents.
+12. All development is on `4.x`. The user’s words **commit**, **push**, and **deploy** mean the steps under [Git](#git). Do not commit development work on `master`.
 
 ## Version
 
@@ -131,6 +133,54 @@ timestamp `1700000000` and nonce `0` — they must not call `time(NULL)`.
 3. Checksum = first 4 bytes of HASH256(payload). Put it in the 24-byte header.
 4. This file and `test/unit/p2p_test.cpp` must carry the same hex.
 
+## Git
+
+Development happens on **`4.x`**. `master` is the published line. Do not
+commit development work on `master`. Do not use `2.x` or `3.x`. Do not invent
+extra feature branches unless the user asks.
+
+If `4.x` does not exist, create it from `master` and switch to it before
+editing. If the checkout is not `4.x` when starting work, switch to `4.x`
+first.
+
+These user words are the contract. Do not treat “land it” or “ship it” as
+substitutes unless the user clearly means one of the verbs below.
+
+### commit
+
+Commit **all** current toolkit work onto `4.x`.
+
+1. Switch to `4.x` if needed (create from `master` if missing).
+2. Apply the version bump for this commit (see [Version](#version)).
+3. Stage the project files that belong in the change. Do not leave related
+   edits uncommitted. Do not add `bin/`, build artifacts, or secrets.
+4. Create the commit on `4.x`.
+5. Do not merge to `master`. Do not push.
+6. If the worktree is already clean, say so. Do not create an empty commit.
+
+### push
+
+Publish `master` to `origin`.
+
+1. If the worktree is dirty, perform the **commit** steps first (all work
+   onto `4.x`).
+2. `git checkout master`
+3. `git merge 4.x` (fast-forward when possible; a merge commit is fine if
+   `master` has unique commits). Do not rebase unless the user asks. Do not
+   force-push.
+4. `git push origin master`
+5. `git checkout 4.x` so further work stays on `4.x`.
+6. Do not push `4.x` unless the user asks.
+7. If the merge conflicts, stop and report. Do not invent a resolution.
+8. If `4.x` has nothing that `master` lacks, still push `master` when it is
+   ahead of `origin/master`; otherwise say that `origin/master` is already
+   up to date.
+
+### deploy
+
+Perform **commit** then **push**: commit all work on `4.x`, merge `4.x` into
+`master`, push `master` to `origin`, return to `4.x`.
+
 ## Layout
 
 ```
@@ -198,7 +248,7 @@ in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.0.1`.
+  `--out plain` prints `4.0.2`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
@@ -339,7 +389,7 @@ object → `expected an address`; bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.0.1","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.0.2","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -498,7 +548,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.1/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.2/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -522,22 +572,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.1/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.2/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `f90c060a`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `4c54afe3`):
 
 ```
-f9beb4d976657273696f6e00000000006d000000f90c060a7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e312f0000000000
+f9beb4d976657273696f6e00000000006d0000004c54afe37f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e322f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e312f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e322f0000000000
 ```
 
 ## `btk balance`
@@ -859,3 +909,5 @@ Assert txid ≠ wtxid. Round-trip-parse the 192-byte hex: one input, one output,
   add a man page.
 - Keep user-facing examples in README.md working. Prefer Vector G when a
   documented WIF/address is needed.
+- Development is on `4.x`. **commit** / **push** / **deploy** follow
+  [Git](#git).
