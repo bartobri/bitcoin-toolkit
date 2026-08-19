@@ -329,24 +329,36 @@ void BalanceDb::apply(const BlockEffects& fx) {
         return v;
     };
 
-    for (const OutpointRef& sp : fx.spends) {
-        std::string addr;
-        std::uint64_t amount = 0;
-        if (!get_outpoint(sp.txid, sp.vout, addr, amount)) {
-            // Unindexed script (OP_RETURN, nonstandard, …). Not an error.
-            continue;
-        }
-        const std::uint64_t next = (current(addr) < amount) ? 0 : (current(addr) - amount);
-        balances[addr] = next;
-        batch.Delete(key_o(sp.txid, sp.vout));
-    }
+    // Created in this batch but not yet written. Same-block children look here.
+    std::unordered_map<std::string, std::pair<std::string, std::uint64_t>> created;
 
-    for (const Credit& c : fx.credits) {
-        if (c.address.empty() || c.amount == 0) {
-            continue;
+    for (const TxEffects& te : fx.txs) {
+        for (const OutpointRef& sp : te.spends) {
+            const std::string ok = key_o(sp.txid, sp.vout);
+            std::string addr;
+            std::uint64_t amount = 0;
+            auto it = created.find(ok);
+            if (it != created.end()) {
+                addr = it->second.first;
+                amount = it->second.second;
+                created.erase(it);
+            } else if (!get_outpoint(sp.txid, sp.vout, addr, amount)) {
+                // Unindexed script (OP_RETURN, nonstandard, …). Not an error.
+                continue;
+            }
+            const std::uint64_t cur = current(addr);
+            balances[addr] = (cur < amount) ? 0 : (cur - amount);
+            batch.Delete(ok);
         }
-        balances[c.address] = current(c.address) + c.amount;
-        batch.Put(key_o(c.txid, c.vout), encode_out_value(c.address, c.amount));
+        for (const Credit& c : te.credits) {
+            if (c.address.empty() || c.amount == 0) {
+                continue;
+            }
+            balances[c.address] = current(c.address) + c.amount;
+            const std::string ok = key_o(c.txid, c.vout);
+            created[ok] = {c.address, c.amount};
+            batch.Put(ok, encode_out_value(c.address, c.amount));
+        }
     }
 
     for (const auto& kv : balances) {

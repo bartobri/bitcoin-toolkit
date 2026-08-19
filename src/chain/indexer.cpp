@@ -7,6 +7,7 @@ BlockEffects effects_from_block(const Block& block, std::uint32_t height) {
     fx.height = height;
     fx.hash = block_hash(block);
     for (const Transaction& tx : block.txs) {
+        TxEffects te;
         const Hash256 id = txid(tx);
         for (const TxIn& in : tx.vin) {
             if (is_null_prevout(in)) {
@@ -15,7 +16,7 @@ BlockEffects effects_from_block(const Block& block, std::uint32_t height) {
             OutpointRef sp;
             sp.txid = in.prev_txid;
             sp.vout = in.prev_vout;
-            fx.spends.push_back(sp);
+            te.spends.push_back(sp);
         }
         for (std::uint32_t i = 0; i < tx.vout.size(); ++i) {
             const TxOut& out = tx.vout[i];
@@ -31,8 +32,9 @@ BlockEffects effects_from_block(const Block& block, std::uint32_t height) {
             c.vout = i;
             c.address = *addr;
             c.amount = static_cast<std::uint64_t>(out.value);
-            fx.credits.push_back(std::move(c));
+            te.credits.push_back(std::move(c));
         }
+        fx.txs.push_back(std::move(te));
     }
     return fx;
 }

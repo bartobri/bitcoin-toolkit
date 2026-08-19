@@ -474,6 +474,24 @@ def main():
         r = run(["balance"], input_bytes=P2PKH_G + "\n", home=home)
         assert ndjson(r.stdout)[0]["sats"] == 0
 
+        # Same-block spend: child must debit the parent created in this block
+        blk_same = make_block([A10, spend_to_p2pkh()], nonce=3)
+        port, stop, thread, errors = start_rpc([blk_same])
+        r = run(
+            ["balance", "--sync", "--force", "--host", "127.0.0.1", "--port", str(port)],
+            home=home,
+            timeout=15,
+        )
+        stop.set()
+        thread.join(timeout=5)
+        assert r.returncode == 0, (r.stderr.decode(), errors)
+        r = run(["balance"], input_bytes=P2WPKH_G + "\n", home=home)
+        assert r.returncode == 0
+        assert ndjson(r.stdout)[0]["sats"] == 0
+        r = run(["balance"], input_bytes=P2PKH_G + "\n", home=home)
+        assert r.returncode == 0
+        assert ndjson(r.stdout)[0]["sats"] == 100000
+
         r = run(
             ["balance", "--sync", "--from", "address", "--host", "127.0.0.1"],
             home=home,

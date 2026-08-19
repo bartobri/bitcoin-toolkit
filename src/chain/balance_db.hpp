@@ -28,11 +28,17 @@ struct Credit {
     std::uint64_t amount = 0;
 };
 
+// One transaction, in block order. apply() must debit then credit per tx so a
+// later tx can spend an output created earlier in the same block.
+struct TxEffects {
+    std::vector<OutpointRef> spends;
+    std::vector<Credit> credits;
+};
+
 struct BlockEffects {
     std::uint32_t height = 0;
     Hash256 hash{};
-    std::vector<OutpointRef> spends;
-    std::vector<Credit> credits;
+    std::vector<TxEffects> txs;
 };
 
 IndexState inspect_index(const std::string& dir);
