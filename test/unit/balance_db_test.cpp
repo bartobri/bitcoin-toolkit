@@ -82,7 +82,7 @@ int main() {
         db.reset();
         CHECK(inspect_index(dir) == IndexState::Valid);
 
-        destroy_index(dir);
+        destroy_index(dir, "balance");
         CHECK(inspect_index(dir) == IndexState::Missing);
     }
 
@@ -97,7 +97,7 @@ int main() {
         std::uint64_t amount = 0;
         CHECK(!db->get_outpoint(a10_id, 0, addr, amount));
         db.reset();
-        destroy_index(dir);
+        destroy_index(dir, "balance");
     }
 
     {
@@ -119,7 +119,7 @@ int main() {
         CHECK(addr == kP2pkhG);
         CHECK(amount == 100000);
         db.reset();
-        destroy_index(dir);
+        destroy_index(dir, "balance");
     }
 
     {
@@ -129,7 +129,7 @@ int main() {
         CHECK(db->get_sats(kP2wpkhG) == 100000);
         CHECK(db->get_sats(kP2pkhG) == 0);
         db.reset();
-        destroy_index(dir);
+        destroy_index(dir, "balance");
     }
 #else
     CHECK(!kHaveLeveldb);

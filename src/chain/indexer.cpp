@@ -5,6 +5,7 @@
 BlockEffects effects_from_block(const Block& block, std::uint32_t height) {
     BlockEffects fx;
     fx.height = height;
+    fx.time = block.time;
     fx.hash = block_hash(block);
     for (const Transaction& tx : block.txs) {
         TxEffects te;

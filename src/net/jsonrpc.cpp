@@ -20,8 +20,8 @@ namespace {
 
 constexpr int kTimeoutMs = 60000;
 
-[[noreturn]] void fail(const std::string& message) {
-    throw BtkError("balance", message);
+[[noreturn]] void fail(const std::string& command, const std::string& message) {
+    throw BtkError(command, message);
 }
 
 std::string base64_encode(const std::string& in) {
@@ -72,11 +72,11 @@ private:
     int fd_;
 };
 
-void wait_fd(int fd, short events) {
+void wait_fd(int fd, short events, const std::string& command) {
     int left = kTimeoutMs;
     while (left > 0) {
         if (stop_requested()) {
-            fail("interrupted");
+            fail(command, "interrupted");
         }
         const int slice = left < 200 ? left : 200;
         pollfd p{};
@@ -90,39 +90,39 @@ void wait_fd(int fd, short events) {
             if (errno == EINTR) {
                 continue;
             }
-            fail("rpc poll failed");
+            fail(command, "rpc poll failed");
         }
         left -= slice;
     }
-    fail("rpc timeout");
+    fail(command, "rpc timeout");
 }
 
-void write_all(int fd, const std::string& s) {
+void write_all(int fd, const std::string& s, const std::string& command) {
     std::size_t off = 0;
     while (off < s.size()) {
-        wait_fd(fd, POLLOUT);
+        wait_fd(fd, POLLOUT, command);
         const ssize_t n = ::write(fd, s.data() + off, s.size() - off);
         if (n < 0) {
             if (errno == EINTR || errno == EAGAIN) {
                 continue;
             }
-            fail("rpc write failed");
+            fail(command, "rpc write failed");
         }
         off += static_cast<std::size_t>(n);
     }
 }
 
-std::string read_all(int fd) {
+std::string read_all(int fd, const std::string& command) {
     std::string out;
     char buf[4096];
     while (true) {
-        wait_fd(fd, POLLIN);
+        wait_fd(fd, POLLIN, command);
         const ssize_t n = ::read(fd, buf, sizeof(buf));
         if (n < 0) {
             if (errno == EINTR || errno == EAGAIN) {
                 continue;
             }
-            fail("rpc read failed");
+            fail(command, "rpc read failed");
         }
         if (n == 0) {
             break;
@@ -132,14 +132,14 @@ std::string read_all(int fd) {
     return out;
 }
 
-int connect_ipv4(const std::string& host, std::uint16_t port) {
+int connect_ipv4(const std::string& host, std::uint16_t port, const std::string& command) {
     addrinfo hints{};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     addrinfo* res = nullptr;
     const int g = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res);
     if (g != 0 || res == nullptr) {
-        fail("cannot connect to rpc");
+        fail(command, "cannot connect to rpc");
     }
     int fd = -1;
     for (addrinfo* p = res; p != nullptr; p = p->ai_next) {
@@ -167,31 +167,31 @@ int connect_ipv4(const std::string& host, std::uint16_t port) {
     }
     freeaddrinfo(res);
     if (fd < 0) {
-        fail("cannot connect to rpc");
+        fail(command, "cannot connect to rpc");
     }
     return fd;
 }
 
-std::string http_body(const std::string& resp) {
+std::string http_body(const std::string& resp, const std::string& command) {
     const auto pos = resp.find("\r\n\r\n");
     if (pos == std::string::npos) {
-        fail("invalid rpc response");
+        fail(command, "invalid rpc response");
     }
     const std::string headers = resp.substr(0, pos);
     if (headers.find(" 200 ") == std::string::npos && headers.compare(0, 12, "HTTP/1.0 200") != 0 &&
         headers.compare(0, 12, "HTTP/1.1 200") != 0) {
         if (headers.find(" 401 ") != std::string::npos) {
-            fail("rpc authentication failed");
+            fail(command, "rpc authentication failed");
         }
-        fail("rpc request failed");
+        fail(command, "rpc request failed");
     }
     return resp.substr(pos + 4);
 }
 
 }  // namespace
 
-JsonRpc::JsonRpc(std::string host, std::uint16_t port, std::string auth)
-    : host_(std::move(host)), port_(port), auth_(std::move(auth)) {}
+JsonRpc::JsonRpc(std::string host, std::uint16_t port, std::string auth, std::string command)
+    : host_(std::move(host)), port_(port), auth_(std::move(auth)), command_(std::move(command)) {}
 
 JsonValue JsonRpc::call(const std::string& method, const JsonArray& params) {
     JsonObject req;
@@ -212,21 +212,21 @@ JsonValue JsonRpc::call(const std::string& method, const JsonArray& params) {
     hdr << "Connection: close\r\n\r\n";
     const std::string wire = hdr.str() + body;
 
-    Fd fd(connect_ipv4(host_, port_));
-    write_all(fd.get(), wire);
-    const std::string resp = read_all(fd.get());
-    const JsonValue parsed = parse_json_value(http_body(resp), "balance");
+    Fd fd(connect_ipv4(host_, port_, command_));
+    write_all(fd.get(), wire, command_);
+    const std::string resp = read_all(fd.get(), command_);
+    const JsonValue parsed = parse_json_value(http_body(resp, command_), command_);
     if (!parsed.is<JsonObject>()) {
-        fail("invalid rpc response");
+        fail(command_, "invalid rpc response");
     }
     const JsonObject& obj = parsed.get<JsonObject>();
     auto err = obj.find("error");
     if (err != obj.end() && !err->second.is<picojson::null>()) {
-        fail("rpc request failed");
+        fail(command_, "rpc request failed");
     }
     auto result = obj.find("result");
     if (result == obj.end()) {
-        fail("invalid rpc response");
+        fail(command_, "invalid rpc response");
     }
     return result->second;
 }
@@ -234,11 +234,11 @@ JsonValue JsonRpc::call(const std::string& method, const JsonArray& params) {
 std::uint32_t rpc_getblockcount(JsonRpc& rpc) {
     const JsonValue v = rpc.call("getblockcount");
     if (!v.is<double>()) {
-        fail("invalid rpc response");
+        fail(rpc.command(), "invalid rpc response");
     }
     const double d = v.get<double>();
     if (d < 0 || d > 4294967295.0 || d != static_cast<double>(static_cast<std::uint32_t>(d))) {
-        fail("invalid rpc response");
+        fail(rpc.command(), "invalid rpc response");
     }
     return static_cast<std::uint32_t>(d);
 }
@@ -248,7 +248,7 @@ std::string rpc_getblockhash(JsonRpc& rpc, std::uint32_t height) {
     params.emplace_back(static_cast<double>(height));
     const JsonValue v = rpc.call("getblockhash", params);
     if (!v.is<std::string>()) {
-        fail("invalid rpc response");
+        fail(rpc.command(), "invalid rpc response");
     }
     return v.get<std::string>();
 }
@@ -259,11 +259,11 @@ std::vector<std::uint8_t> rpc_getblock(JsonRpc& rpc, const std::string& hash_hex
     params.emplace_back(0.0);
     const JsonValue v = rpc.call("getblock", params);
     if (!v.is<std::string>()) {
-        fail("invalid rpc response");
+        fail(rpc.command(), "invalid rpc response");
     }
     try {
         return hex_decode(v.get<std::string>());
     } catch (const BtkError&) {
-        fail("invalid rpc response");
+        fail(rpc.command(), "invalid rpc response");
     }
 }

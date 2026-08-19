@@ -1,6 +1,6 @@
-#include "cmd/balance.hpp"
+#include "cmd/inflow.hpp"
 
-#include "chain/balance_db.hpp"
+#include "chain/inflow_db.hpp"
 #include "chain/script.hpp"
 #include "chain/sync.hpp"
 #include "core/json_io.hpp"
@@ -8,75 +8,15 @@
 #include "util/error.hpp"
 
 #include <cerrno>
+#include <ctime>
 #include <cstdlib>
 #include <optional>
 #include <utility>
 
 namespace {
 
-const char kHelp[] = R"help(btk balance — local address → satoshi index
-
-Usage:
-  btk balance
-  btk balance --sync [--host H] [--port P] [--rpc-auth USER:PASS]
-                     [--force]
-
-Query a local address-to-satoshi index, or synchronize it from
-Bitcoin Core JSON-RPC. The index always lives at ~/.btk/balance.
-Requires LevelDB at build time. Mainnet only.
-
-Query is a transformer on stdin (no positional addresses). Items
-are a typed address object (data), a typed balance object
-(address), or a bare Base58Check / bech32 address. --from address
-forces the bare-line parse. Leftover text is an error, not a hash.
-Empty stdin is empty stdout, exit 0. A missing address is sats: 0.
---skip-zero drops zero-balance addresses (empty stdout is still
-exit 0). A missing database is "balance database not found (run
-btk balance --sync)". Query is read-only.
-
---sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
-hex). Missing or empty DB: walk 0…tip. Valid DB: walk
-Mheight+1…tip (already at tip → complete, exit 0). Junk or a reorg:
-rebuild with --sync --force. --force wipes the directory and walks
-from genesis. Ctrl-C / SIGTERM abort within ~200 ms; the next
---sync continues from the last saved height. Progress is on stderr.
-
-No cookie file. Use --rpc-auth user:pass or config rpc.auth.
---host / --port default to config rpc.host / rpc.port or
-127.0.0.1 / 8332. A first mainnet sync needs a node that can serve
-every historical block and can take days; later runs are
-incremental.
-
-Options:
-  -h, --help             Show this help and exit
-      --sync             Create the index or catch it up from RPC
-      --force            With --sync, wipe ~/.btk/balance and walk
-                         from genesis
-      --host HOST        RPC host. Default: config rpc.host or
-                         127.0.0.1. A host:port form sets the port.
-      --port PORT        RPC port. Default: config rpc.port or 8332
-      --rpc-auth USER:PASS
-                         HTTP Basic credentials. Default: config
-                         rpc.auth. No cookie file.
-      --from address     Force bare stdin lines as addresses
-      --source           Include the input item as a source object
-      --skip-zero        Omit addresses with sats: 0
-      --config PATH      Config file. Default: $BTK_CONFIG, else
-                         ~/.btk/config.json
-  -o, --out FORMAT       ndjson (default), json, or plain. plain
-                         prints the satoshi count.
-      --in FORMAT        auto (default), ndjson, json, or plain
-
-Examples:
-  btk balance --sync
-  printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
-  btk privkey --new | btk address | btk balance
-  btk privkey --new | btk address | btk balance --skip-zero
-  btk privkey --new | btk address --source | btk balance --source
-)help";
-
 [[noreturn]] void fail(const std::string& message) {
-    throw BtkError("balance", message);
+    throw BtkError("inflow", message);
 }
 
 std::string object_string(const JsonObject& item, const char* key) {
@@ -99,7 +39,7 @@ std::string item_address(const JsonObject& item) {
         }
         return data;
     }
-    if (type == "balance") {
+    if (type == "inflow" || type == "balance") {
         const std::string addr = object_string(item, "address");
         if (addr.empty()) {
             fail("expected an address");
@@ -130,23 +70,42 @@ std::optional<JsonObject> source_from_item(const JsonObject& item, bool want) {
     return item;
 }
 
-JsonObject balance_object(const std::string& addr, std::uint64_t sats,
-                          const std::optional<JsonObject>& source) {
+std::string format_last(std::uint32_t unix_time) {
+    if (unix_time == 0) {
+        return {};
+    }
+    const std::time_t t = static_cast<std::time_t>(unix_time);
+    std::tm tm{};
+    if (gmtime_r(&t, &tm) == nullptr) {
+        return {};
+    }
+    char buf[32];
+    if (std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S UTC", &tm) == 0) {
+        return {};
+    }
+    return buf;
+}
+
+JsonObject inflow_object(const std::string& addr, const InflowRow& row,
+                         const std::optional<JsonObject>& source) {
     JsonObject o;
-    set_string(o, "type", "balance");
+    set_string(o, "type", "inflow");
     set_string(o, "address", addr);
-    set_uint64(o, "sats", sats);
+    set_uint64(o, "sats", row.sats);
+    set_uint64(o, "count", row.count);
+    set_string(o, "last", format_last(row.last));
     if (source) {
         o["source"] = JsonValue(*source);
     }
     return o;
 }
 
-class BalanceCommand : public Command {
+class InflowCommand : public Command {
 public:
-    const char* name() const override { return "balance"; }
-    const char* summary() const override { return "Sync or query a local address-balance index"; }
-    const char* help() const override { return kHelp; }
+    const char* name() const override { return "inflow"; }
+    const char* summary() const override { return "Sync or query a local address-inflow index"; }
+    const char* help() const override { return ""; }
+    bool hidden() const override { return true; }
 
     void register_options(OptionSpec& spec) const override {
         spec.add(0, "sync", false);
@@ -172,7 +131,7 @@ public:
             fail("unknown option '--count'");
         }
         if (opts.stream && opts.sync) {
-            fail("balance does not stream");
+            fail("inflow does not stream");
         }
         if (opts.force && !opts.sync) {
             fail("--force requires --sync");
@@ -223,7 +182,7 @@ public:
 
     std::vector<JsonObject> run(const Options& opts,
                                 const std::optional<JsonObject>& item) override {
-        const std::string dir = default_balance_dir();
+        const std::string dir = default_inflow_dir();
         if (opts.sync) {
             do_sync(dir, opts.force);
             return {};
@@ -236,57 +195,57 @@ public:
             fail("not a bitcoin address");
         }
         if (!db_) {
-            db_ = BalanceDb::open(dir, false);
+            db_ = InflowDb::open(dir, false);
             if (!db_->has_metadata()) {
                 db_.reset();
-                fail("balance database not found (run btk balance --sync)");
+                fail("inflow database not found (run btk inflow --sync)");
             }
         }
-        const std::uint64_t sats = db_->get_sats(addr);
-        if (opts.skip_zero && sats == 0) {
+        const InflowRow row = db_->get_row(addr);
+        if (opts.skip_zero && row.sats == 0) {
             return {};
         }
-        return {balance_object(addr, sats, source_from_item(*item, opts.source))};
+        return {inflow_object(addr, row, source_from_item(*item, opts.source))};
     }
 
 private:
     void do_sync(const std::string& dir, bool force) {
         const IndexState st = inspect_index(dir);
         if (force) {
-            destroy_index(dir, "balance");
-            ensure_btk_home("balance");
-            auto db = BalanceDb::open(dir, true);
-            walk_rpc_blocks("balance", host_, port_, auth_, false, 0, nullptr,
+            destroy_index(dir, "inflow");
+            ensure_btk_home("inflow");
+            auto db = InflowDb::open(dir, true);
+            walk_rpc_blocks("inflow", host_, port_, auth_, false, 0, nullptr,
                             [&](const BlockEffects& fx) { db->apply(fx); });
             return;
         }
         if (st == IndexState::Valid) {
-            auto db = BalanceDb::open(dir, false);
+            auto db = InflowDb::open(dir, false);
             const std::uint32_t h = db->height();
             const Hash256 tip = db->tip();
             db.reset();
-            auto wdb = BalanceDb::open(dir, true);
-            walk_rpc_blocks("balance", host_, port_, auth_, true, h, &tip,
+            auto wdb = InflowDb::open(dir, true);
+            walk_rpc_blocks("inflow", host_, port_, auth_, true, h, &tip,
                             [&](const BlockEffects& fx) { wdb->apply(fx); });
             return;
         }
         if (st == IndexState::Junk) {
-            fail("balance database exists; rebuild with --sync --force");
+            fail("inflow database exists; rebuild with --sync --force");
         }
-        ensure_btk_home("balance");
-        auto db = BalanceDb::open(dir, true);
-        walk_rpc_blocks("balance", host_, port_, auth_, false, 0, nullptr,
+        ensure_btk_home("inflow");
+        auto db = InflowDb::open(dir, true);
+        walk_rpc_blocks("inflow", host_, port_, auth_, false, 0, nullptr,
                         [&](const BlockEffects& fx) { db->apply(fx); });
     }
 
     std::string host_;
     std::uint16_t port_ = 8332;
     std::string auth_;
-    std::unique_ptr<BalanceDb> db_;
+    std::unique_ptr<InflowDb> db_;
 };
 
 }  // namespace
 
-std::unique_ptr<Command> make_balance_command() {
-    return std::make_unique<BalanceCommand>();
+std::unique_ptr<Command> make_inflow_command() {
+    return std::make_unique<InflowCommand>();
 }

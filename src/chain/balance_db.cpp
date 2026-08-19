@@ -143,14 +143,14 @@ std::string default_balance_dir() {
     return std::string(home) + "/.btk/balance";
 }
 
-void ensure_btk_home() {
+void ensure_btk_home(const char* command) {
     const char* home = std::getenv("HOME");
     if (home == nullptr || home[0] == '\0') {
-        fail("HOME is not set");
+        throw BtkError(command, "HOME is not set");
     }
     const std::string dir = std::string(home) + "/.btk";
     if (mkdir(dir.c_str(), 0700) != 0 && errno != EEXIST) {
-        fail("cannot create ~/.btk");
+        throw BtkError(command, "cannot create ~/.btk");
     }
 }
 
@@ -187,11 +187,11 @@ IndexState inspect_index(const std::string& dir) {
 #endif
 }
 
-void destroy_index(const std::string& dir) {
+void destroy_index(const std::string& dir, const char* command) {
 #ifndef BTK_NO_LEVELDB
     const leveldb::Status s = leveldb::DestroyDB(dir, leveldb::Options());
     if (!s.ok()) {
-        fail("cannot remove balance database");
+        throw BtkError(command, std::string("cannot remove ") + command + " database");
     }
 #endif
     bool is_dir = false;

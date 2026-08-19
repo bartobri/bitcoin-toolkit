@@ -37,12 +37,13 @@ struct TxEffects {
 
 struct BlockEffects {
     std::uint32_t height = 0;
+    std::uint32_t time = 0;
     Hash256 hash{};
     std::vector<TxEffects> txs;
 };
 
 IndexState inspect_index(const std::string& dir);
-void destroy_index(const std::string& dir);
+void destroy_index(const std::string& dir, const char* command);
 
 class BalanceDb {
 public:
@@ -68,4 +69,4 @@ private:
 };
 
 std::string default_balance_dir();
-void ensure_btk_home();
+void ensure_btk_home(const char* command);

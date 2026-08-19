@@ -7,6 +7,7 @@
 #include "cmd/balance.hpp"
 #include "cmd/command.hpp"
 #include "cmd/config.hpp"
+#include "cmd/inflow.hpp"
 #include "cmd/node.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
@@ -82,6 +83,7 @@ void register_builtin_commands() {
     register_command(make_address_command());
     register_command(make_node_command());
     register_command(make_balance_command());
+    register_command(make_inflow_command());
     register_command(make_config_command());
 }
 
@@ -115,6 +117,9 @@ void print_overview(std::ostream& out) {
     out << "object per line (ndjson).\n\n";
     out << "Commands:\n";
     for (Command* c : all_commands()) {
+        if (c->hidden()) {
+            continue;
+        }
         out << "  " << std::left << std::setw(10) << c->name() << c->summary() << '\n';
     }
     out << "\n";
@@ -152,6 +157,9 @@ int dispatch(int argc, char** argv) {
     parse_argv(argc, argv, spec, opts);
 
     if (opts.help) {
+        if (cmd != nullptr && cmd->hidden()) {
+            return 0;
+        }
         if (cmd != nullptr) {
             const char* text = cmd->help();
             if (text != nullptr && text[0] != '\0') {

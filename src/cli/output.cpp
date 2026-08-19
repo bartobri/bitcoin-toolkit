@@ -30,7 +30,7 @@ std::string primary_string(const JsonObject& obj) {
     if (type == "privkey" || type == "pubkey" || type == "address") {
         return get("data");
     }
-    if (type == "balance") {
+    if (type == "balance" || type == "inflow") {
         return get("sats");
     }
     if (type == "version") {
