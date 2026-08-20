@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.0.3
+# Agent notes — Bitcoin Toolkit 4.0.4
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,7 +6,7 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.0.3` (`src/version.hpp`). Every landing commit increments it (see
+is `4.0.4` (`src/version.hpp`). Every landing commit increments it (see
 [Version](#version)). All development is on `4.x` (see [Git](#git)).
 
 ## Keep README.md, AGENTS.md, and the version current
@@ -250,7 +250,7 @@ live bitcoind in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.0.3`.
+  `--out plain` prints `4.0.4`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
@@ -409,7 +409,7 @@ bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.0.3","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.0.4","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -569,7 +569,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.3/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.4/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -593,22 +593,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.3/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.4/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `208f2bfd`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8dc961b7`):
 
 ```
-f9beb4d976657273696f6e00000000006d000000208f2bfd7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e332f0000000000
+f9beb4d976657273696f6e00000000006d0000008dc961b77f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e332f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000
 ```
 
 ## `btk balance`
@@ -815,6 +815,12 @@ repeat vout: int64 value | CompactSize spk | spk
 [if flag & 1: per-input witness = CompactSize item_count, each item CompactSize+bytes]
 uint32 nLockTime
 ```
+
+Do not cap vin / vout / witness-item / tx counts at a small constant such as
+100000. Mainnet block 761249 contains a transaction with 500003 witness items
+(almost all empty). Bound those counts by remaining bytes in the buffer; each
+entry occupies at least one byte. An earlier 100000 witness-item cap made
+`parse_block` throw `invalid block` and stalled `balance --sync`.
 
 **txid** = HASH256(`nVersion || vin || vout || nLockTime`). **wtxid** = HASH256(full serialization). Indexer keys `O` with the **internal** txid.
 

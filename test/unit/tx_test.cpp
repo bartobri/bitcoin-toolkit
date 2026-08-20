@@ -95,5 +95,31 @@ int main() {
     CHECK(parsed.txs.size() == 1);
     CHECK(parsed.txs[0].vin[0].witness.size() == 2);
     CHECK(hex_encode(txid(parsed.txs[0])) == hex_encode(txid(tx)));
+
+    // Mainnet block 761249 has a tx with 500003 witness items. An earlier
+    // 100000 cap made parse_block throw "invalid block" and stalled --sync.
+    Transaction fat;
+    fat.version = 2;
+    fat.has_witness = true;
+    fat.vin.resize(1);
+    fat.vin[0].sequence = 0xffffffff;
+    fat.vout.resize(1);
+    fat.vin[0].witness.assign(100001, std::vector<std::uint8_t>{});
+    fat.vin[0].witness[0] = {0x01};
+    fat.vin[0].witness[1] = hex_decode(
+        "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798");
+    const auto fat_raw = serialize_tx(fat, true);
+    const Transaction fat_parsed = parse_tx(fat_raw);
+    CHECK(fat_parsed.vin[0].witness.size() == 100001);
+    CHECK(fat_parsed.vin[0].witness[0].size() == 1);
+    CHECK(fat_parsed.vin[0].witness[1].size() == 33);
+    CHECK(fat_parsed.vin[0].witness[2].empty());
+
+    std::vector<std::uint8_t> fat_block = serialize_block_header(blk);
+    write_compact_size(fat_block, 1);
+    fat_block.insert(fat_block.end(), fat_raw.begin(), fat_raw.end());
+    const Block fat_blk = parse_block(fat_block);
+    CHECK(fat_blk.txs.size() == 1);
+    CHECK(fat_blk.txs[0].vin[0].witness.size() == 100001);
     return 0;
 }

@@ -20,7 +20,7 @@ Usage:
   btk node --host HOST [--port 8333]
 
 Connect to a Bitcoin P2P peer, send a version message (protocol
-70015, user agent /Bitcoin-Toolkit:4.0.3/), print the peer's
+70015, user agent /Bitcoin-Toolkit:4.0.4/), print the peer's
 version as a typed object, and close. Does not send verack. One
 shot; not a key pipe. --host is required (no positional host).
 
@@ -254,7 +254,7 @@ def main():
     ours = parse_our_version(received["payload"])
     assert ours["version"] == 70015
     assert ours["services"] == 0
-    assert ours["user_agent"] == "/Bitcoin-Toolkit:4.0.3/"
+    assert ours["user_agent"] == "/Bitcoin-Toolkit:4.0.4/"
     assert ours["height"] == 0
     assert ours["relay"] == 0
     assert received["extra"] == b""

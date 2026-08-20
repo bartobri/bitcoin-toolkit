@@ -88,6 +88,16 @@ struct Cursor {
         std::memcpy(dest.data(), data + off, 32);
         off += 32;
     }
+
+    std::size_t remain() const { return off <= len ? len - off : 0; }
+
+    // Each counted item occupies at least one byte. Do not cap at a small
+    // constant: mainnet block 761249 has a tx with 500003 witness items.
+    void bound_count(std::uint64_t n) const {
+        if (n > remain()) {
+            fail_tx();
+        }
+    }
 };
 
 void write_vin_vout(std::vector<std::uint8_t>& o, const Transaction& tx) {
@@ -137,9 +147,7 @@ Transaction parse_tx(const std::uint8_t* data, std::size_t len, std::size_t* con
     }
 
     const std::uint64_t n_in = c.compact();
-    if (n_in > 100000) {
-        fail_tx();
-    }
+    c.bound_count(n_in);
     tx.vin.resize(static_cast<std::size_t>(n_in));
     for (TxIn& in : tx.vin) {
         c.copy32(in.prev_txid);
@@ -153,9 +161,7 @@ Transaction parse_tx(const std::uint8_t* data, std::size_t len, std::size_t* con
     }
 
     const std::uint64_t n_out = c.compact();
-    if (n_out > 100000) {
-        fail_tx();
-    }
+    c.bound_count(n_out);
     tx.vout.resize(static_cast<std::size_t>(n_out));
     for (TxOut& out : tx.vout) {
         out.value = static_cast<std::int64_t>(c.le64());
@@ -169,9 +175,7 @@ Transaction parse_tx(const std::uint8_t* data, std::size_t len, std::size_t* con
     if (tx.has_witness) {
         for (TxIn& in : tx.vin) {
             const std::uint64_t n_items = c.compact();
-            if (n_items > 100000) {
-                fail_tx();
-            }
+            c.bound_count(n_items);
             in.witness.resize(static_cast<std::size_t>(n_items));
             for (auto& item : in.witness) {
                 const std::uint64_t ilen = c.compact();
@@ -262,7 +266,7 @@ Block parse_block(const std::uint8_t* data, std::size_t len) {
 
     std::size_t off = 80;
     const std::uint64_t n_tx = read_compact_size(data, len, off);
-    if (n_tx > 100000) {
+    if (off > len || n_tx > len - off) {
         fail_block();
     }
     b.txs.reserve(static_cast<std::size_t>(n_tx));
