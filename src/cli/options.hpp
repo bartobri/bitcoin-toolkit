@@ -60,6 +60,10 @@ struct Options {
     bool force = false;
     bool sync = false;
     std::string rpc_auth;
+    std::string to;
+    bool fee_rate_set = false;
+    std::uint64_t fee_rate = 0;
+    bool dry_run = false;
 };
 
 void add_global_flags(OptionSpec& spec);

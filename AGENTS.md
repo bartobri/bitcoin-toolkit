@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.0.4
+# Agent notes — Bitcoin Toolkit 4.1.0
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,7 +6,7 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.0.4` (`src/version.hpp`). Every landing commit increments it (see
+is `4.1.0` (`src/version.hpp`). Every landing commit increments it (see
 [Version](#version)). All development is on `4.x` (see [Git](#git)).
 
 ## Keep README.md, AGENTS.md, and the version current
@@ -45,9 +45,10 @@ invocation, composition via pipes. Default wire format is typed NDJSON.
 | `inflow` query | transformer (hidden) | Read `~/.btk/inflow` lifetime received |
 | `inflow --sync` | parameterized generator (hidden) | Fill or catch up that index from Core RPC |
 | `config` | verb | `set` / `get` / `unset` / `dump` RPC defaults |
+| `sweep` | transformer | Sign a 1-output spend of confirmed UTXOs and broadcast via Core RPC |
 
 Out of scope (do not add unless the user asks): QR, HD / BIP-32 / BIP-39,
-PSBT, message sign, tx build, P2SH/P2WSH generation, IPv6 P2P, signet,
+PSBT, message sign, general tx build, P2SH/P2WSH generation, IPv6 P2P, signet,
 regtest, Windows, CMake, OpenSSL, a `help`/`version` command, cookie-file
 RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 
@@ -56,11 +57,11 @@ RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 1. Item payloads are never positionals. Leftover argv is `provide input on stdin`. Flag arguments (`--count 5`, `--host x`) stay.
 2. `--in` is framing (`auto` / `ndjson` / `json` / `plain`). `--from` is meaning (`wif` / `hex` / …). `--encoding` is output only (`privkey`).
 3. Typed JSON objects in the pipe always win. `--from` applies to **bare lines**, not to an object’s `type`/`data`.
-4. Silent SHA-256 is **privkey only**. `pubkey` / `address` / `balance` / `inflow` require an explicit key or address. A WIF-shaped bad checksum is never hashed.
+4. Silent SHA-256 is **privkey only**. `pubkey` / `address` / `balance` / `inflow` / `sweep` require an explicit key or address. A WIF-shaped bad checksum is never hashed.
 5. `--from` is stdin-item meaning only. Do not invent `--from rpc`. `--from-rpc`, `--from-chainstate`, `--build`, `--update`, and `--path` are unknown. `address` does not take `--from`.
-6. Load `~/.btk/config.json` **only** for `config`, `balance`, and `inflow`. `privkey` / `pubkey` / `address` / `node` must not open `~/.btk`.
+6. Load `~/.btk/config.json` **only** for `config`, `balance`, `inflow`, and `sweep`. `privkey` / `pubkey` / `address` / `node` must not open `~/.btk`.
 7. Errors: `BtkError(command, message)` → `btk <command>: <message>` on stderr, exit 1. Never put WIF, hex keys, passphrases, or `rpc.auth` in messages.
-8. Network is per object, never process-global. Do not walk `source` for network. `--network` does not override a WIF version byte. `node` ignores `--network`.
+8. Network is per object, never process-global. Do not walk `source` for network. `--network` does not override a WIF version byte. `node` and `sweep` ignore `--network`.
 9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`. Hidden commands (`inflow`) have **no** help text: `btk inflow --help` is empty stdout, exit 0, and must not fall through to overview.
 10. `make test` is the gate (unit + offline CLI). No network. Live P2P is `make test-net` / `BTK_RUN_NET=1`.
 11. Every landing commit increments `BTK_VERSION_*` in `src/version.hpp` and every pin listed under [Version](#version). Never bump major unless the user explicitly asks. Choose minor vs patch from the commit’s contents.
@@ -189,14 +190,14 @@ Perform **commit** then **push**: commit all work on `4.x`, merge `4.x` into
 src/main.cpp
 src/version.hpp
 src/cli/          dispatcher, options, io, output
-src/cmd/          command.hpp, privkey, pubkey, address, node, balance, inflow, config
+src/cmd/          command.hpp, privkey, pubkey, address, node, balance, inflow, config, sweep
 src/core/         hash, hex, base58, bech32, json_io, secp, random, privkey, pubkey, address, network.hpp
-src/chain/        compactsize, transaction, script, balance_db, inflow_db, indexer, sync
+src/chain/        compactsize, transaction, script, sign, balance_db, inflow_db, indexer, sync
 src/net/          p2p, jsonrpc
 src/util/         error, config (load + save), interrupt
-test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p, compactsize, tx, balance_db, inflow_db
+test/unit/        hash, hex, base58, privkey, pubkey, bech32, address, p2p, compactsize, tx, sign, balance_db, inflow_db
 test/cli/         test_scaffold.py, test_privkey.py, test_pubkey.py, test_address.py,
-                  test_node.py, test_balance.py, test_inflow.py, test_config.py
+                  test_node.py, test_balance.py, test_inflow.py, test_config.py, test_sweep.py
 test/runner.py    discovers test/cli/test_*.py
 third_party/picojson/
 ```
@@ -216,7 +217,7 @@ not assume positionals.
 
 C++17, GNU Makefile, no Boost, no CMake. Unix only.
 
-- Required: `libsecp256k1` (`-lsecp256k1`). Makefile probe fails with the
+- Required: `libsecp256k1` with extrakeys and schnorrsig (`-lsecp256k1`). Makefile probe fails with the
   apt/dnf/brew line.
 - Optional: LevelDB. Missing → `-DBTK_NO_LEVELDB` and `btk balance` / `btk inflow` print
   `this build was compiled without LevelDB (install libleveldb-dev and rebuild)`.
@@ -239,7 +240,7 @@ make clean && make test   # after header/layout changes
 Tests compare parsed JSON objects, not string tables (picojson key order is
 not a contract). CLI tests spawn `bin/btk`. Unit tests are C++ with
 `test/unit/check.hpp` (no gtest). Default tests are offline; `test_node.py`
-uses a localhost mock peer; `test_balance.py` and `test_inflow.py` use a localhost
+uses a localhost mock peer; `test_balance.py`, `test_inflow.py`, and `test_sweep.py` use a localhost
 mock JSON-RPC server. SIGINT abort is tested against a hanging listener. No
 live bitcoind in `make test`.
 
@@ -250,11 +251,11 @@ live bitcoind in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.0.4`.
+  `--out plain` prints `4.1.0`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
-- After a successful parse, load config **only** for `config`, `balance`, and `inflow`. Missing file → compiled defaults (no mkdir). Invalid JSON / wrong type for a known key → `invalid config file`. Unknown on-disk fields are ignored (and preserved on rewrite).
+- After a successful parse, load config **only** for `config`, `balance`, `inflow`, and `sweep`. Missing file → compiled defaults (no mkdir). Invalid JSON / wrong type for a known key → `invalid config file`. Unknown on-disk fields are ignored (and preserved on rewrite).
 - Config path: `--config` else `$BTK_CONFIG` else `$HOME/.btk/config.json`. Relative paths are cwd. Unset `HOME` when needed: `HOME is not set`.
 - Generators (`is_generator`): `--new` repeats `--count` times (default 1); `--stream` without `--count` is infinite until SIGINT; `--stream --count N` is finite N. Other generators (`node`, `config`, `balance --sync`, `inflow --sync`, `privkey --from file`) run once.
 - Transformers: one input item → zero or more output objects, written before the next item is read. Empty stdin → empty stdout, exit 0.
@@ -310,12 +311,12 @@ I/O peeks 8KiB:
 ## Typed pipe format
 
 Every default-mode record is one JSON **object** with `type`:
-`privkey` | `pubkey` | `address` | `node` | `balance` | `inflow` | `version` | `config`.
+`privkey` | `pubkey` | `address` | `node` | `balance` | `inflow` | `version` | `config` | `tx`.
 
 Unknown `type` on stdin: error, except where a command lists accepted types.
 Extra fields are ignored on input and must not be invented on output.
 
-JSON integers (`sats`, `count`, `port`, `height`, `protocol`, `timestamp`, `rpc.port`)
+JSON integers (`sats`, `count`, `port`, `height`, `protocol`, `timestamp`, `rpc.port`, `fee`, `inputs`)
 are written via `set_uint64` as JSON numbers (picojson `double`). Values we
 emit fit in 2^53. `node` `nonce` is a **decimal string** (uint64 does not fit
 in a JSON number). Decimal privkey `data` is a JSON **string**, never a JSON
@@ -332,6 +333,7 @@ number.
 | `inflow` | `sats` as decimal digits |
 | `--version` | `version` |
 | `node` | `ip:port` |
+| `sweep` | display-order `txid` |
 | `config dump` | `key=value` lines |
 | `config get` | the raw value (redacted if `rpc.auth`) |
 
@@ -409,7 +411,7 @@ bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.0.4","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.1.0","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -422,15 +424,26 @@ bare string → parse as a Bitcoin address.
 
 `rpc.auth` is **always** eight asterisks when present; omitted when unset.
 
+### `tx`
+
+```json
+{"type":"tx","txid":"a882c290a9ce09514de2f57236e349d76b6e4f8437d16d2e132ffc2dada2583c","from":"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4","to":"bc1q7499s50fxu4c0qg23esvm5h8elvqkm33r2tdza","sats":98900,"fee":1100,"inputs":1,"broadcast":false}
+```
+
+`txid` is display-order (byte-reversed) hex. `sats` is the output amount. `fee` is
+input sum minus `sats`. Optional `hex` (raw transaction) when `--verbose` or
+`--dry-run`. Optional `source` is the input item when `--source` is set.
+
 ### Provenance
 
 `--source` is opt-in. Without it the field is omitted. `--match` implies
 `--source` on `address`. `--no-source` is unknown.
 
-On `pubkey` / `address` / `balance` / `inflow`, `--source` copies the input item (typed
+On `pubkey` / `address` / `balance` / `inflow` / `sweep`, `--source` copies the input item (typed
 object as received, including a nested `source`). A bare string is synthesized:
 WIF → `privkey`; 66/130 hex pub → `pubkey`; address → `{type, style, network, data}`.
-Synthetic `data` is the bare input; do not re-encode.
+Synthetic `data` is the bare input; do not re-encode. `sweep` walks nested
+`source` for a `privkey` (cap 8); that is the secret, not the network.
 
 Each stage that opts in extends the chain; a stage that does not drops it.
 Network is still not walked from `source`. Vanity that needs the spendable key
@@ -445,6 +458,7 @@ is `privkey | address --match` (not via `pubkey`).
 | `address` | **none** (`unknown option '--from'`) | WIF → 66/130 hex pub | **no**. Bare 64-hex / decimal / leftover text error |
 | `balance` query | optional `address` | Base58Check / bech32 address | **no** |
 | `inflow` query | optional `address` | Base58Check / bech32 address | **no** |
+| `sweep` | **none** (`unknown option '--from'`) | WIF | **no**. Bare 64-hex / address / leftover text error |
 | `node` / `config` / `balance --sync` / `inflow --sync` | none | n/a | no |
 
 Unknown `--from` is `invalid --from`. Cannot combine with `--new` / `--sync`.
@@ -569,7 +583,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.0.4/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.1.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -593,22 +607,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.0.4/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.1.0/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8dc961b7`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8f7be3e5`):
 
 ```
-f9beb4d976657273696f6e00000000006d0000008dc961b77f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000
+f9beb4d976657273696f6e00000000006d0000008f7be3e57f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000
 ```
 
 ## `btk balance`
@@ -779,11 +793,36 @@ On-disk (`~/.btk/config.json`):
 
 Help is pinned in `test/cli/test_config.py` (`CONFIG_HELP`).
 
+## `btk sweep`
+
+```text
+btk sweep --to ADDRESS
+          [--fee-rate SATVB] [--dry-run]
+          [--host H] [--port P] [--rpc-auth USER:PASS]
+          [--type p2pkh|p2wpkh|p2tr]... [--source] [--verbose]
+```
+
+- Transformer. Loads `~/.btk/config.json` for RPC defaults (same as `balance`). Mainnet only. `--network` is ignored.
+- `--to` is required (`missing destination`). Leftover positional is `provide input on stdin`. Invalid dest → `not a bitcoin address`. Destination may be `p2pkh` / `p2sh` / `p2wpkh` / `p2wsh` / `p2tr` (any script we can encode).
+- Does **not** read `~/.btk/balance`. Confirmed UTXOs come from Core `scantxoutset "start" '["addr(<address>)"]'` (no wallet, works on a pruned node, no `-txindex`). Signs in process. Broadcasts with `sendrawtransaction` unless `--dry-run`.
+- RPC timeout is 10 minutes (UTXO-set scan). `--host` / `--port` / `--rpc-auth` default to config or `127.0.0.1` / `8332`. No cookie file. Stderr: `scanning utxo set`.
+- Input: typed `address` whose nested `source` contains a `privkey` (walk cap 8); typed `privkey`; typed `pubkey` with a nested privkey; or bare WIF. Re-derive the from-address from the secret + style; mismatch → `private key does not match address`.
+- Typed `privkey` / bare WIF / nested-secret `pubkey`: default one `p2wpkh`. `--type` is repeatable (flag order); one scan + one tx per style. `p2sh` / `p2wsh` → `cannot spend <style>`.
+- Address without a spendable source, pubkey-only, bare address → `missing private key`. Bare 64-hex / leftover text → `not a private key`. `--from` is unknown.
+- `--stream` → `sweep does not stream`. `--count` → `unknown option '--count'`.
+- All mature UTXOs of that address become inputs (skip coinbase with confirmations `< 100`). One output: `--to`. Version 2. `nLockTime` = scan height. `nSequence` = `0xfffffffd` (RBF).
+- Fee: `--fee-rate` integer sat/vB ≥ 1, else `estimatesmartfee 6`. Missing estimate → `fee rate unavailable (pass --fee-rate)`. Size from dummy 73-byte ECDSA / 64-byte Schnorr so extra sats go to fee. `fee ≥ total` or remainder below dust → `insufficient funds`. No UTXOs → `no unspent outputs`. vsize > 100000 → `transaction too large`.
+- Signing: P2PKH legacy SIGHASH_ALL; P2WPKH BIP-143; P2TR BIP-341 key-path (`secp256k1_keypair_xonly_tweak_add` + `secp256k1_schnorrsig_sign32`, SIGHASH_DEFAULT). Do not `ec_pubkey_tweak_add` the odd point.
+- Empty stdin → empty stdout, exit 0. `--out plain` is the display txid. `--verbose` (and `--dry-run`) add `hex`. `--source` copies the input item (bare WIF is synthesized as a `privkey` object).
+- Does not import keys into Core. No change output, no PSBT, no mempool coins, no confirmation prompt.
+
+Help is pinned in `test/cli/test_sweep.py` (`SWEEP_HELP`).
+
 ## Crypto
 
 - `secp256k1_context_create(SECP256K1_CONTEXT_NONE)` (or `SIGN|VERIFY` on older headers).
 - `secp256k1_ec_seckey_verify`, `secp256k1_ec_pubkey_create`, `secp256k1_ec_pubkey_parse` / `serialize`.
-- Taproot: `secp256k1_xonly_pubkey_parse`, `secp256k1_xonly_pubkey_tweak_add`. Distro packages enable the extrakeys module; a package built without it will fail to link `btk address --type p2tr`.
+- Taproot: `secp256k1_xonly_pubkey_parse`, `secp256k1_xonly_pubkey_tweak_add`. Distro packages enable the extrakeys module; a package built without it will fail to link `btk address --type p2tr`. Sweep P2TR also needs schnorrsig (`secp256k1_keypair_xonly_tweak_add`, `secp256k1_schnorrsig_sign32`). ECDSA spends use `secp256k1_ecdsa_sign`.
 - Curve order `n = FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141`.
 - `SHA256`, `RIPEMD160`, `HASH256 = SHA256∘SHA256`, `HASH160 = RIPEMD160∘SHA256`, `tagged_hash` as BIP-340. Test against the goldens below.
 - 32-byte scalars are `std::array<uint8_t,32>`. Range checks go through `secp256k1_ec_seckey_verify`.
@@ -981,8 +1020,10 @@ Assert txid ≠ wtxid. Round-trip-parse the 192-byte hex: one input, one output,
 - Balance / inflow: single writer thread, LevelDB write batches, BIP-141 txid,
   reorg check refuses incremental `--sync`.
 - Threat model: a local CLI run by the operator. Not a daemon. Not multi-tenant.
-- Observability: stderr for errors and balance / inflow progress. Never mix
+- Observability: stderr for errors and balance / inflow / sweep progress. Never mix
   with NDJSON stdout. No log file.
+- Sweep signs in process; Core never sees the secret. Dummy-signature fee
+  overpays rather than creating change.
 
 ## Conventions
 

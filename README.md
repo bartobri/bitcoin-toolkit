@@ -16,10 +16,12 @@ btk privkey --new | btk address --type p2tr
 
 Create keys. Convert encodings. Derive public keys. Make P2PKH, P2WPKH, and
 real BIP-341 Taproot addresses. Handshake a P2P peer. Keep a local
-address→satoshi index fed by Bitcoin Core RPC.
+address→satoshi index fed by Bitcoin Core RPC. Sweep confirmed coins to an
+address you name, signing in process and broadcasting through Core — no
+Core wallet, no keys on disk.
 
-This is a toolkit, not a wallet. It will not store funds, sign transactions,
-or prompt you before printing a private key.
+This is a toolkit, not a stored wallet. It does not keep a seed or a
+key pool, and it will not prompt you before printing a private key.
 
 ## Try it
 
@@ -57,6 +59,9 @@ btk config set rpc.port=8332
 btk config set rpc.auth=user:pass
 btk balance --sync
 printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk balance
+
+# Sweep confirmed coins (needs a local bitcoind; signs in btk)
+btk privkey --new | btk address --source | btk sweep --to bc1q... --dry-run
 ```
 
 ## How it works
@@ -68,7 +73,7 @@ on **stdin**, never as leftover argv. `printf KEY | btk pubkey` is right;
 Default output is **NDJSON**: one typed JSON object per line, flushed as it is
 produced, so a producer that never exits (vanity search) still drives a
 consumer. `--out json` pretty-prints. `--out plain` prints the primary string
-only (WIF, hex, address, satoshis, `ip:port`).
+only (WIF, hex, address, satoshis, `ip:port`, txid).
 
 A typed object always wins over a bare line. Pipe `btk privkey --new` into
 `btk address` and the consumer sees `type=privkey`. Pipe a WIF string and it
@@ -94,13 +99,14 @@ btk privkey --new | btk address --source | btk balance --source
 | `btk node` | IPv4 mainnet `version` handshake (`--host` required) |
 | `btk balance` | Query `~/.btk/balance`, or `--sync` it from Core JSON-RPC |
 | `btk config` | `set` / `get` / `unset` / `dump` RPC defaults |
+| `btk sweep` | Spend every confirmed UTXO at a key's address to `--to` via Core RPC |
 
 There is no `help` or `version` command. Use `btk --help`, `btk <command> --help`,
 and `btk --version`.
 
 `--network mainnet|testnet` applies to keys and addresses. Network is per
-object (a WIF version byte wins over the flag). `btk node` is IPv4 mainnet
-only.
+object (a WIF version byte wins over the flag). `btk node` and `btk sweep`
+are IPv4 / mainnet only.
 
 ## Private keys
 
@@ -162,7 +168,7 @@ never touches the network.
 
 ```sh
 btk --version --out plain
-# 4.0.4
+# 4.1.0
 ```
 
 ## License

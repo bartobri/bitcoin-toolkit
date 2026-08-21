@@ -3,10 +3,10 @@ CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic -I . -I src -I third_party
 LIBS     ?= -lsecp256k1 -lpthread
 prefix   ?= /usr/local
 
-HAVE_SECP := $(shell printf 'int main(){return 0;}\n' | \
+HAVE_SECP := $(shell printf '#include <secp256k1.h>\n#include <secp256k1_extrakeys.h>\n#include <secp256k1_schnorrsig.h>\nint main(){return 0;}\n' | \
 	$(CXX) -x c++ - $(CXXFLAGS) $(LIBS) -o /dev/null 2>/dev/null && echo 1)
 ifeq ($(HAVE_SECP),)
-$(error libsecp256k1 is required — sudo apt-get install libsecp256k1-dev (Debian/Ubuntu), sudo dnf install libsecp256k1-devel (Fedora), or brew install secp256k1 (macOS))
+$(error libsecp256k1 with extrakeys and schnorrsig is required — sudo apt-get install libsecp256k1-dev (Debian/Ubuntu), sudo dnf install libsecp256k1-devel (Fedora), or brew install secp256k1 (macOS))
 endif
 
 HAVE_LEVELDB := $(shell printf 'int main(){return 0;}\n' | \
@@ -42,6 +42,7 @@ SRC := \
 	src/chain/inflow_db.cpp \
 	src/chain/indexer.cpp \
 	src/chain/sync.cpp \
+	src/chain/sign.cpp \
 	src/cmd/privkey.cpp \
 	src/cmd/pubkey.cpp \
 	src/cmd/address.cpp \
@@ -49,6 +50,7 @@ SRC := \
 	src/cmd/balance.cpp \
 	src/cmd/inflow.cpp \
 	src/cmd/config.cpp \
+	src/cmd/sweep.cpp \
 	src/util/error.cpp \
 	src/util/config.cpp \
 	src/util/interrupt.cpp
@@ -107,6 +109,10 @@ bin/test_tx: test/unit/tx_test.cpp src/chain/compactsize.cpp src/chain/transacti
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^
 
+bin/test_sign: test/unit/sign_test.cpp src/chain/sign.cpp src/chain/compactsize.cpp src/chain/transaction.cpp src/chain/script.cpp src/core/address.cpp src/core/bech32.cpp src/core/pubkey.cpp src/core/privkey.cpp src/core/base58.cpp src/core/hash.cpp src/core/hex.cpp src/core/secp.cpp src/core/random.cpp src/util/error.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
+
 bin/test_balance_db: test/unit/balance_db_test.cpp src/chain/balance_db.cpp src/chain/compactsize.cpp src/chain/transaction.cpp src/chain/script.cpp src/chain/indexer.cpp src/core/hash.cpp src/core/hex.cpp src/core/base58.cpp src/core/bech32.cpp src/util/error.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
@@ -115,7 +121,7 @@ bin/test_inflow_db: test/unit/inflow_db_test.cpp src/chain/inflow_db.cpp src/cha
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
-test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address bin/test_p2p bin/test_compactsize bin/test_tx bin/test_balance_db bin/test_inflow_db
+test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_pubkey bin/test_bech32 bin/test_address bin/test_p2p bin/test_compactsize bin/test_tx bin/test_sign bin/test_balance_db bin/test_inflow_db
 	bin/test_hash
 	bin/test_hex
 	bin/test_base58
@@ -126,6 +132,7 @@ test-unit: bin/test_hash bin/test_hex bin/test_base58 bin/test_privkey bin/test_
 	bin/test_p2p
 	bin/test_compactsize
 	bin/test_tx
+	bin/test_sign
 	bin/test_balance_db
 	bin/test_inflow_db
 

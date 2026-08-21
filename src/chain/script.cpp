@@ -136,3 +136,88 @@ bool is_mainnet_address(const std::string& s) {
         return false;
     }
 }
+
+std::optional<std::vector<std::uint8_t>> script_from_address(const std::string& addr) {
+    if (addr.empty()) {
+        return std::nullopt;
+    }
+
+    std::string hrp;
+    int witver = 0;
+    std::vector<std::uint8_t> program;
+    if (segwit_decode(addr, hrp, witver, program)) {
+        if (hrp != "bc") {
+            return std::nullopt;
+        }
+        std::vector<std::uint8_t> script;
+        if (witver == 0 && program.size() == 20) {
+            script.push_back(kOp0);
+            script.push_back(20);
+            script.insert(script.end(), program.begin(), program.end());
+            return script;
+        }
+        if (witver == 0 && program.size() == 32) {
+            script.push_back(kOp0);
+            script.push_back(32);
+            script.insert(script.end(), program.begin(), program.end());
+            return script;
+        }
+        if (witver == 1 && program.size() == 32) {
+            script.push_back(kOp1);
+            script.push_back(32);
+            script.insert(script.end(), program.begin(), program.end());
+            return script;
+        }
+        return std::nullopt;
+    }
+
+    try {
+        const std::vector<std::uint8_t> payload = base58check_decode(addr);
+        if (payload.size() != 21) {
+            return std::nullopt;
+        }
+        std::vector<std::uint8_t> script;
+        if (payload[0] == kP2pkhVer) {
+            script.reserve(25);
+            script.push_back(kOpDup);
+            script.push_back(kOpHash160);
+            script.push_back(20);
+            script.insert(script.end(), payload.begin() + 1, payload.end());
+            script.push_back(kOpEqualverify);
+            script.push_back(kOpChecksig);
+            return script;
+        }
+        if (payload[0] == kP2shVer) {
+            script.reserve(23);
+            script.push_back(kOpHash160);
+            script.push_back(20);
+            script.insert(script.end(), payload.begin() + 1, payload.end());
+            script.push_back(kOpEqual);
+            return script;
+        }
+        return std::nullopt;
+    } catch (const BtkError&) {
+        return std::nullopt;
+    }
+}
+
+std::uint64_t dust_sats(const std::vector<std::uint8_t>& script_pubkey) {
+    const std::size_t n = script_pubkey.size();
+    const std::uint8_t* s = script_pubkey.data();
+    if (n == 25 && s[0] == kOpDup && s[1] == kOpHash160 && s[2] == 20) {
+        return 546;
+    }
+    if (n == 23 && s[0] == kOpHash160 && s[1] == 20) {
+        return 540;
+    }
+    if (n == 22 && s[0] == kOp0 && s[1] == 20) {
+        return 294;
+    }
+    if (n == 34 && s[0] == kOp0 && s[1] == 32) {
+        return 330;
+    }
+    if (n == 34 && s[0] == kOp1 && s[1] == 32) {
+        return 330;
+    }
+    return 546;
+}

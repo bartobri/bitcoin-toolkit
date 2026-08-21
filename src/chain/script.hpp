@@ -14,3 +14,9 @@ bool is_mainnet_address(const std::string& s);
 // Style name for a standard mainnet address (p2pkh, p2sh, p2wpkh, p2wsh, p2tr).
 // Empty if s is not one of those.
 std::optional<std::string> classify_mainnet_address(const std::string& s);
+
+// Inverse of address_from_script for the same standard mainnet styles.
+std::optional<std::vector<std::uint8_t>> script_from_address(const std::string& addr);
+
+// Core default dustRelayFee (3 sat/vB) thresholds for those scripts.
+std::uint64_t dust_sats(const std::vector<std::uint8_t>& script_pubkey);

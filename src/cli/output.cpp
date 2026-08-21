@@ -33,6 +33,9 @@ std::string primary_string(const JsonObject& obj) {
     if (type == "balance" || type == "inflow") {
         return get("sats");
     }
+    if (type == "tx") {
+        return get("txid");
+    }
     if (type == "version") {
         return get("version");
     }

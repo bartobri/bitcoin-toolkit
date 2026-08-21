@@ -246,6 +246,22 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.sync = true;
         } else if (name == "rpc-auth") {
             opts.rpc_auth = optarg ? optarg : "";
+        } else if (name == "to") {
+            opts.to = optarg ? optarg : "";
+        } else if (name == "fee-rate") {
+            if (!optarg || !*optarg) {
+                throw BtkError(opts.command, "invalid --fee-rate");
+            }
+            char* end = nullptr;
+            errno = 0;
+            const unsigned long v = std::strtoul(optarg, &end, 10);
+            if (end == optarg || *end != '\0' || errno == ERANGE || v < 1) {
+                throw BtkError(opts.command, "invalid --fee-rate");
+            }
+            opts.fee_rate = static_cast<std::uint64_t>(v);
+            opts.fee_rate_set = true;
+        } else if (name == "dry-run") {
+            opts.dry_run = true;
         } else {
             throw BtkError(opts.command, std::string("unknown option '--") + name + "'");
         }

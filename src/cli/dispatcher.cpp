@@ -11,6 +11,7 @@
 #include "cmd/node.hpp"
 #include "cmd/privkey.hpp"
 #include "cmd/pubkey.hpp"
+#include "cmd/sweep.hpp"
 #include "util/error.hpp"
 #include "util/interrupt.hpp"
 #include "version.hpp"
@@ -85,6 +86,7 @@ void register_builtin_commands() {
     register_command(make_balance_command());
     register_command(make_inflow_command());
     register_command(make_config_command());
+    register_command(make_sweep_command());
 }
 
 Command* find_command(const std::string& name) {
@@ -112,9 +114,9 @@ void print_overview(std::ostream& out) {
     out << "  btk --help\n";
     out << "  btk --version\n\n";
     out << "Command-line tools for Bitcoin keys, addresses, a P2P handshake, a local\n";
-    out << "address-balance index, and a few RPC defaults. Item payloads travel on\n";
-    out << "stdin; compose commands with pipes. Default output is one typed JSON\n";
-    out << "object per line (ndjson).\n\n";
+    out << "address-balance index, a wallet-less sweep, and a few RPC defaults. Item\n";
+    out << "payloads travel on stdin; compose commands with pipes. Default output is\n";
+    out << "one typed JSON object per line (ndjson).\n\n";
     out << "Commands:\n";
     for (Command* c : all_commands()) {
         if (c->hidden()) {

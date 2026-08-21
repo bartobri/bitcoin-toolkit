@@ -78,6 +78,26 @@ int main() {
     const auto p2sh = hex_decode("a914000000000000000000000000000000000000000087");
     const auto p2sh_addr = address_from_script(p2sh);
     CHECK(p2sh_addr.has_value());
+
+    const auto back_wpkh = script_from_address("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
+    CHECK(back_wpkh.has_value());
+    CHECK(*back_wpkh == hex_decode("0014751e76e8199196d454941c45d1b3a323f1433bd6"));
+    CHECK(dust_sats(*back_wpkh) == 294);
+
+    const auto back_pkh = script_from_address("1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH");
+    CHECK(back_pkh.has_value());
+    CHECK(*back_pkh == p2pkh);
+    CHECK(dust_sats(*back_pkh) == 546);
+
+    const auto back_tr = script_from_address(
+        "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0");
+    CHECK(back_tr.has_value());
+    CHECK(*back_tr == p2tr);
+    CHECK(dust_sats(*back_tr) == 330);
+
+    CHECK(dust_sats(p2sh) == 540);
+    CHECK(!script_from_address("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"));
+    CHECK(!script_from_address("not-an-address"));
     CHECK(classify_mainnet_address(*p2sh_addr) == "p2sh");
 
     const auto p2wsh = hex_decode(

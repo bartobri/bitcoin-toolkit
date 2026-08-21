@@ -17,7 +17,7 @@ Usage:
   btk node --host HOST [--port 8333]
 
 Connect to a Bitcoin P2P peer, send a version message (protocol
-70015, user agent /Bitcoin-Toolkit:4.0.4/), print the peer's
+70015, user agent /Bitcoin-Toolkit:4.1.0/), print the peer's
 version as a typed object, and close. Does not send verack. One
 shot; not a key pipe. --host is required (no positional host).
 

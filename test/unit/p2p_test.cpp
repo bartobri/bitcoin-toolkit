@@ -12,13 +12,13 @@
 const char* kPayloadHex =
     "7f110100000000000000000000f1536500000000000000000000000000000000000000000000"
     "ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d00000000"
-    "00000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000";
+    "00000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000";
 
 const char* kFullHex =
-    "f9beb4d976657273696f6e00000000006d0000008dc961b7"
+    "f9beb4d976657273696f6e00000000006d0000008f7be3e5"
     "7f110100000000000000000000f1536500000000000000000000000000000000000000000000"
     "ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d00000000"
-    "00000000172f426974636f696e2d546f6f6c6b69743a342e302e342f0000000000";
+    "00000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000";
 
 int main() {
     const std::vector<std::uint8_t> payload = hex_decode(kPayloadHex);
@@ -34,7 +34,7 @@ int main() {
     CHECK(parsed.addr_trans.port == 8333);
     CHECK(format_net_ip(parsed.addr_trans.ip) == "127.0.0.1");
     CHECK(parsed.nonce == 0);
-    CHECK(parsed.user_agent == "/Bitcoin-Toolkit:4.0.4/");
+    CHECK(parsed.user_agent == "/Bitcoin-Toolkit:4.1.0/");
     CHECK(parsed.start_height == 0);
     CHECK(parsed.relay == false);
 
@@ -47,7 +47,7 @@ int main() {
     const std::vector<std::uint8_t> full = hex_decode(kFullHex);
     CHECK(full.size() == 24 + 109);
     CHECK(full[16] == 0x6d && full[17] == 0x00 && full[18] == 0x00 && full[19] == 0x00);
-    CHECK(full[20] == 0x8d && full[21] == 0xc9 && full[22] == 0x61 && full[23] == 0xb7);
+    CHECK(full[20] == 0x8f && full[21] == 0x7b && full[22] == 0xe3 && full[23] == 0xe5);
     CHECK(payload[44] == 0x20 && payload[45] == 0x8d);  // addr_recv.port BE 8333
 
     const P2pMessage msg = parse_p2p_message(full);
