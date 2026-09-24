@@ -305,6 +305,140 @@ def main():
         assert r.returncode == 1
         assert "cannot combine --sync and --skip-zero" in r.stderr.decode()
 
+        now = int(time.time())
+        age = now - T0
+        assert age > 3600, age
+
+        def outside(seconds):
+            cutoff = 0 if seconds > now else now - seconds
+            return T0 < cutoff
+
+        spellings = (
+            ("1h", 3600),
+            ("1 day", 86400),
+            ("2weeks", 14 * 86400),
+            ("1month", 30 * 86400),
+            ("1 mo", 30 * 86400),
+            ("1y", 365 * 86400),
+            ("1year", 365 * 86400),
+        )
+        for spec, seconds in spellings:
+            r = run(["inflow", "--since", spec], input_bytes=P2WPKH_G + "\n", home=home)
+            assert r.returncode == 0, (spec, r.stderr.decode())
+            obj = ndjson(r.stdout)[0]
+            assert obj["address"] == P2WPKH_G
+            assert obj["last"] == LAST0
+            if outside(seconds):
+                assert obj["sats"] == 0, spec
+                assert obj["count"] == 0, spec
+            else:
+                assert obj["sats"] == 100000, spec
+                assert obj["count"] == 1, spec
+
+        r = run(
+            ["inflow", "--since", "1h", "--out", "plain"],
+            input_bytes=P2WPKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout.decode() == "0\n"
+
+        r = run(
+            ["inflow", "--since", "1h", "--skip-zero"],
+            input_bytes=P2WPKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout == b""
+
+        r = run(
+            ["inflow", "--since", "1h", "--source"],
+            input_bytes=P2WPKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        zeroed = ndjson(r.stdout)[0]
+        assert zeroed["sats"] == 0
+        assert zeroed["count"] == 0
+        assert zeroed["last"] == LAST0
+        assert zeroed["source"]["type"] == "address"
+        assert zeroed["source"]["data"] == P2WPKH_G
+
+        for spec in ("1000y", "1000years", "1000 yr"):
+            r = run(["inflow", "--since", spec], input_bytes=P2WPKH_G + "\n", home=home)
+            assert r.returncode == 0, (spec, r.stderr.decode())
+            kept = ndjson(r.stdout)[0]
+            assert kept["sats"] == 100000, spec
+            assert kept["count"] == 1, spec
+            assert kept["last"] == LAST0, spec
+
+        r = run(["inflow", "--since", "1d"], input_bytes=P2PKH_G + "\n", home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        unseen = ndjson(r.stdout)[0]
+        assert unseen["sats"] == 0
+        assert unseen["count"] == 0
+        assert unseen["last"] == ""
+
+        r = run(
+            ["inflow", "--since", "1d", "--skip-zero"],
+            input_bytes=P2PKH_G + "\n",
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout == b""
+
+        pair = P2PKH_G + "\n" + P2WPKH_G + "\n"
+        r = run(["inflow", "--since", "1h"], input_bytes=pair, home=home)
+        assert r.returncode == 0, r.stderr.decode()
+        rows = ndjson(r.stdout)
+        assert len(rows) == 2
+        assert rows[0]["address"] == P2PKH_G
+        assert rows[0]["sats"] == 0
+        assert rows[0]["count"] == 0
+        assert rows[0]["last"] == ""
+        assert rows[1]["address"] == P2WPKH_G
+        assert rows[1]["sats"] == 0
+        assert rows[1]["count"] == 0
+        assert rows[1]["last"] == LAST0
+
+        r = run(
+            ["inflow", "--since", "1h", "--skip-zero"],
+            input_bytes=pair,
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        assert r.stdout == b""
+
+        r = run(
+            ["inflow", "--since", "1000y", "--skip-zero"],
+            input_bytes=pair,
+            home=home,
+        )
+        assert r.returncode == 0, r.stderr.decode()
+        kept_rows = ndjson(r.stdout)
+        assert len(kept_rows) == 1
+        assert kept_rows[0]["address"] == P2WPKH_G
+        assert kept_rows[0]["sats"] == 100000
+        assert kept_rows[0]["count"] == 1
+        assert kept_rows[0]["last"] == LAST0
+
+        r = run(["inflow", "--sync", "--since", "1y"], home=home)
+        assert r.returncode == 1
+        assert "cannot combine --sync and --since" in r.stderr.decode()
+
+        r = run(["inflow", "--since"], home=home)
+        assert r.returncode == 1
+        assert "missing option argument" in r.stderr.decode()
+
+        for bad in ("0d", "1", "1m", "1Y", "1.5y", "-1d", "2024-01-01"):
+            r = run(["inflow", "--since", bad], input_bytes=P2WPKH_G + "\n", home=home)
+            assert r.returncode == 1, bad
+            assert "invalid --since" in r.stderr.decode(), bad
+
+        r = run(["balance", "--since", "1y"], home=home)
+        assert r.returncode == 1
+        assert "unknown option '--since'" in r.stderr.decode()
+
         r = run(
             ["inflow"],
             input_bytes=json.dumps({"type": "address", "data": P2WPKH_G}) + "\n",

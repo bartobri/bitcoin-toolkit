@@ -1,6 +1,6 @@
 #pragma once
 
 #define BTK_VERSION_MAJOR 4
-#define BTK_VERSION_MINOR 1
+#define BTK_VERSION_MINOR 2
 #define BTK_VERSION_PATCH 0
-#define BTK_VERSION_STRING "4.1.0"
+#define BTK_VERSION_STRING "4.2.0"

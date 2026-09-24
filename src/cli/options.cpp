@@ -224,6 +224,11 @@ void parse_argv(int argc, char** argv, const OptionSpec& spec, Options& opts) {
             opts.skip_incompatible = true;
         } else if (name == "skip-zero") {
             opts.skip_zero = true;
+        } else if (name == "since") {
+            if (!optarg || !*optarg) {
+                throw BtkError(opts.command, "invalid --since");
+            }
+            opts.since = optarg;
         } else if (name == "host") {
             opts.host = optarg ? optarg : "";
         } else if (name == "port") {

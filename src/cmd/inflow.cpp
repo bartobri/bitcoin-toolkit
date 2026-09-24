@@ -7,9 +7,12 @@
 #include "util/config.hpp"
 #include "util/error.hpp"
 
+#include <cctype>
 #include <cerrno>
+#include <cstdint>
 #include <ctime>
 #include <cstdlib>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -70,6 +73,54 @@ std::optional<JsonObject> source_from_item(const JsonObject& item, bool want) {
     return item;
 }
 
+std::uint64_t parse_since_seconds(const std::string& spec) {
+    if (spec.empty() || !std::isdigit(static_cast<unsigned char>(spec[0]))) {
+        fail("invalid --since");
+    }
+    std::size_t i = 0;
+    while (i < spec.size() && std::isdigit(static_cast<unsigned char>(spec[i]))) {
+        ++i;
+    }
+    std::size_t unit_at = i;
+    if (i < spec.size() && spec[i] == ' ') {
+        ++unit_at;
+        if (unit_at >= spec.size() || spec[unit_at] == ' ') {
+            fail("invalid --since");
+        }
+    }
+    if (unit_at >= spec.size()) {
+        fail("invalid --since");
+    }
+    const std::string number = spec.substr(0, i);
+    const std::string unit = spec.substr(unit_at);
+
+    errno = 0;
+    char* end = nullptr;
+    const unsigned long long n = std::strtoull(number.c_str(), &end, 10);
+    if (end == number.c_str() || *end != '\0' || errno == ERANGE || n < 1) {
+        fail("invalid --since");
+    }
+
+    std::uint64_t scale = 0;
+    if (unit == "h" || unit == "hour" || unit == "hours") {
+        scale = 3600;
+    } else if (unit == "d" || unit == "day" || unit == "days") {
+        scale = 86400;
+    } else if (unit == "w" || unit == "week" || unit == "weeks") {
+        scale = 7ull * 86400ull;
+    } else if (unit == "mo" || unit == "month" || unit == "months") {
+        scale = 30ull * 86400ull;
+    } else if (unit == "y" || unit == "yr" || unit == "year" || unit == "years") {
+        scale = 365ull * 86400ull;
+    } else {
+        fail("invalid --since");
+    }
+    if (n > std::numeric_limits<std::uint64_t>::max() / scale) {
+        fail("invalid --since");
+    }
+    return static_cast<std::uint64_t>(n) * scale;
+}
+
 std::string format_last(std::uint32_t unix_time) {
     if (unix_time == 0) {
         return {};
@@ -116,6 +167,7 @@ public:
         spec.add(0, "from", true);
         spec.add(0, "source", false);
         spec.add(0, "skip-zero", false);
+        spec.add(0, "since", true);
     }
 
     bool is_generator(const Options& opts) const override { return opts.sync; }
@@ -141,6 +193,15 @@ public:
         }
         if (opts.skip_zero && opts.sync) {
             fail("cannot combine --sync and --skip-zero");
+        }
+        if (!opts.since.empty() && opts.sync) {
+            fail("cannot combine --sync and --since");
+        }
+        if (!opts.since.empty()) {
+            const std::uint64_t secs = parse_since_seconds(opts.since);
+            const std::time_t now = std::time(nullptr);
+            const std::uint64_t now_u = now > 0 ? static_cast<std::uint64_t>(now) : 0;
+            since_cutoff_ = secs > now_u ? 0 : now_u - secs;
         }
         if (!opts.from.empty()) {
             if (opts.sync) {
@@ -201,7 +262,12 @@ public:
                 fail("inflow database not found (run btk inflow --sync)");
             }
         }
-        const InflowRow row = db_->get_row(addr);
+        InflowRow row = db_->get_row(addr);
+        if (since_cutoff_ && row.last != 0 &&
+            static_cast<std::uint64_t>(row.last) < *since_cutoff_) {
+            row.sats = 0;
+            row.count = 0;
+        }
         if (opts.skip_zero && row.sats == 0) {
             return {};
         }
@@ -242,6 +308,7 @@ private:
     std::uint16_t port_ = 8332;
     std::string auth_;
     std::unique_ptr<InflowDb> db_;
+    std::optional<std::uint64_t> since_cutoff_;
 };
 
 }  // namespace

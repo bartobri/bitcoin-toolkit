@@ -168,7 +168,7 @@ never touches the network.
 
 ```sh
 btk --version --out plain
-# 4.1.0
+# 4.2.0
 ```
 
 ## License

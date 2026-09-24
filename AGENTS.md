@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.1.0
+# Agent notes — Bitcoin Toolkit 4.2.0
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,7 +6,7 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.1.0` (`src/version.hpp`). Every landing commit increments it (see
+is `4.2.0` (`src/version.hpp`). Every landing commit increments it (see
 [Version](#version)). All development is on `4.x` (see [Git](#git)).
 
 ## Keep README.md, AGENTS.md, and the version current
@@ -251,7 +251,7 @@ live bitcoind in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.1.0`.
+  `--out plain` prints `4.2.0`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
@@ -403,6 +403,8 @@ Unknown address → `sats: 0`, `count: 0`, `last: ""`, not an error. Optional
 `source` is the input item when `--source` is set. `last` is a UTC string
 `YYYY-MM-DD HH:MM:SS UTC` converted at output from the stored unix seconds;
 never-seen is the empty string. The DB still stores `uint32` unix time.
+`--since` can emit `sats: 0`, `count: 0` while keeping that `last` string
+when the stored credit time is older than the cutoff. See `btk inflow`.
 
 Query input: `type=address` → `data`; `type=inflow` → `address`;
 `type=balance` → `address`; other typed object → `expected an address`;
@@ -411,7 +413,7 @@ bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.1.0","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.2.0","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -480,7 +482,7 @@ files) run destructors on exception unwind.
 
 Global options: `-h/--help`, `-V/--version`, `--config PATH`, `-n/--network`,
 `-o/--out`, `--in`, `-s/--stream`, `-c/--count`, `--from`. Per-command flags
-stay per-command (`--type`, `--match`, `--host`, `--sync`, `--encoding`, …).
+stay per-command (`--type`, `--match`, `--host`, `--sync`, `--since`, `--encoding`, …).
 
 ## `btk privkey`
 
@@ -583,7 +585,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.1.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.2.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -607,22 +609,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.1.0/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.2.0/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8f7be3e5`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8d00d745`):
 
 ```
-f9beb4d976657273696f6e00000000006d0000008f7be3e57f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000
+f9beb4d976657273696f6e00000000006d0000008d00d7457f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e302f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e312e302f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e302f0000000000
 ```
 
 ## `btk balance`
@@ -726,7 +728,7 @@ re-prefixes to the calling command.
 ### `btk inflow`
 
 ```text
-btk inflow [--source] [--from address] [--skip-zero]
+btk inflow [--source] [--from address] [--skip-zero] [--since DURATION]
 btk inflow --sync [--host H] [--port P] [--rpc-auth USER:PASS]
 ```
 
@@ -740,10 +742,36 @@ Same query / `--sync` / `--force` / RPC / interrupt / progress contract as
   unix seconds; empty string if never seen). `--out plain` is still only
   `sats`. The DB value stays `uint32` unix time.
 - `--skip-zero` omits `sats == 0`. Empty stdout is still exit 0.
+- `--since DURATION` is query-only. The cutoff is computed once at startup
+  from `time(nullptr)`: `now - duration`, or `0` when the duration is longer
+  than `now`. A row with `last != 0` and `last < cutoff` is emitted with
+  `sats` 0 and `count` 0; `last` stays the stored time. `last == cutoff`
+  keeps the stored totals. A row inside the window is still the lifetime
+  total (the index stores the newest credit time, not each credit). Never
+  seen (`last == 0`) is unchanged. `--out plain` is still only `sats` (`0`
+  for a zeroed row). `--skip-zero` runs after that zeroing, so an
+  out-of-window row is omitted. `--source` is attached to a zeroed row when
+  requested. `--since` + `--sync` is `cannot combine --sync and --since`.
+  A bad duration is `invalid --since`. Other commands do not accept `--since`.
 - Missing database → `inflow database not found (run btk inflow --sync)`.
 - `--stream` + `--sync` → `inflow does not stream`.
 - Junk → `inflow database exists; rebuild with --sync --force`.
 - No help text. No help golden.
+
+`--since` duration is an integer ≥ 1, an optional single space, then one
+lowercase unit. No sign, fraction, or calendar date. Bare `m` is rejected.
+
+| Unit | Spellings | Length |
+|---|---|---|
+| hour | `h`, `hour`, `hours` | 3600 seconds |
+| day | `d`, `day`, `days` | 86400 seconds |
+| week | `w`, `week`, `weeks` | 7 days |
+| month | `mo`, `month`, `months` | 30 days |
+| year | `y`, `yr`, `year`, `years` | 365 days |
+
+Accepted: `1y`, `1year`, `1 month`, `30d`, `12h`, `2weeks`. Rejected: `0d`,
+`1`, `1m`, `1Y`, `1.5y`, `-1d`, `2024-01-01`, and a product that does not fit
+in `uint64`.
 
 `count`: fold credits by address **per transaction**. Two outputs to the same
 address in one tx increment `count` by 1 and add both amounts. Coinbase
