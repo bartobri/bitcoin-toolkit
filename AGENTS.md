@@ -1,4 +1,4 @@
-# Agent notes — Bitcoin Toolkit 4.2.0
+# Agent notes — Bitcoin Toolkit 4.2.1
 
 This file is the source of truth for **development**. [README.md](README.md)
 is the source of truth for **new users**. Read this first when changing the
@@ -6,7 +6,7 @@ program. Do not restore Bitcoin Toolkit 3.1.2 sources, tests, man pages,
 cJSON, or QR; tag `legacy/3.1.2` is history only.
 
 There is no `help` or `version` command. Use `--help` / `--version`. Version
-is `4.2.0` (`src/version.hpp`). Every landing commit increments it (see
+is `4.2.1` (`src/version.hpp`). Every landing commit increments it (see
 [Version](#version)). All development is on `4.x` (see [Git](#git)).
 
 ## Keep README.md, AGENTS.md, and the version current
@@ -62,7 +62,7 @@ RPC auth, `balance.path`, cloning 3.1.2 flags, man pages.
 6. Load `~/.btk/config.json` **only** for `config`, `balance`, `inflow`, and `sweep`. `privkey` / `pubkey` / `address` / `node` must not open `~/.btk`.
 7. Errors: `BtkError(command, message)` → `btk <command>: <message>` on stderr, exit 1. Never put WIF, hex keys, passphrases, or `rpc.auth` in messages.
 8. Network is per object, never process-global. Do not walk `source` for network. `--network` does not override a WIF version byte. `node` and `sweep` ignore `--network`.
-9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`. Hidden commands (`inflow`) have **no** help text: `btk inflow --help` is empty stdout, exit 0, and must not fall through to overview.
+9. Help text is pinned **byte-for-byte** in `test/cli/test_<cmd>.py` and the command’s raw string. Edit both together. There are no man pages; help is `--help` only and never execs `man`. Overview help and README.md omit hidden commands. `btk <hidden> --help` prints that command’s help text when it is non-empty, and otherwise prints nothing and exits 0. It must not fall through to overview. `inflow` help is pinned in `test/cli/test_inflow.py`. Other commands’ help text must not name `inflow`.
 10. `make test` is the gate (unit + offline CLI). No network. Live P2P is `make test-net` / `BTK_RUN_NET=1`.
 11. Every landing commit increments `BTK_VERSION_*` in `src/version.hpp` and every pin listed under [Version](#version). Never bump major unless the user explicitly asks. Choose minor vs patch from the commit’s contents.
 12. All development is on `4.x`. The user’s words **commit**, **push**, and **deploy** mean the steps under [Git](#git). Do not commit development work on `master`.
@@ -251,7 +251,7 @@ live bitcoind in `make test`.
 - No argv command → overview help on **stderr**, exit 1.
 - `btk --help` → overview on stdout, exit 0.
 - `btk --version` → typed `version` object (`version`, `secp256k1`, `leveldb`).
-  `--out plain` prints `4.2.0`.
+  `--out plain` prints `4.2.1`.
 - Unknown command: `btk: unknown command 'foo'` plus `See 'btk --help'…`.
 - Global flags may appear before or after the command (`btk --config PATH privkey --new`), except `--help`/`--version` which also work with no command.
 - Do not create `~/.btk` on unknown command or failed option parse.
@@ -262,8 +262,9 @@ live bitcoind in `make test`.
 - SIGINT / SIGTERM set `stop_requested()` (`src/util/interrupt.cpp`).
 
 `Command` interface is in `src/cmd/command.hpp`. `hidden()` default false.
-`print_overview` skips hidden commands. `btk <hidden> --help` prints nothing
-and exits 0 (must not fall through to overview). `Options` is a flat struct
+`print_overview` skips hidden commands. `btk <hidden> --help` prints that
+command’s help when `help()` is non-empty, and otherwise prints nothing,
+then exits 0. Empty help must not fall through to overview. `Options` is a flat struct
 in `src/cli/options.hpp` (global + per-command flags). Unknown flags are
 errors. `getopt_long` is fine; `--` stops option parsing. `POSIXLY_CORRECT`
 stops at the first non-option (warn in help).
@@ -413,7 +414,7 @@ bare string → parse as a Bitcoin address.
 ### `version`
 
 ```json
-{"type":"version","version":"4.2.0","secp256k1":true,"leveldb":true}
+{"type":"version","version":"4.2.1","secp256k1":true,"leveldb":true}
 ```
 
 `leveldb` is whether this binary was linked with LevelDB.
@@ -585,7 +586,7 @@ btk node --host HOST [--port 8333]
 - `--host` is required (`missing host`). Leftover positional is `provide input on stdin`.
 - `--host` may include `:port` (one colon). Combined with `--port` → `port specified twice`. More than one colon → `invalid host`. Bad suffix → `invalid port`.
 - IPv4 mainnet only (`getaddrinfo` `AF_INET`). Default port 8333. 15 s timeout on connect and read.
-- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.2.0/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
+- Send `version` (protocol 70015, services 0, nonce 0, UA `/Bitcoin-Toolkit:4.2.1/`, height 0, relay 0, `addr_*` = IPv4-mapped `127.0.0.1:8333`). Read the peer’s `version`. Print the typed object. Close. Do **not** send `verack`.
 - `--stream` → `node does not stream`. `--count` → `unknown option '--count'`. `--from` is unknown.
 - `--out plain` prints `ip:port`. `--verbose` adds `raw` with `addr_recv`, `addr_trans`, `nonce` (decimal string), `services_bits`.
 - Service bits, ascending: 0 `NODE_NETWORK`, 1 `NODE_GETUTXO`, 2 `NODE_BLOOM`, 3 `NODE_WITNESS`, 4 `NODE_XTHIN`, 6 `NODE_COMPACT_FILTERS`, 10 `NODE_NETWORK_LIMITED`. Unknown set bits as `BIT_<n>`. Do not omit unknown bits.
@@ -609,22 +610,22 @@ Multi-byte integers little-endian **except** `addr_*` ports (network byte order)
 | 54 | 16 | addr_trans.ip | same as recv |
 | 70 | 2 | addr_trans.port | BE `20 8d` |
 | 72 | 8 | nonce uint64 LE | `0` |
-| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.2.0/` |
+| 80 | 1+ | user_agent | CompactSize `17` + `/Bitcoin-Toolkit:4.2.1/` |
 | 104 | 4 | start_height int32 LE | `0` |
 | 108 | 1 | relay | `0` |
 
 P2P framing: magic `f9 be b4 d9`; 12-byte command; uint32 LE length; checksum = first 4 of HASH256(payload). UA is Bitcoin CompactSize, not Core VARINT.
 
-Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `8d00d745`):
+Frozen unit-test vector (timestamp `1700000000`, nonce `0` — tests **must not** call `time(NULL)`). Full message including 24-byte header (checksum `1c71f016`):
 
 ```
-f9beb4d976657273696f6e00000000006d0000008d00d7457f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e302f0000000000
+f9beb4d976657273696f6e00000000006d0000001c71f0167f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e312f0000000000
 ```
 
 Payload only:
 
 ```
-7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e302f0000000000
+7f110100000000000000000000f1536500000000000000000000000000000000000000000000ffff7f000001208d000000000000000000000000000000000000ffff7f000001208d0000000000000000172f426974636f696e2d546f6f6c6b69743a342e322e312f0000000000
 ```
 
 ## `btk balance`
@@ -712,10 +713,11 @@ outpoint. For each recognized output: credit `A[addr]`, write `O[this_outpoint]`
 
 ## Hidden commands
 
-`inflow` is a real argv verb. It must **not** appear in README.md, overview
-`--help`, or any command `--help`. `btk inflow --help` is empty stdout, exit 0.
-`test_scaffold.py` and `test_inflow.py` assert the hide. Do not add it to
-user-facing docs in a later pass.
+`inflow` is a real argv verb. It must **not** appear in README.md or in
+overview `--help`. Other commands’ `--help` must not name it. `btk inflow
+--help` prints the pinned usage text and exits 0. `test_scaffold.py` asserts
+the overview hide. `test_inflow.py` pins `INFLOW_HELP`. Do not add `inflow`
+to user-facing docs in a later pass.
 
 `Command::hidden()` is true. `print_overview` skips it. `find_command` still
 resolves the name.
@@ -756,7 +758,7 @@ Same query / `--sync` / `--force` / RPC / interrupt / progress contract as
 - Missing database → `inflow database not found (run btk inflow --sync)`.
 - `--stream` + `--sync` → `inflow does not stream`.
 - Junk → `inflow database exists; rebuild with --sync --force`.
-- No help text. No help golden.
+- Help is pinned in `test/cli/test_inflow.py` (`INFLOW_HELP`). Overview `--help` and README.md omit this command.
 
 `--since` duration is an integer ≥ 1, an optional single space, then one
 lowercase unit. No sign, fraction, or calendar date. Bare `m` is rejected.
@@ -1061,8 +1063,9 @@ Assert txid ≠ wtxid. Round-trip-parse the 192-byte hex: one input, one output,
 - When adding a command: register it, add `SRC`, add `test/cli/test_<cmd>.py`
   (and unit tests if there is new core), pin `--help`, update README.md +
   this file, and bump the **minor** version (see [Version](#version)). Do not
-  add a man page. Hidden commands skip README and `--help`; they still need
-  this file and tests that assert they stay hidden.
+  add a man page. Hidden commands skip README and overview `--help`. They
+  still need this file, a pinned `btk <command> --help` when they have usage
+  text, and tests that assert they stay out of the overview.
 - Keep user-facing examples in README.md working. Prefer Vector G when a
   documented WIF/address is needed.
 - Development is on `4.x`. **commit** / **push** / **deploy** follow

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hidden btk inflow CLI tests. Offline mock RPC only. Not user-facing."""
+"""Hidden btk inflow CLI tests. Offline mock RPC only. Omitted from overview help and README."""
 
 import hashlib
 import json
@@ -16,6 +16,87 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 BTK = ROOT / "bin" / "btk"
+
+INFLOW_HELP = '''btk inflow — local address → lifetime-received index
+
+Usage:
+  btk inflow
+  btk inflow --sync [--host H] [--port P] [--rpc-auth USER:PASS]
+                    [--force]
+
+Query a local lifetime-received index, or synchronize it from
+Bitcoin Core JSON-RPC. The index always lives at ~/.btk/inflow.
+Requires LevelDB at build time. Mainnet only.
+
+Query is a transformer on stdin (no positional addresses). Items
+are a typed address object (data), a typed inflow or balance
+object (address), or a bare Base58Check / bech32 address.
+--from address forces the bare-line parse. Leftover text is an
+error, not a hash. Empty stdin is empty stdout, exit 0. A missing
+address is sats: 0, count: 0, and last: "". --skip-zero drops rows
+with sats: 0 (empty stdout is still exit 0). A missing database
+is "inflow database not found (run btk inflow --sync)". Query is
+read-only.
+
+sats is lifetime received and is never reduced by a spend. count
+is the number of transactions that credited the address. last is
+the UTC time of the newest credit (YYYY-MM-DD HH:MM:SS UTC), or
+"" when the address has never been seen.
+
+--since DURATION is query-only. The cutoff is now minus the
+duration, or zero when that duration is longer than now. When
+the newest credit is older than the cutoff, the row is reported
+as sats: 0 and count: 0; last is unchanged. A newest credit at
+or after the cutoff keeps the lifetime total. An address never
+seen is unchanged. --skip-zero runs after that zeroing. The
+duration is an integer of at least 1, an optional single space,
+and one lowercase unit: h, hour, hours, d, day, days, w, week,
+weeks, mo, month, months, y, yr, year, or years. A bad duration
+is "invalid --since".
+
+--sync walks Core JSON-RPC (getblockcount, getblockhash, getblock
+hex). Missing or empty DB: walk 0…tip. Valid DB: walk
+Mheight+1…tip (already at tip → complete, exit 0). Junk or a reorg:
+rebuild with --sync --force. --force wipes the directory and walks
+from genesis. Ctrl-C / SIGTERM abort within ~200 ms; the next
+--sync continues from the last saved height. Progress is on stderr.
+
+No cookie file. Use --rpc-auth user:pass or config rpc.auth.
+--host / --port default to config rpc.host / rpc.port or
+127.0.0.1 / 8332. A first mainnet sync needs a node that can serve
+every historical block and can take days; later runs are
+incremental.
+
+Options:
+  -h, --help             Show this help and exit
+      --sync             Create the index or catch it up from RPC
+      --force            With --sync, wipe ~/.btk/inflow and walk
+                         from genesis
+      --host HOST        RPC host. Default: config rpc.host or
+                         127.0.0.1. A host:port form sets the port.
+      --port PORT        RPC port. Default: config rpc.port or 8332
+      --rpc-auth USER:PASS
+                         HTTP Basic credentials. Default: config
+                         rpc.auth. No cookie file.
+      --from address     Force bare stdin lines as addresses
+      --source           Include the input item as a source object
+      --skip-zero        Omit addresses with sats: 0
+      --since DURATION   Zero sats and count when the newest credit
+                         is older than DURATION. Query only.
+      --config PATH      Config file. Default: $BTK_CONFIG, else
+                         ~/.btk/config.json
+  -o, --out FORMAT       ndjson (default), json, or plain. plain
+                         prints the satoshi count.
+      --in FORMAT        auto (default), ndjson, json, or plain
+
+Examples:
+  btk inflow --sync
+  printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk inflow
+  btk privkey --new | btk address | btk inflow
+  btk privkey --new | btk address | btk inflow --skip-zero
+  btk privkey --new | btk address --source | btk inflow --source
+  printf '%s' 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | btk inflow --since 1y
+'''
 
 P2WPKH_G = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
 P2PKH_G = "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH"
@@ -193,8 +274,8 @@ def ndjson(stdout):
 def main():
     r = run(["inflow", "--help"])
     assert r.returncode == 0, r.stderr.decode()
-    assert r.stdout == b""
     assert r.stderr == b""
+    assert r.stdout.decode() == INFLOW_HELP, repr(r.stdout.decode())
 
     r = run(["--help"])
     assert r.returncode == 0

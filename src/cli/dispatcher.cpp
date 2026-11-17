@@ -159,13 +159,13 @@ int dispatch(int argc, char** argv) {
     parse_argv(argc, argv, spec, opts);
 
     if (opts.help) {
-        if (cmd != nullptr && cmd->hidden()) {
-            return 0;
-        }
         if (cmd != nullptr) {
             const char* text = cmd->help();
             if (text != nullptr && text[0] != '\0') {
                 std::cout << text;
+                return 0;
+            }
+            if (cmd->hidden()) {
                 return 0;
             }
         }
